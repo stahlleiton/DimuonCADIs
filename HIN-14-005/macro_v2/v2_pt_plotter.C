@@ -38,25 +38,25 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #include "v2_dataNumbers_2015.h"
 #endif
 
-void v2_pt_plotter(int jpsiCategory      = 3, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
-		string nDphiBins      = "4",
-		const char* outputDir = "output", 
-		const char* inputDir  = "outputNumbers",// where phi and v2 numbers are (root, and txt format)
-		bool bDoDebug         = false,
-		bool bSavePlots       = true
-		) 
-{
+void v2_pt_plotter(
+    int jpsiCategory      = 1, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+    string nDphiBins      = "4",
+    const char* outputDir = "output", 
+    const char* inputDir  = "outputNumbers",// where phi and v2 numbers are (root, and txt format)
+    bool bDoDebug         = false,
+    bool bSavePlots       = true
+    ) {
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
   
-// set the style
+  // set the style
   setTDRStyle();
   gStyle->SetOptFit(0);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(kFALSE);
 
   // input files: prompt and non-prompt ones
-  const char* v2InFileDirs[1] = {"histsV2Yields_20150823_v2W_Lxyz_pTtune_PRMC_dPhiBins4"};
+  const char* v2InFileDirs[1] = {"histsV2Yields_20151111_v2W_TnPAtRD3_4DEff_RapPtEffMap2_Ratio_dPhiBins4"};
   const char* legend[4]       = {"","Prompt J/#psi","Non-prompt J/#psi","Background"};
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
  
@@ -79,30 +79,25 @@ void v2_pt_plotter(int jpsiCategory      = 3, // 1 : Prompt, 2 : Non-Prompt, 3: 
   double adV2_low_stat[1]   = {0};
   double adV2_low_err0[1]   = {0};
 
+  for(int ib=0; ib<nBins; ib++) {
+    adWidth_systBox[ib] = 0.5;
+    adV2_syst[ib]    = adV2Pt_pr_syst[ib];
+    adXaxis[ib]      = adXaxisPt_pr[ib];
+    adXaxis_l[ib]    = adXaxisPt_pr_l[ib];
+    adXaxis_h[ib]    = adXaxisPt_pr_h[ib];
+    if(bDoDebug) cout<<"bin "<<ib<<"low_Err"<<adXaxis_l[ib]<<"\t high_err: "<< adXaxis_h[ib]<<endl;
 
+    adV2_low_syst[0] = adV2_low_pr_syst[0];
 
-  for(int ib=0; ib<nBins; ib++)
-    {
-      adWidth_systBox[ib] = 0.5;
-      adV2_syst[ib]    = adV2Pt_pr_syst[ib];
-      adXaxis[ib]      = adXaxisPt_pr[ib];
-      adXaxis_l[ib]    = adXaxisPt_pr_l[ib];
-      adXaxis_h[ib]    = adXaxisPt_pr_h[ib];
-      if(bDoDebug) cout<<"bin "<<ib<<"low_Err"<<adXaxis_l[ib]<<"\t high_err: "<< adXaxis_h[ib]<<endl;
+    if(jpsiCategory==2) {
+      adV2_syst[ib]    = adV2Pt_np_syst[ib];
+      adXaxis[ib]      = adXaxisPt_np[ib];
+      adXaxis_l[ib]    = adXaxisPt_np_l[ib];
+      adXaxis_h[ib]    = adXaxisPt_np_h[ib];
 
-      adV2_low_syst[0] = adV2_low_pr_syst[0];
-
-      if(jpsiCategory==2)
-	{
-	  adV2_syst[ib]    = adV2Pt_np_syst[ib];
-	  adXaxis[ib]      = adXaxisPt_np[ib];
-	  adXaxis_l[ib]    = adXaxisPt_np_l[ib];
-	  adXaxis_h[ib]    = adXaxisPt_np_h[ib];
-
-	 adV2_low_syst[0] = adV2_low_np_syst[0];
-
-	}
+     adV2_low_syst[0] = adV2_low_np_syst[0];
     }
+  }
   
   // // open the files with yields and do the math
   ifstream in;
@@ -121,32 +116,26 @@ void v2_pt_plotter(int jpsiCategory      = 3, // 1 : Prompt, 2 : Non-Prompt, 3: 
   int iline=0;
   string tmpstring;
   getline(in,tmpstring);
-  while ( in.good() && iline<nBins+1)
-    {
-      in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> x[0] >> x[1] >> x[2] >> x[3];
-      if(iline==0) 
-	{
-	  adV2_low[iline]      = x[2];      
-	  adV2_low_stat[iline] = x[3];
-	}
-      else
-	{
-	  adV2[iline-1]      = x[2];
-	  adV2_stat[iline-1] = x[3];
-	}
-      cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
-      cout <<"v2= "<< x[2] << "\t error= "<< x[3]<<endl;
-      iline++;
+  while ( in.good() && iline<nBins+1) {
+    in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> x[0] >> x[1] >> x[2] >> x[3];
+    if(iline==0) {
+      adV2_low[iline]      = x[2];      
+      adV2_low_stat[iline] = x[3];
+    } else {
+      adV2[iline-1]      = x[2];
+      adV2_stat[iline-1] = x[3];
     }
+    cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
+    cout <<"v2= "<< x[2] << "\t error= "<< x[3]<<endl;
+    iline++;
+  }
   in.close();
-  if(bDoDebug)
-    {
-      for(int ib=0; ib<nBins; ib++)
-	{
-	  cout<<"Bin "<<ib<<"\t stat. uncert.: "<<adV2_stat[ib]<<endl;
-	  cout << "adXaxis: "<< adXaxis[ib]<<"\t adXaxis_l: "<<adXaxis_l[ib]<<"\t adXaxis_h: "<<adXaxis_h[ib]<<endl;
-	}
+  if(bDoDebug) {
+    for(int ib=0; ib<nBins; ib++) {
+      cout<<"Bin "<<ib<<"\t stat. uncert.: "<<adV2_stat[ib]<<endl;
+      cout << "adXaxis: "<< adXaxis[ib]<<"\t adXaxis_l: "<<adXaxis_l[ib]<<"\t adXaxis_h: "<<adXaxis_h[ib]<<endl;
     }
+  }
   // high-pt
   TGraphAsymmErrors *pgV2     = new TGraphAsymmErrors(nBins, adXaxis, adV2, adXaxis_l, adXaxis_h, adV2_stat, adV2_stat);
   TGraphAsymmErrors *pgV2_sys = new TGraphAsymmErrors(nBins, adXaxis, adV2, adWidth_systBox,adWidth_systBox, adV2_syst, adV2_syst);
@@ -171,15 +160,15 @@ void v2_pt_plotter(int jpsiCategory      = 3, // 1 : Prompt, 2 : Non-Prompt, 3: 
   pgV2_cont->SetMarkerSize(1.1);
 
   if(jpsiCategory==2)
-    {
-      pgV2->SetMarkerColor(kOrange+2);
-      pgV2_sys->SetFillColor(kOrange-9);
-    }
+  {
+    pgV2->SetMarkerColor(kOrange+2);
+    pgV2_sys->SetFillColor(kOrange-9);
+  }
   if(jpsiCategory==3)// bkg
-    {
-      pgV2->SetMarkerColor(1);
-      pgV2_sys->SetFillColor(19);
-    }
+  {
+    pgV2->SetMarkerColor(1);
+    pgV2_sys->SetFillColor(19);
+  }
   // low-pt
   pgV2_low->SetMarkerColor(kViolet+2);
   pgV2_low_sys->SetFillColor(kViolet-9);
@@ -207,8 +196,8 @@ void v2_pt_plotter(int jpsiCategory      = 3, // 1 : Prompt, 2 : Non-Prompt, 3: 
   legPt->SetMargin(0.2);
   legPt->SetTextSize(0.04);
   legPt->SetTextFont(42);
-  legPt->AddEntry(pgV2_low,"|y|<2.4","P");
-  legPt->AddEntry(pgV2,"1.6<|y|<2.4","P");
+  legPt->AddEntry(pgV2,"|y|<2.4","P");
+  legPt->AddEntry(pgV2_low,"1.6<|y|<2.4","P");
  
   TLatex *pre = new TLatex(2,0.22,Form("%s",legend[jpsiCategory]));
   pre->SetTextFont(42);
@@ -222,7 +211,7 @@ void v2_pt_plotter(int jpsiCategory      = 3, // 1 : Prompt, 2 : Non-Prompt, 3: 
   lcent->SetTextFont(42);
   lcent->SetTextSize(0.04);
 
- //-------------- Drawing 
+  //-------------- Drawing 
   TCanvas *pc = new TCanvas("pc","pc");
   phAxis->Draw();
   CMS_lumi(pc,101,33);
@@ -243,10 +232,10 @@ void v2_pt_plotter(int jpsiCategory      = 3, // 1 : Prompt, 2 : Non-Prompt, 3: 
 
  
   if(bSavePlots)
-    {
-      pc->SaveAs(Form("%s/png/v2_%s_%s_nphi%s.png",outputDir,outFilePlot[1],signal[jpsiCategory],nDphiBins.c_str()));
-      pc->SaveAs(Form("%s/pdf/v2_%s_%s_nphi%s.pdf",outputDir,outFilePlot[1],signal[jpsiCategory],nDphiBins.c_str()));
-    }
+  {
+    pc->SaveAs(Form("%s/png/v2_%s_%s_nphi%s.png",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));
+    pc->SaveAs(Form("%s/pdf/v2_%s_%s_nphi%s.pdf",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));
+  }
 
 }
 

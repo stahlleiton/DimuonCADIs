@@ -38,26 +38,26 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #include "v2_dataNumbers_2015.h"
 #endif
 
-void v2_cent_plotter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
-		     string nDphiBins      = "4",
-		     const char* outputDir = "output", 
-		     const char* inputDir  = "outputNumbers",// where phi and v2 numbers are (root, and txt format)
-		     bool bDoDebug         = true,
-		     bool bAddCent010      = false, 
-		     bool bSavePlots       = true
-		     ) 
-{
+void v2_cent_plotter(
+   int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+   string nDphiBins      = "4",
+   const char* outputDir = "output", 
+   const char* inputDir  = "outputNumbers",// where phi and v2 numbers are (root, and txt format)
+   bool bDoDebug         = true,
+   bool bAddCent010      = false, 
+   bool bSavePlots       = true
+   ) {
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
   
-// set the style
+  // set the style
   setTDRStyle();
   gStyle->SetOptFit(0);
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(kFALSE);
 
   // input files: prompt and non-prompt ones
-  const char* v2InFileDirs[1] = {"histsV2Yields_20150823_v2W_Lxyz_pTtune_PRMC_dPhiBins4"};
+  const char* v2InFileDirs[1] = {"histsV2Yields_20151111_v2W_TnPAtRD3_4DEff_RapPtEffMap2_Ratio_dPhiBins4"};
   const char* legend[4]       = {"","Prompt J/#psi","Non-prompt J/#psi","Background"};
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
  
@@ -76,19 +76,19 @@ void v2_cent_plotter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3
   double adWidth_systBox[nBins]; // width of the systm. uncert.
 
   for(int ib=0; ib<nBins; ib++)
+  {
+    adWidth_systBox[ib] = 10;
+    adV2_syst[ib]       = adV2Cent_pr_syst[ib];
+    adXaxis[ib]         = adXaxisCent_pr[ib];
+
+    if(jpsiCategory==2)
     {
-      adWidth_systBox[ib] = 10;
-      adV2_syst[ib]       = adV2Cent_pr_syst[ib];
-      adXaxis[ib]         = adXaxisCent_pr[ib];
-
-      if(jpsiCategory==2)
-	{
-	  adV2_syst[ib]    = adV2Cent_np_syst[ib];
-	  adXaxis[ib]      = adXaxisCent_np[ib];
-	}
-
-      if(bDoDebug) cout<<"Bin "<<ib<<"\t adAxis= "<<adXaxis[ib]<<endl;
+      adV2_syst[ib]    = adV2Cent_np_syst[ib];
+      adXaxis[ib]      = adXaxisCent_np[ib];
     }
+
+    if(bDoDebug) cout<<"Bin "<<ib<<"\t adAxis= "<<adXaxis[ib]<<endl;
+  }
   
   // // open the files with yields and do the math
   ifstream in;
@@ -108,28 +108,27 @@ void v2_cent_plotter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3
   string tmpstring;
   getline(in,tmpstring);
   while ( in.good() && iline<nBins)
-    {
-      in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> x[0] >> x[1] >> x[2] >> x[3];
+  {
+    in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> x[0] >> x[1] >> x[2] >> x[3];
 
-      adV2[nBins-iline-1]      = x[2];
-      adV2_stat[nBins-iline-1] = x[3];
+    adV2[nBins-iline-1]      = x[2];
+    adV2_stat[nBins-iline-1] = x[3];
 
-      cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
-      cout <<"v2= "<< x[2] << "\t error= "<< x[3]<<endl;
-      iline++;
-    }
+    cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
+    cout <<"v2= "<< x[2] << "\t error= "<< x[3]<<endl;
+    iline++;
+  }
   in.close();
   if(bDoDebug)
-    {
-      for(int ib=0; ib<nBins; ib++)
-	cout<<"Bin "<<ib<<"\t adXaxis: "<< adXaxis[ib]<<"\t v2= "<<adV2[ib]<<endl;
-    }
+  {
+    for(int ib=0; ib<nBins; ib++) cout<<"Bin "<<ib<<"\t adXaxis: "<< adXaxis[ib]<<"\t v2= "<<adV2[ib]<<endl;
+  }
   // high-pt
   TGraphErrors *pgV2          = new TGraphErrors(nBins, adXaxis, adV2, adV2_stat, adV2_stat);
   TGraphAsymmErrors *pgV2_sys = new TGraphAsymmErrors(nBins, adXaxis, adV2, adWidth_systBox,adWidth_systBox, adV2_syst, adV2_syst);
   TGraphErrors *pgV2_cont     = new TGraphErrors(nBins, adXaxis, adV2, adV2_err0, adV2_err0);
   
-    // //-------------------------------------------------- Drawing stuff
+  //-------------------------------------------------- Drawing stuff
   // colors and symbols
   // high-pt
   pgV2->SetMarkerColor(kRed+1);
@@ -143,15 +142,15 @@ void v2_cent_plotter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3
   pgV2_cont->SetMarkerSize(1.1);
 
   if(jpsiCategory==2)
-    {
-      pgV2->SetMarkerColor(kOrange+2);
-      pgV2_sys->SetFillColor(kOrange-9);
-    }
+  {
+    pgV2->SetMarkerColor(kOrange+2);
+    pgV2_sys->SetFillColor(kOrange-9);
+  }
   if(jpsiCategory==3)// bkg
-    {
-      pgV2->SetMarkerColor(1);
-      pgV2_sys->SetFillColor(19);
-    }
+  {
+    pgV2->SetMarkerColor(1);
+    pgV2_sys->SetFillColor(19);
+  }
  
   //-------------------------------------------------------
   // general labels 
@@ -182,7 +181,7 @@ void v2_cent_plotter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3
   lcent->SetTextFont(42);
   lcent->SetTextSize(0.04);
 
- //-------------- Drawing 
+  //-------------- Drawing 
   TCanvas *pc = new TCanvas("pc","pc");
   phAxis->Draw();
   CMS_lumi(pc,101,33);
@@ -191,20 +190,20 @@ void v2_cent_plotter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3
   ly->Draw();
   lcent->Draw();
 
- int write2 = nBins;
+  int write2 = nBins;
   if(!bAddCent010) 
-    {
-      write2 = nBins-1;
-      pgV2_sys->RemovePoint(write2);
-      pgV2->RemovePoint(write2);
-      pgV2_cont->RemovePoint(write2);
-    }
+  {
+    write2 = nBins-1;
+    pgV2_sys->RemovePoint(write2);
+    pgV2->RemovePoint(write2);
+    pgV2_cont->RemovePoint(write2);
+  }
 
   for(int ib=0; ib<write2; ib++)
-    {
-     if(jpsiCategory==2) lcent->DrawLatex(adXaxis[ib]-30,-0.025,Form("%s",centBinsLegend[nCentBins-1-ib]));
-     else lcent->DrawLatex(adXaxis[ib]-30,-0.025,Form("%s",centBinsLegend[nCentBins-nBins-ib]));
-    }
+  {
+   if(jpsiCategory==2) lcent->DrawLatex(adXaxis[ib]-30,-0.025,Form("%s",centBinsLegend[nCentBins-1-ib]));
+   else lcent->DrawLatex(adXaxis[ib]-30,-0.025,Form("%s",centBinsLegend[nCentBins-nBins-ib]));
+  }
   
   pgV2_sys->Draw("2");
   pgV2->Draw("PZ");
@@ -213,10 +212,10 @@ void v2_cent_plotter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3
 
  
   if(bSavePlots)
-    {
-      pc->SaveAs(Form("%s/png/v2_%s_%s_nphi%s.png",outputDir,outFilePlot[2],signal[jpsiCategory],nDphiBins.c_str()));
-      pc->SaveAs(Form("%s/pdf/v2_%s_%s_nphi%s.pdf",outputDir,outFilePlot[2],signal[jpsiCategory],nDphiBins.c_str()));
-    }
+  {
+    pc->SaveAs(Form("%s/png/v2_%s_%s_nphi%s.png",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));
+    pc->SaveAs(Form("%s/pdf/v2_%s_%s_nphi%s.pdf",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));
+  }
 
 }
 

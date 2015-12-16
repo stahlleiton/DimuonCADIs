@@ -22,32 +22,32 @@
 
   // ##### Lxyz with TnP corrections applied to data (not to the MC 4D efficiencies)
   const char* yieldHistFile_yesWeight_1[2] = {
-    "histsRaaYields_20151111_PbPb_weightedEff_TnPAtRD3_4DEff_RapPtEffMap2_Ratio.root",
-    "histsRaaYields_20151111_pp_weightedEff_TnPAtRD3_4DEff_RapPtEffMap2_Ratio.root"
+    "histsRaaYields_20151130_PbPb_weightedEff_TnPAtRD3_4DEff_RapPtEffMap3_Ratio.root",
+    "histsRaaYields_20151130_pp_weightedEff_TnPAtRD3_4DEff_RapPtEffMap3_Ratio.root"
   };
   
   const char* yieldHistFile_noWeight_1[2] = {
-    "histsRaaYields_20151111_PbPb_noWeight_TnPAtRD3_4DEff_RapPtEffMap2_Ratio.root",
-    "histsRaaYields_20151111_pp_noWeight_TnPAtRD3_4DEff_RapPtEffMap2_Ratio.root"
+    "histsRaaYields_20151130_PbPb_noWeight_TnPAtRD3_4DEff_RapPtEffMap3_Ratio.root",
+    "histsRaaYields_20151130_pp_noWeight_TnPAtRD3_4DEff_RapPtEffMap3_Ratio.root"
   };
 
   // ##### Lxyz, no TnP corrections
   // Lxyz, 4D eff is applied
   const char* yieldHistFile_yesWeight_0[2] = {
-   "histsRaaYields_20151108_PbPb_weightedEff_noTnP_4DEff_RapPtEffMap2_Ratio.root",
-   "histsRaaYields_20151105_pp_weightedEff_noTnP_4DEff_RapPtEffMap2_Ratio.root"
+   "histsRaaYields_20151209_PbPb_weightedEff_noTnP_4DEff2_RapPtEffMap4_Ratio.root",
+   "histsRaaYields_20151209_pp_weightedEff_noTnP_4DEff2_RapPtEffMap4_Ratio.root"
   };
   
   // Lxyz, 4D eff is applied
   const char* yieldHistFile_noWeight_0[2] = {
-    "histsRaaYields_20151105_PbPb_noWeight_TnPAtRD3_4DEff_RapPtEffMap2_Ratio.root",
-    "histsRaaYields_20151105_pp_noWeight_TnPAtRD3_4DEff_RapPtEffMap2_Ratio.root"
+    "histsRaaYields_20151209_PbPb_noWeight_TnPAtRD3_4DEff2_RapPtEffMap4_Ratio.root",
+    "histsRaaYields_20151209_pp_noWeight_TnPAtRD3_4DEff2_RapPtEffMap4_Ratio.root"
   };
 
   // ##### 3D efficiencies
 //  const char* effHistFile[2]       = {"histEff_pbpb_tradEff_20150825.root",       "histEff_pp_tradEff_20150825.root"};
-  const char* effHistFile[2]       = {"histEff_20151028_PbPb_Eff_newTnP.root",       "histEff_20151028_pp_Eff_newTnP.root"};
-  const char* effHistFile_noTnP[2] = {"histEff_20150911_PbPb_Eff_noTnP_M2.95-3.25.root", "histEff_20150911_pp_Eff_noTnP_M2.95-3.25.root"};
+  const char* effHistFile[2]       = {"histEff_20151201_PbPb_newTnP.root", "histEff_20151201_pp_newTnP.root"};
+  const char* effHistFile_noTnP[2] = {"histEff_20151201_PbPb_noTnP.root", "histEff_20151201_pp_noTnP.root"};
 
 #endif
 
