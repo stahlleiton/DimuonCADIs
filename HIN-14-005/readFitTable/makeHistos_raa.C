@@ -10,7 +10,7 @@ c) chose whether is the yields files or efficiency that you want to 'histogramiz
 
 The output root files of this macro, wich contains the histograms with the yields, are the input root file that are needed to make the Raa plots! 
 
- */
+*/
 #include <Riostream.h>
 #include <TSystem.h>
 #include <TProfile.h>
@@ -35,8 +35,8 @@ The output root files of this macro, wich contains the histograms with the yield
 #include "Riostream.h"
 #include "dataBinning_2015.h"
 
-void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
-                   int weight    = 0,// 0=noWeight, 1=weight
+void makeHistos_raa(int sample   = 1,// 0=PbPb,     1= pp
+                   int weight    = 1,// 0=noWeight, 1=weight
                    int isEffFile = 0,// 0=no, 1=yes needed when making efficiency histograms
                    const char* inputFitDataFileLocation = "../data/raa"
                    ) 
@@ -81,7 +81,7 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
   int cent1[300], cent2[300];
   int nline = 0;
 
-  // Read 2 header lines and throw them away to kepp only numbers
+  // Read 2 header lines and throw them away to keep only numbers
   string tmpstring;
   getline(in,tmpstring);
   getline(in,tmpstring);
@@ -100,7 +100,7 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
       nprpt[nline] = x[14]; nprptErr[nline] = fabs(x[15]);// non-prompt yield and error
       //[16]&[17] is the b-fraction
 
-      cout<<"nline= "<<nline<<"y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[12] <<endl;
+      cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[12] <<endl;
     }
     else // efficiency files
     {
@@ -117,6 +117,7 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
   cout<<"#######  Done reading the input dat file!"<<endl;
   pfOutput->cd();
  
+  TH1::SetDefaultSumw2();
 
   // Make histograms
   // minbias histos
@@ -155,42 +156,8 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
   TH1F *phPrp_y1624LowPtCent  = new TH1F("phPrp_y1624LowPtCent", ";N_{part};Yield",nBinsNpart6,bins6);
   TH1F *phNPrp_y1624LowPtCent = new TH1F("phNPrp_y1624LowPtCent", ";N_{part};Yield",nBinsNpart6,bins6);
 
-// ------------------
-  phPrp_mb->Sumw2();
-  phNPrp_mb->Sumw2();
-
-  phPrp_y_mb->Sumw2();
-  phNPrp_y_mb->Sumw2();
-
-  phPrp_ptLow_mb->Sumw2();
-  phNPrp_ptLow_mb->Sumw2();
-
-  phPrp_cent->Sumw2();
-  phNPrp_cent->Sumw2();
-
-  phPrp_y->Sumw2();
-  phNPrp_y->Sumw2();
-
-  phPrp_pt->Sumw2();
-  phNPrp_pt->Sumw2();
-  
-  phPrp_ptLow->Sumw2();
-  phNPrp_ptLow->Sumw2();
-
-  phPrp_y012Cent->Sumw2();
-  phNPrp_y012Cent->Sumw2();
-
-  phPrp_y1216Cent->Sumw2();
-  phNPrp_y1216Cent->Sumw2();
-
-  phPrp_y1624Cent->Sumw2();
-  phNPrp_y1624Cent->Sumw2();
-
-  phPrp_y1624LowPtCent->Sumw2();
-  phNPrp_y1624LowPtCent->Sumw2(); 
-
   cout<<"#######  Done declaring the histograms!"<<endl;
-//--------------------------
+  //--------------------------
   // loop over all entries in file, and fill histos
  
   for (int il=0; il<=nline; il++)
@@ -219,9 +186,7 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
         // fill histograms
         phPrp_cent->SetBinContent(binn,prpt[il]);
         phPrp_cent->SetBinError(binn,prptErr[il]);
-	
-	//cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
-
+        cout << il << " " << binn << " phPrp_cent: prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
       }
 
       if(il==14 || il==18 ||il==21 || il==24 || il==27 || il==30)
@@ -235,8 +200,8 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
         if(il == 30) binn = 1; // 50-100
         phNPrp_cent->SetBinContent(binn,nprpt[il]);
         phNPrp_cent->SetBinError(binn,nprptErr[il]);
-	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
-	
+        cout << il << " " << binn << " phPrp_cent: prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+  
       }
 
       if( il==39 || il==42 || il==43 || il==10 || il==11 || il==13) // the high pt lines
@@ -254,8 +219,7 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
         
         phNPrp_pt->SetBinContent(binn,nprpt[il]);
         phNPrp_pt->SetBinError(binn,nprptErr[il]);
-
-       	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+        cout << il << " " << binn << " phPrp_pt: prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
 
       }//pt
 
@@ -274,13 +238,12 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
         
         phNPrp_y->SetBinContent(binn,nprpt[il]);
         phNPrp_y->SetBinError(binn,nprptErr[il]);
-
-	//cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+        cout << il << " " << binn << " phPrp_y: prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
 
       }//y
 
       // ************************** yields for 2D RAA --- high-pt
-      if(il>=1 && il<=73 && il!=2) // y[0,1.2]
+      if(il>=1 && il<=7 && il!=2) // y[0,1.2]
       {
         if(il == 1) binn = 6; // 0-10
         if(il == 3) binn = 5; // 10-20
@@ -295,8 +258,7 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
         
         phNPrp_y012Cent->SetBinContent(binn,nprpt[il]);
         phNPrp_y012Cent->SetBinError(binn,nprptErr[il]);
-
-	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+        cout << il << " " << binn << " phPrp_y012Cent: prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
 
       }//y12
       
@@ -315,9 +277,8 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
         
         phNPrp_y1216Cent->SetBinContent(binn,nprpt[il]);
         phNPrp_y1216Cent->SetBinError(binn,nprptErr[il]);
-
-	//cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
-	
+        cout << il << " " << binn << " phPrp_y1216Cent: prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+  
       }//y1216, pt_6.5_30
       
       if(il>=69 && il<=75 && il!=70) // y[1.6,2.4]
@@ -335,9 +296,8 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
         
         phNPrp_y1624Cent->SetBinContent(binn,nprpt[il]);
         phNPrp_y1624Cent->SetBinError(binn,nprptErr[il]);
-
-	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
-		
+        cout << il << " " << binn << " phPrp_y1624Cent: prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+    
       }//y1624, pt_6.5_30
       
       // ************************** yields for 2D RAA --- low-pt
@@ -351,17 +311,16 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
           if(il == 65) binn = 2; // 40-50
           if(il == 66) binn = 1; // 50-100
           
-	  cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
           // fill histograms
           phPrp_y1624LowPtCent->SetBinContent(binn,prpt[il]);
           phPrp_y1624LowPtCent->SetBinError(binn,prptErr[il]);
       
           phNPrp_y1624LowPtCent->SetBinContent(binn,nprpt[il]);
           phNPrp_y1624LowPtCent->SetBinError(binn,nprptErr[il]);
+          cout << il << " " << binn << " phPrp_y1624LowPtCent: prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
         }
       } else if (nBinsNpart5 == phPrp_y1624LowPtCent->GetNbinsX()) {
-          cout<<"Dont' have this binning for low-pt fwd non-prompt anymore! "<<endl;
-  
+          cout<<"Don't have this binning for low-pt fwd non-prompt anymore! "<<endl;
       }//y1624low
 
       if( il==55 || il==67 || il==68) // the 3 pt bins
@@ -376,8 +335,7 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
         
         phNPrp_ptLow->SetBinContent(binn,nprpt[il]);
         phNPrp_ptLow->SetBinError(binn,nprptErr[il]);
-
-	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+        cout << il << " " << binn << " phPrp_ptLow: prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
 
       }//y1624Pt
 
@@ -389,8 +347,7 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
         phPrp_mb->SetBinError(binn,prptErr[il]);
         phNPrp_mb->SetBinContent(binn,nprpt[il]);
         phNPrp_mb->SetBinError(binn,nprptErr[il]);
-
-	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+        cout << il << " " << binn << " phPrp_mb: prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
 
       }
       
@@ -405,9 +362,8 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
 
         phNPrp_y_mb->SetBinContent(binn,nprpt[il]);
         phNPrp_y_mb->SetBinError(binn,nprptErr[il]);
-
-	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
-	  
+        cout << il << " " << binn << " phPrp_y_mb: prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+    
       }
       
       if(il==58 || il==70 || il==54)// fwd bin: 3-6.5, 6.5-30, 3-30
@@ -415,14 +371,13 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
         if(il==58)binn = 1;//pT 3-6.5
         if(il==70)binn = 2;//pT 6.5-30
         if(il==54)binn = 3;//pT 3-30
-	
+  
         phPrp_ptLow_mb->SetBinContent(binn,prpt[il]);
         phPrp_ptLow_mb->SetBinError(binn,prptErr[il]);
 
         phNPrp_ptLow_mb->SetBinContent(binn,nprpt[il]);
         phNPrp_ptLow_mb->SetBinError(binn,nprptErr[il]);
-
-	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+        cout << il << " " << binn << " phPrp_ptLow_mb: prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
 
 
       }
@@ -455,14 +410,12 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
 
       if( il==11 || il==14 || il==15 || il==4 || il==5 || il==7) // the high pt lines
       {
-	if(il == 11) binn = 1; // 6.5-8.5
+        if(il == 11) binn = 1; // 6.5-8.5
         if(il == 14) binn = 2; // 8.5-9.5
         if(il == 15) binn = 3; // 9.5-11
         if(il == 4)  binn = 4; // 11-13
         if(il == 5)  binn = 5; // 13-16
         if(il == 7)  binn = 6; // 16-30
-        
-	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
 
         // fill histograms
         phPrp_pt->SetBinContent(binn,prpt[il]);
@@ -470,6 +423,7 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
         
         phNPrp_pt->SetBinContent(binn,nprpt[il]);
         phNPrp_pt->SetBinError(binn,nprptErr[il]);
+        cout << il << " " << binn << " phPrp_pt: prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
       }//pt
 
       if(il==0 || il==16 || il==17 || il==18 || il==19 || il==27 ) // the y lines
@@ -480,8 +434,6 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
         if(il == 18) binn = 4; // 1.2-1.6
         if(il == 19) binn = 5; // 1.6-2
         if(il == 27) binn = 6; // 2-2.4
-        
-	//cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
 
         // fill histograms
         phPrp_y->SetBinContent(binn,prpt[il]);
@@ -489,6 +441,7 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
         
         phNPrp_y->SetBinContent(binn,nprpt[il]);
         phNPrp_y->SetBinError(binn,nprptErr[il]);
+        cout << il << " " << binn << " phPrp_y: prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
       }//y
 
       // ************************** yields for 2D RAA --- high-pt
@@ -602,30 +555,6 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
   if(sample==1)   cout<<"#######  Done filling the pp data histograms!"<<endl;
       
   // write all histos in the output file
-/*  phPrp_cent->Write();
-  phNPrp_cent->Write();
-
-  phPrp_y->Write();
-  phNPrp_y->Write();
-
-  phPrp_pt->Write();
-  phNPrp_pt->Write();
-  
-  phPrp_ptLow->Write();
-  phNPrp_ptLow->Write();
-
-  phPrp_y012Cent->Write();
-  phNPrp_y012Cent->Write();
-
-  phPrp_y1216Cent->Write();
-  phNPrp_y1216Cent->Write();
-
-  phPrp_y1624Cent->Write();
-  phNPrp_y1624Cent->Write();
-
-  phPrp_y1624LowPtCent->Write();
-  phNPrp_y1624LowPtCent->Write(); 
-*/
   in.close();
   pfOutput->Write();
   cout<<"####### Wrote hists to file, and closed file! Good luck!"<<endl;
