@@ -72,15 +72,15 @@ double adTaaMBErr[nBinsMB]    = {0.32};
 double adDeltaCentMB[nBinsMB] = {1};
 
 // pt
-const int nBinsPt             = 7;
+const int nBinsPt             = 6;
 const int nBinsPt3            = 3;
-double binsPt[nBinsPt]        = {7, 8, 9, 10, 12, 14, 20}; // pt>6.5 first bin, 0--2.4
+double binsPt[nBinsPt]        = {7.5, 9, 10, 12, 14, 20}; // pt>6.5 first bin, 0--2.4
 double binsPt3[nBinsPt3]      = {3.5, 5.0, 6.0}; // pt 3-6.5 in fwd region
 double binsPt3_mb[nBinsPt3]   = {4.5, 10.0, 15}; // mb in the fwd region
-double binsPtErr[nBinsPt]     = {0,0,0,0,0,0,0};
+double binsPtErr[nBinsPt]     = {0,0,0,0,0,0,};
 double binsPt3Err[nBinsPt3]   = {0,0,0}; 
 double binsPt3Err_mb[nBinsPt3]= {0,0,0};
-double binsPtX[nBinsPt]     = {0.05,0.05,0.05,0.05,0.05,0.05,0.05};
+double binsPtX[nBinsPt]     = {0.05,0.05,0.05,0.05,0.05,0.05};
 double binsPt3X[nBinsPt3]   = {0.05,0.05,0.05}; 
 double binsPt3X_mb[nBinsPt3]= {0.05,0.05,0.05};
 
@@ -143,9 +143,9 @@ double binsY3X[nBinsY3] = {0.05, 0.05, 0.05}; //  6.5--30
   double prJpsiErr_pt365y1624_pt[nBinsPt3]     = {0};
   double prJpsiErrSyst_pt365y1624_pt[nBinsPt3] = {0};
 
-  double prJpsi_pt365y1624_cent[nBinsNpart5]        = {0};
-  double prJpsiErr_pt365y1624_cent[nBinsNpart5]     = {0};
-  double prJpsiErrSyst_pt365y1624_cent[nBinsNpart5] = {0};
+  double prJpsi_pt365y1624_cent[nBinsNpart6]        = {0};
+  double prJpsiErr_pt365y1624_cent[nBinsNpart6]     = {0};
+  double prJpsiErrSyst_pt365y1624_cent[nBinsNpart6] = {0};
 
 
   // ----------- non-pr 
@@ -195,9 +195,9 @@ double nonPrJpsi_y_y[nBinsY3]        = {0};
   double nonPrJpsiErr_pt365y1624_pt[nBinsPt3]     = {0};
   double nonPrJpsiErrSyst_pt365y1624_pt[nBinsPt3] = {0};
 
-  double nonPrJpsi_pt365y1624_cent[nBinsNpart5]       = {0};
-  double nonPrJpsiErr_pt365y1624_cent[nBinsNpart5]    = {0};
-  double nonPrJpsiErrSyst_pt365y1624_cent[nBinsNpart5]= {0};
+  double nonPrJpsi_pt365y1624_cent[nBinsNpart6]       = {0};
+  double nonPrJpsiErr_pt365y1624_cent[nBinsNpart6]    = {0};
+  double nonPrJpsiErrSyst_pt365y1624_cent[nBinsNpart6]= {0};
 
 //-------------------------- for testing purposes, the traditionally corrected yields & raa
 // pr RAA
@@ -237,8 +237,8 @@ double nonPrJpsi_y_y[nBinsY3]        = {0};
   double prJpsiTrad_pt365y1624_pt[nBinsPt3]        = {0};
   double prJpsiTradErr_pt365y1624_pt[nBinsPt3]     = {0};
  
-  double prJpsiTrad_pt365y1624_cent[nBinsNpart5]        = {0};
-  double prJpsiTradErr_pt365y1624_cent[nBinsNpart5]     = {0};
+  double prJpsiTrad_pt365y1624_cent[nBinsNpart6]        = {0};
+  double prJpsiTradErr_pt365y1624_cent[nBinsNpart6]     = {0};
  
   // ----------- non-pr 
 // mb
@@ -272,14 +272,14 @@ double nonPrJpsi_y_y[nBinsY3]        = {0};
   
 // low-pt fwd region
 // minbias in 3 pt bins: 3-6.5, 6.5-30, 3-30
-  double nonPrJpsiTrad_y1624MB_pt[nBinsMB3]       = {0};
-  double nonPrJpsiTradErr_y1624MB_pt[nBinsMB3]    = {0};
+  double nonPrJpsiTrad_y1624MB_pt[nBinsMB3]           = {0};
+  double nonPrJpsiTradErr_y1624MB_pt[nBinsMB3]        = {0};
   
   double nonPrJpsiTrad_pt365y1624_pt[nBinsPt3]        = {0};
   double nonPrJpsiTradErr_pt365y1624_pt[nBinsPt3]     = {0};
   
-  double nonPrJpsiTrad_pt365y1624_cent[nBinsNpart5]       = {0};
-  double nonPrJpsiTradErr_pt365y1624_cent[nBinsNpart5]    = {0};
+  double nonPrJpsiTrad_pt365y1624_cent[nBinsNpart6]   = {0};
+  double nonPrJpsiTradErr_pt365y1624_cent[nBinsNpart6]= {0};
   
 
 

@@ -35,19 +35,19 @@ The output root files of this macro, wich contains the histograms with the yield
 #include "Riostream.h"
 #include "dataBinning_2015.h"
 
-void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
-                   int weight = 1, // 0=noWeight, 1=weight
-                   int isEffFile = 0,// 0=no, 1=yes needed when making efficiency histograms
+void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
+                   int weight    = 0,// 0=noWeight, 1=weight
+                   int isEffFile = 1,// 0=no, 1=yes needed when making efficiency histograms
                    const char* inputFitDataFileLocation = "../data/raa"
                    ) 
 {
 
-  const char* whichSample[2]     = {"20151111_PbPb",      "20151111_pp"};
-  const char* whichWeight[2]    = {"noWeight_TnPAtRD3_4DEff_RapPtEffMap2_Ratio", "weightedEff_TnPAtRD3_4DEff_RapPtEffMap2_Ratio"};
-  const char* whichWeight_pp[2] = {"noWeight_TnPAtRD3_4DEff_RapPtEffMap2_Ratio", "weightedEff_TnPAtRD3_4DEff_RapPtEffMap2_Ratio"};
+  const char* whichSample[2]     = {"20151217_PbPb",      "20151217_pp"};
+  const char* whichWeight[2]    = {"noWeight_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio", "weightedEff_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio"};
+  const char* whichWeight_pp[2] = {"noWeight_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio", "weightedEff_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio"};
 
 
-  const char* effFileName[2]        = {"20151028_PbPb_Eff_newTnP","20151028_pp_Eff_newTnP"};
+  const char* effFileName[2]        = {"20151201_PbPb_newTnP","20151201_pp_newTnP"};
   const char* outputHistDataFile[2] = {"histsRaaYields","histEff"};
 
   TFile *pfOutput;
@@ -74,7 +74,7 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
     
   }
 
-  double x[17];
+  double x[18];
   double prpt[300], prptErr[300], nprpt[300], nprptErr[300];
   double inc[300], incErr[300];
   double rap1[300], rap2[300], pT1[300], pT2[300];
@@ -99,6 +99,8 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
       prpt[nline]  = x[12]; prptErr[nline]  = fabs(x[13]);// prompt yield and error
       nprpt[nline] = x[14]; nprptErr[nline] = fabs(x[15]);// non-prompt yield and error
       //[16]&[17] is the b-fraction
+
+      cout<<"nline= "<<nline<<"y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[12] <<endl;
     }
     else // efficiency files
     {
@@ -108,15 +110,6 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
       cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
       prpt[nline]  = x[6]; // prompt correction
       nprpt[nline] = x[7]; // non-prompt correction
-    }
-    
-    if(nline == 28 || nline == 10)
-    {
-      cout<<"Stored values in line : "<<nline<<endl;
-      cout<<"rapidity: "<<rap1[nline]<<" "<<rap2[nline]<<" "<<endl;
-      cout<<"pt: "<<pT1[nline]<<" "<<pT2[nline]<<" "<<endl;
-      cout<<"cent: "<<cent1[nline]<<" "<<cent2[nline]<<" "<<endl;
-      cout<<"prompt: "<<prpt[nline] <<"\n non-prompt: "<<nprpt[nline] <<endl;
     }
     nline++;
   }
@@ -226,7 +219,9 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
         // fill histograms
         phPrp_cent->SetBinContent(binn,prpt[il]);
         phPrp_cent->SetBinError(binn,prptErr[il]);
-        
+	
+	//cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+
       }
 
       if(il==14 || il==18 ||il==21 || il==24 || il==27 || il==30)
@@ -240,17 +235,18 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
         if(il == 30) binn = 1; // 50-100
         phNPrp_cent->SetBinContent(binn,nprpt[il]);
         phNPrp_cent->SetBinError(binn,nprptErr[il]);
+	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+	
       }
 
-      if( il==37 || il==39 || il==41 || il==42 || il==10 || il==11 || il==13) // the high pt lines
+      if( il==39 || il==42 || il==43 || il==10 || il==11 || il==13) // the high pt lines
       {
-        if(il == 37) binn = 1; // 6.5-7.5
-        if(il == 39) binn = 2; // 7.5-8.5
-        if(il == 41) binn = 3; // 8.5-9.5
-        if(il == 42) binn = 4; // 9.5-11
-        if(il == 10) binn = 5; // 11-13
-        if(il == 11) binn = 6; // 13-16
-        if(il == 13) binn = 7; // 16-30
+        if(il == 39) binn = 1; // 6.5-8.5
+        if(il == 42) binn = 2; // 8.5-9.5
+        if(il == 43) binn = 3; // 9.5-11
+        if(il == 10) binn = 4; // 11-13
+        if(il == 11) binn = 5; // 13-16
+        if(il == 13) binn = 6; // 16-30
         
         // fill histograms
         phPrp_pt->SetBinContent(binn,prpt[il]);
@@ -258,16 +254,19 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
         
         phNPrp_pt->SetBinContent(binn,nprpt[il]);
         phNPrp_pt->SetBinError(binn,nprptErr[il]);
+
+       	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+
       }//pt
 
-      if(il==0 || il==43 || il==44 || il==46 || il==52 || il==75 ) // the y lines
+      if(il==0 || il==44 || il==45 || il==47 || il==53 || il==76 ) // the y lines
       {
         if(il == 0) binn = 1;  // 0-0.4
-        if(il == 43) binn = 2; // 0.4-0.8
-        if(il == 44) binn = 3; // 0.8-1.2
-        if(il == 46) binn = 4; // 1.2-1.6
-        if(il == 52) binn = 5; // 1.6-2
-        if(il == 75) binn = 6; // 2-2.4
+        if(il == 44) binn = 2; // 0.4-0.8
+        if(il == 45) binn = 3; // 0.8-1.2
+        if(il == 47) binn = 4; // 1.2-1.6
+        if(il == 53) binn = 5; // 1.6-2
+        if(il == 76) binn = 6; // 2-2.4
         
         // fill histograms
         phPrp_y->SetBinContent(binn,prpt[il]);
@@ -275,10 +274,13 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
         
         phNPrp_y->SetBinContent(binn,nprpt[il]);
         phNPrp_y->SetBinError(binn,nprptErr[il]);
+
+	//cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+
       }//y
 
       // ************************** yields for 2D RAA --- high-pt
-      if(il==1 || il==3 || il==4 || il==5 || il==6 || il==7) // y[0,1.2]
+      if(il>=1 && il<=73 && il!=2) // y[0,1.2]
       {
         if(il == 1) binn = 6; // 0-10
         if(il == 3) binn = 5; // 10-20
@@ -293,16 +295,19 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
         
         phNPrp_y012Cent->SetBinContent(binn,nprpt[il]);
         phNPrp_y012Cent->SetBinError(binn,nprptErr[il]);
+
+	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+
       }//y12
       
-      if(il>=45 && il<=51 && il!=46) // y[1.2,1.6]
+      if(il>=46 && il<=52 && il!=47) // y[1.2,1.6]
       {
-        if(il == 45) binn = 6; // 0-10
-        if(il == 47) binn = 5; // 10-20
-        if(il == 48) binn = 4; // 20-30
-        if(il == 49) binn = 3; // 30-40
-        if(il == 50) binn = 2; // 40-50
-        if(il == 51) binn = 1; // 50-100
+        if(il == 46) binn = 6; // 0-10
+        if(il == 48) binn = 5; // 10-20
+        if(il == 49) binn = 4; // 20-30
+        if(il == 50) binn = 3; // 30-40
+        if(il == 51) binn = 2; // 40-50
+        if(il == 52) binn = 1; // 50-100
         
         // fill histograms
         phPrp_y1216Cent->SetBinContent(binn,prpt[il]);
@@ -310,16 +315,19 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
         
         phNPrp_y1216Cent->SetBinContent(binn,nprpt[il]);
         phNPrp_y1216Cent->SetBinError(binn,nprptErr[il]);
-      }//y1216
+
+	//cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+	
+      }//y1216, pt_6.5_30
       
-      if(il>=68 && il<=74 && il!=69) // y[1.6,2.4]
+      if(il>=69 && il<=75 && il!=70) // y[1.6,2.4]
       {
-        if(il == 68) binn = 6; // 0-10
-        if(il == 70) binn = 5; // 10-20
-        if(il == 71) binn = 4; // 20-30
-        if(il == 72) binn = 3; // 30-40
-        if(il == 73) binn = 2; // 40-50
-        if(il == 74) binn = 1; // 50-100
+        if(il == 69) binn = 6; // 0-10
+        if(il == 71) binn = 5; // 10-20
+        if(il == 72) binn = 4; // 20-30
+        if(il == 73) binn = 3; // 30-40
+        if(il == 74) binn = 2; // 40-50
+        if(il == 75) binn = 1; // 50-100
 
         // fill histograms
         phPrp_y1624Cent->SetBinContent(binn,prpt[il]);
@@ -327,20 +335,23 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
         
         phNPrp_y1624Cent->SetBinContent(binn,nprpt[il]);
         phNPrp_y1624Cent->SetBinError(binn,nprptErr[il]);
-      }//y1624
+
+	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+		
+      }//y1624, pt_6.5_30
       
       // ************************** yields for 2D RAA --- low-pt
       if (nBinsNpart6 == phPrp_y1624LowPtCent->GetNbinsX()) {
-        if(il==56 || il==59 || il==60 || il==62 || il==64 || il==65) // centrality
+        if(il==57 || il==60 || il==61 || il==63 || il==65 || il==66) // centrality
         {
-          if(il == 56) binn = 6; // 0-10
-          if(il == 59) binn = 5; // 10-20
-          if(il == 60) binn = 4; // 20-30
-          if(il == 62) binn = 3; // 30-40
-          if(il == 64) binn = 2; // 40-50
-          if(il == 65) binn = 1; // 50-100
+          if(il == 57) binn = 6; // 0-10
+          if(il == 60) binn = 5; // 10-20
+          if(il == 61) binn = 4; // 20-30
+          if(il == 63) binn = 3; // 30-40
+          if(il == 65) binn = 2; // 40-50
+          if(il == 66) binn = 1; // 50-100
           
-          cout << il << "prompt yield: " <<prpt[il]<<endl;
+	  cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
           // fill histograms
           phPrp_y1624LowPtCent->SetBinContent(binn,prpt[il]);
           phPrp_y1624LowPtCent->SetBinError(binn,prptErr[il]);
@@ -349,29 +360,15 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
           phNPrp_y1624LowPtCent->SetBinError(binn,nprptErr[il]);
         }
       } else if (nBinsNpart5 == phPrp_y1624LowPtCent->GetNbinsX()) {
-        if(il==56 || il==59 || il==60 || il==62 || il==63) // centrality
-        {
-          if(il == 56) binn = 5; // 0-10
-          if(il == 59) binn = 4; // 10-20
-          if(il == 60) binn = 3; // 20-30
-          if(il == 62) binn = 2; // 30-40
-          if(il == 63) binn = 1; // 40-100
-          
-          cout << il << "prompt yield: " <<prpt[il]<<endl;
-          // fill histograms
-          phPrp_y1624LowPtCent->SetBinContent(binn,prpt[il]);
-          phPrp_y1624LowPtCent->SetBinError(binn,prptErr[il]);
-      
-          phNPrp_y1624LowPtCent->SetBinContent(binn,nprpt[il]);
-          phNPrp_y1624LowPtCent->SetBinError(binn,nprptErr[il]);
-        }
+          cout<<"Dont' have this binning for low-pt fwd non-prompt anymore! "<<endl;
+  
       }//y1624low
 
-      if( il==54 || il==66 || il==67) // the 3 pt bins
+      if( il==55 || il==67 || il==68) // the 3 pt bins
       {
-        if(il == 54) binn = 1; // 3.5-4.5
-        if(il == 66) binn = 2; // 4.5-5.5
-        if(il == 67) binn = 3; // 5.5-6.5
+        if(il == 55) binn = 1; // 3.0-4.5
+        if(il == 67) binn = 2; // 4.5-5.5
+        if(il == 68) binn = 3; // 5.5-6.5
         
         // fill histograms
         phPrp_ptLow->SetBinContent(binn,prpt[il]);
@@ -379,6 +376,9 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
         
         phNPrp_ptLow->SetBinContent(binn,nprpt[il]);
         phNPrp_ptLow->SetBinError(binn,nprptErr[il]);
+
+	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+
       }//y1624Pt
 
       // ************************** minbias values
@@ -389,32 +389,41 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
         phPrp_mb->SetBinError(binn,prptErr[il]);
         phNPrp_mb->SetBinContent(binn,nprpt[il]);
         phNPrp_mb->SetBinError(binn,nprptErr[il]);
+
+	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+
       }
       
-      if(il==1 || il==46 || il==69)// 0-100%, pt[6.5,30]
+      if(il==2 || il==47 || il==70)// 0-100%, pt[6.5,30]
       {
-        if(il==1) binn  = 1;//y[0,1.2]
-        if(il==46) binn = 2;//[1.2,1.6]
-        if(il==69) binn = 3;//[1.6,2.4]
+        if(il==2) binn  = 1;//y[0,1.2]
+        if(il==47) binn = 2;//[1.2,1.6]
+        if(il==70) binn = 3;//[1.6,2.4]
      
         phPrp_y_mb->SetBinContent(binn,prpt[il]);
         phPrp_y_mb->SetBinError(binn,prptErr[il]);
 
         phNPrp_y_mb->SetBinContent(binn,nprpt[il]);
         phNPrp_y_mb->SetBinError(binn,nprptErr[il]);
+
+	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+	  
       }
       
-      if(il==57 || il==69 || il==53)// fwd bin: 3-6.5, 6.5-30, 3-30
+      if(il==58 || il==70 || il==54)// fwd bin: 3-6.5, 6.5-30, 3-30
       {
-        if(il==57)binn = 1;//pT 3-6.5
-        if(il==69)binn = 2;//pT 6.5-30
-        if(il==53)binn = 3;//pT 3-30
-        cout<<"???? bin "<<binn<<"\t prompt= "<< prpt[il]<<endl;
+        if(il==58)binn = 1;//pT 3-6.5
+        if(il==70)binn = 2;//pT 6.5-30
+        if(il==54)binn = 3;//pT 3-30
+	
         phPrp_ptLow_mb->SetBinContent(binn,prpt[il]);
         phPrp_ptLow_mb->SetBinError(binn,prptErr[il]);
 
         phNPrp_ptLow_mb->SetBinContent(binn,nprpt[il]);
         phNPrp_ptLow_mb->SetBinError(binn,nprptErr[il]);
+
+	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+
 
       }
     }// for Pbpb sample
@@ -426,7 +435,7 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
     if(sample==1)// pp data
     {
       // ************************** yields for 1D RAA 
-      if(il==8) // the high-pt MB yield, used for centrality Raa 
+      if(il==8) // the high-pt MB yield, used for centrality Raa pt 6.5-30, |y|<2.4
       {
         // *prompt* 
         for(int ibin=1; ibin<=nBinsNpart12; ibin++)
@@ -442,18 +451,19 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
           phNPrp_cent->SetBinContent(binn,nprpt[il]);
           phNPrp_cent->SetBinError(binn,nprptErr[il]);
         }
-      }// centrality
+      }//mb yield, |y|<2.4, pt [6.5, 30]Gev/c
 
-      if( il==9 || il==11 || il==13 || il==14 || il==4 || il==5 || il==7) // the high pt lines
+      if( il==11 || il==14 || il==15 || il==4 || il==5 || il==7) // the high pt lines
       {
-        if(il == 9)  binn = 1; // 6.5-7.5
-        if(il == 11) binn = 2; // 7.5-8.5
-        if(il == 13) binn = 3; // 8.5-9.5
-        if(il == 14) binn = 4; // 9.5-11
-        if(il == 4)  binn = 5; // 11-13
-        if(il == 5)  binn = 6; // 13-16
-        if(il == 7)  binn = 7; // 16-30
+	if(il == 11) binn = 1; // 6.5-8.5
+        if(il == 14) binn = 2; // 8.5-9.5
+        if(il == 15) binn = 3; // 9.5-11
+        if(il == 4)  binn = 4; // 11-13
+        if(il == 5)  binn = 5; // 13-16
+        if(il == 7)  binn = 6; // 16-30
         
+	//	cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+
         // fill histograms
         phPrp_pt->SetBinContent(binn,prpt[il]);
         phPrp_pt->SetBinError(binn,prptErr[il]);
@@ -462,15 +472,17 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
         phNPrp_pt->SetBinError(binn,nprptErr[il]);
       }//pt
 
-      if(il==0 || il==15 || il==16 || il==17 || il==18 || il==26 ) // the y lines
+      if(il==0 || il==16 || il==17 || il==18 || il==19 || il==27 ) // the y lines
       {
         if(il == 0) binn = 1;  // 0-0.4
-        if(il == 15) binn = 2; // 0.4-0.8
-        if(il == 16) binn = 3; // 0.8-1.2
-        if(il == 17) binn = 4; // 1.2-1.6
-        if(il == 18) binn = 5; // 1.6-2
-        if(il == 26) binn = 6; // 2-2.4
+        if(il == 16) binn = 2; // 0.4-0.8
+        if(il == 17) binn = 3; // 0.8-1.2
+        if(il == 18) binn = 4; // 1.2-1.6
+        if(il == 19) binn = 5; // 1.6-2
+        if(il == 27) binn = 6; // 2-2.4
         
+	//cout << il << " prompt yield: " <<prpt[il]<<"\t non-prompt: "<<nprpt[il]<<endl;
+
         // fill histograms
         phPrp_y->SetBinContent(binn,prpt[il]);
         phPrp_y->SetBinError(binn,prptErr[il]);
@@ -491,9 +503,9 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
           phNPrp_y012Cent->SetBinContent(binn,nprpt[il]);
           phNPrp_y012Cent->SetBinError(binn,nprptErr[il]);
         }         
-      }//y12
+      }//y12, pt_6.5-30
       
-      if(il==17) // y[1.2,1.6]
+      if(il==18) // y[1.2,1.6]
       {
         for(int ibin=1; ibin<=nBinsNpart6; ibin++)
         {
@@ -504,9 +516,9 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
           phNPrp_y1216Cent->SetBinContent(binn,nprpt[il]);
           phNPrp_y1216Cent->SetBinError(binn,nprptErr[il]);
         }
-      }//y1216
+      }//y1216, pt_6.5-30
 
-      if(il==25) // y[1.6,2.4]
+      if(il==26) // y[1.6,2.4]
       {
         for(int ibin=1; ibin<=nBinsNpart6; ibin++)
         {
@@ -517,10 +529,10 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
           phNPrp_y1624Cent->SetBinContent(binn,nprpt[il]);
           phNPrp_y1624Cent->SetBinError(binn,nprptErr[il]);
         }
-      }//y1624
+      }//y1624, pt_6.5-30
       
       // ************************** yields for 2D RAA --- low-pt
-      if(il==22) // centrality
+      if(il==23) // pt_3-6.5, y[1.6,2.4]
       {
         for(int ibin=1; ibin<=nBinsNpart6; ibin++)
         {
@@ -533,11 +545,11 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
         }
       }//y1624low
 
-      if( il==20 || il==23 || il==24) // the 3 pt bins
+      if( il==21 || il==24 || il==25) // the 3 pt bins
       {
-        if(il == 20) binn = 1; // 3.5-4.5
-        if(il == 23) binn = 2; // 4.5-5.5
-        if(il == 24) binn = 3; // 5.5-6.5
+        if(il == 21) binn = 1; // 3.0-4.5
+        if(il == 24) binn = 2; // 4.5-5.5
+        if(il == 25) binn = 3; // 5.5-6.5
         
         // fill histograms
         phPrp_ptLow->SetBinContent(binn,prpt[il]);
@@ -557,11 +569,11 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
         phNPrp_mb->SetBinError(binn,nprptErr[il]);
       }
     
-      if(il==1 || il==17 || il==25)// 0-100%, pt[6.5,30]
+      if(il==1 || il==18 || il==26)// 0-100%, pt[6.5,30]
       {
         if(il==1) binn  = 1;//y[0,1.2]
-        if(il==17) binn = 2;//[1.2,1.6]
-        if(il==25) binn = 3;//[1.6,2.4]
+        if(il==18) binn = 2;//[1.2,1.6]
+        if(il==26) binn = 3;//[1.6,2.4]
      
         phPrp_y_mb->SetBinContent(binn,prpt[il]);
         phPrp_y_mb->SetBinError(binn,prptErr[il]);
@@ -570,11 +582,11 @@ void makeHistos_raa(int sample = 1, // 0=PbPb,     1= pp
         phNPrp_y_mb->SetBinError(binn,nprptErr[il]);
       }
     
-      if(il==22 || il==25 || il==19)// fwd bin: 3-6.5, 6.5-30, 3-30
+      if(il==23 || il==26 || il==20)// fwd bin: 3-6.5, 6.5-30, 3-30
       {
-        if(il==22) binn = 1;//pT 3-6.5
-        if(il==25) binn = 2;//pT 6.5-30
-        if(il==19) binn = 3;//pT 3-30
+        if(il==23) binn = 1;//pT 3-6.5
+        if(il==26) binn = 2;//pT 6.5-30
+        if(il==20) binn = 3;//pT 3-30
    
         phPrp_ptLow_mb->SetBinContent(binn,prpt[il]);
         phPrp_ptLow_mb->SetBinError(binn,prptErr[il]);
