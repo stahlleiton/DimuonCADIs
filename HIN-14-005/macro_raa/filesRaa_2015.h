@@ -48,8 +48,7 @@
   };
 
   // ##### 3D efficiencies
-//  const char* effHistFile[2]       = {"histEff_pbpb_tradEff_20150825.root",       "histEff_pp_tradEff_20150825.root"};
-  const char* effHistFile[2]       = {"histEff_20151201_PbPb_newTnP.root", "histEff_20151201_pp_newTnP.root"};
+  const char* effHistFile[2]       = {"histEff_20151209_PbPb_newTnP.root", "histEff_20151209_pp_newTnP.root"};
   const char* effHistFile_noTnP[2] = {"histEff_20151201_PbPb_noTnP.root", "histEff_20151201_pp_noTnP.root"};
 
 #endif
