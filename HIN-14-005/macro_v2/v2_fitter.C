@@ -39,8 +39,8 @@ Note: binning, labels, etc, are defined in v2_dataNumbers_2015.h
 
 #endif
 
-void v2_fitter(int jpsiCategory      = 1, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
-               int varCategory       = 1, // 0: integrated; 1: pt; 2: rapidity; 3: centrality;
+void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+               int varCategory       = 0, // 0: integrated; 1: pt; 2: rapidity; 3: centrality;
                int nChoseSetting     = 1, // 0: nominal weighted; 1: systm. uncert (all fit settings in histYieldFile)
                string nDphiBins      = "4",
                const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are

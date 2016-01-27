@@ -35,9 +35,9 @@ The output root files of this macro, wich contains the histograms with the yield
 #include "Riostream.h"
 #include "dataBinning_2015.h"
 
-void makeHistos_raa(int sample   = 1,// 0=PbPb,     1= pp
-                   int weight    = 1,// 0=noWeight, 1=weight
-                   int isEffFile = 0,// 0=no, 1=yes needed when making efficiency histograms
+void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
+                   int weight    = 0,// 0=noWeight, 1=weight
+                   int isEffFile = 1,// 0=no, 1=yes needed when making efficiency histograms
                    const char* inputFitDataFileLocation = "../data/raa"
                    ) 
 {

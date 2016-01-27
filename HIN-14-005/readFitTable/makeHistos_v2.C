@@ -39,7 +39,7 @@ using namespace std;
 
 void makeHistos_v2(int nDphiBins = 4, 
                    int sample = 0, // 0=PbPb
-                   int weight = 1, // 0=noWeight, 1=weight
+                   int weight = 0, // 0=noWeight, 1=weight
                    const char* inputFitDataFileLocation = "../data/v2/"
                    ) 
 {
