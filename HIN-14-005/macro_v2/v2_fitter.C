@@ -40,7 +40,7 @@ Note: binning, labels, etc, are defined in v2_dataNumbers_2015.h
 #endif
 
 void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
-               int varCategory       = 0, // 0: integrated; 1: pt; 2: rapidity; 3: centrality;
+               int varCategory       = 1, // 0: integrated; 1: pt; 2: rapidity; 3: centrality;
                int nChoseSetting     = 1, // 0: nominal weighted; 1: systm. uncert (all fit settings in histYieldFile)
                string nDphiBins      = "4",
                const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are
@@ -50,10 +50,12 @@ void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
   const char* signal[4]      = {"", "Prp","NPrp","Bkg"};
   const int nConfigFilesIn   = 2;
   const char* histYieldFile[nConfigFilesIn] = {
-    "histsV2Yields_20151111_v2W_TnPAtRD3_4DEff_RapPtEffMap2_Ratio_dPhiBins4",
-    "histsV2Yields_20151111_v2noW_TnPAtRD3_4DEff_RapPtEffMap2_Ratio_dPhiBins4"
+    "histsV2Yields_20151217_v2W_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio_dPhiBins4",
+    "histsV2Yields_20151217_v2noW_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio_dPhiBins4"
   };
-  const char* histYieldFile_noWeight[1]     = {"histsV2Yields_20151111_v2noW_TnPAtRD3_4DEff_RapPtEffMap2_Ratio_dPhiBins4"};
+  const char* histYieldFile_noWeight[1]     = {
+    "histsV2Yields_20151217_v2noW_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio_dPhiBins4"
+  };
   int nFile_start = 0;
   int nFile_end   = 1;
   if(nChoseSetting == 1) {
@@ -245,7 +247,7 @@ void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
         resCorrectionErr = dEvPlResCorrErr[iBin];
       }
       dFit_v2Final[iBin]    = dFit_v2[iBin]/resCorrection;
-      dFit_v2FinalErr[iBin] =  dFit_v2[iBin]/resCorrection * sqrt( TMath::Power(dFit_v2Err[iBin]/dFit_v2[iBin],2) + TMath::Power(resCorrectionErr/resCorrection,2) );
+      dFit_v2FinalErr[iBin] =  fabs( dFit_v2[iBin]/resCorrection * sqrt( TMath::Power(dFit_v2Err[iBin]/dFit_v2[iBin],2) + TMath::Power(resCorrectionErr/resCorrection,2) ) );
     }
     cout<<"Finished making the resolution corrections"<<endl;
     

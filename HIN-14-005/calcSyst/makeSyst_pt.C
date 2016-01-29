@@ -5,7 +5,7 @@ Input: root files produced by the readFitTable/makeHisto_raa_syst.C (check there
 
 Output: root file with the systm. histograms for Raa vs pT.
 
- */
+*/
 
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <iostream>
@@ -39,13 +39,13 @@ Output: root file with the systm. histograms for Raa vs pT.
 #endif
 
 void makeSyst_pt( bool bSavePlots       = 1,
-		  bool bDoDebug         = 1, // prints numbers, numerator, denominator, to help figure out if things are read properly
-		  int method            = 1, // 0: rms of all variations; 1: max of each variation type, added in quadrature
-		  const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are
-		  const char* outputDir = "histSyst")// where the output figures will be
+                  bool bDoDebug         = 1, // prints numbers, numerator, denominator, to help figure out if things are read properly
+                  int method            = 1, // 0: rms of all variations; 1: max of each variation type, added in quadrature
+                  const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are
+                  const char* outputDir = "histSyst")// where the output figures will be
 {
   gSystem->mkdir(Form("./%s/",outputDir), kTRUE);
- // set the style
+  // set the style
   setTDRStyle();
  
   // type of available comparisons:
@@ -55,7 +55,6 @@ void makeSyst_pt( bool bSavePlots       = 1,
   const char* yieldHistNames[nInHist] = {"pt", "ptLow", "ptLow_mb", "mb"};
 
   // input files: are in the filesRaa_2015.h
-
   // open the files with yields and do the math
   // nominal yields
   TFile *fYesWeighFile_aa   = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_1[0]));
@@ -79,732 +78,716 @@ void makeSyst_pt( bool bSavePlots       = 1,
   TH1F *phCorrVar_npr_aa;
  
   for(int ih=0; ih<nInHist;ih++)// for each kinematic range
-    { 
-      TString hist_pr(Form("phPrp_%s",yieldHistNames[ih]));
-      TString hist_npr(Form("phNPrp_%s",yieldHistNames[ih]));
-    
-      cout<<"histogram input name: "<< hist_pr<<"\t"<<hist_npr<<endl; 
-      
-      // prompt histos
-      phCorr_pr_pp = (TH1F*)fYesWeighFile_pp->Get(hist_pr);
-      phCorr_pr_aa = (TH1F*)fYesWeighFile_aa->Get(hist_pr);
-      
-      // non-prompt histos
-      phCorr_npr_pp = (TH1F*)fYesWeighFile_pp->Get(hist_npr);
-      phCorr_npr_aa = (TH1F*)fYesWeighFile_aa->Get(hist_npr);
-      
-      
-      int numBins = 0;
-      if(ih==0) numBins = nBinsPt; // high-pt bins
-      if(ih==1 || ih==2) numBins = nBinsPt3;// mb pt fwd bins; 3-6.5, 6.5-30, 3-30
-      if(ih==3) numBins = nBinsMB;// mb bin=1
-      
+  { 
+    TString hist_pr(Form("phPrp_%s",yieldHistNames[ih]));
+    TString hist_npr(Form("phNPrp_%s",yieldHistNames[ih]));
   
-      // high-pt
-      double syst_fit_pr_aa[numBins][nFitVariations] ;
-      double syst_eff4d_pr_aa[numBins][nEff4DVariations] ;
-      double syst_effTnP_pr_aa[numBins][nEffTnPVariation];
-
-      double syst_fit_pr_pp[numBins][nFitVariations]     ;
-      double syst_eff4d_pr_pp[numBins][nEff4DVariations] ;
-      double syst_effTnP_pr_pp[numBins][nEffTnPVariation];
+    cout<<"histogram input name: "<< hist_pr<<"\t"<<hist_npr<<endl; 
     
-      double syst_fit_npr_aa[numBins][nFitVariations]    ;
-      double syst_eff4d_npr_aa[numBins][nEff4DVariations];
-      double syst_effTnP_npr_aa[numBins][nEffTnPVariation];
-
-      double syst_fit_npr_pp[numBins][nFitVariations]     ;
-      double syst_eff4d_npr_pp[numBins][nEff4DVariations] ;
-      double syst_effTnP_npr_pp[numBins][nEffTnPVariation];
+    // prompt histos
+    phCorr_pr_pp = (TH1F*)fYesWeighFile_pp->Get(hist_pr);
+    phCorr_pr_aa = (TH1F*)fYesWeighFile_aa->Get(hist_pr);
     
-      // fwd region low-pt
-      double syst_fit_pt365y1624_pr_aa[numBins][nFitVariations];
-      double syst_eff4d_pt365y1624_pr_aa[numBins][nEff4DVariations];
-      double syst_effTnP_pt365y1624_pr_aa[numBins][nEffTnPVariation];
+    // non-prompt histos
+    phCorr_npr_pp = (TH1F*)fYesWeighFile_pp->Get(hist_npr);
+    phCorr_npr_aa = (TH1F*)fYesWeighFile_aa->Get(hist_npr);
+    
+    int numBins = 0;
+    if(ih==0) numBins = nBinsPt; // high-pt bins
+    if(ih==1 || ih==2) numBins = nBinsPt3;// mb pt fwd bins; 3-6.5, 6.5-30, 3-30
+    if(ih==3) numBins = nBinsMB;// mb bin=1
 
-      double syst_fit_pt365y1624_pr_pp[numBins][nFitVariations]; 
-      double syst_eff4d_pt365y1624_pr_pp[numBins][nEff4DVariations];
-      double syst_effTnP_pt365y1624_pr_pp[numBins][nEffTnPVariation];
-  
-      double syst_fit_pt365y1624_npr_aa[numBins][nFitVariations]    ;
-      double syst_eff4d_pt365y1624_npr_aa[numBins][nEff4DVariations];
-      double syst_effTnP_pt365y1624_npr_aa[numBins][nEffTnPVariation];
+    // high-pt
+    double syst_fit_pr_aa[numBins][nFitVariations] ;
+    double syst_eff4d_pr_aa[numBins][nEff4DVariations] ;
+    double syst_effTnP_pr_aa[numBins][nEffTnPVariation];
 
-      double syst_fit_pt365y1624_npr_pp[numBins][nFitVariations]     ;
-      double syst_eff4d_pt365y1624_npr_pp[numBins][nEff4DVariations] ;
-      double syst_effTnP_pt365y1624_npr_pp[numBins][nEffTnPVariation];
+    double syst_fit_pr_pp[numBins][nFitVariations]     ;
+    double syst_eff4d_pr_pp[numBins][nEff4DVariations] ;
+    double syst_effTnP_pr_pp[numBins][nEffTnPVariation];
   
+    double syst_fit_npr_aa[numBins][nFitVariations]    ;
+    double syst_eff4d_npr_aa[numBins][nEff4DVariations];
+    double syst_effTnP_npr_aa[numBins][nEffTnPVariation];
+
+    double syst_fit_npr_pp[numBins][nFitVariations]     ;
+    double syst_eff4d_npr_pp[numBins][nEff4DVariations] ;
+    double syst_effTnP_npr_pp[numBins][nEffTnPVariation];
+  
+    // fwd region low-pt
+    double syst_fit_pt365y1624_pr_aa[numBins][nFitVariations];
+    double syst_eff4d_pt365y1624_pr_aa[numBins][nEff4DVariations];
+    double syst_effTnP_pt365y1624_pr_aa[numBins][nEffTnPVariation];
+
+    double syst_fit_pt365y1624_pr_pp[numBins][nFitVariations]; 
+    double syst_eff4d_pt365y1624_pr_pp[numBins][nEff4DVariations];
+    double syst_effTnP_pt365y1624_pr_pp[numBins][nEffTnPVariation];
+
+    double syst_fit_pt365y1624_npr_aa[numBins][nFitVariations]    ;
+    double syst_eff4d_pt365y1624_npr_aa[numBins][nEff4DVariations];
+    double syst_effTnP_pt365y1624_npr_aa[numBins][nEffTnPVariation];
+
+    double syst_fit_pt365y1624_npr_pp[numBins][nFitVariations]     ;
+    double syst_eff4d_pt365y1624_npr_pp[numBins][nEff4DVariations] ;
+    double syst_effTnP_pt365y1624_npr_pp[numBins][nEffTnPVariation];
+
     // fwd region MB
-      double syst_fit_y1624MB_pr_aa[numBins][nFitVariations]      ;
-      double syst_eff4d_y1624MB_pr_aa[numBins][nEff4DVariations]  ;
-      double syst_effTnP_y1624MB_pr_aa[numBins][nEffTnPVariation] ;
-    
-      double syst_fit_y1624MB_pr_pp[numBins][nFitVariations]      ;
-      double syst_eff4d_y1624MB_pr_pp[numBins][nEff4DVariations]  ;
-      double syst_effTnP_y1624MB_pr_pp[numBins][nEffTnPVariation] ;
-    
-      double syst_fit_y1624MB_npr_aa[numBins][nFitVariations]      ;
-      double syst_eff4d_y1624MB_npr_aa[numBins][nEff4DVariations]  ;
-      double syst_effTnP_y1624MB_npr_aa[numBins][nEffTnPVariation] ;
-    
-      double syst_fit_y1624MB_npr_pp[numBins][nFitVariations]      ;
-      double syst_eff4d_y1624MB_npr_pp[numBins][nEff4DVariations]  ;
-      double syst_effTnP_y1624MB_npr_pp[numBins][nEffTnPVariation] ;
-    
-      // mb high-pt
-      double syst_fit_mb_pr_aa[numBins][nFitVariations]      ;
-      double syst_eff4d_mb_pr_aa[numBins][nEff4DVariations]  ;
-      double syst_effTnP_mb_pr_aa[numBins][nEffTnPVariation] ;
-    
-      double syst_fit_mb_pr_pp[numBins][nFitVariations]      ;
-      double syst_eff4d_mb_pr_pp[numBins][nEff4DVariations]  ;
-      double syst_effTnP_mb_pr_pp[numBins][nEffTnPVariation] ;
-    
-      double syst_fit_mb_npr_aa[numBins][nFitVariations]      ;
-      double syst_eff4d_mb_npr_aa[numBins][nEff4DVariations]  ;
-      double syst_effTnP_mb_npr_aa[numBins][nEffTnPVariation] ;
-    
-      double syst_fit_mb_npr_pp[numBins][nFitVariations]      ;
-      double syst_eff4d_mb_npr_pp[numBins][nEff4DVariations]  ;
-      double syst_effTnP_mb_npr_pp[numBins][nEffTnPVariation] ;
-      cout<<"###################################################################"<<endl;
-      if(bDoDebug) cout<< "################ Kinematic region: " <<yieldHistNames[ih]<<endl;
+    double syst_fit_y1624MB_pr_aa[numBins][nFitVariations]      ;
+    double syst_eff4d_y1624MB_pr_aa[numBins][nEff4DVariations]  ;
+    double syst_effTnP_y1624MB_pr_aa[numBins][nEffTnPVariation] ;
   
-      for(int ibin=1; ibin<=numBins; ibin++)
-      //  for(int ibin=1; ibin<=2; ibin++)
+    double syst_fit_y1624MB_pr_pp[numBins][nFitVariations]      ;
+    double syst_eff4d_y1624MB_pr_pp[numBins][nEff4DVariations]  ;
+    double syst_effTnP_y1624MB_pr_pp[numBins][nEffTnPVariation] ;
+  
+    double syst_fit_y1624MB_npr_aa[numBins][nFitVariations]      ;
+    double syst_eff4d_y1624MB_npr_aa[numBins][nEff4DVariations]  ;
+    double syst_effTnP_y1624MB_npr_aa[numBins][nEffTnPVariation] ;
+  
+    double syst_fit_y1624MB_npr_pp[numBins][nFitVariations]      ;
+    double syst_eff4d_y1624MB_npr_pp[numBins][nEff4DVariations]  ;
+    double syst_effTnP_y1624MB_npr_pp[numBins][nEffTnPVariation] ;
+  
+    // mb high-pt
+    double syst_fit_mb_pr_aa[numBins][nFitVariations]      ;
+    double syst_eff4d_mb_pr_aa[numBins][nEff4DVariations]  ;
+    double syst_effTnP_mb_pr_aa[numBins][nEffTnPVariation] ;
+  
+    double syst_fit_mb_pr_pp[numBins][nFitVariations]      ;
+    double syst_eff4d_mb_pr_pp[numBins][nEff4DVariations]  ;
+    double syst_effTnP_mb_pr_pp[numBins][nEffTnPVariation] ;
+  
+    double syst_fit_mb_npr_aa[numBins][nFitVariations]      ;
+    double syst_eff4d_mb_npr_aa[numBins][nEff4DVariations]  ;
+    double syst_effTnP_mb_npr_aa[numBins][nEffTnPVariation] ;
+  
+    double syst_fit_mb_npr_pp[numBins][nFitVariations]      ;
+    double syst_eff4d_mb_npr_pp[numBins][nEff4DVariations]  ;
+    double syst_effTnP_mb_npr_pp[numBins][nEffTnPVariation] ;
+    cout<<"###################################################################"<<endl;
+    if(bDoDebug) cout<< "################ Kinematic region: " <<yieldHistNames[ih]<<endl;
+
+    for(int ibin=1; ibin<=numBins; ibin++)
+    //  for(int ibin=1; ibin<=2; ibin++)
+    {
+      double fitContribution_pr_aa    = 0;
+      double eff4dContribution_pr_aa  = 0;
+      double efftnpContribution_pr_aa = 0; 
+
+      double fitContribution_pr_pp    = 0;
+      double eff4dContribution_pr_pp  = 0;
+      double efftnpContribution_pr_pp = 0;
+
+      double fitContribution_npr_aa    = 0;
+      double eff4dContribution_npr_aa  = 0;
+      double efftnpContribution_npr_aa = 0; 
+
+      double fitContribution_npr_pp    = 0;
+      double eff4dContribution_npr_pp  = 0;
+      double efftnpContribution_npr_pp = 0;
+
+        
+      double fitContribution_pt365y1624_pr_aa    = 0;
+      double eff4dContribution_pt365y1624_pr_aa  = 0;
+      double efftnpContribution_pt365y1624_pr_aa = 0; 
+
+      double fitContribution_pt365y1624_pr_pp    = 0;
+      double eff4dContribution_pt365y1624_pr_pp  = 0;
+      double efftnpContribution_pt365y1624_pr_pp = 0;
+
+      double fitContribution_pt365y1624_npr_aa    = 0;
+      double eff4dContribution_pt365y1624_npr_aa  = 0;
+      double efftnpContribution_pt365y1624_npr_aa = 0; 
+
+      double fitContribution_pt365y1624_npr_pp    = 0;
+      double eff4dContribution_pt365y1624_npr_pp  = 0;
+      double efftnpContribution_pt365y1624_npr_pp = 0;
+
+
+      double fitContribution_y1624MB_pr_aa    = 0;
+      double eff4dContribution_y1624MB_pr_aa  = 0;
+      double efftnpContribution_y1624MB_pr_aa = 0; 
+
+      double fitContribution_y1624MB_pr_pp    = 0;
+      double eff4dContribution_y1624MB_pr_pp  = 0;
+      double efftnpContribution_y1624MB_pr_pp = 0;
+
+      double fitContribution_y1624MB_npr_aa    = 0;
+      double eff4dContribution_y1624MB_npr_aa  = 0;
+      double efftnpContribution_y1624MB_npr_aa = 0; 
+
+      double fitContribution_y1624MB_npr_pp    = 0;
+      double eff4dContribution_y1624MB_npr_pp  = 0;
+      double efftnpContribution_y1624MB_npr_pp = 0;
+
+
+      double fitContribution_mb_pr_aa    = 0;
+      double eff4dContribution_mb_pr_aa  = 0;
+      double efftnpContribution_mb_pr_aa = 0; 
+
+      double fitContribution_mb_pr_pp    = 0;
+      double eff4dContribution_mb_pr_pp  = 0;
+      double efftnpContribution_mb_pr_pp = 0;
+        
+      double fitContribution_mb_npr_aa    = 0;
+      double eff4dContribution_mb_npr_aa  = 0;
+      double efftnpContribution_mb_npr_aa = 0; 
+
+      double fitContribution_mb_npr_pp    = 0;
+      double eff4dContribution_mb_npr_pp  = 0;
+      double efftnpContribution_mb_npr_pp = 0;
+
+      //nominal prompt and non-prompt yield ratios
+      double yield_aa_pr  = phCorr_pr_aa->GetBinContent(ibin);
+      double yield_aa_npr = phCorr_npr_aa->GetBinContent(ibin);
+      
+      double yield_pp_pr  = phCorr_pr_pp->GetBinContent(ibin);
+      double yield_pp_npr = phCorr_npr_pp->GetBinContent(ibin);
+
+
+      double scaleFactor    = ppLumi/nMbEvents;
+      double scale_cent     = 1/(adTaaMB[0]*adDeltaCentMB[0]);
+      double yieldRatio_pr  = yield_aa_pr/yield_pp_pr   * scaleFactor * scale_cent;
+      double yieldRatio_npr = yield_aa_npr/yield_pp_npr * scaleFactor * scale_cent;
+      
+      if(bDoDebug) cout<< "################ Bin " <<ibin << "\n Nominal yields are (prompt & nonPr - aa ; prompt & nonPr -  pp):  " <<yield_aa_pr<<"\t & "<<yield_aa_npr<<"\t; "<<yield_pp_pr<<"\t & "<<yield_pp_npr<<endl;
+
+      // for each source of uncert, calc variation wrt nominal value
+      for(int ivar=0; ivar<(nFitVariations+nEff4DVariations+nEffTnPVariation); ivar++)
+      //      for(int ivar=0; ivar<(nFitVariations+nEff4DVariations); ivar++)
       {
-	double fitContribution_pr_aa    = 0;
-	double eff4dContribution_pr_aa  = 0;
-	double efftnpContribution_pr_aa = 0; 
+        cout<<"@@@@@@@ Variation = " << ivar <<endl; 
+        char nameFile1[200], nameFile2[200];
+      
+        if(ivar<nFitVariations)
+        {
+          int ifile = ivar;
+          sprintf(nameFile1,Form("%s/%s",inputDir,yieldHistFile_aa_systSgnBkg[ifile]));
+          sprintf(nameFile2,Form("%s/%s",inputDir,yieldHistFile_pp_systSgnBkg[ifile]));
+        }
+    
+        if( (ivar>=nFitVariations) && ivar<(nFitVariations+nEff4DVariations) )
+        {
+          int ifile = ivar-nFitVariations;
+          sprintf(nameFile1,Form("%s/%s",inputDir,yieldHistFile_aa_syst4DCorr[ifile]));
+          sprintf(nameFile2,Form("%s/%s",inputDir,yieldHistFile_pp_syst4DCorr[ifile]));
+        }
 
-	double fitContribution_pr_pp    = 0;
-	double eff4dContribution_pr_pp  = 0;
-	double efftnpContribution_pr_pp = 0;
+        if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
+        {
+          int ifile = ivar-nFitVariations-nEff4DVariations;
+          sprintf(nameFile1,Form("%s/%s",inputDir,yieldHistFile_aa_systTnP[ifile]));
+          sprintf(nameFile2,Form("%s/%s",inputDir,yieldHistFile_pp_systTnP[ifile]));
+        }
 
-	double fitContribution_npr_aa    = 0;
-	double eff4dContribution_npr_aa  = 0;
-	double efftnpContribution_npr_aa = 0; 
+        if(bDoDebug) cout<< "Opened systematic files:\n pp: "<<nameFile2 << "\t AA: "<< nameFile1 <<endl;
+        TFile *fVar_aa = new TFile(nameFile1);
+        TFile *fVar_pp = new TFile(nameFile2);
+        if (!fVar_aa->IsOpen() || !fVar_pp->IsOpen()) {
+          cout << "One or more input files are missing" << endl;
+          return ;
+        }
+        
+        // prompt histos
+        phCorrVar_pr_pp = (TH1F*)fVar_pp->Get(hist_pr);
+        phCorrVar_pr_aa = (TH1F*)fVar_aa->Get(hist_pr);
+        
+        phCorrVar_pr_pp->SetDirectory(0);
+        phCorrVar_pr_aa->SetDirectory(0);
 
-	double fitContribution_npr_pp    = 0;
-	double eff4dContribution_npr_pp  = 0;
-	double efftnpContribution_npr_pp = 0;
+        // non-prompt histos
+        phCorrVar_npr_pp = (TH1F*)fVar_pp->Get(hist_npr);
+        phCorrVar_npr_aa = (TH1F*)fVar_aa->Get(hist_npr);
 
-	  
-	double fitContribution_pt365y1624_pr_aa    = 0;
-	double eff4dContribution_pt365y1624_pr_aa  = 0;
-	double efftnpContribution_pt365y1624_pr_aa = 0; 
+        phCorrVar_npr_pp->SetDirectory(0);
+        phCorrVar_npr_aa->SetDirectory(0);
 
-	double fitContribution_pt365y1624_pr_pp    = 0;
-	double eff4dContribution_pt365y1624_pr_pp  = 0;
-	double efftnpContribution_pt365y1624_pr_pp = 0;
+        fVar_aa->Close();
+        fVar_pp->Close();
+        
+        double yieldVar_aa_pr  = phCorrVar_pr_aa->GetBinContent(ibin);
+        double yieldVar_aa_npr = phCorrVar_npr_aa->GetBinContent(ibin);
+        
+        double yieldVar_pp_pr  = phCorrVar_pr_pp->GetBinContent(ibin);
+        double yieldVar_pp_npr = phCorrVar_npr_pp->GetBinContent(ibin);
+        
+        if(bDoDebug) cout<< "+++++++++++ Variation " << ivar << " yields are:  " <<yieldVar_aa_pr<<"\t & "<<yieldVar_aa_npr<<"\t ;  "<<yieldVar_pp_pr<<"\t & "<<yieldVar_pp_npr<<endl;
+        double relVar_aa_pr = (yield_aa_pr - yieldVar_aa_pr)/yield_aa_pr;
+        double relVar_pp_pr = (yield_pp_pr - yieldVar_pp_pr)/yield_pp_pr; 
 
-	double fitContribution_pt365y1624_npr_aa    = 0;
-	double eff4dContribution_pt365y1624_npr_aa  = 0;
-	double efftnpContribution_pt365y1624_npr_aa = 0; 
+        double relVar_aa_npr = (yield_aa_npr - yieldVar_aa_npr)/yield_aa_npr;
+        double relVar_pp_npr = (yield_pp_npr - yieldVar_pp_npr)/yield_pp_npr;
 
-	double fitContribution_pt365y1624_npr_pp    = 0;
-	double eff4dContribution_pt365y1624_npr_pp  = 0;
-	double efftnpContribution_pt365y1624_npr_pp = 0;
+        switch(ih) {
+        case 0: // high-pt
+          // fit 
+          if(ivar<nFitVariations)
+          {
+            prJpsi_pt[ibin-1]    = yieldRatio_pr;
+            nonPrJpsi_pt[ibin-1] = yieldRatio_npr;
+            
+            syst_fit_pr_aa[ibin-1][ivar]  = TMath::Power( relVar_aa_pr,2 );
+            syst_fit_pr_pp[ibin-1][ivar]  = TMath::Power( relVar_pp_pr,2 );
 
+            syst_fit_npr_aa[ibin-1][ivar] = TMath::Power( relVar_aa_npr,2 ) ;
+            syst_fit_npr_pp[ibin-1][ivar] = TMath::Power( relVar_pp_npr,2 ) ;
+            
+            if(bDoDebug) cout<< "++++++++++++++++++++++ Delta yields:  " <<syst_fit_pr_aa[ibin-1][ivar]<<"\t & "<<syst_fit_npr_aa[ibin-1][ivar]<<
+                           "\t ;  "<<syst_fit_pr_pp[ibin-1][ivar]<<"\t & "<<syst_fit_npr_pp[ibin-1][ivar]<<endl;
+            if(method==1)//maximum
+            {
+              if( syst_fit_pr_aa[ibin-1][ivar] > fitContribution_pr_aa ) fitContribution_pr_aa = syst_fit_pr_aa[ibin-1][ivar];
+              if( syst_fit_pr_pp[ibin-1][ivar] > fitContribution_pr_pp ) fitContribution_pr_pp = syst_fit_pr_pp[ibin-1][ivar];
+                
+              if( syst_fit_npr_aa[ibin-1][ivar] > fitContribution_npr_aa ) fitContribution_npr_aa = syst_fit_npr_aa[ibin-1][ivar];
+              if( syst_fit_npr_pp[ibin-1][ivar] > fitContribution_npr_pp ) fitContribution_npr_pp = syst_fit_npr_pp[ibin-1][ivar];
+                
+            }
+            if(method==0) // rms of all variations
+            {
+              fitContribution_pr_aa += syst_fit_pr_aa[ibin-1][ivar];
+              fitContribution_pr_pp += syst_fit_pr_pp[ibin-1][ivar];
+              
+              fitContribution_npr_aa += syst_fit_npr_aa[ibin-1][ivar];
+              fitContribution_npr_pp += syst_fit_npr_pp[ibin-1][ivar];
+            }
+            if(bDoDebug) cout<< "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "<<fitContribution_pr_aa<<"\t & "<<fitContribution_npr_aa<<"\t ; "<<fitContribution_pr_pp<<"\t & "<<fitContribution_npr_pp<<endl;
+          }
+          // 4d eff
+          if(ivar>=nFitVariations && ivar<(nFitVariations+nEff4DVariations) )
+          {
+            int ifile = ivar-nFitVariations;
+            syst_eff4d_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr,2 ) ;
+            syst_eff4d_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr,2 ) ;
+            
+            syst_eff4d_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr,2 ) ;
+            syst_eff4d_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr,2 ) ;
+            
+            if(bDoDebug) cout<< "++++++++++++++++++++++ Delta yields:  " <<syst_eff4d_pr_aa[ibin-1][ifile]<<"\t & "<<syst_eff4d_npr_aa[ibin-1][ifile]<<
+                           "\t ;  "<<syst_eff4d_pr_pp[ibin-1][ifile]<<"\t & "<<syst_eff4d_npr_pp[ibin-1][ifile]<<endl;
 
-	double fitContribution_y1624MB_pr_aa    = 0;
-	double eff4dContribution_y1624MB_pr_aa  = 0;
-	double efftnpContribution_y1624MB_pr_aa = 0; 
+            if(method==1)//maximum
+            {
+              if( syst_eff4d_pr_aa[ibin-1][ifile] > eff4dContribution_pr_aa ) eff4dContribution_pr_aa = syst_eff4d_pr_aa[ibin-1][ifile];
+              if( syst_eff4d_pr_pp[ibin-1][ifile] > eff4dContribution_pr_pp ) eff4dContribution_pr_pp = syst_eff4d_pr_pp[ibin-1][ifile];
+              
+              if( syst_eff4d_npr_aa[ibin-1][ifile] > eff4dContribution_npr_aa ) eff4dContribution_npr_aa = syst_eff4d_npr_aa[ibin-1][ifile];
+              if( syst_eff4d_npr_pp[ibin-1][ifile] > eff4dContribution_npr_pp ) eff4dContribution_npr_pp = syst_eff4d_npr_pp[ibin-1][ifile];
+            }
+            if(method==0) // rms of all variations
+            {
+              eff4dContribution_pr_aa += syst_eff4d_pr_aa[ibin-1][ifile];
+              eff4dContribution_pr_pp += syst_eff4d_pr_pp[ibin-1][ifile];
+                
+              eff4dContribution_npr_aa += syst_eff4d_npr_aa[ibin-1][ifile];
+              eff4dContribution_npr_pp += syst_eff4d_npr_pp[ibin-1][ifile];
+            }
+            if(bDoDebug) cout<< "+++++++++++++++++++++++++++++++++ 4DEff Contribution to systm: "<<eff4dContribution_pr_aa<<"\t & "<<eff4dContribution_npr_aa<<"\t ; "<<eff4dContribution_pr_pp<<"\t & "<<eff4dContribution_npr_pp<<endl;
+          }
 
-	double fitContribution_y1624MB_pr_pp    = 0;
-	double eff4dContribution_y1624MB_pr_pp  = 0;
-	double efftnpContribution_y1624MB_pr_pp = 0;
+          // TnP
+          if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
+          {
+            int ifile = ivar-nFitVariations-nEff4DVariations;
+            syst_effTnP_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr,2 ) ;
+            syst_effTnP_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr,2 ) ;
+            
+            syst_effTnP_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr,2 ) ;
+            syst_effTnP_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr,2 ) ;
 
-	double fitContribution_y1624MB_npr_aa    = 0;
-	double eff4dContribution_y1624MB_npr_aa  = 0;
-	double efftnpContribution_y1624MB_npr_aa = 0; 
+            if(bDoDebug) cout<< "++++++++++++++++++++++ Delta yields:  " <<syst_effTnP_pr_aa[ibin-1][ifile]<<"\t & "<<syst_effTnP_npr_aa[ibin-1][ifile]<<
+                           "\t ;  "<<syst_effTnP_pr_pp[ibin-1][ifile]<<"\t & "<<syst_effTnP_npr_pp[ibin-1][ifile]<<endl;
 
-	double fitContribution_y1624MB_npr_pp    = 0;
-	double eff4dContribution_y1624MB_npr_pp  = 0;
-	double efftnpContribution_y1624MB_npr_pp = 0;
+            if(method==1)//maximum
+            {
+              if( syst_effTnP_pr_aa[ibin-1][ifile] > efftnpContribution_pr_aa ) efftnpContribution_pr_aa = syst_effTnP_pr_aa[ibin-1][ifile];
+              if( syst_effTnP_pr_pp[ibin-1][ifile] > efftnpContribution_pr_pp ) efftnpContribution_pr_pp = syst_effTnP_pr_pp[ibin-1][ifile];
+                
+              if( syst_effTnP_npr_aa[ibin-1][ifile] > efftnpContribution_npr_aa ) efftnpContribution_npr_aa = syst_effTnP_npr_aa[ibin-1][ifile];
+              if( syst_effTnP_npr_pp[ibin-1][ifile] > efftnpContribution_npr_pp ) efftnpContribution_npr_pp = syst_effTnP_npr_pp[ibin-1][ifile];
+            }
+            if(method==0) // rms of all variations
+            {
+              efftnpContribution_pr_aa += syst_effTnP_pr_aa[ibin-1][ifile];
+              efftnpContribution_pr_pp += syst_effTnP_pr_pp[ibin-1][ifile];
+                
+              efftnpContribution_npr_aa += syst_effTnP_npr_aa[ibin-1][ifile];
+              efftnpContribution_npr_pp += syst_effTnP_npr_pp[ibin-1][ifile];
+            }
+            if(bDoDebug) cout<< "+++++++++++++++++++++++++++++++++ Contribution to systm: "<<efftnpContribution_pr_aa<<"\t & "<<efftnpContribution_npr_aa<<"\t ; "<<efftnpContribution_pr_pp<<"\t & "<<efftnpContribution_npr_pp<<endl;
+          }
+          break;
+          
+        case 1:// fwd, low-pt: 3bins
+          prJpsi_pt365y1624_pt[ibin-1]  = yieldRatio_pr;
+          nonPrJpsi_pt365y1624_pt[ibin-1] = yieldRatio_npr;
+          
+          if(ivar<nFitVariations)
+          {
+            syst_fit_pt365y1624_pr_aa[ibin-1][ivar]  = TMath::Power( relVar_aa_pr ,2 ) ;
+            syst_fit_pt365y1624_pr_pp[ibin-1][ivar]  = TMath::Power( relVar_pp_pr ,2) ;
+              
+            syst_fit_pt365y1624_npr_aa[ibin-1][ivar]  = TMath::Power( relVar_aa_npr ,2) ;
+            syst_fit_pt365y1624_npr_pp[ibin-1][ivar]  = TMath::Power( relVar_pp_npr ,2) ;
+              
+            if(method==1)//maximum
+            {
+              if( syst_fit_pt365y1624_pr_aa[ibin-1][ivar] > fitContribution_pt365y1624_pr_aa ) fitContribution_pt365y1624_pr_aa = syst_fit_pt365y1624_pr_aa[ibin-1][ivar];
+              if( syst_fit_pt365y1624_pr_pp[ibin-1][ivar] > fitContribution_pt365y1624_pr_pp ) fitContribution_pt365y1624_pr_pp = syst_fit_pt365y1624_pr_pp[ibin-1][ivar];
+                
+              if( syst_fit_pt365y1624_npr_aa[ibin-1][ivar] > fitContribution_pt365y1624_npr_aa ) fitContribution_pt365y1624_npr_aa = syst_fit_pt365y1624_npr_aa[ibin-1][ivar];
+              if( syst_fit_pt365y1624_npr_pp[ibin-1][ivar] > fitContribution_pt365y1624_npr_pp ) fitContribution_pt365y1624_npr_pp = syst_fit_pt365y1624_npr_pp[ibin-1][ivar];
+            }
+            if(method==0) // rms of all variations
+            {
+              fitContribution_pt365y1624_pr_aa += syst_fit_pt365y1624_pr_aa[ibin-1][ivar];
+              fitContribution_pt365y1624_pr_pp += syst_fit_pt365y1624_pr_pp[ibin-1][ivar];
+                
+              fitContribution_pt365y1624_npr_aa += syst_fit_pt365y1624_npr_aa[ibin-1][ivar];
+              fitContribution_pt365y1624_npr_pp += syst_fit_pt365y1624_npr_pp[ibin-1][ivar];
+            }
+          }
+          if(ivar>=nFitVariations && ivar<(nFitVariations+nEff4DVariations) )
+          {
+            int ifile = ivar-nFitVariations;
+            syst_eff4d_pt365y1624_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr,2 ) ;
+            syst_eff4d_pt365y1624_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr ,2 ) ;
+            
+            syst_eff4d_pt365y1624_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
+            syst_eff4d_pt365y1624_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
+            
+            if(method==1)//maximum
+            {
+              if( syst_eff4d_pt365y1624_pr_aa[ibin-1][ifile] > eff4dContribution_pt365y1624_pr_aa ) eff4dContribution_pt365y1624_pr_aa = syst_eff4d_pt365y1624_pr_aa[ibin-1][ifile];
+              if( syst_eff4d_pt365y1624_pr_pp[ibin-1][ifile] > eff4dContribution_pt365y1624_pr_pp ) eff4dContribution_pt365y1624_pr_pp = syst_eff4d_pt365y1624_pr_pp[ibin-1][ifile];
+              
+              if( syst_eff4d_pt365y1624_npr_aa[ibin-1][ifile] > eff4dContribution_pt365y1624_npr_aa ) eff4dContribution_pt365y1624_npr_aa = syst_eff4d_pt365y1624_npr_aa[ibin-1][ifile];
+              if( syst_eff4d_pt365y1624_npr_pp[ibin-1][ifile] > eff4dContribution_pt365y1624_npr_pp ) eff4dContribution_pt365y1624_npr_pp = syst_eff4d_pt365y1624_npr_pp[ibin-1][ifile];
+            }
+            if(method==0) // rms of all variations
+            {
+              eff4dContribution_pt365y1624_pr_aa += syst_eff4d_pt365y1624_pr_aa[ibin-1][ifile];
+              eff4dContribution_pt365y1624_pr_pp += syst_eff4d_pt365y1624_pr_pp[ibin-1][ifile];
+              
+              eff4dContribution_pt365y1624_npr_aa += syst_eff4d_pt365y1624_npr_aa[ibin-1][ifile];
+              eff4dContribution_pt365y1624_npr_pp += syst_eff4d_pt365y1624_npr_pp[ibin-1][ifile];
+            }
+          }
+          if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
+          {
+            int ifile = ivar-nFitVariations-nEff4DVariations;
+            syst_effTnP_pt365y1624_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr ,2 ) ;
+            syst_effTnP_pt365y1624_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr ,2 ) ;
+              
+            syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
+            syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
+              
+            if(method==1)//maximum
+            {
+              if( syst_effTnP_pt365y1624_pr_aa[ibin-1][ifile] > efftnpContribution_pt365y1624_pr_aa ) efftnpContribution_pt365y1624_pr_aa = syst_effTnP_pr_aa[ibin-1][ifile];
+              if( syst_effTnP_pt365y1624_pr_pp[ibin-1][ifile] > efftnpContribution_pt365y1624_pr_pp ) efftnpContribution_pt365y1624_pr_pp = syst_effTnP_pr_pp[ibin-1][ifile];
+              
+              if( syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile] > efftnpContribution_pt365y1624_npr_aa ) efftnpContribution_pt365y1624_npr_aa = syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile];
+              if( syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile] > efftnpContribution_pt365y1624_npr_pp ) efftnpContribution_pt365y1624_npr_pp = syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile];
+            }
+            if(method==0) // rms of all variations
+            {
+              efftnpContribution_pt365y1624_pr_aa += syst_effTnP_pt365y1624_pr_aa[ibin-1][ifile];
+              efftnpContribution_pt365y1624_pr_pp += syst_effTnP_pt365y1624_pr_pp[ibin-1][ifile];
+                
+              efftnpContribution_pt365y1624_npr_aa += syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile];
+              efftnpContribution_pt365y1624_npr_pp += syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile];
+            }
+          }
+          break;
+          
+        case 2:// fwd, low-pt, high-pt, low+high
+          prJpsi_y1624MB_pt[ibin-1]  = yieldRatio_pr;
+          nonPrJpsi_y1624MB_pt[ibin-1] = yieldRatio_npr;
 
+          if(ivar<nFitVariations)
+          {
+            syst_fit_y1624MB_pr_aa[ibin-1][ivar]  = TMath::Power( relVar_aa_pr ,2) ;
+            syst_fit_y1624MB_pr_pp[ibin-1][ivar]  = TMath::Power( relVar_pp_pr,2 ) ;
+              
+            syst_fit_y1624MB_npr_aa[ibin-1][ivar]  = TMath::Power( relVar_aa_npr ,2) ;
+            syst_fit_y1624MB_npr_pp[ibin-1][ivar]  = TMath::Power( relVar_pp_npr ,2) ;
+              
+            if(method==1)//maximum
+            {
+              if( syst_fit_y1624MB_pr_aa[ibin-1][ivar] > fitContribution_y1624MB_pr_aa ) 
+                fitContribution_y1624MB_pr_aa = syst_fit_y1624MB_pr_aa[ibin-1][ivar];
+              if( syst_fit_y1624MB_pr_pp[ibin-1][ivar] > fitContribution_y1624MB_pr_pp ) 
+                fitContribution_y1624MB_pr_pp = syst_fit_y1624MB_pr_pp[ibin-1][ivar];
+                
+              if( syst_fit_y1624MB_npr_aa[ibin-1][ivar] > fitContribution_y1624MB_npr_aa ) 
+                fitContribution_y1624MB_npr_aa = syst_fit_y1624MB_npr_aa[ibin-1][ivar];
+              if( syst_fit_y1624MB_npr_pp[ibin-1][ivar] > fitContribution_y1624MB_npr_pp ) 
+                fitContribution_y1624MB_npr_pp = syst_fit_y1624MB_npr_pp[ibin-1][ivar];
+            }
+            if(method==0) // rms of all variations
+            {
+              fitContribution_y1624MB_pr_aa += syst_fit_y1624MB_pr_aa[ibin-1][ivar];
+              fitContribution_y1624MB_pr_pp += syst_fit_y1624MB_pr_pp[ibin-1][ivar];
+          
+              fitContribution_y1624MB_npr_aa += syst_fit_y1624MB_npr_aa[ibin-1][ivar];
+              fitContribution_y1624MB_npr_pp += syst_fit_y1624MB_npr_pp[ibin-1][ivar];
+            }
+          }
+          if(ivar>=nFitVariations && ivar<(nFitVariations+nEff4DVariations) )
+          {
+            int ifile = ivar-nFitVariations;
+            syst_eff4d_y1624MB_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr ,2) ;
+            syst_eff4d_y1624MB_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr ,2) ;
+            
+            syst_eff4d_y1624MB_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
+            syst_eff4d_y1624MB_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
+              
+            if(method==1)//maximum
+            {
+              if( syst_eff4d_y1624MB_pr_aa[ibin-1][ifile] > eff4dContribution_y1624MB_pr_aa ) eff4dContribution_y1624MB_pr_aa = syst_eff4d_y1624MB_pr_aa[ibin-1][ifile];
+              if( syst_eff4d_y1624MB_pr_pp[ibin-1][ifile] > eff4dContribution_y1624MB_pr_pp ) eff4dContribution_y1624MB_pr_pp = syst_eff4d_y1624MB_pr_pp[ibin-1][ifile];
+                
+              if( syst_eff4d_y1624MB_npr_aa[ibin-1][ifile] > eff4dContribution_y1624MB_npr_aa ) eff4dContribution_y1624MB_npr_aa = syst_eff4d_y1624MB_npr_aa[ibin-1][ifile];
+              if( syst_eff4d_y1624MB_npr_pp[ibin-1][ifile] > eff4dContribution_y1624MB_npr_pp ) eff4dContribution_y1624MB_npr_pp = syst_eff4d_y1624MB_npr_pp[ibin-1][ifile];
+            }
+            if(method==0) // rms of all variations
+            {
+              eff4dContribution_y1624MB_pr_aa += syst_eff4d_y1624MB_pr_aa[ibin-1][ifile];
+              eff4dContribution_y1624MB_pr_pp += syst_eff4d_y1624MB_pr_pp[ibin-1][ifile];
+                
+              eff4dContribution_y1624MB_npr_aa += syst_eff4d_y1624MB_npr_aa[ibin-1][ifile];
+              eff4dContribution_y1624MB_npr_pp += syst_eff4d_y1624MB_npr_pp[ibin-1][ifile];
+            }
+          }
+          if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
+          {
+            int ifile = ivar-nFitVariations-nEff4DVariations;
+            syst_effTnP_y1624MB_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr ,2) ;
+            syst_effTnP_y1624MB_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr ,2) ;
+              
+            syst_effTnP_y1624MB_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
+            syst_effTnP_y1624MB_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
+            
+            if(method==1)//maximum
+            {
+              if( syst_effTnP_y1624MB_pr_aa[ibin-1][ifile] > efftnpContribution_y1624MB_pr_aa ) efftnpContribution_y1624MB_pr_aa = syst_effTnP_pr_aa[ibin-1][ifile];
+              if( syst_effTnP_y1624MB_pr_pp[ibin-1][ifile] > efftnpContribution_y1624MB_pr_pp ) efftnpContribution_y1624MB_pr_pp = syst_effTnP_pr_pp[ibin-1][ifile];
+                
+              if( syst_effTnP_y1624MB_npr_aa[ibin-1][ifile] > efftnpContribution_y1624MB_npr_aa ) efftnpContribution_y1624MB_npr_aa = syst_effTnP_y1624MB_npr_aa[ibin-1][ifile];
+              if( syst_effTnP_y1624MB_npr_pp[ibin-1][ifile] > efftnpContribution_y1624MB_npr_pp ) efftnpContribution_y1624MB_npr_pp = syst_effTnP_y1624MB_npr_pp[ibin-1][ifile];
+            }
+            if(method==0) // rms of all variations
+            {
+              efftnpContribution_y1624MB_pr_aa += syst_effTnP_y1624MB_pr_aa[ibin-1][ifile];
+              efftnpContribution_y1624MB_pr_pp += syst_effTnP_y1624MB_pr_pp[ibin-1][ifile];
+                
+              efftnpContribution_y1624MB_npr_aa += syst_effTnP_y1624MB_npr_aa[ibin-1][ifile];
+              efftnpContribution_y1624MB_npr_pp += syst_effTnP_y1624MB_npr_pp[ibin-1][ifile];
+            }
+          }
+          break;
 
-	double fitContribution_mb_pr_aa    = 0;
-	double eff4dContribution_mb_pr_aa  = 0;
-	double efftnpContribution_mb_pr_aa = 0; 
+        case 3:
+          // mb high-pt: 6.5-30, |y|<2.4
+          prJpsi_mb[0]    = yieldRatio_pr;
+          nonPrJpsi_mb[0] = yieldRatio_npr;
+          
+          if(ivar<nFitVariations)
+          {
+            syst_fit_mb_pr_aa[0][ivar]  = TMath::Power( relVar_aa_pr ,2) ;
+            syst_fit_mb_pr_pp[0][ivar]  = TMath::Power( relVar_pp_pr ,2) ;
+              
+            syst_fit_mb_npr_aa[0][ivar] = TMath::Power( relVar_aa_npr ,2) ;
+            syst_fit_mb_npr_pp[0][ivar] = TMath::Power( relVar_pp_npr ,2) ; 
+              
+            if(method==1)//maximum
+            {
+              if( syst_fit_mb_pr_aa[0][ivar] > fitContribution_mb_pr_aa ) fitContribution_mb_pr_aa = syst_fit_mb_pr_aa[0][ivar];
+              if( syst_fit_mb_pr_pp[0][ivar] > fitContribution_mb_pr_pp ) fitContribution_mb_pr_pp = syst_fit_mb_pr_pp[0][ivar];
+              
+              if( syst_fit_mb_npr_aa[0][ivar] > fitContribution_mb_npr_aa )fitContribution_mb_npr_aa = syst_fit_mb_npr_aa[0][ivar];
+              if( syst_fit_mb_npr_pp[0][ivar] > fitContribution_mb_npr_pp )fitContribution_mb_npr_pp = syst_fit_mb_npr_pp[0][ivar];
+            }
+            if(method==0) // rms of all variations
+            {
+              fitContribution_mb_pr_aa += syst_fit_mb_pr_aa[0][ivar];
+              fitContribution_mb_pr_pp += syst_fit_mb_pr_pp[0][ivar];
+              
+              fitContribution_mb_npr_aa += syst_fit_mb_npr_aa[0][ivar];
+              fitContribution_mb_npr_pp += syst_fit_mb_npr_pp[0][ivar];
+            }
+          }
+          // 4d eff
+          if(ivar>=nFitVariations && ivar<(nFitVariations+nEff4DVariations) )
+          {
+            int ifile = ivar-nFitVariations;
+            syst_eff4d_mb_pr_aa[0][ifile]  = TMath::Power( relVar_aa_pr ,2) ;
+            syst_eff4d_mb_pr_pp[0][ifile]  = TMath::Power( relVar_pp_pr ,2) ;
+              
+            syst_eff4d_mb_npr_aa[0][ifile] = TMath::Power( relVar_aa_npr ,2 ) ;
+            syst_eff4d_mb_npr_pp[0][ifile] = TMath::Power( relVar_pp_npr ,2) ;
+              
+              
+            if(method==1)//maximum
+            {
+              if( syst_eff4d_mb_pr_aa[0][ifile] > eff4dContribution_mb_pr_aa ) eff4dContribution_mb_pr_aa = syst_eff4d_mb_pr_aa[0][ifile];
+              if( syst_eff4d_mb_pr_pp[0][ifile] > eff4dContribution_mb_pr_pp ) eff4dContribution_mb_pr_pp = syst_eff4d_mb_pr_pp[0][ifile];
+                
+              if( syst_eff4d_mb_npr_aa[0][ifile] > eff4dContribution_mb_npr_aa ) eff4dContribution_mb_npr_aa = syst_eff4d_mb_npr_aa[0][ifile];
+              if( syst_eff4d_mb_npr_pp[0][ifile] > eff4dContribution_mb_npr_pp ) eff4dContribution_mb_npr_pp = syst_eff4d_mb_npr_pp[0][ifile];
+            }
+            if(method==0) // rms of all variations
+            {
+              eff4dContribution_mb_pr_aa += syst_eff4d_mb_pr_aa[0][ifile];
+              eff4dContribution_mb_pr_pp += syst_eff4d_mb_pr_pp[0][ifile];
+                
+              eff4dContribution_mb_npr_aa += syst_eff4d_mb_npr_aa[0][ifile];
+              eff4dContribution_mb_npr_pp += syst_eff4d_mb_npr_pp[0][ifile];
+            }
+          }
+          // tnp sf
+          if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
+          {
+            int ifile = ivar-nFitVariations-nEff4DVariations;
+            syst_effTnP_mb_pr_aa[0][ifile]  = TMath::Power( relVar_aa_pr ,2) ;
+            syst_effTnP_mb_pr_pp[0][ifile]  = TMath::Power( relVar_pp_pr ,2) ;  
+              
+            syst_effTnP_mb_npr_aa[0][ifile] = TMath::Power( relVar_aa_npr ,2) ;
+            syst_effTnP_mb_npr_pp[0][ifile] = TMath::Power( relVar_pp_npr ,2) ; 
+              
+            if(method==1)//maximum
+            {
+              if( syst_effTnP_mb_pr_aa[0][ifile] > efftnpContribution_mb_pr_aa ) efftnpContribution_mb_pr_aa = syst_effTnP_mb_pr_aa[0][ifile];
+              if( syst_effTnP_mb_pr_pp[0][ifile] > efftnpContribution_mb_pr_pp ) efftnpContribution_mb_pr_pp = syst_effTnP_mb_pr_pp[0][ifile];
+          
+              if( syst_effTnP_mb_npr_aa[0][ifile] > efftnpContribution_mb_npr_aa ) efftnpContribution_mb_npr_aa = syst_effTnP_mb_npr_aa[0][ifile];
+              if( syst_effTnP_mb_npr_pp[0][ifile] > efftnpContribution_mb_npr_pp ) efftnpContribution_mb_npr_pp = syst_effTnP_mb_npr_pp[0][ifile];
+            }
+            if(method==0) // rms of all variations
+            {
+              efftnpContribution_mb_pr_aa += syst_effTnP_mb_pr_aa[0][ifile];
+              efftnpContribution_mb_pr_pp += syst_effTnP_mb_pr_pp[0][ifile];
+                
+              efftnpContribution_mb_npr_aa += syst_effTnP_mb_npr_aa[0][ifile];
+              efftnpContribution_mb_npr_pp += syst_effTnP_mb_npr_pp[0][ifile];
+            }
+          }
+          break;
+        }//switch ih==kinematic range 
+      }// fit variation ivar (fit, 4dEff, tnp)
+      
+      switch(ih){
+      case 0:
+        prJpsiErrSyst_pt[ibin-1] = yieldRatio_pr * TMath::Sqrt((fitContribution_pr_aa+eff4dContribution_pr_aa+efftnpContribution_pr_aa)+
+                                                               (fitContribution_pr_pp+eff4dContribution_pr_pp+efftnpContribution_pr_pp) );
+        nonPrJpsiErrSyst_pt[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_npr_aa+eff4dContribution_npr_aa+efftnpContribution_npr_aa)+
+                                                                   (fitContribution_npr_pp+eff4dContribution_npr_pp+efftnpContribution_npr_pp));  
+          if(method==0)
+          {   
+            prJpsiErrSyst_pt[ibin-1]    *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
+            nonPrJpsiErrSyst_pt[ibin-1] *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
+          }
+          if(bDoDebug)
+          {
+            cout<<"---------------------------------------------------------------"<<endl;
+            cout<< "Ingredients to the total systm. uncertainty"<<endl;
+            cout<<"Prompt yields systematics: aa & pp"<<endl;
+            cout<<"fitContribution: "<<fitContribution_pr_aa<<"\t "<<fitContribution_pr_pp<<endl;
+            cout<<"eff4dContribution: "<<eff4dContribution_pr_aa<<"\t"<<eff4dContribution_pr_pp<<endl;
+            cout<<"efftnpContribution: "<<efftnpContribution_pr_aa<<"\t"<<efftnpContribution_pr_pp<<endl;
+            cout<<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
+            cout<<"yield ratio: "<<yieldRatio_pr<<endl;
+            cout<<"Total: "<<prJpsiErrSyst_pt[ibin-1]<<endl;
+          }
+        break;
 
-	double fitContribution_mb_pr_pp    = 0;
-	double eff4dContribution_mb_pr_pp  = 0;
-	double efftnpContribution_mb_pr_pp = 0;
-	  
-	double fitContribution_mb_npr_aa    = 0;
-	double eff4dContribution_mb_npr_aa  = 0;
-	double efftnpContribution_mb_npr_aa = 0; 
+      case 1:
+        prJpsiErrSyst_pt365y1624_pt[ibin-1] = yieldRatio_pr * TMath::Sqrt((fitContribution_pt365y1624_pr_aa+eff4dContribution_pt365y1624_pr_aa+efftnpContribution_pt365y1624_pr_aa)+
+                                                                          (fitContribution_pt365y1624_pr_pp+eff4dContribution_pt365y1624_pr_pp+efftnpContribution_pt365y1624_pr_pp));
+        nonPrJpsiErrSyst_pt365y1624_pt[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_pt365y1624_npr_aa+eff4dContribution_pt365y1624_npr_aa+efftnpContribution_pt365y1624_npr_aa)+
+                                                                              (fitContribution_pt365y1624_npr_pp+eff4dContribution_pt365y1624_npr_pp+efftnpContribution_pt365y1624_npr_pp));  
 
-	double fitContribution_mb_npr_pp    = 0;
-	double eff4dContribution_mb_npr_pp  = 0;
-	double efftnpContribution_mb_npr_pp = 0;
+        if(method==0)
+        {   
+          prJpsiErrSyst_pt365y1624_pt[ibin-1]    *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
+          nonPrJpsiErrSyst_pt365y1624_pt[ibin-1] *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
+        }
+        if(bDoDebug)
+        {
+          cout<<"---------------------------------------------------------------"<<endl;
+          cout<< "Ingredients to the total systm. uncertainty"<<endl;
+          cout<<"Prompt yields systematics: aa & pp"<<endl;
+          cout<<"fitContribution: "<<fitContribution_pt365y1624_pr_aa<<"\t "<<fitContribution_pt365y1624_pr_pp<<endl;
+          cout<<"eff4dContribution: "<<eff4dContribution_pt365y1624_pr_aa<<"\t"<<eff4dContribution_pt365y1624_pr_pp<<endl;
+          cout<<"efftnpContribution: "<<efftnpContribution_pt365y1624_pr_aa<<"\t"<<efftnpContribution_pt365y1624_pr_pp<<endl;
+          cout<<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
+          cout<<"yield ratio: "<<yieldRatio_pr<<endl;
+          cout<<"Total: "<<prJpsiErrSyst_pt365y1624_pt[ibin-1]<<endl;
+        }
+        break;
 
-	//nominal prompt and non-prompt yield ratios
-	double yield_aa_pr  = phCorr_pr_aa->GetBinContent(ibin);
-	double yield_aa_npr = phCorr_npr_aa->GetBinContent(ibin);
-	
-	double yield_pp_pr  = phCorr_pr_pp->GetBinContent(ibin);
-	double yield_pp_npr = phCorr_npr_pp->GetBinContent(ibin);
+      case 2: 
+        prJpsiErrSyst_y1624MB_pt[ibin-1] = yieldRatio_pr * TMath::Sqrt((fitContribution_y1624MB_pr_aa+eff4dContribution_y1624MB_pr_aa+efftnpContribution_y1624MB_pr_aa)+
+                                                                       (fitContribution_y1624MB_pr_pp+eff4dContribution_y1624MB_pr_pp+efftnpContribution_y1624MB_pr_pp));
+        nonPrJpsiErrSyst_y1624MB_pt[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_y1624MB_npr_aa+eff4dContribution_y1624MB_npr_aa+efftnpContribution_y1624MB_npr_aa)+
+                                                                           (fitContribution_y1624MB_npr_pp+eff4dContribution_y1624MB_npr_pp+efftnpContribution_y1624MB_npr_pp));  
+        if(method==0)
+        {   
+          prJpsiErrSyst_y1624MB_pt[ibin-1]    *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
+          nonPrJpsiErrSyst_y1624MB_pt[ibin-1] *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
+        }
 
+        if(bDoDebug)
+        {
+          cout<<"---------------------------------------------------------------"<<endl;
+          cout<< "Ingredients to the total systm. uncertainty"<<endl;
+          cout<<"Prompt yields systematics: aa & pp"<<endl;
+          cout<<"fitContribution: "<<fitContribution_y1624MB_pr_aa<<"\t "<<fitContribution_y1624MB_pr_pp<<endl;
+          cout<<"eff4dContribution: "<<eff4dContribution_y1624MB_pr_aa<<"\t"<<eff4dContribution_y1624MB_pr_pp<<endl;
+          cout<<"efftnpContribution: "<<efftnpContribution_y1624MB_pr_aa<<"\t"<<efftnpContribution_y1624MB_pr_pp<<endl;
+          cout<<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
+          cout<<"yield ratio: "<<yieldRatio_pr<<endl;
+          cout<<"Total: "<<prJpsiErrSyst_y1624MB_pt[ibin-1]<<endl;
+        }
+        break;
 
-	double scaleFactor    = ppLumi/nMbEvents;
-	double scale_cent     = 1/(adTaaMB[0]*adDeltaCentMB[0]);
-	double yieldRatio_pr  = yield_aa_pr/yield_pp_pr   * scaleFactor * scale_cent;
-	double yieldRatio_npr = yield_aa_npr/yield_pp_npr * scaleFactor * scale_cent;
-	
-	if(bDoDebug) cout<< "################ Bin " <<ibin << "\n Nominal yields are (prompt & nonPr - aa ; prompt & nonPr -  pp):  " <<yield_aa_pr<<"\t & "<<yield_aa_npr<<"\t; "<<yield_pp_pr<<"\t & "<<yield_pp_npr<<endl;
+      case 3:
+        prJpsiErrSyst_mb[0] = yieldRatio_pr * TMath::Sqrt((fitContribution_mb_pr_aa+eff4dContribution_mb_pr_aa+efftnpContribution_mb_pr_aa)+
+                                                          (fitContribution_mb_pr_pp+eff4dContribution_mb_pr_pp+efftnpContribution_mb_pr_pp));
+        nonPrJpsiErrSyst_mb[0] = yieldRatio_npr *  TMath::Sqrt((fitContribution_mb_npr_aa+eff4dContribution_mb_npr_aa+efftnpContribution_mb_npr_aa)+
+                                                               (fitContribution_mb_npr_pp+eff4dContribution_mb_npr_pp+efftnpContribution_mb_npr_pp));  
+        if(method==0)
+        {   
+          prJpsiErrSyst_mb[0]    *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
+          nonPrJpsiErrSyst_mb[0] *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
+        }
+        
+        if(bDoDebug)
+        {
+          cout<<"---------------------------------------------------------------"<<endl;
+          cout<< "Ingredients to the total systm. uncertainty"<<endl;
+          cout<<"Prompt yields systematics: aa & pp"<<endl;
+          cout<<"fitContribution: "<<fitContribution_mb_pr_aa<<"\t "<<fitContribution_mb_pr_pp<<endl;
+          cout<<"eff4dContribution: "<<eff4dContribution_mb_pr_aa<<"\t"<<eff4dContribution_mb_pr_pp<<endl;
+          cout<<"efftnpContribution: "<<efftnpContribution_mb_pr_aa<<"\t"<<efftnpContribution_mb_pr_pp<<endl;
+          cout<<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
+          cout<<"yield ratio: "<<yieldRatio_pr<<endl;
+          cout<<"Total: "<<prJpsiErrSyst_mb[0]<<endl;
+        }
+        break;
+     
+      default:
+        break;
+    }//switch end: 
 
-	// for each source of uncert, calc variation wrt nominal value
-	for(int ivar=0; ivar<(nFitVariations+nEff4DVariations+nEffTnPVariation); ivar++)
-	//	for(int ivar=0; ivar<(nFitVariations+nEff4DVariations); ivar++)
-	  {
-	    cout<<"@@@@@@@ Variation = " << ivar <<endl; 
-	    char nameFile1[200], nameFile2[200];
-	  
-	    if(ivar<nFitVariations)
-	      {
-		int ifile = ivar;
-		sprintf(nameFile1,Form("%s/%s",inputDir,yieldHistFile_aa_systSgnBkg[ifile]));
-		sprintf(nameFile2,Form("%s/%s",inputDir,yieldHistFile_pp_systSgnBkg[ifile]));
-	      }
-	
-	    if( (ivar>=nFitVariations) && ivar<(nFitVariations+nEff4DVariations) )
-	      {
-		int ifile = ivar-nFitVariations;
-		sprintf(nameFile1,Form("%s/%s",inputDir,yieldHistFile_aa_syst4DCorr[ifile]));
-		sprintf(nameFile2,Form("%s/%s",inputDir,yieldHistFile_pp_syst4DCorr[ifile]));
-	      }
-
-	    if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
-	      {
-		int ifile = ivar-nFitVariations-nEff4DVariations;
-		sprintf(nameFile1,Form("%s/%s",inputDir,yieldHistFile_aa_systTnP[ifile]));
-		sprintf(nameFile2,Form("%s/%s",inputDir,yieldHistFile_pp_systTnP[ifile]));
-	      }
-
-	    if(bDoDebug) cout<< "Opened systematic files:\n pp: "<<nameFile2 << "\t AA: "<< nameFile1 <<endl;
-	    TFile *fVar_aa = new TFile(nameFile1);
-	    TFile *fVar_pp = new TFile(nameFile2);
-	    if (!fVar_aa->IsOpen() || !fVar_pp->IsOpen()) {
-	      cout << "One or more input files are missing" << endl;
-	      return ;
-	    }
-	    
-	    // prompt histos
-	    phCorrVar_pr_pp = (TH1F*)fVar_pp->Get(hist_pr);
-	    phCorrVar_pr_aa = (TH1F*)fVar_aa->Get(hist_pr);
-	    
-	    phCorrVar_pr_pp->SetDirectory(0);
-	    phCorrVar_pr_aa->SetDirectory(0);
-
-	    // non-prompt histos
-	    phCorrVar_npr_pp = (TH1F*)fVar_pp->Get(hist_npr);
-	    phCorrVar_npr_aa = (TH1F*)fVar_aa->Get(hist_npr);
-
-	    phCorrVar_npr_pp->SetDirectory(0);
-	    phCorrVar_npr_aa->SetDirectory(0);
-
-	    fVar_aa->Close();
-	    fVar_pp->Close();
-	    
-	    double yieldVar_aa_pr  = phCorrVar_pr_aa->GetBinContent(ibin);
-	    double yieldVar_aa_npr = phCorrVar_npr_aa->GetBinContent(ibin);
-	    
-	    double yieldVar_pp_pr  = phCorrVar_pr_pp->GetBinContent(ibin);
-	    double yieldVar_pp_npr = phCorrVar_npr_pp->GetBinContent(ibin);
-	    
-	    if(bDoDebug) cout<< "+++++++++++ Variation " << ivar << " yields are:  " <<yieldVar_aa_pr<<"\t & "<<yieldVar_aa_npr<<"\t ;  "<<yieldVar_pp_pr<<"\t & "<<yieldVar_pp_npr<<endl;
-	    double relVar_aa_pr = (yield_aa_pr - yieldVar_aa_pr)/yield_aa_pr;
-	    double relVar_pp_pr = (yield_pp_pr - yieldVar_pp_pr)/yield_pp_pr; 
-
-	    double relVar_aa_npr = (yield_aa_npr - yieldVar_aa_npr)/yield_aa_npr;
-	    double relVar_pp_npr = (yield_pp_npr - yieldVar_pp_npr)/yield_pp_npr;
-
-	    switch(ih){
-	    case 0: // high-pt
-	      // fit 
-	      if(ivar<nFitVariations)
-		{
-		  prJpsi_pt[ibin-1]    = yieldRatio_pr;
-		  nonPrJpsi_pt[ibin-1] = yieldRatio_npr;
-		  
-		  syst_fit_pr_aa[ibin-1][ivar]  = TMath::Power( relVar_aa_pr,2 );
-		  syst_fit_pr_pp[ibin-1][ivar]  = TMath::Power( relVar_pp_pr,2 );
-
-		  syst_fit_npr_aa[ibin-1][ivar] = TMath::Power( relVar_aa_npr,2 ) ;
-		  syst_fit_npr_pp[ibin-1][ivar] = TMath::Power( relVar_pp_npr,2 ) ;
-		  
-		  if(bDoDebug) cout<< "++++++++++++++++++++++ Delta yields:  " <<syst_fit_pr_aa[ibin-1][ivar]<<"\t & "<<syst_fit_npr_aa[ibin-1][ivar]<<
-				 "\t ;  "<<syst_fit_pr_pp[ibin-1][ivar]<<"\t & "<<syst_fit_npr_pp[ibin-1][ivar]<<endl;
-		  if(method==1)//maximum
-		    {
-		      if( syst_fit_pr_aa[ibin-1][ivar] > fitContribution_pr_aa ) fitContribution_pr_aa = syst_fit_pr_aa[ibin-1][ivar];
-		      if( syst_fit_pr_pp[ibin-1][ivar] > fitContribution_pr_pp ) fitContribution_pr_pp = syst_fit_pr_pp[ibin-1][ivar];
-			
-		      if( syst_fit_npr_aa[ibin-1][ivar] > fitContribution_npr_aa ) fitContribution_npr_aa = syst_fit_npr_aa[ibin-1][ivar];
-		      if( syst_fit_npr_pp[ibin-1][ivar] > fitContribution_npr_pp ) fitContribution_npr_pp = syst_fit_npr_pp[ibin-1][ivar];
-			
-		    }
-		  if(method==0) // rms of all variations
-		    {
-		      fitContribution_pr_aa += syst_fit_pr_aa[ibin-1][ivar];
-		      fitContribution_pr_pp += syst_fit_pr_pp[ibin-1][ivar];
-		      
-		      fitContribution_npr_aa += syst_fit_npr_aa[ibin-1][ivar];
-		      fitContribution_npr_pp += syst_fit_npr_pp[ibin-1][ivar];
-		    }
-		  if(bDoDebug) cout<< "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "<<fitContribution_pr_aa<<"\t & "<<fitContribution_npr_aa<<"\t ; "<<fitContribution_pr_pp<<"\t & "<<fitContribution_npr_pp<<endl;
-		}
-	      // 4d eff
-	      if(ivar>=nFitVariations && ivar<(nFitVariations+nEff4DVariations) )
-		{
-		  int ifile = ivar-nFitVariations;
-		  syst_eff4d_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr,2 ) ;
-		  syst_eff4d_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr,2 ) ;
-		  
-		  syst_eff4d_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr,2 ) ;
-		  syst_eff4d_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr,2 ) ;
-		  
-		  if(bDoDebug) cout<< "++++++++++++++++++++++ Delta yields:  " <<syst_eff4d_pr_aa[ibin-1][ifile]<<"\t & "<<syst_eff4d_npr_aa[ibin-1][ifile]<<
-				 "\t ;  "<<syst_eff4d_pr_pp[ibin-1][ifile]<<"\t & "<<syst_eff4d_npr_pp[ibin-1][ifile]<<endl;
-
-		  if(method==1)//maximum
-		    {
-		      if( syst_eff4d_pr_aa[ibin-1][ifile] > eff4dContribution_pr_aa ) eff4dContribution_pr_aa = syst_eff4d_pr_aa[ibin-1][ifile];
-		      if( syst_eff4d_pr_pp[ibin-1][ifile] > eff4dContribution_pr_pp ) eff4dContribution_pr_pp = syst_eff4d_pr_pp[ibin-1][ifile];
-		      
-		      if( syst_eff4d_npr_aa[ibin-1][ifile] > eff4dContribution_npr_aa ) eff4dContribution_npr_aa = syst_eff4d_npr_aa[ibin-1][ifile];
-		      if( syst_eff4d_npr_pp[ibin-1][ifile] > eff4dContribution_npr_pp ) eff4dContribution_npr_pp = syst_eff4d_npr_pp[ibin-1][ifile];
-		    }
-		  if(method==0) // rms of all variations
-		    {
-		      eff4dContribution_pr_aa += syst_eff4d_pr_aa[ibin-1][ifile];
-		      eff4dContribution_pr_pp += syst_eff4d_pr_pp[ibin-1][ifile];
-			
-		      eff4dContribution_npr_aa += syst_eff4d_npr_aa[ibin-1][ifile];
-		      eff4dContribution_npr_pp += syst_eff4d_npr_pp[ibin-1][ifile];
-		    }
-		  if(bDoDebug) cout<< "+++++++++++++++++++++++++++++++++ 4DEff Contribution to systm: "<<eff4dContribution_pr_aa<<"\t & "<<eff4dContribution_npr_aa<<"\t ; "<<eff4dContribution_pr_pp<<"\t & "<<eff4dContribution_npr_pp<<endl;
-		}
-
-	      // TnP
-	      if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
-		{
-		  int ifile = ivar-nFitVariations-nEff4DVariations;
-		  syst_effTnP_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr,2 ) ;
-		  syst_effTnP_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr,2 ) ;
-		  
-		  syst_effTnP_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr,2 ) ;
-		  syst_effTnP_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr,2 ) ;
-
-		  if(bDoDebug) cout<< "++++++++++++++++++++++ Delta yields:  " <<syst_effTnP_pr_aa[ibin-1][ifile]<<"\t & "<<syst_effTnP_npr_aa[ibin-1][ifile]<<
-				 "\t ;  "<<syst_effTnP_pr_pp[ibin-1][ifile]<<"\t & "<<syst_effTnP_npr_pp[ibin-1][ifile]<<endl;
-
-		  if(method==1)//maximum
-		    {
-		      if( syst_effTnP_pr_aa[ibin-1][ifile] > efftnpContribution_pr_aa ) efftnpContribution_pr_aa = syst_effTnP_pr_aa[ibin-1][ifile];
-		      if( syst_effTnP_pr_pp[ibin-1][ifile] > efftnpContribution_pr_pp ) efftnpContribution_pr_pp = syst_effTnP_pr_pp[ibin-1][ifile];
-			
-		      if( syst_effTnP_npr_aa[ibin-1][ifile] > efftnpContribution_npr_aa ) efftnpContribution_npr_aa = syst_effTnP_npr_aa[ibin-1][ifile];
-		      if( syst_effTnP_npr_pp[ibin-1][ifile] > efftnpContribution_npr_pp ) efftnpContribution_npr_pp = syst_effTnP_npr_pp[ibin-1][ifile];
-		    }
-		  if(method==0) // rms of all variations
-		    {
-		      efftnpContribution_pr_aa += syst_effTnP_pr_aa[ibin-1][ifile];
-		      efftnpContribution_pr_pp += syst_effTnP_pr_pp[ibin-1][ifile];
-			
-		      efftnpContribution_npr_aa += syst_effTnP_npr_aa[ibin-1][ifile];
-		      efftnpContribution_npr_pp += syst_effTnP_npr_pp[ibin-1][ifile];
-		    }
-		  if(bDoDebug) cout<< "+++++++++++++++++++++++++++++++++ Contribution to systm: "<<efftnpContribution_pr_aa<<"\t & "<<efftnpContribution_npr_aa<<"\t ; "<<efftnpContribution_pr_pp<<"\t & "<<efftnpContribution_npr_pp<<endl;
-		  
-		}
-	      break;
-	      
-	    case 1:// fwd, low-pt: 3bins
-	      prJpsi_pt365y1624_pt[ibin-1]  = yieldRatio_pr;
-	      nonPrJpsi_pt365y1624_pt[ibin-1] = yieldRatio_npr;
-	      
-	      if(ivar<nFitVariations)
-		{
-		  syst_fit_pt365y1624_pr_aa[ibin-1][ivar]  = TMath::Power( relVar_aa_pr ,2 ) ;
-		  syst_fit_pt365y1624_pr_pp[ibin-1][ivar]  = TMath::Power( relVar_pp_pr ,2) ;
-		    
-		  syst_fit_pt365y1624_npr_aa[ibin-1][ivar]  = TMath::Power( relVar_aa_npr ,2) ;
-		  syst_fit_pt365y1624_npr_pp[ibin-1][ivar]  = TMath::Power( relVar_pp_npr ,2) ;
-		    
-		    
-		  if(method==1)//maximum
-		    {
-		      if( syst_fit_pt365y1624_pr_aa[ibin-1][ivar] > fitContribution_pt365y1624_pr_aa ) fitContribution_pt365y1624_pr_aa = syst_fit_pt365y1624_pr_aa[ibin-1][ivar];
-		      if( syst_fit_pt365y1624_pr_pp[ibin-1][ivar] > fitContribution_pt365y1624_pr_pp ) fitContribution_pt365y1624_pr_pp = syst_fit_pt365y1624_pr_pp[ibin-1][ivar];
-			
-		      if( syst_fit_pt365y1624_npr_aa[ibin-1][ivar] > fitContribution_pt365y1624_npr_aa ) fitContribution_pt365y1624_npr_aa = syst_fit_pt365y1624_npr_aa[ibin-1][ivar];
-		      if( syst_fit_pt365y1624_npr_pp[ibin-1][ivar] > fitContribution_pt365y1624_npr_pp ) fitContribution_pt365y1624_npr_pp = syst_fit_pt365y1624_npr_pp[ibin-1][ivar];
-		    }
-		  if(method==0) // rms of all variations
-		    {
-		      fitContribution_pt365y1624_pr_aa += syst_fit_pt365y1624_pr_aa[ibin-1][ivar];
-		      fitContribution_pt365y1624_pr_pp += syst_fit_pt365y1624_pr_pp[ibin-1][ivar];
-			
-		      fitContribution_pt365y1624_npr_aa += syst_fit_pt365y1624_npr_aa[ibin-1][ivar];
-		      fitContribution_pt365y1624_npr_pp += syst_fit_pt365y1624_npr_pp[ibin-1][ivar];
-		    }
-		}
-	      if(ivar>=nFitVariations && ivar<(nFitVariations+nEff4DVariations) )
-		{
-		  int ifile = ivar-nFitVariations;
-		  syst_eff4d_pt365y1624_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr,2 ) ;
-		  syst_eff4d_pt365y1624_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr ,2 ) ;
-		  
-		  syst_eff4d_pt365y1624_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
-		  syst_eff4d_pt365y1624_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
-		  
-		  if(method==1)//maximum
-		    {
-		      if( syst_eff4d_pt365y1624_pr_aa[ibin-1][ifile] > eff4dContribution_pt365y1624_pr_aa ) eff4dContribution_pt365y1624_pr_aa = syst_eff4d_pt365y1624_pr_aa[ibin-1][ifile];
-		      if( syst_eff4d_pt365y1624_pr_pp[ibin-1][ifile] > eff4dContribution_pt365y1624_pr_pp ) eff4dContribution_pt365y1624_pr_pp = syst_eff4d_pt365y1624_pr_pp[ibin-1][ifile];
-		      
-		      if( syst_eff4d_pt365y1624_npr_aa[ibin-1][ifile] > eff4dContribution_pt365y1624_npr_aa ) eff4dContribution_pt365y1624_npr_aa = syst_eff4d_pt365y1624_npr_aa[ibin-1][ifile];
-		      if( syst_eff4d_pt365y1624_npr_pp[ibin-1][ifile] > eff4dContribution_pt365y1624_npr_pp ) eff4dContribution_pt365y1624_npr_pp = syst_eff4d_pt365y1624_npr_pp[ibin-1][ifile];
-		    }
-		  if(method==0) // rms of all variations
-		    {
-		      eff4dContribution_pt365y1624_pr_aa += syst_eff4d_pt365y1624_pr_aa[ibin-1][ifile];
-		      eff4dContribution_pt365y1624_pr_pp += syst_eff4d_pt365y1624_pr_pp[ibin-1][ifile];
-		      
-		      eff4dContribution_pt365y1624_npr_aa += syst_eff4d_pt365y1624_npr_aa[ibin-1][ifile];
-		      eff4dContribution_pt365y1624_npr_pp += syst_eff4d_pt365y1624_npr_pp[ibin-1][ifile];
-		    }
-
-		    
-		}
-	      if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
-		{
-		  int ifile = ivar-nFitVariations-nEff4DVariations;
-		  syst_effTnP_pt365y1624_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr ,2 ) ;
-		  syst_effTnP_pt365y1624_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr ,2 ) ;
-		    
-		  syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
-		  syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
-		    
-		  if(method==1)//maximum
-		    {
-		      if( syst_effTnP_pt365y1624_pr_aa[ibin-1][ifile] > efftnpContribution_pt365y1624_pr_aa ) efftnpContribution_pt365y1624_pr_aa = syst_effTnP_pr_aa[ibin-1][ifile];
-		      if( syst_effTnP_pt365y1624_pr_pp[ibin-1][ifile] > efftnpContribution_pt365y1624_pr_pp ) efftnpContribution_pt365y1624_pr_pp = syst_effTnP_pr_pp[ibin-1][ifile];
-		      
-		      if( syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile] > efftnpContribution_pt365y1624_npr_aa ) efftnpContribution_pt365y1624_npr_aa = syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile];
-		      if( syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile] > efftnpContribution_pt365y1624_npr_pp ) efftnpContribution_pt365y1624_npr_pp = syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile];
-		    }
-		  if(method==0) // rms of all variations
-		    {
-		      efftnpContribution_pt365y1624_pr_aa += syst_effTnP_pt365y1624_pr_aa[ibin-1][ifile];
-		      efftnpContribution_pt365y1624_pr_pp += syst_effTnP_pt365y1624_pr_pp[ibin-1][ifile];
-			
-		      efftnpContribution_pt365y1624_npr_aa += syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile];
-		      efftnpContribution_pt365y1624_npr_pp += syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile];
-		    }
-		    
-		}
-	      break;
-	      
-	    case 2:// fwd, low-pt, high-pt, low+high
-	      prJpsi_y1624MB_pt[ibin-1]  = yieldRatio_pr;
-	      nonPrJpsi_y1624MB_pt[ibin-1] = yieldRatio_npr;
-
-	      if(ivar<nFitVariations)
-		{
-		  syst_fit_y1624MB_pr_aa[ibin-1][ivar]  = TMath::Power( relVar_aa_pr ,2) ;
-		  syst_fit_y1624MB_pr_pp[ibin-1][ivar]  = TMath::Power( relVar_pp_pr,2 ) ;
-		    
-		  syst_fit_y1624MB_npr_aa[ibin-1][ivar]  = TMath::Power( relVar_aa_npr ,2) ;
-		  syst_fit_y1624MB_npr_pp[ibin-1][ivar]  = TMath::Power( relVar_pp_npr ,2) ;
-		    
-		    
-		  if(method==1)//maximum
-		    {
-		      if( syst_fit_y1624MB_pr_aa[ibin-1][ivar] > fitContribution_y1624MB_pr_aa ) 
-			fitContribution_y1624MB_pr_aa = syst_fit_y1624MB_pr_aa[ibin-1][ivar];
-		      if( syst_fit_y1624MB_pr_pp[ibin-1][ivar] > fitContribution_y1624MB_pr_pp ) 
-			fitContribution_y1624MB_pr_pp = syst_fit_y1624MB_pr_pp[ibin-1][ivar];
-			
-		      if( syst_fit_y1624MB_npr_aa[ibin-1][ivar] > fitContribution_y1624MB_npr_aa ) 
-			fitContribution_y1624MB_npr_aa = syst_fit_y1624MB_npr_aa[ibin-1][ivar];
-		      if( syst_fit_y1624MB_npr_pp[ibin-1][ivar] > fitContribution_y1624MB_npr_pp ) 
-			fitContribution_y1624MB_npr_pp = syst_fit_y1624MB_npr_pp[ibin-1][ivar];
-		    }
-		  if(method==0) // rms of all variations
-		    {
-		      fitContribution_y1624MB_pr_aa += syst_fit_y1624MB_pr_aa[ibin-1][ivar];
-		      fitContribution_y1624MB_pr_pp += syst_fit_y1624MB_pr_pp[ibin-1][ivar];
-		  
-		      fitContribution_y1624MB_npr_aa += syst_fit_y1624MB_npr_aa[ibin-1][ivar];
-		      fitContribution_y1624MB_npr_pp += syst_fit_y1624MB_npr_pp[ibin-1][ivar];
-		    }
-		    
-		    
-		}
-	      if(ivar>=nFitVariations && ivar<(nFitVariations+nEff4DVariations) )
-		{
-		  int ifile = ivar-nFitVariations;
-		  syst_eff4d_y1624MB_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr ,2) ;
-		  syst_eff4d_y1624MB_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr ,2) ;
-		  
-		  syst_eff4d_y1624MB_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
-		  syst_eff4d_y1624MB_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
-		    
-		  if(method==1)//maximum
-		    {
-		      if( syst_eff4d_y1624MB_pr_aa[ibin-1][ifile] > eff4dContribution_y1624MB_pr_aa ) eff4dContribution_y1624MB_pr_aa = syst_eff4d_y1624MB_pr_aa[ibin-1][ifile];
-		      if( syst_eff4d_y1624MB_pr_pp[ibin-1][ifile] > eff4dContribution_y1624MB_pr_pp ) eff4dContribution_y1624MB_pr_pp = syst_eff4d_y1624MB_pr_pp[ibin-1][ifile];
-			
-		      if( syst_eff4d_y1624MB_npr_aa[ibin-1][ifile] > eff4dContribution_y1624MB_npr_aa ) eff4dContribution_y1624MB_npr_aa = syst_eff4d_y1624MB_npr_aa[ibin-1][ifile];
-		      if( syst_eff4d_y1624MB_npr_pp[ibin-1][ifile] > eff4dContribution_y1624MB_npr_pp ) eff4dContribution_y1624MB_npr_pp = syst_eff4d_y1624MB_npr_pp[ibin-1][ifile];
-		    }
-		  if(method==0) // rms of all variations
-		    {
-		      eff4dContribution_y1624MB_pr_aa += syst_eff4d_y1624MB_pr_aa[ibin-1][ifile];
-		      eff4dContribution_y1624MB_pr_pp += syst_eff4d_y1624MB_pr_pp[ibin-1][ifile];
-			
-		      eff4dContribution_y1624MB_npr_aa += syst_eff4d_y1624MB_npr_aa[ibin-1][ifile];
-		      eff4dContribution_y1624MB_npr_pp += syst_eff4d_y1624MB_npr_pp[ibin-1][ifile];
-		    }
-
-
-		}
-	      if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
-		{
-		  int ifile = ivar-nFitVariations-nEff4DVariations;
-		  syst_effTnP_y1624MB_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr ,2) ;
-		  syst_effTnP_y1624MB_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr ,2) ;
-		    
-		  syst_effTnP_y1624MB_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
-		  syst_effTnP_y1624MB_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
-
-		  
-		  if(method==1)//maximum
-		    {
-		      if( syst_effTnP_y1624MB_pr_aa[ibin-1][ifile] > efftnpContribution_y1624MB_pr_aa ) efftnpContribution_y1624MB_pr_aa = syst_effTnP_pr_aa[ibin-1][ifile];
-		      if( syst_effTnP_y1624MB_pr_pp[ibin-1][ifile] > efftnpContribution_y1624MB_pr_pp ) efftnpContribution_y1624MB_pr_pp = syst_effTnP_pr_pp[ibin-1][ifile];
-			
-		      if( syst_effTnP_y1624MB_npr_aa[ibin-1][ifile] > efftnpContribution_y1624MB_npr_aa ) efftnpContribution_y1624MB_npr_aa = syst_effTnP_y1624MB_npr_aa[ibin-1][ifile];
-		      if( syst_effTnP_y1624MB_npr_pp[ibin-1][ifile] > efftnpContribution_y1624MB_npr_pp ) efftnpContribution_y1624MB_npr_pp = syst_effTnP_y1624MB_npr_pp[ibin-1][ifile];
-		    }
-		  if(method==0) // rms of all variations
-		    {
-		      efftnpContribution_y1624MB_pr_aa += syst_effTnP_y1624MB_pr_aa[ibin-1][ifile];
-		      efftnpContribution_y1624MB_pr_pp += syst_effTnP_y1624MB_pr_pp[ibin-1][ifile];
-			
-		      efftnpContribution_y1624MB_npr_aa += syst_effTnP_y1624MB_npr_aa[ibin-1][ifile];
-		      efftnpContribution_y1624MB_npr_pp += syst_effTnP_y1624MB_npr_pp[ibin-1][ifile];
-		    }
-		}
-
-	      break;
-	    case 3:
-	      // mb high-pt: 6.5-30, |y|<2.4
-	      prJpsi_mb[0]    = yieldRatio_pr;
-	      nonPrJpsi_mb[0] = yieldRatio_npr;
-	      
-	      if(ivar<nFitVariations)
-		{
-		  syst_fit_mb_pr_aa[0][ivar]  = TMath::Power( relVar_aa_pr ,2) ;
-		  syst_fit_mb_pr_pp[0][ivar]  = TMath::Power( relVar_pp_pr ,2) ;
-		    
-		  syst_fit_mb_npr_aa[0][ivar] = TMath::Power( relVar_aa_npr ,2) ;
-		  syst_fit_mb_npr_pp[0][ivar] = TMath::Power( relVar_pp_npr ,2) ; 
-		    
-		    
-		  if(method==1)//maximum
-		    {
-		      if( syst_fit_mb_pr_aa[0][ivar] > fitContribution_mb_pr_aa ) fitContribution_mb_pr_aa = syst_fit_mb_pr_aa[0][ivar];
-		      if( syst_fit_mb_pr_pp[0][ivar] > fitContribution_mb_pr_pp ) fitContribution_mb_pr_pp = syst_fit_mb_pr_pp[0][ivar];
-		      
-		      if( syst_fit_mb_npr_aa[0][ivar] > fitContribution_mb_npr_aa )fitContribution_mb_npr_aa = syst_fit_mb_npr_aa[0][ivar];
-		      if( syst_fit_mb_npr_pp[0][ivar] > fitContribution_mb_npr_pp )fitContribution_mb_npr_pp = syst_fit_mb_npr_pp[0][ivar];
-		    }
-		  if(method==0) // rms of all variations
-		    {
-		      fitContribution_mb_pr_aa += syst_fit_mb_pr_aa[0][ivar];
-		      fitContribution_mb_pr_pp += syst_fit_mb_pr_pp[0][ivar];
-		      
-		      fitContribution_mb_npr_aa += syst_fit_mb_npr_aa[0][ivar];
-		      fitContribution_mb_npr_pp += syst_fit_mb_npr_pp[0][ivar];
-		    }
-		    
-		}
-	      // 4d eff
-	      if(ivar>=nFitVariations && ivar<(nFitVariations+nEff4DVariations) )
-		{
-		  int ifile = ivar-nFitVariations;
-		  syst_eff4d_mb_pr_aa[0][ifile]  = TMath::Power( relVar_aa_pr ,2) ;
-		  syst_eff4d_mb_pr_pp[0][ifile]  = TMath::Power( relVar_pp_pr ,2) ;
-		    
-		  syst_eff4d_mb_npr_aa[0][ifile] = TMath::Power( relVar_aa_npr ,2 ) ;
-		  syst_eff4d_mb_npr_pp[0][ifile] = TMath::Power( relVar_pp_npr ,2) ;
-		    
-		    
-		  if(method==1)//maximum
-		    {
-		      if( syst_eff4d_mb_pr_aa[0][ifile] > eff4dContribution_mb_pr_aa ) eff4dContribution_mb_pr_aa = syst_eff4d_mb_pr_aa[0][ifile];
-		      if( syst_eff4d_mb_pr_pp[0][ifile] > eff4dContribution_mb_pr_pp ) eff4dContribution_mb_pr_pp = syst_eff4d_mb_pr_pp[0][ifile];
-			
-		      if( syst_eff4d_mb_npr_aa[0][ifile] > eff4dContribution_mb_npr_aa ) eff4dContribution_mb_npr_aa = syst_eff4d_mb_npr_aa[0][ifile];
-		      if( syst_eff4d_mb_npr_pp[0][ifile] > eff4dContribution_mb_npr_pp ) eff4dContribution_mb_npr_pp = syst_eff4d_mb_npr_pp[0][ifile];
-		    }
-		  if(method==0) // rms of all variations
-		    {
-		      eff4dContribution_mb_pr_aa += syst_eff4d_mb_pr_aa[0][ifile];
-		      eff4dContribution_mb_pr_pp += syst_eff4d_mb_pr_pp[0][ifile];
-			
-		      eff4dContribution_mb_npr_aa += syst_eff4d_mb_npr_aa[0][ifile];
-		      eff4dContribution_mb_npr_pp += syst_eff4d_mb_npr_pp[0][ifile];
-		    }
-		}
-	      // tnp sf
-	      if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
-		{
-		  int ifile = ivar-nFitVariations-nEff4DVariations;
-		  syst_effTnP_mb_pr_aa[0][ifile]  = TMath::Power( relVar_aa_pr ,2) ;
-		  syst_effTnP_mb_pr_pp[0][ifile]  = TMath::Power( relVar_pp_pr ,2) ;  
-		    
-		  syst_effTnP_mb_npr_aa[0][ifile] = TMath::Power( relVar_aa_npr ,2) ;
-		  syst_effTnP_mb_npr_pp[0][ifile] = TMath::Power( relVar_pp_npr ,2) ; 
-		    
-		  if(method==1)//maximum
-		    {
-		      if( syst_effTnP_mb_pr_aa[0][ifile] > efftnpContribution_mb_pr_aa ) efftnpContribution_mb_pr_aa = syst_effTnP_mb_pr_aa[0][ifile];
-		      if( syst_effTnP_mb_pr_pp[0][ifile] > efftnpContribution_mb_pr_pp ) efftnpContribution_mb_pr_pp = syst_effTnP_mb_pr_pp[0][ifile];
-		  
-		      if( syst_effTnP_mb_npr_aa[0][ifile] > efftnpContribution_mb_npr_aa ) efftnpContribution_mb_npr_aa = syst_effTnP_mb_npr_aa[0][ifile];
-		      if( syst_effTnP_mb_npr_pp[0][ifile] > efftnpContribution_mb_npr_pp ) efftnpContribution_mb_npr_pp = syst_effTnP_mb_npr_pp[0][ifile];
-		    }
-		  if(method==0) // rms of all variations
-		    {
-		      efftnpContribution_mb_pr_aa += syst_effTnP_mb_pr_aa[0][ifile];
-		      efftnpContribution_mb_pr_pp += syst_effTnP_mb_pr_pp[0][ifile];
-			
-		      efftnpContribution_mb_npr_aa += syst_effTnP_mb_npr_aa[0][ifile];
-		      efftnpContribution_mb_npr_pp += syst_effTnP_mb_npr_pp[0][ifile];
-		    }
-		}
-
-	      break;
-	    }//switch ih==kinematic range 
-	  }// fit variation ivar (fit, 4dEff, tnp)
-	  
-	switch(ih){
-	case 0:
-	  prJpsiErrSyst_pt[ibin-1] = yieldRatio_pr * TMath::Sqrt((fitContribution_pr_aa+eff4dContribution_pr_aa+efftnpContribution_pr_aa)+
-								 (fitContribution_pr_pp+eff4dContribution_pr_pp+efftnpContribution_pr_pp) );
-	  nonPrJpsiErrSyst_pt[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_npr_aa+eff4dContribution_npr_aa+efftnpContribution_npr_aa)+
-								     (fitContribution_npr_pp+eff4dContribution_npr_pp+efftnpContribution_npr_pp));  
-	    if(method==0)
-	      {	  
-		prJpsiErrSyst_pt[ibin-1]    *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-		nonPrJpsiErrSyst_pt[ibin-1] *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-	      }
-	    if(bDoDebug)
-	      {
-		cout<<"---------------------------------------------------------------"<<endl;
-		cout<< "Ingredients to the total systm. uncertainty"<<endl;
-		cout<<"Prompt yields systematics: aa & pp"<<endl;
-		cout<<"fitContribution: "<<fitContribution_pr_aa<<"\t "<<fitContribution_pr_pp<<endl;
-		cout<<"eff4dContribution: "<<eff4dContribution_pr_aa<<"\t"<<eff4dContribution_pr_pp<<endl;
-		cout<<"efftnpContribution: "<<efftnpContribution_pr_aa<<"\t"<<efftnpContribution_pr_pp<<endl;
-		cout<<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
-		cout<<"yield ratio: "<<yieldRatio_pr<<endl;
-		cout<<"Total: "<<prJpsiErrSyst_pt[ibin-1]<<endl;
-	      }
-	    break;
-	  case 1:
-	    prJpsiErrSyst_pt365y1624_pt[ibin-1] = yieldRatio_pr * TMath::Sqrt((fitContribution_pt365y1624_pr_aa+eff4dContribution_pt365y1624_pr_aa+efftnpContribution_pt365y1624_pr_aa)+
-									      (fitContribution_pt365y1624_pr_pp+eff4dContribution_pt365y1624_pr_pp+efftnpContribution_pt365y1624_pr_pp));
-	    nonPrJpsiErrSyst_pt365y1624_pt[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_pt365y1624_npr_aa+eff4dContribution_pt365y1624_npr_aa+efftnpContribution_pt365y1624_npr_aa)+
-										  (fitContribution_pt365y1624_npr_pp+eff4dContribution_pt365y1624_npr_pp+efftnpContribution_pt365y1624_npr_pp));  
-
-	    if(method==0)
-	      {	  
-		prJpsiErrSyst_pt365y1624_pt[ibin-1]    *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-		nonPrJpsiErrSyst_pt365y1624_pt[ibin-1] *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-	      }
-	      if(bDoDebug)
-	      {
-		cout<<"---------------------------------------------------------------"<<endl;
-		cout<< "Ingredients to the total systm. uncertainty"<<endl;
-		cout<<"Prompt yields systematics: aa & pp"<<endl;
-		cout<<"fitContribution: "<<fitContribution_pt365y1624_pr_aa<<"\t "<<fitContribution_pt365y1624_pr_pp<<endl;
-		cout<<"eff4dContribution: "<<eff4dContribution_pt365y1624_pr_aa<<"\t"<<eff4dContribution_pt365y1624_pr_pp<<endl;
-		cout<<"efftnpContribution: "<<efftnpContribution_pt365y1624_pr_aa<<"\t"<<efftnpContribution_pt365y1624_pr_pp<<endl;
-		cout<<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
-		cout<<"yield ratio: "<<yieldRatio_pr<<endl;
-		cout<<"Total: "<<prJpsiErrSyst_pt365y1624_pt[ibin-1]<<endl;
-	      }
-	    
-	    break;
-	  case 2: 
-	    prJpsiErrSyst_y1624MB_pt[ibin-1] = yieldRatio_pr * TMath::Sqrt((fitContribution_y1624MB_pr_aa+eff4dContribution_y1624MB_pr_aa+efftnpContribution_y1624MB_pr_aa)+
-									   (fitContribution_y1624MB_pr_pp+eff4dContribution_y1624MB_pr_pp+efftnpContribution_y1624MB_pr_pp));
-	    nonPrJpsiErrSyst_y1624MB_pt[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_y1624MB_npr_aa+eff4dContribution_y1624MB_npr_aa+efftnpContribution_y1624MB_npr_aa)+
-									       (fitContribution_y1624MB_npr_pp+eff4dContribution_y1624MB_npr_pp+efftnpContribution_y1624MB_npr_pp));  
-	    if(method==0)
-	      {	  
-		prJpsiErrSyst_y1624MB_pt[ibin-1]    *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-		nonPrJpsiErrSyst_y1624MB_pt[ibin-1] *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-	      }
-
-	     if(bDoDebug)
-	      {
-		cout<<"---------------------------------------------------------------"<<endl;
-		cout<< "Ingredients to the total systm. uncertainty"<<endl;
-		cout<<"Prompt yields systematics: aa & pp"<<endl;
-		cout<<"fitContribution: "<<fitContribution_y1624MB_pr_aa<<"\t "<<fitContribution_y1624MB_pr_pp<<endl;
-		cout<<"eff4dContribution: "<<eff4dContribution_y1624MB_pr_aa<<"\t"<<eff4dContribution_y1624MB_pr_pp<<endl;
-		cout<<"efftnpContribution: "<<efftnpContribution_y1624MB_pr_aa<<"\t"<<efftnpContribution_y1624MB_pr_pp<<endl;
-		cout<<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
-		cout<<"yield ratio: "<<yieldRatio_pr<<endl;
-		cout<<"Total: "<<prJpsiErrSyst_y1624MB_pt[ibin-1]<<endl;
-	      }
-
-	    break;
-	  case 3:
-	    prJpsiErrSyst_mb[0] = yieldRatio_pr * TMath::Sqrt((fitContribution_mb_pr_aa+eff4dContribution_mb_pr_aa+efftnpContribution_mb_pr_aa)+
-							      (fitContribution_mb_pr_pp+eff4dContribution_mb_pr_pp+efftnpContribution_mb_pr_pp));
-	    nonPrJpsiErrSyst_mb[0] = yieldRatio_npr *  TMath::Sqrt((fitContribution_mb_npr_aa+eff4dContribution_mb_npr_aa+efftnpContribution_mb_npr_aa)+
-								   (fitContribution_mb_npr_pp+eff4dContribution_mb_npr_pp+efftnpContribution_mb_npr_pp));  
-	    if(method==0)
-	      {	  
-		prJpsiErrSyst_mb[0]    *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-		nonPrJpsiErrSyst_mb[0] *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-	      }
-	    
-	    if(bDoDebug)
-	      {
-		cout<<"---------------------------------------------------------------"<<endl;
-		cout<< "Ingredients to the total systm. uncertainty"<<endl;
-		cout<<"Prompt yields systematics: aa & pp"<<endl;
-		cout<<"fitContribution: "<<fitContribution_mb_pr_aa<<"\t "<<fitContribution_mb_pr_pp<<endl;
-		cout<<"eff4dContribution: "<<eff4dContribution_mb_pr_aa<<"\t"<<eff4dContribution_mb_pr_pp<<endl;
-		cout<<"efftnpContribution: "<<efftnpContribution_mb_pr_aa<<"\t"<<efftnpContribution_mb_pr_pp<<endl;
-		cout<<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
-		cout<<"yield ratio: "<<yieldRatio_pr<<endl;
-		cout<<"Total: "<<prJpsiErrSyst_mb[0]<<endl;
-	      }
-	 
-	    break;
-	  default:
-	    break;
-	   
-	  }
-	     
-	}//loop end: for(int ibin=1; ibin<=numBins; ibin++): 7 for highpt, 3 for low-pt, ...
-    }//loop end: for(int ih=0; ih<nInHist;ih++) for each kinematic range (high-pt, low=pt, mb, etC)
+    }//loop end: for(int ibin=1; ibin<=numBins; ibin++): 7 for highpt, 3 for low-pt, ...
+  }//loop end: for(int ih=0; ih<nInHist;ih++) for each kinematic range (high-pt, low=pt, mb, etC)
 
   // ***** //Drawing
   // Note: minbias bins in the fwd region:
   // fwd bin: 3-6.5, 6.5-30, 3-30
-// pr
+  // pr
   TGraphErrors *gPrJpsiSyst            = new TGraphErrors(nBinsPt, binsPt, prJpsi_pt, binsPtX, prJpsiErrSyst_pt);
   TGraphErrors *gPrJpsiSyst_mb         = new TGraphErrors(nBinsMB, binsPtMB, prJpsi_mb, binsPtMBX  , prJpsiErrSyst_mb);
   TGraphErrors *gPrJpsiSyst_y1624_mb   = new TGraphErrors(nBinsPt3, binsPt3_mb, prJpsi_y1624MB_pt, binsPt3X_mb,   prJpsiErrSyst_y1624MB_pt);
@@ -835,10 +818,10 @@ void makeSyst_pt( bool bSavePlots       = 1,
   double systLumi      = 0;
   double systSelection = 0;
   for (int iglb=0; iglb<2; iglb++)
-    {
-      systLumi      += TMath::Power(systLumis[iglb],2);
-      systSelection += TMath::Power(systEventSelection[iglb],2);
-    }
+  {
+    systLumi      += TMath::Power(systLumis[iglb],2);
+    systSelection += TMath::Power(systEventSelection[iglb],2);
+  }
   double globalSyst  = TMath::Sqrt(systLumi+systSelection);
   TBox *lumi = new TBox(29,1-globalSyst,30,1+globalSyst);
   lumi->SetFillColor(kGray+1);
@@ -968,12 +951,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
   gNonPrJpsiSyst_mb->Draw("2");
     
   gPad->RedrawAxis();
-
-
     
   //------------------ write the output file with the Graphs of systematic uncertainties
   TFile *pfOutput = new TFile(Form("%s/raaSystUncert_pt.root",outputDir),"RECREATE");
- 
 
   gPrJpsiSyst->Write("gPrJpsiSyst");
   gPrJpsiSyst_mb->Write("gPrJpsiSyst_mb");        
@@ -994,10 +974,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
     c11b->Write();
     c2->Write();
     c22b->Write();
-  
   }
 
-  pfOutput->Write();			      
+  pfOutput->Write();                          
 
  
 }
