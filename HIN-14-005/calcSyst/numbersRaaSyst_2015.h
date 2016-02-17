@@ -9,26 +9,36 @@ const int nEff4DVariations = 2;
 const int nEffTnPVariation = 1; 
 //pp
 const char* yieldHistFile_pp_systSgnBkg[nFitVariations] = {
-  "histsRaaYieldsSyst_20151217_pp_polFunct.root","histsRaaYieldsSyst_20151217_pp_resOpt2.root", "histsRaaYieldsSyst_20151217_pp_signalCB3WN.root"//,"histsRaaYieldsSyst_20151217_pp_keysPdf.root"
+  "histsRaaYields_20160215_pp_polFunct_Eff3.root",
+  "histsRaaYields_20160215_pp_resOpt2_Eff3.root",
+  "histsRaaYields_20160215_pp_signalCB3WN_Eff3.root",
+//  "histsRaaYields_20160215_pp_MLAR_Eff3.root", // this is fine, just pbpb doesn't work ..
+//  "histsRaaYields_20160215_pp_const_Eff3.root" // this is fine, just pbpb doesn't work ..
 };
 const char* yieldHistFile_pp_syst4DCorr[nEff4DVariations] = {
-  // "histsRaaYieldsSyst_20151217_pp_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio_Prof.root","histsRaaYieldsSyst_20151217_pp_TnPAtRD3_4DEff2_RapPtEffMap5_Ratio.root"
-  "histsRaaYieldsSyst_20151217_pp_polFunct.root","histsRaaYieldsSyst_20151217_pp_resOpt2.root"
+  //resOpt2 to be changed for 3D eff uncert. table
+  "histsRaaYields_20160215_pp_weightedEff_Prof_Eff3.root","histsRaaYields_20160215_pp_resOpt2_Eff3.root"
 };
 
-const char* yieldHistFile_pp_systTnP[nEffTnPVariation] = {"histsRaaYieldsSyst_20151217_pp_polFunct.root"};
+const char* yieldHistFile_pp_systTnP[nEffTnPVariation] = {
+  "histsRaaYields_20160215_pp_polFunct_Eff3.root"
+};
 
 //-----------------
 // pbpb
 const char* yieldHistFile_aa_systSgnBkg[nFitVariations]   = {
-  "histsRaaYieldsSyst_20151217_PbPb_polFunct.root","histsRaaYieldsSyst_20151217_PbPb_resOpt2.root","histsRaaYieldsSyst_20151217_PbPb_signalCB3WN.root"//,"histsRaaYieldsSyst_20151217_PbPb_keysPdf.root"
+  "histsRaaYields_20160215_PbPb_polFunct_Eff3_binv0.root",
+  "histsRaaYields_20160215_PbPb_resOpt2_Eff3_binv0.root", 
+  "histsRaaYields_20160215_PbPb_signalCB3WN_Eff3_binv0.root",
+//  "histsRaaYields_20160215_PbPb_MLAR_Eff3_binv0.root", // need to fix fits on this
+//  "histsRaaYields_20160215_PbPb_const_Eff3_binv0.root" // need to fix fits on this
 };
 const char* yieldHistFile_aa_syst4DCorr[nEff4DVariations] = {
-  // "histsRaaYieldsSyst_20151217_PbPb_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio_Prof.root","histsRaaYieldsSyst_20151217_PbPb_TnPAtRD3_4DEff2_RapPtEffMap5_Ratio.root" 
-  "histsRaaYieldsSyst_20151217_PbPb_polFunct.root","histsRaaYieldsSyst_20151217_PbPb_resOpt2.root"
+  //resOpt2 to be changed for 3D eff uncert. table
+  "histsRaaYields_20160215_PbPb_weightedEff_Prof_Eff3_binv0.root","histsRaaYields_20160215_PbPb_resOpt2_Eff3_binv0.root"
 };
 
-const char* yieldHistFile_aa_systTnP[nEffTnPVariation] = {"histsRaaYieldsSyst_20151217_PbPb_polFunct.root"};
+const char* yieldHistFile_aa_systTnP[nEffTnPVariation] = {"histsRaaYields_20160215_PbPb_polFunct_Eff3_binv0.root"};
 
 
 // ######################################
