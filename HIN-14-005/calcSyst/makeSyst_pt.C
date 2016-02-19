@@ -389,11 +389,11 @@ void makeSyst_pt( bool bSavePlots       = 1,
           if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
           {
             int ifile = ivar-nFitVariations-nEff4DVariations;
-            syst_effTnP_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr,2 ) ;
-            syst_effTnP_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr,2 ) ;
+            syst_effTnP_pr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_pr,2 ) ;
+            syst_effTnP_pr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_pr,2 ) ;
             
-            syst_effTnP_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr,2 ) ;
-            syst_effTnP_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr,2 ) ;
+            syst_effTnP_npr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_npr,2 ) ;
+            syst_effTnP_npr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_npr,2 ) ;
 
             if(bDoDebug) cout<< "++++++++++++++++++++++ Delta yields:  " <<syst_effTnP_pr_aa[ibin-1][ifile]<<"\t & "<<syst_effTnP_npr_aa[ibin-1][ifile]<<
                            "\t ;  "<<syst_effTnP_pr_pp[ibin-1][ifile]<<"\t & "<<syst_effTnP_npr_pp[ibin-1][ifile]<<endl;
@@ -476,11 +476,11 @@ void makeSyst_pt( bool bSavePlots       = 1,
           if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
           {
             int ifile = ivar-nFitVariations-nEff4DVariations;
-            syst_effTnP_pt365y1624_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr ,2 ) ;
-            syst_effTnP_pt365y1624_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr ,2 ) ;
+            syst_effTnP_pt365y1624_pr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_pr ,2 ) ;
+            syst_effTnP_pt365y1624_pr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_pr ,2 ) ;
               
-            syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
-            syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
+            syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_npr ,2) ;
+            syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_npr ,2) ;
               
             if(method==1)//maximum
             {
@@ -563,11 +563,11 @@ void makeSyst_pt( bool bSavePlots       = 1,
           if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
           {
             int ifile = ivar-nFitVariations-nEff4DVariations;
-            syst_effTnP_y1624MB_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr ,2) ;
-            syst_effTnP_y1624MB_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr ,2) ;
+            syst_effTnP_y1624MB_pr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_pr ,2) ;
+            syst_effTnP_y1624MB_pr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_pr ,2) ;
               
-            syst_effTnP_y1624MB_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
-            syst_effTnP_y1624MB_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
+            syst_effTnP_y1624MB_npr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_npr ,2) ;
+            syst_effTnP_y1624MB_npr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_npr ,2) ;
             
             if(method==1)//maximum
             {
@@ -650,11 +650,11 @@ void makeSyst_pt( bool bSavePlots       = 1,
           if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
           {
             int ifile = ivar-nFitVariations-nEff4DVariations;
-            syst_effTnP_mb_pr_aa[0][ifile]  = TMath::Power( relVar_aa_pr ,2) ;
-            syst_effTnP_mb_pr_pp[0][ifile]  = TMath::Power( relVar_pp_pr ,2) ;  
+            syst_effTnP_mb_pr_aa[0][ifile]  = TMath::Power( yieldVar_aa_pr ,2) ;
+            syst_effTnP_mb_pr_pp[0][ifile]  = TMath::Power( yieldVar_pp_pr ,2) ;  
               
-            syst_effTnP_mb_npr_aa[0][ifile] = TMath::Power( relVar_aa_npr ,2) ;
-            syst_effTnP_mb_npr_pp[0][ifile] = TMath::Power( relVar_pp_npr ,2) ; 
+            syst_effTnP_mb_npr_aa[0][ifile] = TMath::Power( yieldVar_aa_npr ,2) ;
+            syst_effTnP_mb_npr_pp[0][ifile] = TMath::Power( yieldVar_pp_npr ,2) ; 
               
             if(method==1)//maximum
             {
@@ -838,7 +838,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
   TLatex *ly     = new TLatex(20.0,0.05,"|y| < 2.4");
   ly->SetTextFont(42);
   ly->SetTextSize(0.05);
-  TLatex *lcent = new TLatex(19,1.03,"Cent. 0-100%");
+  TLatex *lcent = new TLatex(19,0.85,"Cent. 0-100%");
   lcent->SetTextFont(42);
   lcent->SetTextSize(0.05);
 

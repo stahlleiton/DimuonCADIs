@@ -159,6 +159,8 @@ void makeRaa_cent( bool bSavePlots=1,
 
     for(int ibin=1; ibin<=numBins; ibin++)
     {
+      cout << "ih | ibin\t" << ih << " " << ibin << endl;
+      
       double raa_pr=0, raaErr_pr=0, raa_npr=0, raaErr_npr=0;
       double scale_cent = 1;
       double scale_cent_np = 1;
@@ -187,6 +189,14 @@ void makeRaa_cent( bool bSavePlots=1,
       if(ih==0)raa_npr= yieldRatio_npr * scaleFactor * scale_cent_np;// the 1D nonPr has 6 bins only
       else raa_npr    = yieldRatio_npr * scaleFactor * scale_cent;
       raaErr_npr = TMath::Sqrt(TMath::Power(dRelErrRaw_npr_pp,2)+TMath::Power(dRelErrRaw_npr_aa,2))*raa_npr;
+
+      // Check bin content
+      cout << "adTaa12\tadDeltaCent12\tadTaa6\tadDeltaCent6\n"
+        << adTaa12[ibin-1] << "\t" << adDeltaCent12[ibin-1] << "\t"
+        << adTaa6[ibin-1] << "\t" << adDeltaCent6[ibin-1] << endl;
+      cout << "scale_cent_np\tscale_cent\tscaleFactor\tyieldRatio_pr\traa_pr\n"
+        << scale_cent_np << "\t" << scale_cent << "\t" 
+        << scaleFactor << "\t" << yieldRatio_pr << "\t" << raa_pr << endl;
 
      
       // fill the corresponding array
@@ -246,56 +256,70 @@ void makeRaa_cent( bool bSavePlots=1,
   
   }//loop end: for(int ih=0; ih<nInHist;ih++)
 
+
+  // LOADING SYSTEMATICS
+  TFile *systFile = new TFile("../calcSyst/histSyst/raaSystUncert_cent.root","read");
+
   // ***** //Drawing
   // pr
   TGraphErrors *gPrJpsi     = new TGraphErrors(nBinsNpart12, binsNpart12, prJpsi_cent, binsNpart12Err, prJpsiErr_cent);
   TGraphErrors *gPrJpsiP    = new TGraphErrors(nBinsNpart12, binsNpart12, prJpsi_cent, binsNpart12Err, prJpsiErr_cent);
-  TGraphErrors *gPrJpsiSyst = new TGraphErrors(nBinsNpart12, binsNpart12, prJpsi_cent, binsNpart12X, prJpsiErrSyst_cent);
+  TGraphErrors *gPrJpsiSyst = (TGraphErrors *)systFile->Get("gPrJpsiSyst");
+//  TGraphErrors *gPrJpsiSyst = new TGraphErrors(nBinsNpart12, binsNpart12, prJpsi_cent, binsNpart12X, prJpsiErrSyst_cent);
  
  
   TGraphErrors *gPrJpsi_pt6530y012     = new TGraphErrors(nBinsNpart6, binsNpart6_shiftMinus, prJpsi_pt6530y012_cent, binsNpart6Err, prJpsiErr_pt6530y012_cent);
   TGraphErrors *gPrJpsiP_pt6530y012    = new TGraphErrors(nBinsNpart6, binsNpart6_shiftMinus, prJpsi_pt6530y012_cent, binsNpart6Err, prJpsiErr_pt6530y012_cent);
-  TGraphErrors *gPrJpsiSyst_pt6530y012 = new TGraphErrors(nBinsNpart6, binsNpart6_shiftMinus, prJpsi_pt6530y012_cent, binsNpart6X, prJpsiErrSyst_pt6530y012_cent);
+  TGraphErrors *gPrJpsiSyst_pt6530y012 = (TGraphErrors *)systFile->Get("gPrJpsiSyst_pt6530y012");
+//  TGraphErrors *gPrJpsiSyst_pt6530y012 = new TGraphErrors(nBinsNpart6, binsNpart6_shiftMinus, prJpsi_pt6530y012_cent, binsNpart6X, prJpsiErrSyst_pt6530y012_cent);
 
 
   TGraphErrors *gPrJpsi_pt6530y1216     = new TGraphErrors(nBinsNpart6, binsNpart6, prJpsi_pt6530y1216_cent, binsNpart6Err, prJpsiErr_pt6530y1216_cent);
   TGraphErrors *gPrJpsiP_pt6530y1216    = new TGraphErrors(nBinsNpart6, binsNpart6, prJpsi_pt6530y1216_cent, binsNpart6Err, prJpsiErr_pt6530y1216_cent);
-  TGraphErrors *gPrJpsiSyst_pt6530y1216 = new TGraphErrors(nBinsNpart6, binsNpart6, prJpsi_pt6530y1216_cent, binsNpart6X, prJpsiErrSyst_pt6530y1216_cent);
+  TGraphErrors *gPrJpsiSyst_pt6530y1216 = (TGraphErrors *)systFile->Get("gPrJpsiSyst_pt6530y1216");
+//  TGraphErrors *gPrJpsiSyst_pt6530y1216 = new TGraphErrors(nBinsNpart6, binsNpart6, prJpsi_pt6530y1216_cent, binsNpart6X, prJpsiErrSyst_pt6530y1216_cent);
  
 
   TGraphErrors *gPrJpsi_pt6530y1624     = new TGraphErrors(nBinsNpart6, binsNpart6_shiftPlus, prJpsi_pt6530y1624_cent, binsNpart6Err, prJpsiErr_pt6530y1624_cent);
   TGraphErrors *gPrJpsiP_pt6530y1624    = new TGraphErrors(nBinsNpart6, binsNpart6_shiftPlus, prJpsi_pt6530y1624_cent, binsNpart6Err, prJpsiErr_pt6530y1624_cent);
-  TGraphErrors *gPrJpsiSyst_pt6530y1624 = new TGraphErrors(nBinsNpart6, binsNpart6_shiftPlus, prJpsi_pt6530y1624_cent, binsNpart6X, prJpsiErrSyst_pt6530y1624_cent);
+  TGraphErrors *gPrJpsiSyst_pt6530y1624 = (TGraphErrors *)systFile->Get("gPrJpsiSyst_pt6530y1624");
+//  TGraphErrors *gPrJpsiSyst_pt6530y1624 = new TGraphErrors(nBinsNpart6, binsNpart6_shiftPlus, prJpsi_pt6530y1624_cent, binsNpart6X, prJpsiErrSyst_pt6530y1624_cent);
 
 
   TGraphErrors *gPrJpsi_pt365y1624     = new TGraphErrors(nBinsNpart6, binsNpart6, prJpsi_pt365y1624_cent, binsNpart6Err, prJpsiErr_pt365y1624_cent);
   TGraphErrors *gPrJpsiP_pt365y1624    = new TGraphErrors(nBinsNpart6, binsNpart6, prJpsi_pt365y1624_cent, binsNpart6Err, prJpsiErr_pt365y1624_cent);
-  TGraphErrors *gPrJpsiSyst_pt365y1624 = new TGraphErrors(nBinsNpart6, binsNpart6,    prJpsi_pt365y1624_cent, binsNpart6X, prJpsiErrSyst_pt365y1624_cent);
+  TGraphErrors *gPrJpsiSyst_pt365y1624 = (TGraphErrors *)systFile->Get("gPrJpsiSyst_pt365y1624");
+//  TGraphErrors *gPrJpsiSyst_pt365y1624 = new TGraphErrors(nBinsNpart6, binsNpart6,    prJpsi_pt365y1624_cent, binsNpart6X, prJpsiErrSyst_pt365y1624_cent);
 
  
   // nonPr
   TGraphErrors *gNonPrJpsi     = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_cent, binsNpart6Err, nonPrJpsiErr_cent);
   TGraphErrors *gNonPrJpsiP    = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_cent, binsNpart6Err, nonPrJpsiErr_cent);
-  TGraphErrors *gNonPrJpsiSyst = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_cent, binsNpart6X, nonPrJpsiErrSyst_cent);
+  TGraphErrors *gNonPrJpsiSyst = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst");
+//  TGraphErrors *gNonPrJpsiSyst = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_cent, binsNpart6X, nonPrJpsiErrSyst_cent);
 
 
   TGraphErrors *gNonPrJpsi_pt6530y012     = new TGraphErrors(nBinsNpart6, binsNpart6_shiftMinus,nonPrJpsi_pt6530y012_cent, binsNpart6Err, nonPrJpsiErr_pt6530y012_cent);
   TGraphErrors *gNonPrJpsiP_pt6530y012    = new TGraphErrors(nBinsNpart6, binsNpart6_shiftMinus,nonPrJpsi_pt6530y012_cent, binsNpart6Err, nonPrJpsiErr_pt6530y012_cent);
-  TGraphErrors *gNonPrJpsiSyst_pt6530y012 = new TGraphErrors(nBinsNpart6, binsNpart6_shiftMinus, nonPrJpsi_pt6530y012_cent, binsNpart6X,   nonPrJpsiErrSyst_pt6530y012_cent);
+  TGraphErrors *gNonPrJpsiSyst_pt6530y012 = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst_pt6530y012");
+//  TGraphErrors *gNonPrJpsiSyst_pt6530y012 = new TGraphErrors(nBinsNpart6, binsNpart6_shiftMinus, nonPrJpsi_pt6530y012_cent, binsNpart6X,   nonPrJpsiErrSyst_pt6530y012_cent);
   
   TGraphErrors *gNonPrJpsi_pt6530y1216     = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_pt6530y1216_cent, binsNpart6Err, nonPrJpsiErr_pt6530y1216_cent);
   TGraphErrors *gNonPrJpsiP_pt6530y1216    = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_pt6530y1216_cent, binsNpart6Err, nonPrJpsiErr_pt6530y1216_cent);
-  TGraphErrors *gNonPrJpsiSyst_pt6530y1216 = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_pt6530y1216_cent, binsNpart6X,    nonPrJpsiErrSyst_pt6530y1216_cent);
+  TGraphErrors *gNonPrJpsiSyst_pt6530y1216 = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst_pt6530y1216");
+//  TGraphErrors *gNonPrJpsiSyst_pt6530y1216 = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_pt6530y1216_cent, binsNpart6X,    nonPrJpsiErrSyst_pt6530y1216_cent);
  
 
   TGraphErrors *gNonPrJpsi_pt6530y1624     = new TGraphErrors(nBinsNpart6, binsNpart6_shiftPlus, nonPrJpsi_pt6530y1624_cent, binsNpart6Err, nonPrJpsiErr_pt6530y1624_cent);
   TGraphErrors *gNonPrJpsiP_pt6530y1624    = new TGraphErrors(nBinsNpart6, binsNpart6_shiftPlus, nonPrJpsi_pt6530y1624_cent, binsNpart6Err, nonPrJpsiErr_pt6530y1624_cent);
-  TGraphErrors *gNonPrJpsiSyst_pt6530y1624 = new TGraphErrors(nBinsNpart6, binsNpart6_shiftPlus, nonPrJpsi_pt6530y1624_cent, binsNpart6X,    nonPrJpsiErrSyst_pt6530y1624_cent);
+  TGraphErrors *gNonPrJpsiSyst_pt6530y1624 = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst_pt6530y1624");
+//  TGraphErrors *gNonPrJpsiSyst_pt6530y1624 = new TGraphErrors(nBinsNpart6, binsNpart6_shiftPlus, nonPrJpsi_pt6530y1624_cent, binsNpart6X,    nonPrJpsiErrSyst_pt6530y1624_cent);
 
 
   TGraphErrors *gNonPrJpsi_pt365y1624     = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_pt365y1624_cent, binsNpart6Err, nonPrJpsiErr_pt365y1624_cent);
   TGraphErrors *gNonPrJpsiP_pt365y1624    = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_pt365y1624_cent, binsNpart6Err, nonPrJpsiErr_pt365y1624_cent);
-  TGraphErrors *gNonPrJpsiSyst_pt365y1624 = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_pt365y1624_cent, binsNpart6X, nonPrJpsiErrSyst_pt365y1624_cent);
+  TGraphErrors *gNonPrJpsiSyst_pt365y1624 = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst_pt365y1624");
+//  TGraphErrors *gNonPrJpsiSyst_pt365y1624 = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_pt365y1624_cent, binsNpart6X, nonPrJpsiErrSyst_pt365y1624_cent);
 
 
   //-------------------------------------------------------------------
@@ -456,7 +480,7 @@ void makeRaa_cent( bool bSavePlots=1,
   leg11a->AddEntry(gPrJpsi_pt6530y1216,"1.2<|y|<1.6","P");
   leg11a->AddEntry(gPrJpsi_pt6530y1624,"1.6<|y|<2.4","P");
 
- TLegend *leg11b = new TLegend(0.5,0.52,0.8,0.65);
+  TLegend *leg11b = new TLegend(0.5,0.52,0.8,0.65);
   leg11b->SetFillStyle(0);
   leg11b->SetFillColor(0);
   leg11b->SetBorderSize(0);
@@ -465,7 +489,7 @@ void makeRaa_cent( bool bSavePlots=1,
   leg11b->AddEntry(gPrJpsi_pt6530y1624,"6.5<p_{T}<30 GeV/c","P");
   leg11b->AddEntry(gPrJpsi_pt365y1624,"3<p_{T}<6.5 GeV/c","P");
 
-TLegend *leg21a = new TLegend(0.6,0.5,0.85,0.65);
+  TLegend *leg21a = new TLegend(0.6,0.5,0.85,0.65);
   leg21a->SetFillStyle(0);
   leg21a->SetFillColor(0);
   leg21a->SetBorderSize(0);
@@ -475,7 +499,7 @@ TLegend *leg21a = new TLegend(0.6,0.5,0.85,0.65);
   leg21a->AddEntry(gNonPrJpsi_pt6530y1216,"1.2<|y|<1.6","P");
   leg21a->AddEntry(gNonPrJpsi_pt6530y1624,"1.6<|y|<2.4","P");
 
- TLegend *leg21b = new TLegend(0.55,0.5,0.8,0.65);
+  TLegend *leg21b = new TLegend(0.55,0.5,0.8,0.65);
   leg21b->SetFillStyle(0);
   leg21b->SetFillColor(0);
   leg21b->SetBorderSize(0);
@@ -505,7 +529,7 @@ TLegend *leg21a = new TLegend(0.6,0.5,0.85,0.65);
   lpt->SetTextFont(42);
   lpt->SetTextSize(0.05);
 
-  TLatex *lpthigh = new TLatex(190.0,0.95,"6.5 < p_{T} < 30 GeV/c");
+  TLatex *lpthigh = new TLatex(190.0,0.90,"6.5 < p_{T} < 30 GeV/c");
   lpthigh->SetTextFont(42);
   lpthigh->SetTextSize(0.05);
 
@@ -693,4 +717,5 @@ TLegend *leg21a = new TLegend(0.6,0.5,0.85,0.65);
     c21b->SaveAs(Form("%s/png/NonPrJpsi_vsCent_yLowPt_%s.png",outputDir,sample[whichSample]));
   }
  
+  systFile->Close();
 }

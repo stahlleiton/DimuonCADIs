@@ -221,11 +221,15 @@ void makeRaa_pt( bool bSavePlots=1,
     }//loop end: for(int ibin=1; ibin<=numBins; ibin++)
   }//loop end: for(int ih=0; ih<nInHist;ih++)
 
+  // LOADING SYSTEMATICS
+  TFile *systFile = new TFile("../calcSyst/histSyst/raaSystUncert_pt.root","read");
+
   // ***** //Drawing
   // pr
   TGraphErrors *gPrJpsi     = new TGraphErrors(nBinsPt, binsPt, prJpsi_pt, binsPtErr, prJpsiErr_pt);
   TGraphErrors *gPrJpsiP    = new TGraphErrors(nBinsPt, binsPt, prJpsi_pt, binsPtErr, prJpsiErr_pt);
-  TGraphErrors *gPrJpsiSyst = new TGraphErrors(nBinsPt, binsPt, prJpsi_pt, binsPtX, prJpsiErrSyst_pt);
+  TGraphErrors *gPrJpsiSyst = (TGraphErrors *)systFile->Get("gPrJpsiSyst");
+//  TGraphErrors *gPrJpsiSyst = new TGraphErrors(nBinsPt, binsPt, prJpsi_pt, binsPtX, prJpsiErrSyst_pt);
 
   TGraphErrors *gPrJpsi_mb     = new TGraphErrors(nBinsMB, binsPtMB, prJpsi_pt, binsPtMBErr, prJpsiErr_pt);
   TGraphErrors *gPrJpsiP_mb    = new TGraphErrors(nBinsMB, binsPtMB, prJpsi_pt, binsPtMBErr, prJpsiErr_pt);
@@ -235,21 +239,21 @@ void makeRaa_pt( bool bSavePlots=1,
   TGraphErrors *gPrJpsiP_y1624_mb    = new TGraphErrors(nBinsPt3, binsPt3_mb, prJpsi_y1624MB_pt, binsPt3Err_mb, prJpsiErr_y1624MB_pt);
   TGraphErrors *gPrJpsiSyst_y1624_mb = new TGraphErrors(nBinsPt3, binsPt3_mb, prJpsi_y1624MB_pt, binsPt3X_mb,   prJpsiErrSyst_y1624MB_pt);
 
-
   TGraphErrors *gPrJpsi_pt365y1624     = new TGraphErrors(nBinsPt3, binsPt3, prJpsi_pt365y1624_pt, binsPt3Err, prJpsiErr_pt365y1624_pt);
   TGraphErrors *gPrJpsiP_pt365y1624    = new TGraphErrors(nBinsPt3, binsPt3, prJpsi_pt365y1624_pt, binsPt3Err, prJpsiErr_pt365y1624_pt);
-  TGraphErrors *gPrJpsiSyst_pt365y1624 = new TGraphErrors(nBinsPt3, binsPt3, prJpsi_pt365y1624_pt, binsPt3X, prJpsiErrSyst_pt365y1624_pt);
+  TGraphErrors *gPrJpsiSyst_pt365y1624 = (TGraphErrors*)systFile->Get("gPrJpsiSyst_pt365y1624");
+//  TGraphErrors *gPrJpsiSyst_pt365y1624 = new TGraphErrors(nBinsPt3, binsPt3, prJpsi_pt365y1624_pt, binsPt3X, prJpsiErrSyst_pt365y1624_pt);
 
  
   // nonPr   
   TGraphErrors *gNonPrJpsi     = new TGraphErrors(nBinsPt, binsPt, nonPrJpsi_pt, binsPtErr, nonPrJpsiErr_pt);
   TGraphErrors *gNonPrJpsiP    = new TGraphErrors(nBinsPt, binsPt, nonPrJpsi_pt, binsPtErr, nonPrJpsiErr_pt);
-  TGraphErrors *gNonPrJpsiSyst = new TGraphErrors(nBinsPt, binsPt, nonPrJpsi_pt, binsPtX, nonPrJpsiErrSyst_pt);
+  TGraphErrors *gNonPrJpsiSyst = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst");
+//  TGraphErrors *gNonPrJpsiSyst = new TGraphErrors(nBinsPt, binsPt, nonPrJpsi_pt, binsPtX, nonPrJpsiErrSyst_pt);
 
   TGraphErrors *gNonPrJpsi_mb     = new TGraphErrors(nBinsMB, binsPtMB, nonPrJpsi_pt, binsPtMBErr, nonPrJpsiErr_pt);
   TGraphErrors *gNonPrJpsiP_mb    = new TGraphErrors(nBinsMB, binsPtMB, nonPrJpsi_pt, binsPtMBErr, nonPrJpsiErr_pt);
   TGraphErrors *gNonPrJpsiSyst_mb = new TGraphErrors(nBinsMB, binsPtMB, nonPrJpsi_pt, binsPtMBX, nonPrJpsiErrSyst_pt);
-
 
   TGraphErrors *gNonPrJpsi_y1624_mb     = new TGraphErrors(nBinsPt3, binsPt3_mb, nonPrJpsi_y1624MB_pt, binsPt3Err_mb, nonPrJpsiErr_y1624MB_pt);
   TGraphErrors *gNonPrJpsiP_y1624_mb    = new TGraphErrors(nBinsPt3, binsPt3_mb, nonPrJpsi_y1624MB_pt, binsPt3Err_mb, nonPrJpsiErr_y1624MB_pt);
@@ -257,7 +261,8 @@ void makeRaa_pt( bool bSavePlots=1,
 
   TGraphErrors *gNonPrJpsi_pt365y1624     = new TGraphErrors(nBinsPt3, binsPt3, nonPrJpsi_pt365y1624_pt, binsPt3Err, nonPrJpsiErr_pt365y1624_pt);
   TGraphErrors *gNonPrJpsiP_pt365y1624    = new TGraphErrors(nBinsPt3, binsPt3, nonPrJpsi_pt365y1624_pt, binsPt3Err, nonPrJpsiErr_pt365y1624_pt);
-  TGraphErrors *gNonPrJpsiSyst_pt365y1624 = new TGraphErrors(nBinsPt3, binsPt3, nonPrJpsi_pt365y1624_pt, binsPt3X,   nonPrJpsiErrSyst_pt365y1624_pt);
+  TGraphErrors *gNonPrJpsiSyst_pt365y1624 = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst_pt365y1624");
+//  TGraphErrors *gNonPrJpsiSyst_pt365y1624 = new TGraphErrors(nBinsPt3, binsPt3, nonPrJpsi_pt365y1624_pt, binsPt3X,   nonPrJpsiErrSyst_pt365y1624_pt);
 
 
   //-------------------------------------------------------------------
@@ -525,5 +530,6 @@ void makeRaa_pt( bool bSavePlots=1,
     c22b->SaveAs(Form("%s/png/nonPrJpsi_vsPt_mb_%s.png",outputDir,sample[whichSample]));
   }
 
+  systFile->Close();
 
 }

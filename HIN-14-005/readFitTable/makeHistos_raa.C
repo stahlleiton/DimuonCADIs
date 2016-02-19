@@ -35,20 +35,21 @@ The output root files of this macro, wich contains the histograms with the yield
 #include "Riostream.h"
 #include "dataBinning_2015.h"
 
-void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
-                   int weight    = 0,// 0=noWeight, 1=weight
-                   int isEffFile = 1,// 0=no, 1=yes needed when making efficiency histograms
+void makeHistos_raa(int sample   = 1,// 0=PbPb,     1= pp
+                   int weight    = 1,// 0=noWeight, 1=weight
+                   int isEffFile = 2,// 0=no, 1=making efficiency histograms, 2=eff uncertainties
                    const char* inputFitDataFileLocation = "../data/raa"
                    ) 
 {
 
-  const char* whichSample[2]     = {"20151217_PbPb",      "20151217_pp"};
-  const char* whichWeight[2]    = {"noWeight_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio", "weightedEff_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio"};
-  const char* whichWeight_pp[2] = {"noWeight_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio", "weightedEff_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio"};
+  const char* whichSample[2]     = {"20160215_PbPb",      "20160215_pp"};
+  const char* whichWeight[2]    = {"noWeight_Eff3_binv0", "resOpt2_Eff3_binv0"};
+  const char* whichWeight_pp[2] = {"noWeight_Eff3", "weightedEff_Eff3"};
+//  const char* whichWeight_pp[2] = {"noWeight_Eff3", "weightedEff_Eff3"};
 
 
-  const char* effFileName[2]        = {"20151209_PbPb_newTnP","20151209_pp_newTnP"};
-  const char* outputHistDataFile[2] = {"histsRaaYields","histEff"};
+  const char* effFileName[2]        = {"effSyst_201602_pbpb_3dEff","effSyst_201602_pp_3dEff"};
+  const char* outputHistDataFile[3] = {"histsRaaYields","histEff","histEff"};
 
   TFile *pfOutput;
   ifstream in;
@@ -67,7 +68,12 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
       cout <<"##### Lucky you: you are reading the pp fit files" <<endl;
     }
   }
-  else// these are the traditional efficiency files
+  else if (isEffFile==1)// these are the traditional efficiency files
+  {
+    in.open(Form("%s/excel/%s.dat",inputFitDataFileLocation,effFileName[sample]));
+    pfOutput = new TFile(Form("%s_%s.root",outputHistDataFile[isEffFile],effFileName[sample]),"RECREATE");
+  }
+  else if (isEffFile==2)// these are the efficiency uncertainty files
   {
     in.open(Form("%s/excel/%s.dat",inputFitDataFileLocation,effFileName[sample]));
     pfOutput = new TFile(Form("%s_%s.root",outputHistDataFile[isEffFile],effFileName[sample]),"RECREATE");
@@ -102,7 +108,7 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
 
       cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[12] <<endl;
     }
-    else // efficiency files
+    else if (isEffFile==1)// these are the traditional efficiency files
     {
       in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7];
       rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
@@ -110,6 +116,15 @@ void makeHistos_raa(int sample   = 0,// 0=PbPb,     1= pp
       cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
       prpt[nline]  = x[6]; // prompt correction
       nprpt[nline] = x[7]; // non-prompt correction
+    }
+    else if (isEffFile==2)// these are the efficiency uncertainty files
+    {
+      in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7] >> x[8] >> x[9] >> x[10] >> x[11];
+      rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
+      pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
+      cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
+      prpt[nline]  = x[8]; // prompt correction
+      nprpt[nline] = x[11]; // non-prompt correction
     }
     nline++;
   }

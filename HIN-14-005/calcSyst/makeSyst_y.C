@@ -325,22 +325,22 @@ void makeSyst_y( bool bSavePlots        = 1,
             if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
             {
               int ifile = ivar-nFitVariations-nEff4DVariations;
-              syst_effTnP_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr,2 ) ;
-              syst_effTnP_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr,2 ) ;
+              syst_effTnP_pr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_pr,2 ) ;
+              syst_effTnP_pr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_pr,2 ) ;
               
-              syst_effTnP_npr_aa[ibin-1][ifile] = TMath::Power( relVar_aa_npr,2 ) ;
-              syst_effTnP_npr_pp[ibin-1][ifile] = TMath::Power( relVar_pp_npr,2 ) ;
+              syst_effTnP_npr_aa[ibin-1][ifile] = TMath::Power( yieldVar_aa_npr,2 ) ;
+              syst_effTnP_npr_pp[ibin-1][ifile] = TMath::Power( yieldVar_pp_npr,2 ) ;
 
               if(bDoDebug) cout<< "++++++++++++++++++++++ Delta tnp:  " <<syst_effTnP_pr_aa[ibin-1][ifile]<<"\t & "<<syst_effTnP_npr_aa[ibin-1][ifile]<<
                              "\t ;  "<<syst_effTnP_pr_pp[ibin-1][ifile]<<"\t & "<<syst_effTnP_npr_pp[ibin-1][ifile]<<endl;
 
               if(method==1)//maximum
               {
-                if( syst_effTnP_pr_aa[ibin-1][ifile] > efftnpContribution_pr_aa ) efftnpContribution_pr_aa = syst_eff4d_pr_aa[ibin-1][ifile];
-                if( syst_effTnP_pr_pp[ibin-1][ifile] > efftnpContribution_pr_pp ) efftnpContribution_pr_pp = syst_eff4d_pr_pp[ibin-1][ifile];
+                if( syst_effTnP_pr_aa[ibin-1][ifile] > efftnpContribution_pr_aa ) efftnpContribution_pr_aa = syst_effTnP_pr_aa[ibin-1][ifile];
+                if( syst_effTnP_pr_pp[ibin-1][ifile] > efftnpContribution_pr_pp ) efftnpContribution_pr_pp = syst_effTnP_pr_pp[ibin-1][ifile];
                   
-                if( syst_effTnP_npr_aa[ibin-1][ifile] > efftnpContribution_npr_aa ) efftnpContribution_npr_aa = syst_eff4d_npr_aa[ibin-1][ifile];
-                if( syst_effTnP_npr_pp[ibin-1][ifile] > efftnpContribution_npr_pp ) efftnpContribution_npr_pp = syst_eff4d_npr_pp[ibin-1][ifile];
+                if( syst_effTnP_npr_aa[ibin-1][ifile] > efftnpContribution_npr_aa ) efftnpContribution_npr_aa = syst_effTnP_npr_aa[ibin-1][ifile];
+                if( syst_effTnP_npr_pp[ibin-1][ifile] > efftnpContribution_npr_pp ) efftnpContribution_npr_pp = syst_effTnP_npr_pp[ibin-1][ifile];
               }
               if(method==0) // rms of all variations
               {
@@ -422,11 +422,11 @@ void makeSyst_y( bool bSavePlots        = 1,
             {
               int ifile = ivar-nFitVariations-nEff4DVariations;
               
-              syst_effTnP_mb_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr ,2 ) ;
-              syst_effTnP_mb_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr ,2 ) ;
+              syst_effTnP_mb_pr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_pr ,2 ) ;
+              syst_effTnP_mb_pr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_pr ,2 ) ;
                 
-              syst_effTnP_mb_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
-              syst_effTnP_mb_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
+              syst_effTnP_mb_npr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_npr ,2) ;
+              syst_effTnP_mb_npr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_npr ,2) ;
                 
               if(bDoDebug) cout<< "++++++++++++++++++++++ Delta tnp:  " <<syst_effTnP_mb_pr_aa[ibin-1][ifile]<<"\t & "<<syst_effTnP_mb_npr_aa[ibin-1][ifile]<<
                              "\t ;  "<<syst_effTnP_mb_pr_pp[ibin-1][ifile]<<"\t & "<<syst_effTnP_mb_npr_pp[ibin-1][ifile]<<endl;
@@ -519,7 +519,7 @@ void makeSyst_y( bool bSavePlots        = 1,
   TGraphErrors *gNonPrJpsiSyst = new TGraphErrors(nBinsY, binsY, nonPrJpsi_y, binsYX, nonPrJpsiErrSyst_y);
   TGraphErrors *gNonPrJpsiSyst_y_y = new TGraphErrors(nBinsY3, binsY3, nonPrJpsi_y_y, binsY3X,   nonPrJpsiErrSyst_y_y);
   //-------------------------------------------------------------------
-    //stat boxes
+  //stat boxes
   gPrJpsiSyst->SetFillColor(kRed-9);
   gPrJpsiSyst_y_y->SetFillColor(kViolet-9);
 
@@ -559,7 +559,7 @@ void makeSyst_y( bool bSavePlots        = 1,
   TLatex *lpt = new TLatex(0.12,0.075,"6.5 < p_{T} < 30 GeV/c");
   lpt->SetTextFont(42);
   lpt->SetTextSize(0.05);
-  TLatex *lcent = new TLatex(19,1.03,"Cent. 0-100%");
+  TLatex *lcent = new TLatex(19,0.85,"Cent. 0-100%");
   lcent->SetTextFont(42);
   lcent->SetTextSize(0.05);
 

@@ -225,11 +225,15 @@ void makeRaa_y(bool bSavePlots=1,
     }//loop end: for(int ibin=1; ibin<=numBins; ibin++)
   }//loop end: for(int ih=0; ih<nInHist;ih++)
 
+  // LOADING SYSTEMATICS
+  TFile *systFile = new TFile("../calcSyst/histSyst/raaSystUncert_y.root","read");
+
   // ***** //Drawing
   // pr
   TGraphErrors *gPrJpsi     = new TGraphErrors(nBinsY, binsY, prJpsi_y, binsYErr, prJpsiErr_y);
   TGraphErrors *gPrJpsiP    = new TGraphErrors(nBinsY, binsY, prJpsi_y, binsYErr, prJpsiErr_y);
-  TGraphErrors *gPrJpsiSyst = new TGraphErrors(nBinsY, binsY, prJpsi_y, binsYX, prJpsiErrSyst_y);
+  TGraphErrors *gPrJpsiSyst = (TGraphErrors *)systFile->Get("gPrJpsiSyst");
+//  TGraphErrors *gPrJpsiSyst = new TGraphErrors(nBinsY, binsY, prJpsi_y, binsYX, prJpsiErrSyst_y);
 
   TGraphErrors *gPrJpsi_mb     = new TGraphErrors(nBinsMB, binsYMB, prJpsi_mb, binsYMBErr, prJpsiErr_mb);
   TGraphErrors *gPrJpsiP_mb    = new TGraphErrors(nBinsMB, binsYMB, prJpsi_mb, binsYMBErr, prJpsiErr_mb);
@@ -237,21 +241,23 @@ void makeRaa_y(bool bSavePlots=1,
  
   TGraphErrors *gPrJpsi_y_y     = new TGraphErrors(nBinsY3, binsY3, prJpsi_y_y, binsY3Err, prJpsiErr_y_y);
   TGraphErrors *gPrJpsiP_y_y    = new TGraphErrors(nBinsY3, binsY3, prJpsi_y_y, binsY3Err, prJpsiErr_y_y);
-  TGraphErrors *gPrJpsiSyst_y_y = new TGraphErrors(nBinsY3, binsY3, prJpsi_y_y, binsY3X,   prJpsiErrSyst_y_y);
+  TGraphErrors *gPrJpsiSyst_y_y = (TGraphErrors*)systFile->Get("gPrJpsiSyst_y_y");
+//  TGraphErrors *gPrJpsiSyst_y_y = new TGraphErrors(nBinsY3, binsY3, prJpsi_y_y, binsY3X,   prJpsiErrSyst_y_y);
  
   // nonPr   
   TGraphErrors *gNonPrJpsi     = new TGraphErrors(nBinsY, binsY, nonPrJpsi_y, binsYErr, nonPrJpsiErr_y);
   TGraphErrors *gNonPrJpsiP    = new TGraphErrors(nBinsY, binsY, nonPrJpsi_y, binsYErr, nonPrJpsiErr_y);
-  TGraphErrors *gNonPrJpsiSyst = new TGraphErrors(nBinsY, binsY, nonPrJpsi_y, binsYX, nonPrJpsiErrSyst_y);
+  TGraphErrors *gNonPrJpsiSyst = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst");
+//  TGraphErrors *gNonPrJpsiSyst = new TGraphErrors(nBinsY, binsY, nonPrJpsi_y, binsYX, nonPrJpsiErrSyst_y);
 
   TGraphErrors *gNonPrJpsi_mb     = new TGraphErrors(nBinsMB, binsYMB, nonPrJpsi_mb, binsYMBErr, nonPrJpsiErr_mb);
   TGraphErrors *gNonPrJpsiP_mb    = new TGraphErrors(nBinsMB, binsYMB, nonPrJpsi_mb, binsYMBErr, nonPrJpsiErr_mb);
   TGraphErrors *gNonPrJpsiSyst_mb = new TGraphErrors(nBinsMB, binsYMB, nonPrJpsi_mb, binsYMBX, nonPrJpsiErrSyst_mb);
 
-
   TGraphErrors *gNonPrJpsi_y_y     = new TGraphErrors(nBinsY3, binsY3, nonPrJpsi_y_y, binsY3Err, nonPrJpsiErr_y_y);
   TGraphErrors *gNonPrJpsiP_y_y    = new TGraphErrors(nBinsY3, binsY3, nonPrJpsi_y_y, binsY3Err, nonPrJpsiErr_y_y);
-  TGraphErrors *gNonPrJpsiSyst_y_y = new TGraphErrors(nBinsY3, binsY3, nonPrJpsi_y_y, binsY3X,   nonPrJpsiErrSyst_y_y);
+  TGraphErrors *gNonPrJpsiSyst_y_y = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst_y_y");
+//  TGraphErrors *gNonPrJpsiSyst_y_y = new TGraphErrors(nBinsY3, binsY3, nonPrJpsi_y_y, binsY3X,   nonPrJpsiErrSyst_y_y);
 
   //-------------------------------------------------------------------
   // **************** marker colors
@@ -456,5 +462,5 @@ void makeRaa_y(bool bSavePlots=1,
     c22b->SaveAs(Form("%s/png/nonPrJpsi_vsY_mb_%s.png",outputDir,sample[whichSample]));
   }
 
-  
+  systFile->Close();
 }

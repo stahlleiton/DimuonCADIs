@@ -39,8 +39,8 @@ Output: root file with the systm. histograms for Raa vs pT.
 #endif
 
 void makeSyst_cent( bool bSavePlots     = 1,
-                    bool bDoDebug         = 0, // prints numbers, numerator, denominator, to help figure out if things are read properly
-                    int method            = 0, // 0: rms of all variations; 1: max of each variation type, added in quadrature
+                    bool bDoDebug         = 1, // prints numbers, numerator, denominator, to help figure out if things are read properly
+                    int method            = 1, // 0: rms of all variations; 1: max of each variation type, added in quadrature
                     const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are
                     const char* outputDir = "histSyst")// where the output figures will be
 {
@@ -317,7 +317,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
 
       // for each source of uncert, calc variation wrt nominal value
       for(int ivar=0; ivar<(nFitVariations+nEff4DVariations+nEffTnPVariation); ivar++) {
-        cout<<"@@@@@@@ Variation = " << ivar <<endl; 
+        cout<<"@@@@@@@ Variation = " << ibin << ": " << ivar << " / " << (nFitVariations+nEff4DVariations+nEffTnPVariation) <<endl; 
         char nameFile1[200], nameFile2[200];
       
         if(ivar<nFitVariations)
@@ -393,8 +393,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               syst_fit_npr_aa[ibin-1][ivar] = TMath::Power( relVar_aa_npr, 2 ) ;
               syst_fit_npr_pp[ibin-1][ivar] = TMath::Power( relVar_pp_npr, 2 ) ;
             }
-            if(bDoDebug) cout<< "++++++++++++++++++++++ Delta yields:  " <<syst_fit_pr_aa[ibin-1][ivar]<<"\t & "<<syst_fit_npr_aa[ibin-1][ivar]<<
-                           "\t ;  "<<syst_fit_pr_pp[ibin-1][ivar]<<"\t & "<<syst_fit_npr_pp[ibin-1][ivar]<<endl;
+            if(bDoDebug) cout<< "++++++++++++++++++++++ Delta yields:  " <<syst_fit_pr_aa[ibin-1][ivar]<<"\t & "<<syst_fit_npr_aa[ibin-1][ivar]<< "\t ;  "<<syst_fit_pr_pp[ibin-1][ivar]<<"\t & "<<syst_fit_npr_pp[ibin-1][ivar]<<endl;
             if(method==1)//maximum
             {
               if( syst_fit_pr_aa[ibin-1][ivar] > fitContribution_pr_aa ) fitContribution_pr_aa = syst_fit_pr_aa[ibin-1][ivar];
@@ -459,31 +458,30 @@ void makeSyst_cent( bool bSavePlots     = 1,
             if(bDoDebug) cout<< "+++++++++++++++++++++++++++++++++ 4DEff Contribution to systm: "<<eff4dContribution_pr_aa<<"\t & "<<eff4dContribution_npr_aa<<"\t ; "<<eff4dContribution_pr_pp<<"\t & "<<eff4dContribution_npr_pp<<endl;
           }
 
-          // TnP
+          // TnP and 3d eff
           if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
           {
             int ifile = ivar-nFitVariations-nEff4DVariations;
-            syst_effTnP_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr,2 ) ;
-            syst_effTnP_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr,2 ) ;
+            syst_effTnP_pr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_pr ,2 ) ;
+            syst_effTnP_pr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_pr,2 ) ;
             
             if(ibin<= nBinsNpart6) 
             {
-              syst_effTnP_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr,2 ) ;
-              syst_effTnP_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr,2 ) ;
+              syst_effTnP_npr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_npr,2 ) ;
+              syst_effTnP_npr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_npr,2 ) ;
             }
 
-            if(bDoDebug) cout<< "++++++++++++++++++++++ Delta yields:  " <<syst_effTnP_pr_aa[ibin-1][ifile]<<"\t & "<<syst_effTnP_npr_aa[ibin-1][ifile]<<
-                           "\t ;  "<<syst_effTnP_pr_pp[ibin-1][ifile]<<"\t & "<<syst_effTnP_npr_pp[ibin-1][ifile]<<endl;
+            if(bDoDebug) cout<< "++++++++++++++++++++++ Delta yields:  " << syst_effTnP_pr_aa[ibin-1][ifile] << "\t & " << syst_effTnP_npr_aa[ibin-1][ifile] << "\t ; " << syst_effTnP_pr_pp[ibin-1][ifile] << "\t & " << syst_effTnP_npr_pp[ibin-1][ifile] << endl;
 
             if(method==1)//maximum
             {
-              if( syst_effTnP_pr_aa[ibin-1][ifile] > efftnpContribution_pr_aa ) efftnpContribution_pr_aa = syst_eff4d_pr_aa[ibin-1][ifile];
-              if( syst_effTnP_pr_pp[ibin-1][ifile] > efftnpContribution_pr_pp ) efftnpContribution_pr_pp = syst_eff4d_pr_pp[ibin-1][ifile];
+              if( syst_effTnP_pr_aa[ibin-1][ifile] > efftnpContribution_pr_aa ) efftnpContribution_pr_aa = syst_effTnP_pr_aa[ibin-1][ifile];
+              if( syst_effTnP_pr_pp[ibin-1][ifile] > efftnpContribution_pr_pp ) efftnpContribution_pr_pp = syst_effTnP_pr_pp[ibin-1][ifile];
                 
               if(ibin<= nBinsNpart6) 
               {
-                if( syst_effTnP_npr_aa[ibin-1][ifile] > efftnpContribution_npr_aa ) efftnpContribution_npr_aa = syst_eff4d_npr_aa[ibin-1][ifile];
-                if( syst_effTnP_npr_pp[ibin-1][ifile] > efftnpContribution_npr_pp ) efftnpContribution_npr_pp = syst_eff4d_npr_pp[ibin-1][ifile];
+                if( syst_effTnP_npr_aa[ibin-1][ifile] > efftnpContribution_npr_aa ) efftnpContribution_npr_aa = syst_effTnP_npr_aa[ibin-1][ifile];
+                if( syst_effTnP_npr_pp[ibin-1][ifile] > efftnpContribution_npr_pp ) efftnpContribution_npr_pp = syst_effTnP_npr_pp[ibin-1][ifile];
               }
             }
             if(method==0) // rms of all variations
@@ -513,6 +511,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               
             syst_fit_pt365y1624_npr_aa[ibin-1][ivar]  = TMath::Power(relVar_aa_npr ,2) ;
             syst_fit_pt365y1624_npr_pp[ibin-1][ivar]  = TMath::Power(relVar_pp_npr ,2) ;
+            if(bDoDebug) cout<< "++++++++++++++++++++++ Delta yields:  " <<syst_fit_pt365y1624_pr_aa[ibin-1][ivar]<<"\t & "<<syst_fit_pt365y1624_pr_aa[ibin-1][ivar]<< "\t ;  "<<syst_fit_pt365y1624_npr_pp[ibin-1][ivar]<<"\t & "<<syst_fit_pt365y1624_npr_aa[ibin-1][ivar]<<endl;
 
             if(method==1)//maximum
             {
@@ -530,6 +529,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               fitContribution_pt365y1624_npr_aa += syst_fit_pt365y1624_npr_aa[ibin-1][ivar];
               fitContribution_pt365y1624_npr_pp += syst_fit_pt365y1624_npr_pp[ibin-1][ivar];
             }
+            if(bDoDebug) cout<< "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "<<fitContribution_pt365y1624_pr_aa<<"\t & "<<fitContribution_pt365y1624_npr_aa<<"\t ; "<<fitContribution_pt365y1624_pr_pp<<"\t & "<<fitContribution_npr_pp<<endl;
           }
           if(ivar>=nFitVariations && ivar<(nFitVariations+nEff4DVariations) )
           {
@@ -560,11 +560,11 @@ void makeSyst_cent( bool bSavePlots     = 1,
           if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
           {
             int ifile = ivar-nFitVariations-nEff4DVariations;
-            syst_effTnP_pt365y1624_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr ,2 ) ;
-            syst_effTnP_pt365y1624_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr ,2 ) ;
+            syst_effTnP_pt365y1624_pr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_pr  ,2 ) ;
+            syst_effTnP_pt365y1624_pr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_pr ,2 ) ;
               
-            syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
-            syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
+            syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_npr ,2) ;
+            syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_npr ,2) ;
               
             if(method==1)//maximum
             {
@@ -645,11 +645,11 @@ void makeSyst_cent( bool bSavePlots     = 1,
           if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
           {
             int ifile = ivar-nFitVariations-nEff4DVariations;
-            syst_effTnP_pt6530y012_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr ,2 ) ;
-            syst_effTnP_pt6530y012_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr ,2 ) ;
+            syst_effTnP_pt6530y012_pr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_pr ,2 ) ;
+            syst_effTnP_pt6530y012_pr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_pr ,2 ) ;
               
-            syst_effTnP_pt6530y012_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
-            syst_effTnP_pt6530y012_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
+            syst_effTnP_pt6530y012_npr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_npr ,2) ;
+            syst_effTnP_pt6530y012_npr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_npr ,2) ;
               
             if(method==1)//maximum
             {
@@ -728,11 +728,11 @@ void makeSyst_cent( bool bSavePlots     = 1,
           if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
           {
             int ifile = ivar-nFitVariations-nEff4DVariations; 
-            syst_effTnP_pt6530y1216_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr ,2 ) ;
-            syst_effTnP_pt6530y1216_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr ,2 ) ;
+            syst_effTnP_pt6530y1216_pr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_pr ,2 ) ;
+            syst_effTnP_pt6530y1216_pr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_pr ,2 ) ;
               
-            syst_effTnP_pt6530y1216_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
-            syst_effTnP_pt6530y1216_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
+            syst_effTnP_pt6530y1216_npr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_npr ,2) ;
+            syst_effTnP_pt6530y1216_npr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_npr ,2) ;
               
             if(method==1)//maximum
             {
@@ -811,11 +811,11 @@ void makeSyst_cent( bool bSavePlots     = 1,
           if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
           {
             int ifile = ivar-nFitVariations-nEff4DVariations;
-            syst_effTnP_pt6530y1624_pr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_pr ,2 ) ;
-            syst_effTnP_pt6530y1624_pr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_pr ,2 ) ;
+            syst_effTnP_pt6530y1624_pr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_pr ,2 ) ;
+            syst_effTnP_pt6530y1624_pr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_pr ,2 ) ;
               
-            syst_effTnP_pt6530y1624_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
-            syst_effTnP_pt6530y1624_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
+            syst_effTnP_pt6530y1624_npr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_npr ,2) ;
+            syst_effTnP_pt6530y1624_npr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_npr ,2) ;
               
             if(method==1)//maximum
             {
@@ -1163,19 +1163,19 @@ void makeSyst_cent( bool bSavePlots     = 1,
   lNpr->SetTextFont(42);
   lNpr->SetTextSize(0.05);
 
-  TLatex *ly = new TLatex(190.0,1.05,"|y| < 2.4");
+  TLatex *ly = new TLatex(190.0,1.30,"|y| < 2.4");
   ly->SetTextFont(42);
   ly->SetTextSize(0.05);
 
-  TLatex *lyfwd = new TLatex(190.0,1.05,"1.6 < |y| < 2.4");
+  TLatex *lyfwd = new TLatex(190.0,0.85,"1.6 < |y| < 2.4");
   lyfwd->SetTextFont(42);
   lyfwd->SetTextSize(0.05);
 
-  TLatex *lpt = new TLatex(190.0,1.05,"6.5 < p_{T} < 30 GeV/c");
+  TLatex *lpt = new TLatex(190.0,0.81,"6.5 < p_{T} < 30 GeV/c");
   lpt->SetTextFont(42);
   lpt->SetTextSize(0.05);
 
-  TLatex *lpthigh = new TLatex(190.0,0.95,"6.5 < p_{T} < 30 GeV/c");
+  TLatex *lpthigh = new TLatex(190.0,1.15,"6.5 < p_{T} < 30 GeV/c");
   lpthigh->SetTextFont(42);
   lpthigh->SetTextSize(0.05);
 

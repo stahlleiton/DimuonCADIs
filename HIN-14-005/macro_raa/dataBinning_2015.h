@@ -80,9 +80,9 @@ double binsPt3_mb[nBinsPt3]   = {4.5, 10.0, 15}; // mb in the fwd region
 double binsPtErr[nBinsPt]     = {0,0,0,0,0,0,};
 double binsPt3Err[nBinsPt3]   = {0,0,0}; 
 double binsPt3Err_mb[nBinsPt3]= {0,0,0};
-double binsPtX[nBinsPt]     = {0.05,0.05,0.05,0.05,0.05,0.05};
-double binsPt3X[nBinsPt3]   = {0.05,0.05,0.05}; 
-double binsPt3X_mb[nBinsPt3]= {0.05,0.05,0.05};
+double binsPtX[nBinsPt]     = {0.25,0.25,0.25,0.25,0.25,0.25};
+double binsPt3X[nBinsPt3]   = {0.25,0.25,0.25}; 
+double binsPt3X_mb[nBinsPt3]= {0.25,0.25,0.25};
 
 // rapidity
 const int nBinsY       = 6;
