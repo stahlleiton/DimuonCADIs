@@ -82,7 +82,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
     TString hist_pr(Form("phPrp_%s",yieldHistNames[ih]));
     TString hist_npr(Form("phNPrp_%s",yieldHistNames[ih]));
   
-    cout<<"histogram input name: "<< hist_pr<<"\t"<<hist_npr<<endl; 
+    cout <<"histogram input name: "<< hist_pr<<"\t"<<hist_npr<<endl; 
     
     // prompt histos
     phCorr_pr_pp = (TH1F*)fYesWeighFile_pp->Get(hist_pr);
@@ -164,8 +164,8 @@ void makeSyst_pt( bool bSavePlots       = 1,
     double syst_fit_mb_npr_pp[numBins][nFitVariations]      ;
     double syst_eff4d_mb_npr_pp[numBins][nEff4DVariations]  ;
     double syst_effTnP_mb_npr_pp[numBins][nEffTnPVariation] ;
-    cout<<"###################################################################"<<endl;
-    if(bDoDebug) cout<< "################ Kinematic region: " <<yieldHistNames[ih]<<endl;
+    cout <<"###################################################################"<<endl;
+    if(bDoDebug) cout << "################ Kinematic region: " <<yieldHistNames[ih]<<endl;
 
     for(int ibin=1; ibin<=numBins; ibin++)
     //  for(int ibin=1; ibin<=2; ibin++)
@@ -238,25 +238,25 @@ void makeSyst_pt( bool bSavePlots       = 1,
       double efftnpContribution_mb_npr_pp = 0;
 
       //nominal prompt and non-prompt yield ratios
-      double yield_aa_pr  = phCorr_pr_aa->GetBinContent(ibin);
-      double yield_aa_npr = phCorr_npr_aa->GetBinContent(ibin);
+      const double yield_aa_pr  = phCorr_pr_aa->GetBinContent(ibin);
+      const double yield_aa_npr = phCorr_npr_aa->GetBinContent(ibin);
       
-      double yield_pp_pr  = phCorr_pr_pp->GetBinContent(ibin);
-      double yield_pp_npr = phCorr_npr_pp->GetBinContent(ibin);
+      const double yield_pp_pr  = phCorr_pr_pp->GetBinContent(ibin);
+      const double yield_pp_npr = phCorr_npr_pp->GetBinContent(ibin);
 
-
-      double scaleFactor    = ppLumi/nMbEvents;
-      double scale_cent     = 1/(adTaaMB[0]*adDeltaCentMB[0]);
-      double yieldRatio_pr  = yield_aa_pr/yield_pp_pr   * scaleFactor * scale_cent;
-      double yieldRatio_npr = yield_aa_npr/yield_pp_npr * scaleFactor * scale_cent;
+      const double scaleFactor    = ppLumi/nMbEvents;
+      const double scale_cent     = 1/(adTaaMB[0]*adDeltaCentMB[0]);
+      const double yieldRatio_pr  = yield_aa_pr/yield_pp_pr   * scaleFactor * scale_cent;
+      const double yieldRatio_npr = yield_aa_npr/yield_pp_npr * scaleFactor * scale_cent;
       
-      if(bDoDebug) cout<< "################ Bin " <<ibin << "\n Nominal yields are (prompt & nonPr - aa ; prompt & nonPr -  pp):  " <<yield_aa_pr<<"\t & "<<yield_aa_npr<<"\t; "<<yield_pp_pr<<"\t & "<<yield_pp_npr<<endl;
+      if(bDoDebug) cout << "################ Bin " <<ibin << endl
+                        << "  Nominal yields are (prompt_aa & nonPr_aa ; prompt_pp & nonPr_pp): " 
+                        << yield_aa_pr<<"\t& "<<yield_aa_npr<<"\t; "<<yield_pp_pr<<"\t& "<<yield_pp_npr<<endl;
 
       // for each source of uncert, calc variation wrt nominal value
       for(int ivar=0; ivar<(nFitVariations+nEff4DVariations+nEffTnPVariation); ivar++)
-      //      for(int ivar=0; ivar<(nFitVariations+nEff4DVariations); ivar++)
       {
-        cout<<"@@@@@@@ Variation = " << ivar <<endl; 
+        cout <<"@@@@@@@ Variation = " << ivar <<endl; 
         char nameFile1[200], nameFile2[200];
       
         if(ivar<nFitVariations)
@@ -280,7 +280,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
           sprintf(nameFile2,Form("%s/%s",inputDir,yieldHistFile_pp_systTnP[ifile]));
         }
 
-        if(bDoDebug) cout<< "Opened systematic files:\n pp: "<<nameFile2 << "\t AA: "<< nameFile1 <<endl;
+        if(bDoDebug) cout << "Opened systematic files:\n pp: "<<nameFile2 << "\tAA: "<< nameFile1 <<endl;
         TFile *fVar_aa = new TFile(nameFile1);
         TFile *fVar_pp = new TFile(nameFile2);
         if (!fVar_aa->IsOpen() || !fVar_pp->IsOpen()) {
@@ -311,7 +311,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
         double yieldVar_pp_pr  = phCorrVar_pr_pp->GetBinContent(ibin);
         double yieldVar_pp_npr = phCorrVar_npr_pp->GetBinContent(ibin);
         
-        if(bDoDebug) cout<< "+++++++++++ Variation " << ivar << " yields are:  " <<yieldVar_aa_pr<<"\t & "<<yieldVar_aa_npr<<"\t ;  "<<yieldVar_pp_pr<<"\t & "<<yieldVar_pp_npr<<endl;
+        if(bDoDebug) cout << "+++++++++++ Variation " << ivar << " yields are: "
+                          <<yieldVar_aa_pr<<"\t& "<<yieldVar_aa_npr<<"\t;  "<<yieldVar_pp_pr<<"\t& "<<yieldVar_pp_npr<<endl;
+        
         double relVar_aa_pr = (yield_aa_pr - yieldVar_aa_pr)/yield_aa_pr;
         double relVar_pp_pr = (yield_pp_pr - yieldVar_pp_pr)/yield_pp_pr; 
 
@@ -332,8 +334,10 @@ void makeSyst_pt( bool bSavePlots       = 1,
             syst_fit_npr_aa[ibin-1][ivar] = TMath::Power( relVar_aa_npr,2 ) ;
             syst_fit_npr_pp[ibin-1][ivar] = TMath::Power( relVar_pp_npr,2 ) ;
             
-            if(bDoDebug) cout<< "++++++++++++++++++++++ Delta yields:  " <<syst_fit_pr_aa[ibin-1][ivar]<<"\t & "<<syst_fit_npr_aa[ibin-1][ivar]<<
-                           "\t ;  "<<syst_fit_pr_pp[ibin-1][ivar]<<"\t & "<<syst_fit_npr_pp[ibin-1][ivar]<<endl;
+            if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                              << syst_fit_pr_aa[ibin-1][ivar] << "\t& " << syst_fit_npr_aa[ibin-1][ivar] << "\t; "
+                              << syst_fit_pr_pp[ibin-1][ivar] << "\t& " << syst_fit_npr_pp[ibin-1][ivar] << endl;
+
             if(method==1)//maximum
             {
               if( syst_fit_pr_aa[ibin-1][ivar] > fitContribution_pr_aa ) fitContribution_pr_aa = syst_fit_pr_aa[ibin-1][ivar];
@@ -351,7 +355,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
               fitContribution_npr_aa += syst_fit_npr_aa[ibin-1][ivar];
               fitContribution_npr_pp += syst_fit_npr_pp[ibin-1][ivar];
             }
-            if(bDoDebug) cout<< "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "<<fitContribution_pr_aa<<"\t & "<<fitContribution_npr_aa<<"\t ; "<<fitContribution_pr_pp<<"\t & "<<fitContribution_npr_pp<<endl;
+            if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
+                              << fitContribution_pr_aa << "\t& " << fitContribution_npr_aa << "\t; "
+                              << fitContribution_pr_pp << "\t& " << fitContribution_npr_pp << endl;
           }
           // 4d eff
           if(ivar>=nFitVariations && ivar<(nFitVariations+nEff4DVariations) )
@@ -363,8 +369,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
             syst_eff4d_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr,2 ) ;
             syst_eff4d_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr,2 ) ;
             
-            if(bDoDebug) cout<< "++++++++++++++++++++++ Delta yields:  " <<syst_eff4d_pr_aa[ibin-1][ifile]<<"\t & "<<syst_eff4d_npr_aa[ibin-1][ifile]<<
-                           "\t ;  "<<syst_eff4d_pr_pp[ibin-1][ifile]<<"\t & "<<syst_eff4d_npr_pp[ibin-1][ifile]<<endl;
+            if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                              << syst_eff4d_pr_aa[ibin-1][ifile] << "\t& " << syst_eff4d_npr_aa[ibin-1][ifile] << "\t; "
+                              << syst_eff4d_pr_pp[ibin-1][ifile] << "\t& " << syst_eff4d_npr_pp[ibin-1][ifile] << endl;
 
             if(method==1)//maximum
             {
@@ -382,10 +389,12 @@ void makeSyst_pt( bool bSavePlots       = 1,
               eff4dContribution_npr_aa += syst_eff4d_npr_aa[ibin-1][ifile];
               eff4dContribution_npr_pp += syst_eff4d_npr_pp[ibin-1][ifile];
             }
-            if(bDoDebug) cout<< "+++++++++++++++++++++++++++++++++ 4DEff Contribution to systm: "<<eff4dContribution_pr_aa<<"\t & "<<eff4dContribution_npr_aa<<"\t ; "<<eff4dContribution_pr_pp<<"\t & "<<eff4dContribution_npr_pp<<endl;
+            if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ 4DEff Contribution to systm: "
+                              << eff4dContribution_pr_aa << "\t& " << eff4dContribution_npr_aa << "\t; "
+                              << eff4dContribution_pr_pp << "\t& " << eff4dContribution_npr_pp << endl;
           }
 
-          // TnP
+          // TnP and 3d eff
           if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
           {
             int ifile = ivar-nFitVariations-nEff4DVariations;
@@ -395,8 +404,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
             syst_effTnP_npr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_npr,2 ) ;
             syst_effTnP_npr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_npr,2 ) ;
 
-            if(bDoDebug) cout<< "++++++++++++++++++++++ Delta yields:  " <<syst_effTnP_pr_aa[ibin-1][ifile]<<"\t & "<<syst_effTnP_npr_aa[ibin-1][ifile]<<
-                           "\t ;  "<<syst_effTnP_pr_pp[ibin-1][ifile]<<"\t & "<<syst_effTnP_npr_pp[ibin-1][ifile]<<endl;
+            if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                              << syst_effTnP_pr_aa[ibin-1][ifile] << "\t& " << syst_effTnP_npr_aa[ibin-1][ifile] << "\t; "
+                              << syst_effTnP_pr_pp[ibin-1][ifile] << "\t& " << syst_effTnP_npr_pp[ibin-1][ifile] << endl;
 
             if(method==1)//maximum
             {
@@ -414,7 +424,8 @@ void makeSyst_pt( bool bSavePlots       = 1,
               efftnpContribution_npr_aa += syst_effTnP_npr_aa[ibin-1][ifile];
               efftnpContribution_npr_pp += syst_effTnP_npr_pp[ibin-1][ifile];
             }
-            if(bDoDebug) cout<< "+++++++++++++++++++++++++++++++++ Contribution to systm: "<<efftnpContribution_pr_aa<<"\t & "<<efftnpContribution_npr_aa<<"\t ; "<<efftnpContribution_pr_pp<<"\t & "<<efftnpContribution_npr_pp<<endl;
+            if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Contribution to systm: " << efftnpContribution_pr_aa << "\t& " << efftnpContribution_npr_aa << "\t; "
+                              << efftnpContribution_pr_pp << "\t& " << efftnpContribution_npr_pp << endl;
           }
           break;
           
@@ -429,6 +440,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
               
             syst_fit_pt365y1624_npr_aa[ibin-1][ivar]  = TMath::Power( relVar_aa_npr ,2) ;
             syst_fit_pt365y1624_npr_pp[ibin-1][ivar]  = TMath::Power( relVar_pp_npr ,2) ;
+            if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                              << syst_fit_pt365y1624_pr_aa[ibin-1][ivar] << "\t& " << syst_fit_pt365y1624_npr_aa[ibin-1][ivar] << "\t; "
+                              << syst_fit_pt365y1624_pr_pp[ibin-1][ivar] << "\t& " << syst_fit_pt365y1624_npr_pp[ibin-1][ivar] << endl;
               
             if(method==1)//maximum
             {
@@ -446,6 +460,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
               fitContribution_pt365y1624_npr_aa += syst_fit_pt365y1624_npr_aa[ibin-1][ivar];
               fitContribution_pt365y1624_npr_pp += syst_fit_pt365y1624_npr_pp[ibin-1][ivar];
             }
+            if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
+                              << fitContribution_pt365y1624_pr_aa << "\t& " << fitContribution_pt365y1624_npr_aa << "\t; "
+                              << fitContribution_pt365y1624_pr_pp << "\t& " << fitContribution_pt365y1624_npr_pp << endl;
           }
           if(ivar>=nFitVariations && ivar<(nFitVariations+nEff4DVariations) )
           {
@@ -455,6 +472,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
             
             syst_eff4d_pt365y1624_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
             syst_eff4d_pt365y1624_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
+            if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                              << syst_eff4d_pt365y1624_pr_aa[ibin-1][ifile] << "\t& " << syst_eff4d_pt365y1624_npr_aa[ibin-1][ifile] << "\t; "
+                              << syst_eff4d_pt365y1624_pr_pp[ibin-1][ifile] << "\t& " << syst_eff4d_pt365y1624_npr_pp[ibin-1][ifile] << endl;
             
             if(method==1)//maximum
             {
@@ -472,6 +492,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
               eff4dContribution_pt365y1624_npr_aa += syst_eff4d_pt365y1624_npr_aa[ibin-1][ifile];
               eff4dContribution_pt365y1624_npr_pp += syst_eff4d_pt365y1624_npr_pp[ibin-1][ifile];
             }
+            if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
+                              << eff4dContribution_pt365y1624_pr_aa << "\t& " << eff4dContribution_pt365y1624_npr_aa << "\t; "
+                              << eff4dContribution_pt365y1624_pr_pp << "\t& " << eff4dContribution_pt365y1624_npr_pp << endl;
           }
           if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
           {
@@ -481,6 +504,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
               
             syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_npr ,2) ;
             syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_npr ,2) ;
+            if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields:  "
+                              << syst_effTnP_pt365y1624_pr_aa[ibin-1][ifile] << "\t& " << syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile] << "\t; "
+                              << syst_effTnP_pt365y1624_pr_pp[ibin-1][ifile] << "\t& " << syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile] << endl;
               
             if(method==1)//maximum
             {
@@ -498,6 +524,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
               efftnpContribution_pt365y1624_npr_aa += syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile];
               efftnpContribution_pt365y1624_npr_pp += syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile];
             }
+            if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
+                              << efftnpContribution_pt365y1624_pr_aa << "\t& " << efftnpContribution_pt365y1624_npr_aa << "\t; "
+                              << efftnpContribution_pt365y1624_pr_pp << "\t& " << efftnpContribution_pt365y1624_npr_pp << endl;
           }
           break;
           
@@ -512,7 +541,10 @@ void makeSyst_pt( bool bSavePlots       = 1,
               
             syst_fit_y1624MB_npr_aa[ibin-1][ivar]  = TMath::Power( relVar_aa_npr ,2) ;
             syst_fit_y1624MB_npr_pp[ibin-1][ivar]  = TMath::Power( relVar_pp_npr ,2) ;
-              
+            if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                              << syst_fit_y1624MB_pr_aa[ibin-1][ivar] << "\t& " << syst_fit_y1624MB_npr_aa[ibin-1][ivar] << "\t; "
+                              << syst_fit_y1624MB_pr_pp[ibin-1][ivar] << "\t& " << syst_fit_y1624MB_npr_pp[ibin-1][ivar] << endl;
+
             if(method==1)//maximum
             {
               if( syst_fit_y1624MB_pr_aa[ibin-1][ivar] > fitContribution_y1624MB_pr_aa ) 
@@ -533,6 +565,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
               fitContribution_y1624MB_npr_aa += syst_fit_y1624MB_npr_aa[ibin-1][ivar];
               fitContribution_y1624MB_npr_pp += syst_fit_y1624MB_npr_pp[ibin-1][ivar];
             }
+            if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
+                              << fitContribution_y1624MB_pr_aa << "\t& " << fitContribution_y1624MB_npr_aa << "\t; "
+                              << fitContribution_y1624MB_pr_pp << "\t& " << fitContribution_y1624MB_npr_pp << endl;
           }
           if(ivar>=nFitVariations && ivar<(nFitVariations+nEff4DVariations) )
           {
@@ -542,6 +577,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
             
             syst_eff4d_y1624MB_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr ,2) ;
             syst_eff4d_y1624MB_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr ,2) ;
+            if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                              << syst_eff4d_y1624MB_pr_aa[ibin-1][ifile] << "\t& " << syst_eff4d_y1624MB_npr_aa[ibin-1][ifile] << "\t; "
+                              << syst_eff4d_y1624MB_pr_pp[ibin-1][ifile] << "\t& " << syst_eff4d_y1624MB_npr_pp[ibin-1][ifile] << endl;
               
             if(method==1)//maximum
             {
@@ -559,6 +597,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
               eff4dContribution_y1624MB_npr_aa += syst_eff4d_y1624MB_npr_aa[ibin-1][ifile];
               eff4dContribution_y1624MB_npr_pp += syst_eff4d_y1624MB_npr_pp[ibin-1][ifile];
             }
+            if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
+                              << eff4dContribution_y1624MB_pr_aa << "\t& " << eff4dContribution_y1624MB_npr_aa << "\t; "
+                              << eff4dContribution_y1624MB_pr_pp << "\t& " << eff4dContribution_y1624MB_npr_pp << endl;
           }
           if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
           {
@@ -568,11 +609,14 @@ void makeSyst_pt( bool bSavePlots       = 1,
               
             syst_effTnP_y1624MB_npr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_npr ,2) ;
             syst_effTnP_y1624MB_npr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_npr ,2) ;
+            if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                              << syst_effTnP_y1624MB_pr_aa[ibin-1][ifile] << "\t& " << syst_effTnP_y1624MB_npr_aa[ibin-1][ifile] << "\t; "
+                              << syst_effTnP_y1624MB_pr_pp[ibin-1][ifile] << "\t& " << syst_effTnP_y1624MB_npr_pp[ibin-1][ifile] << endl;
             
             if(method==1)//maximum
             {
-              if( syst_effTnP_y1624MB_pr_aa[ibin-1][ifile] > efftnpContribution_y1624MB_pr_aa ) efftnpContribution_y1624MB_pr_aa = syst_effTnP_pr_aa[ibin-1][ifile];
-              if( syst_effTnP_y1624MB_pr_pp[ibin-1][ifile] > efftnpContribution_y1624MB_pr_pp ) efftnpContribution_y1624MB_pr_pp = syst_effTnP_pr_pp[ibin-1][ifile];
+              if( syst_effTnP_y1624MB_pr_aa[ibin-1][ifile] > efftnpContribution_y1624MB_pr_aa ) efftnpContribution_y1624MB_pr_aa = syst_effTnP_y1624MB_pr_aa[ibin-1][ifile];
+              if( syst_effTnP_y1624MB_pr_pp[ibin-1][ifile] > efftnpContribution_y1624MB_pr_pp ) efftnpContribution_y1624MB_pr_pp = syst_effTnP_y1624MB_pr_pp[ibin-1][ifile];
                 
               if( syst_effTnP_y1624MB_npr_aa[ibin-1][ifile] > efftnpContribution_y1624MB_npr_aa ) efftnpContribution_y1624MB_npr_aa = syst_effTnP_y1624MB_npr_aa[ibin-1][ifile];
               if( syst_effTnP_y1624MB_npr_pp[ibin-1][ifile] > efftnpContribution_y1624MB_npr_pp ) efftnpContribution_y1624MB_npr_pp = syst_effTnP_y1624MB_npr_pp[ibin-1][ifile];
@@ -585,6 +629,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
               efftnpContribution_y1624MB_npr_aa += syst_effTnP_y1624MB_npr_aa[ibin-1][ifile];
               efftnpContribution_y1624MB_npr_pp += syst_effTnP_y1624MB_npr_pp[ibin-1][ifile];
             }
+            if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
+                              << efftnpContribution_y1624MB_pr_aa << "\t& " << efftnpContribution_y1624MB_npr_aa << "\t; "
+                              << efftnpContribution_y1624MB_pr_pp << "\t& " << efftnpContribution_y1624MB_npr_pp << endl;
           }
           break;
 
@@ -600,6 +647,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
               
             syst_fit_mb_npr_aa[0][ivar] = TMath::Power( relVar_aa_npr ,2) ;
             syst_fit_mb_npr_pp[0][ivar] = TMath::Power( relVar_pp_npr ,2) ; 
+            if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                              << syst_fit_mb_pr_aa[ibin-1][ivar] << "\t& " << syst_fit_mb_npr_aa[ibin-1][ivar] << "\t; "
+                              << syst_fit_mb_pr_pp[ibin-1][ivar] << "\t& " << syst_fit_mb_npr_pp[ibin-1][ivar] << endl;
               
             if(method==1)//maximum
             {
@@ -617,6 +667,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
               fitContribution_mb_npr_aa += syst_fit_mb_npr_aa[0][ivar];
               fitContribution_mb_npr_pp += syst_fit_mb_npr_pp[0][ivar];
             }
+            if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
+                              << fitContribution_mb_pr_aa << "\t& " << fitContribution_mb_npr_aa << "\t; "
+                              << fitContribution_mb_pr_pp << "\t& " << fitContribution_mb_npr_pp << endl;
           }
           // 4d eff
           if(ivar>=nFitVariations && ivar<(nFitVariations+nEff4DVariations) )
@@ -627,7 +680,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
               
             syst_eff4d_mb_npr_aa[0][ifile] = TMath::Power( relVar_aa_npr ,2 ) ;
             syst_eff4d_mb_npr_pp[0][ifile] = TMath::Power( relVar_pp_npr ,2) ;
-              
+            if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                              << syst_eff4d_mb_pr_aa[ibin-1][ifile] << "\t& " << syst_eff4d_mb_npr_aa[ibin-1][ifile] << "\t; "
+                              << syst_eff4d_mb_pr_pp[ibin-1][ifile] << "\t& " << syst_eff4d_mb_npr_pp[ibin-1][ifile] << endl;
               
             if(method==1)//maximum
             {
@@ -645,6 +700,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
               eff4dContribution_mb_npr_aa += syst_eff4d_mb_npr_aa[0][ifile];
               eff4dContribution_mb_npr_pp += syst_eff4d_mb_npr_pp[0][ifile];
             }
+            if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
+                              << eff4dContribution_mb_pr_aa << "\t& " << eff4dContribution_mb_npr_aa << "\t; "
+                              << eff4dContribution_mb_pr_pp << "\t& " << eff4dContribution_mb_npr_pp << endl;
           }
           // tnp sf
           if( (ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)) )
@@ -655,6 +713,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
               
             syst_effTnP_mb_npr_aa[0][ifile] = TMath::Power( yieldVar_aa_npr ,2) ;
             syst_effTnP_mb_npr_pp[0][ifile] = TMath::Power( yieldVar_pp_npr ,2) ; 
+            if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                              << syst_effTnP_mb_pr_aa[ibin-1][ifile] << "\t& " << syst_effTnP_mb_npr_aa[ibin-1][ifile] << "\t; "
+                              << syst_effTnP_mb_pr_pp[ibin-1][ifile] << "\t& " << syst_effTnP_mb_npr_pp[ibin-1][ifile] << endl;
               
             if(method==1)//maximum
             {
@@ -672,6 +733,9 @@ void makeSyst_pt( bool bSavePlots       = 1,
               efftnpContribution_mb_npr_aa += syst_effTnP_mb_npr_aa[0][ifile];
               efftnpContribution_mb_npr_pp += syst_effTnP_mb_npr_pp[0][ifile];
             }
+            if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
+                              << efftnpContribution_mb_pr_aa << "\t& " << efftnpContribution_mb_npr_aa << "\t; "
+                              << efftnpContribution_mb_pr_pp << "\t& " << efftnpContribution_mb_npr_pp << endl;
           }
           break;
         }//switch ih==kinematic range 
@@ -690,15 +754,15 @@ void makeSyst_pt( bool bSavePlots       = 1,
           }
           if(bDoDebug)
           {
-            cout<<"---------------------------------------------------------------"<<endl;
-            cout<< "Ingredients to the total systm. uncertainty"<<endl;
-            cout<<"Prompt yields systematics: aa & pp"<<endl;
-            cout<<"fitContribution: "<<fitContribution_pr_aa<<"\t "<<fitContribution_pr_pp<<endl;
-            cout<<"eff4dContribution: "<<eff4dContribution_pr_aa<<"\t"<<eff4dContribution_pr_pp<<endl;
-            cout<<"efftnpContribution: "<<efftnpContribution_pr_aa<<"\t"<<efftnpContribution_pr_pp<<endl;
-            cout<<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
-            cout<<"yield ratio: "<<yieldRatio_pr<<endl;
-            cout<<"Total: "<<prJpsiErrSyst_pt[ibin-1]<<endl;
+            cout <<"---------------------------------------------------------------"<<endl;
+            cout << "Ingredients to the total systm. uncertainty"<<endl;
+            cout <<"Prompt yields systematics: aa & pp"<<endl;
+            cout <<"fitContribution: "<<fitContribution_pr_aa<<"\t"<<fitContribution_pr_pp<<endl;
+            cout <<"eff4dContribution: "<<eff4dContribution_pr_aa<<"\t"<<eff4dContribution_pr_pp<<endl;
+            cout <<"efftnpContribution: "<<efftnpContribution_pr_aa<<"\t"<<efftnpContribution_pr_pp<<endl;
+            cout <<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
+            cout <<"yield ratio: "<<yieldRatio_pr<<endl;
+            cout <<"Total: "<<prJpsiErrSyst_pt[ibin-1]<<endl;
           }
         break;
 
@@ -715,15 +779,15 @@ void makeSyst_pt( bool bSavePlots       = 1,
         }
         if(bDoDebug)
         {
-          cout<<"---------------------------------------------------------------"<<endl;
-          cout<< "Ingredients to the total systm. uncertainty"<<endl;
-          cout<<"Prompt yields systematics: aa & pp"<<endl;
-          cout<<"fitContribution: "<<fitContribution_pt365y1624_pr_aa<<"\t "<<fitContribution_pt365y1624_pr_pp<<endl;
-          cout<<"eff4dContribution: "<<eff4dContribution_pt365y1624_pr_aa<<"\t"<<eff4dContribution_pt365y1624_pr_pp<<endl;
-          cout<<"efftnpContribution: "<<efftnpContribution_pt365y1624_pr_aa<<"\t"<<efftnpContribution_pt365y1624_pr_pp<<endl;
-          cout<<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
-          cout<<"yield ratio: "<<yieldRatio_pr<<endl;
-          cout<<"Total: "<<prJpsiErrSyst_pt365y1624_pt[ibin-1]<<endl;
+          cout <<"---------------------------------------------------------------"<<endl;
+          cout << "Ingredients to the total systm. uncertainty"<<endl;
+          cout <<"Prompt yields systematics: aa & pp"<<endl;
+          cout <<"fitContribution: "<<fitContribution_pt365y1624_pr_aa<<"\t"<<fitContribution_pt365y1624_pr_pp<<endl;
+          cout <<"eff4dContribution: "<<eff4dContribution_pt365y1624_pr_aa<<"\t"<<eff4dContribution_pt365y1624_pr_pp<<endl;
+          cout <<"efftnpContribution: "<<efftnpContribution_pt365y1624_pr_aa<<"\t"<<efftnpContribution_pt365y1624_pr_pp<<endl;
+          cout <<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
+          cout <<"yield ratio: "<<yieldRatio_pr<<endl;
+          cout <<"Total: "<<prJpsiErrSyst_pt365y1624_pt[ibin-1]<<endl;
         }
         break;
 
@@ -740,15 +804,15 @@ void makeSyst_pt( bool bSavePlots       = 1,
 
         if(bDoDebug)
         {
-          cout<<"---------------------------------------------------------------"<<endl;
-          cout<< "Ingredients to the total systm. uncertainty"<<endl;
-          cout<<"Prompt yields systematics: aa & pp"<<endl;
-          cout<<"fitContribution: "<<fitContribution_y1624MB_pr_aa<<"\t "<<fitContribution_y1624MB_pr_pp<<endl;
-          cout<<"eff4dContribution: "<<eff4dContribution_y1624MB_pr_aa<<"\t"<<eff4dContribution_y1624MB_pr_pp<<endl;
-          cout<<"efftnpContribution: "<<efftnpContribution_y1624MB_pr_aa<<"\t"<<efftnpContribution_y1624MB_pr_pp<<endl;
-          cout<<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
-          cout<<"yield ratio: "<<yieldRatio_pr<<endl;
-          cout<<"Total: "<<prJpsiErrSyst_y1624MB_pt[ibin-1]<<endl;
+          cout <<"---------------------------------------------------------------"<<endl;
+          cout << "Ingredients to the total systm. uncertainty"<<endl;
+          cout <<"Prompt yields systematics: aa & pp"<<endl;
+          cout <<"fitContribution: "<<fitContribution_y1624MB_pr_aa<<"\t"<<fitContribution_y1624MB_pr_pp<<endl;
+          cout <<"eff4dContribution: "<<eff4dContribution_y1624MB_pr_aa<<"\t"<<eff4dContribution_y1624MB_pr_pp<<endl;
+          cout <<"efftnpContribution: "<<efftnpContribution_y1624MB_pr_aa<<"\t"<<efftnpContribution_y1624MB_pr_pp<<endl;
+          cout <<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
+          cout <<"yield ratio: "<<yieldRatio_pr<<endl;
+          cout <<"Total: "<<prJpsiErrSyst_y1624MB_pt[ibin-1]<<endl;
         }
         break;
 
@@ -765,15 +829,15 @@ void makeSyst_pt( bool bSavePlots       = 1,
         
         if(bDoDebug)
         {
-          cout<<"---------------------------------------------------------------"<<endl;
-          cout<< "Ingredients to the total systm. uncertainty"<<endl;
-          cout<<"Prompt yields systematics: aa & pp"<<endl;
-          cout<<"fitContribution: "<<fitContribution_mb_pr_aa<<"\t "<<fitContribution_mb_pr_pp<<endl;
-          cout<<"eff4dContribution: "<<eff4dContribution_mb_pr_aa<<"\t"<<eff4dContribution_mb_pr_pp<<endl;
-          cout<<"efftnpContribution: "<<efftnpContribution_mb_pr_aa<<"\t"<<efftnpContribution_mb_pr_pp<<endl;
-          cout<<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
-          cout<<"yield ratio: "<<yieldRatio_pr<<endl;
-          cout<<"Total: "<<prJpsiErrSyst_mb[0]<<endl;
+          cout <<"---------------------------------------------------------------"<<endl;
+          cout << "Ingredients to the total systm. uncertainty"<<endl;
+          cout <<"Prompt yields systematics: aa & pp"<<endl;
+          cout <<"fitContribution: "<<fitContribution_mb_pr_aa<<"\t"<<fitContribution_mb_pr_pp<<endl;
+          cout <<"eff4dContribution: "<<eff4dContribution_mb_pr_aa<<"\t"<<eff4dContribution_mb_pr_pp<<endl;
+          cout <<"efftnpContribution: "<<efftnpContribution_mb_pr_aa<<"\t"<<efftnpContribution_mb_pr_pp<<endl;
+          cout <<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
+          cout <<"yield ratio: "<<yieldRatio_pr<<endl;
+          cout <<"Total: "<<prJpsiErrSyst_mb[0]<<endl;
         }
         break;
      
