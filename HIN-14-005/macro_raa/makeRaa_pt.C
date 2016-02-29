@@ -52,7 +52,7 @@ void makeRaa_pt( bool bSavePlots=1,
   // type of available comparisons:
   const char* sample[4] = {"noTnP","dataTnP","mcTnP","lxyTnP"};
 
-  const int nInHist = 4;
+  const unsigned int nInHist = 4;
   const char* yieldHistNames[nInHist] = {"pt", "ptLow", "ptLow_mb", "mb"};
 
   // input files: are in the filesRaa_2015.h
@@ -123,7 +123,7 @@ void makeRaa_pt( bool bSavePlots=1,
   TH1F *phCorr_npr_aa;
   TH1F *phEff_npr_aa;
   
-  for(int ih=0; ih<nInHist;ih++) // for each kinematic range
+  for(unsigned int ih=0; ih<nInHist;ih++) // for each kinematic range
   {
     TString hist_pr(Form("phPrp_%s",yieldHistNames[ih]));
     TString hist_npr(Form("phNPrp_%s",yieldHistNames[ih]));
@@ -151,13 +151,15 @@ void makeRaa_pt( bool bSavePlots=1,
     double scaleFactor = ppLumi/nMbEvents;
     double scale_cent = 1/(adTaaMB[0]*adDeltaCentMB[0]);
   
-    int numBins = 0;
+    unsigned int numBins = 0;
     if(ih==0) numBins = nBinsPt;
     if(ih==1 || ih==2) numBins = nBinsPt3;
     if(ih==3) numBins = nBinsMB;
 
-    for(int ibin=1; ibin<=numBins; ibin++)
+    for(unsigned int ibin=1; ibin<=numBins; ibin++)
     {
+      cout << endl << "ih " << ih << ", ibin " << ibin << "/" << numBins << endl;
+      
       double raa_pr=0, raaErr_pr=0, raa_npr=0, raaErr_npr=0;
 
       //prompt
@@ -204,8 +206,8 @@ void makeRaa_pt( bool bSavePlots=1,
 
         if(bDoDebug)
         {
-	  cout<<"yield_npr_aa "<<phCorr_npr_aa->GetBinContent(ibin)<<"\t yield_pr_pp "<<phCorr_npr_pp->GetBinContent(ibin)<<endl;
-	  cout<<setprecision(2);
+          cout<<"yield_npr_aa "<<phCorr_npr_aa->GetBinContent(ibin)<<"\t yield_pr_pp "<<phCorr_npr_pp->GetBinContent(ibin)<<endl;
+          cout<<setprecision(2);
           cout<<"!!!!! raa_pr = "<<raa_pr<<"\t raa_npr= "<<raa_npr<<endl;
         }
         break;

@@ -54,7 +54,7 @@ void makeRaa_cent( bool bSavePlots=1,
   // type of available comparisons:
   const char* sample[4] = {"noTnP","dataTnP","mcTnP","lxyTnP"};
 
-  const int nInHist = 5;
+  const unsigned int nInHist = 5;
   const char* yieldHistNames[nInHist] = {"cent","y012Cent", "y1216Cent", "y1624Cent", "y1624LowPtCent"};
 
   // input files: are in the filesRaa_2015.h
@@ -125,7 +125,7 @@ void makeRaa_cent( bool bSavePlots=1,
   TH1F *phCorr_npr_aa;
   TH1F *phEff_npr_aa;
   
-  for(int ih=0; ih<nInHist;ih++) // for each kinematic range
+  for(unsigned int ih=0; ih<nInHist;ih++) // for each kinematic range
   {
     TString hist_pr(Form("phPrp_%s",yieldHistNames[ih]));
     TString hist_npr(Form("phNPrp_%s",yieldHistNames[ih]));
@@ -152,14 +152,14 @@ void makeRaa_cent( bool bSavePlots=1,
 
     double scaleFactor = ppLumi/nMbEvents;
 
-    int numBins = 0;
+    unsigned int numBins = 0;
     if(ih==0) numBins = nBinsNpart12;
     if(ih==4) numBins = nBinsNpart6;
     if(ih==1 || ih==2 || ih==3) numBins = nBinsNpart6;
 
-    for(int ibin=1; ibin<=numBins; ibin++)
+    for (unsigned int ibin=1; ibin<=numBins; ibin++)
     {
-      cout << "ih | ibin\t" << ih << " " << ibin << endl;
+      cout << endl << "ih " << ih << ", ibin " << ibin << "/" << numBins << endl;
       
       double raa_pr=0, raaErr_pr=0, raa_npr=0, raaErr_npr=0;
       double scale_cent = 1;
@@ -191,16 +191,23 @@ void makeRaa_cent( bool bSavePlots=1,
       raaErr_npr = TMath::Sqrt(TMath::Power(dRelErrRaw_npr_pp,2)+TMath::Power(dRelErrRaw_npr_aa,2))*raa_npr;
 
       // Check bin content
-      cout << "adTaa12\tadDeltaCent12\tadTaa6\tadDeltaCent6\n"
-        << adTaa12[ibin-1] << "\t" << adDeltaCent12[ibin-1] << "\t"
-        << adTaa6[ibin-1] << "\t" << adDeltaCent6[ibin-1] << endl;
-      cout << "scale_cent_np\tscale_cent\tscaleFactor\tyieldRatio_pr\traa_pr\n"
-        << scale_cent_np << "\t" << scale_cent << "\t" 
-        << scaleFactor << "\t" << yieldRatio_pr << "\t" << raa_pr << endl;
+      if (ibin <= 6) {
+        cout << "adTaa12\tadDeltaCent12\tadTaa6\tadDeltaCent6\n"
+          << adTaa12[ibin-1] << "\t" << adDeltaCent12[ibin-1] << "\t"
+          << adTaa6[ibin-1] << "\t" << adDeltaCent6[ibin-1] << endl;
+        cout << "scale_cent_np\tscale_cent\tscaleFactor\tyieldRatio_pr\traa_pr\n"
+          << scale_cent_np << "\t" << scale_cent << "\t" 
+          << scaleFactor << "\t" << yieldRatio_pr << "\t" << raa_pr << endl;
+      } else {
+        cout << "adTaa12\tadDeltaCent12\n"
+          << adTaa12[ibin-1] << "\t" << adDeltaCent12[ibin-1] << endl;
+        cout << "scale_cent\tscaleFactor\tyieldRatio_pr\traa_pr\n"
+          << scale_cent << "\t" << scaleFactor << "\t" << yieldRatio_pr << "\t" << raa_pr << endl;
+      }
 
      
       // fill the corresponding array
-      switch(ih){
+      switch(ih) {
       case 0:
         prJpsi_cent[ibin-1]    = raa_pr;
         prJpsiErr_cent[ibin-1] = raaErr_pr;

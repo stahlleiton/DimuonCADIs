@@ -20,19 +20,17 @@
    "histsRaaYields_20150823_pp_Lxyz_noWeight_Lxyz_finerpT_PRMC.root"
   };
 
-// ######################################### the nominal corrections #####################
+  // default setting
   // ##### Lxyz with TnP corrections applied to data (not to the MC 4D efficiencies)
   const char* yieldHistFile_yesWeight_1[2] = {
-    "histsRaaYields_20151217_PbPb_weightedEff_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio.root",
-    "histsRaaYields_20151217_pp_weightedEff_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio.root"
+    "histsRaaYields_20160226_PbPb_weighted.root",
+    "histsRaaYields_20160226_pp_weighted.root",
   };
   
   const char* yieldHistFile_noWeight_1[2] = {
-    "histsRaaYields_20151217_PbPb_noWeight_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio.root",
-    "histsRaaYields_20151217_pp_noWeight_TnPAtRD3_4DEff2_RapPtEffMap3_Ratio.root"
+    "histsRaaYields_20160226_PbPb_noWeight.root",
+    "histsRaaYields_20160226_pp_noWeight.root",
   };
-
-// #######################################################################################
 
   // ##### Lxyz, no TnP corrections
   // Lxyz, 4D eff is applied

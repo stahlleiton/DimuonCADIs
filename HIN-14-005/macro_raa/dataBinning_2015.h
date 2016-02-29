@@ -7,7 +7,7 @@ int npartShift=2;
 
 /// ------------------------------ binning 
 // 40-100, 40-20, 20-0
-const int nBinsNpart3 = 3;
+const unsigned int nBinsNpart3 = 3;
 double binsNpart3[nBinsNpart3]   = {32.75, 158.5653, 308.3853};
 double binsNpart3Err[nBinsNpart3]= {0,0,0};
 double binsNpart3X[nBinsNpart3]  = {10,10,10};
@@ -17,7 +17,7 @@ double adTaa3Err[nBinsNpart3]    = {0.11, 0.58, 0.99}; // this is wrong. to be f
 double adDeltaCent3[nBinsNpart3] = {0.6,  0.2,  0.2};
 
 // 50-100, 50-40, 40-30,30-20, 20-10, 10-0
-const int nBinsNpart6 = 6;
+const unsigned int nBinsNpart6 = 6;
 double binsNpart6[nBinsNpart6]    = {22.0709, 86.2622, 129.9835, 187.1470, 261.4178,355.3528};
 double binsNpart6Err[nBinsNpart6] = {0,0,0,0,0,0};
 double binsNpart6X[nBinsNpart6]   = {10,10,10,10,10,10};
@@ -32,7 +32,7 @@ double adTaa6Err[nBinsNpart6]    = {0.07, 0.3, 0.43, 0.58, 0.76,  0.99};
 double adDeltaCent6[nBinsNpart6] = {0.5,  0.1, 0.1,  0.1,  0.1,   0.1};
 
 // 40-100 40-30,30-20, 20-10, 10-0
-const int nBinsNpart5 = 5;
+const unsigned int nBinsNpart5 = 5;
 double binsNpart5[nBinsNpart5]   = {32.75, 129.9835, 187.1470, 261.4178,355.3528};
 double binsNpart5Err[nBinsNpart5]= {0,0,0,0,0};
 double binsNpart5X[nBinsNpart5]  = {10,10,10,10,10};
@@ -42,7 +42,7 @@ double adTaa5Err[nBinsNpart5]    = {0.11, 0.43, 0.58, 0.76,  0.99};
 double adDeltaCent5[nBinsNpart5] = {0.6,  0.1,  0.1,  0.1,   0.1};
 
 // 0-5,5-10,10-15,15-20,20-25,25-30,30-35,35-40,40-45,45-50,50-60,60-100 (in reversed: first is 60-100%)
-const int nBinsNpart12           = 12;
+const unsigned int nBinsNpart12           = 12;
 double binsNpart12[nBinsNpart12] = {14.19, 53.53, 76.68, 95.78, 117.54, 142.58, 171.08, 203.62, 240.31, 282.67, 329.48,381.41};
 double binsNpart12Err[nBinsNpart12] = {0,0,0,0,0,0,0,0,0,0,0,0};
 double binsNpart12X[nBinsNpart12]   = {10,10,10,10,10,10,10,10,10,10,10,10};
@@ -52,8 +52,8 @@ double adTaa12Err[nBinsNpart12]  = {0.04,  0.19,  0.26,  0.33,   0.39,   0.47,  
 double adDeltaCent12[nBinsNpart12]= {0.4,   0.1,   0.05,  0.05,   0.05,   0.05,   0.05,   0.05,   0.05,   0.05,   0.05,  0.05};
 
 // 0-100 bin
-const int nBinsMB             = 1;
-const int nBinsMB3            = 3;
+const unsigned int nBinsMB             = 1;
+const unsigned int nBinsMB3            = 3;
 double binsNpartMB[nBinsMB]        = {113.0518};
 double binsNpartMB3[nBinsMB3]      = {113.0518, 113.0518,113.0518};
 double binsNpartMBErr[nBinsMB]     = {0};
@@ -72,8 +72,8 @@ double adTaaMBErr[nBinsMB]    = {0.32};
 double adDeltaCentMB[nBinsMB] = {1};
 
 // pt
-const int nBinsPt             = 6;
-const int nBinsPt3            = 3;
+const unsigned int nBinsPt             = 6;
+const unsigned int nBinsPt3            = 3;
 double binsPt[nBinsPt]        = {7.5, 9, 10, 12, 14, 20}; // pt>6.5 first bin, 0--2.4
 double binsPt3[nBinsPt3]      = {3.5, 5.0, 6.0}; // pt 3-6.5 in fwd region
 double binsPt3_mb[nBinsPt3]   = {4.5, 10.0, 15}; // mb in the fwd region
@@ -85,8 +85,8 @@ double binsPt3X[nBinsPt3]   = {0.25,0.25,0.25};
 double binsPt3X_mb[nBinsPt3]= {0.25,0.25,0.25};
 
 // rapidity
-const int nBinsY       = 6;
-const int nBinsY3      = 3;
+const unsigned int nBinsY       = 6;
+const unsigned int nBinsY3      = 3;
 double binsY[nBinsY]   = {0.2, 0.6, 1.0, 1.4, 1.8, 2.2}; //  6.5--30
 double binsY3[nBinsY3] = {0.6, 1.4, 2}; //  6.5--30
 double binsYErr[nBinsY]   = {0.,0,0,0.,0,0}; //  6.5--30
