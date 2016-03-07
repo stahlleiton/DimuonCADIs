@@ -1,0 +1,4 @@
+* Different datasets
+* 20160215_* : tnp SFs = (muID*trig)
+* 20160304_PbPb : tnp SFs = STA_pp*(muID_PbPb*trig_PbPb)
+* 20160304_pp   : tnp SFs = STA_pp*(muID_pp*trig_pp)
