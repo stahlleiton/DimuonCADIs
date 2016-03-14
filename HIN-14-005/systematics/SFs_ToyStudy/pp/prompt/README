@@ -1,0 +1,39 @@
+#### This is the systematic study for Raa 
+
+How to run
+1. Input 4 scale factors in _func1_, _func2_, _func3_, _func4_
+for 4 different eta range for each case (New, Old, LowPt, OneBin)
+2. ./runSys.sh
+3. ./runEff.sh
+4. cd Merger
+5. root -l mergeEff.C (or ./Run.sh)
+
+%%% Example
+1. cd New/
+2. ./runSys.sh
+3. ./runEff.sh
+4. cd Merger
+5. ./Run.sh
+6. See *.tex file
+
+%%% Bin Categories for pp %%%
+1. New
+pT : 6.5, 7.5, 8.5, 9.5, 11.0, 13.0, 16.0, 30.0 (|y|<2.4)
+rap : 0.0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4 (6.5<pT<30)
+
+2. Old
+pT : 6.5, 8.0, 10.0, 13.0, 30.0 (|y|<2.4)
+rap : 0.0, 1.2, 1.6, 2.4 (6.5<pT<30)
+
+3. LowPt
+pT : 3.0, 4.5, 5.5, 6.5 (1.6|y|<2.4)
+
+4. OneBin
+rap : 0.0-2.4, pT : 10-30
+rap : 0.0-2.4, pT : 6.5-30
+rap : 1.6-2.4, pT : 3.0-30
+rap : 1.6-2.4, pT : 3.0-6.5
+rap : 1.6-2.4, pT : 6.5-30.0
+rap : 1.6-2.4, pT : 3.0-5.5
+rap : 0.0-2.4, pT : 6.5-8.5
+
