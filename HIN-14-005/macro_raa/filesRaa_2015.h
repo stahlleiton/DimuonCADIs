@@ -23,13 +23,13 @@
   // default setting
   // ##### Lxyz with TnP corrections applied to data (not to the MC 4D efficiencies)
   const char* yieldHistFile_yesWeight_1[2] = {
-    "histsRaaYields_20160226_PbPb_weighted.root",
-    "histsRaaYields_20160226_pp_weighted.root",
+    "histsRaaYields_20160304_PbPb_weighted.root",
+    "histsRaaYields_20160304_pp_weighted.root",
   };
   
   const char* yieldHistFile_noWeight_1[2] = {
-    "histsRaaYields_20160226_PbPb_noWeight.root",
-    "histsRaaYields_20160226_pp_noWeight.root",
+    "histsRaaYields_20160304_PbPb_noWeight.root",
+    "histsRaaYields_20160304_pp_noWeight.root",
   };
 
   // ##### Lxyz, no TnP corrections
