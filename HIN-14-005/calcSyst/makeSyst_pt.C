@@ -40,7 +40,7 @@ Output: root file with the systm. histograms for Raa vs pT.
 
 void makeSyst_pt( bool bSavePlots       = 1,
                   bool bDoDebug         = 1, // prints numbers, numerator, denominator, to help figure out if things are read properly
-                  int method            = 1, // 0: rms of all variations; 1: max of each variation type, added in quadrature
+                  int method            = 0, // 0: nominal (rms of same category variations)&&added in quadrature with non-correlated sourcesvariations; 1: max of each variation type, added in quadrature
                   const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are
                   const char* outputDir = "histSyst")// where the output figures will be
 {
@@ -347,7 +347,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
               if( syst_fit_npr_pp[ibin-1][ivar] > fitContribution_npr_pp ) fitContribution_npr_pp = syst_fit_npr_pp[ibin-1][ivar];
                 
             }
-            if(method==0) // rms of all variations
+            if(method==0) // rms of all variations for the fit methods all the time
             {
               fitContribution_pr_aa += syst_fit_pr_aa[ibin-1][ivar];
               fitContribution_pr_pp += syst_fit_pr_pp[ibin-1][ivar];
@@ -381,7 +381,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
               if( syst_eff4d_npr_aa[ibin-1][ifile] > eff4dContribution_npr_aa ) eff4dContribution_npr_aa = syst_eff4d_npr_aa[ibin-1][ifile];
               if( syst_eff4d_npr_pp[ibin-1][ifile] > eff4dContribution_npr_pp ) eff4dContribution_npr_pp = syst_eff4d_npr_pp[ibin-1][ifile];
             }
-            if(method==0) // rms of all variations
+            if(method==0) // add in quadrature, this is independent
             {
               eff4dContribution_pr_aa += syst_eff4d_pr_aa[ibin-1][ifile];
               eff4dContribution_pr_pp += syst_eff4d_pr_pp[ibin-1][ifile];
@@ -416,7 +416,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
               if( syst_effTnP_npr_aa[ibin-1][ifile] > efftnpContribution_npr_aa ) efftnpContribution_npr_aa = syst_effTnP_npr_aa[ibin-1][ifile];
               if( syst_effTnP_npr_pp[ibin-1][ifile] > efftnpContribution_npr_pp ) efftnpContribution_npr_pp = syst_effTnP_npr_pp[ibin-1][ifile];
             }
-            if(method==0) // rms of all variations
+            if(method==0) // add in quadrature all independent variations
             {
               efftnpContribution_pr_aa += syst_effTnP_pr_aa[ibin-1][ifile];
               efftnpContribution_pr_pp += syst_effTnP_pr_pp[ibin-1][ifile];
@@ -452,7 +452,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
               if( syst_fit_pt365y1624_npr_aa[ibin-1][ivar] > fitContribution_pt365y1624_npr_aa ) fitContribution_pt365y1624_npr_aa = syst_fit_pt365y1624_npr_aa[ibin-1][ivar];
               if( syst_fit_pt365y1624_npr_pp[ibin-1][ivar] > fitContribution_pt365y1624_npr_pp ) fitContribution_pt365y1624_npr_pp = syst_fit_pt365y1624_npr_pp[ibin-1][ivar];
             }
-            if(method==0) // rms of all variations
+            if(method==0) // rms of all variations for fit systm.
             {
               fitContribution_pt365y1624_pr_aa += syst_fit_pt365y1624_pr_aa[ibin-1][ivar];
               fitContribution_pt365y1624_pr_pp += syst_fit_pt365y1624_pr_pp[ibin-1][ivar];
@@ -484,7 +484,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
               if( syst_eff4d_pt365y1624_npr_aa[ibin-1][ifile] > eff4dContribution_pt365y1624_npr_aa ) eff4dContribution_pt365y1624_npr_aa = syst_eff4d_pt365y1624_npr_aa[ibin-1][ifile];
               if( syst_eff4d_pt365y1624_npr_pp[ibin-1][ifile] > eff4dContribution_pt365y1624_npr_pp ) eff4dContribution_pt365y1624_npr_pp = syst_eff4d_pt365y1624_npr_pp[ibin-1][ifile];
             }
-            if(method==0) // rms of all variations
+            if(method==0) // add in quadrature all independent variations
             {
               eff4dContribution_pt365y1624_pr_aa += syst_eff4d_pt365y1624_pr_aa[ibin-1][ifile];
               eff4dContribution_pt365y1624_pr_pp += syst_eff4d_pt365y1624_pr_pp[ibin-1][ifile];
@@ -516,7 +516,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
               if( syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile] > efftnpContribution_pt365y1624_npr_aa ) efftnpContribution_pt365y1624_npr_aa = syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile];
               if( syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile] > efftnpContribution_pt365y1624_npr_pp ) efftnpContribution_pt365y1624_npr_pp = syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile];
             }
-            if(method==0) // rms of all variations
+            if(method==0) // add in quadrature all independent variations
             {
               efftnpContribution_pt365y1624_pr_aa += syst_effTnP_pt365y1624_pr_aa[ibin-1][ifile];
               efftnpContribution_pt365y1624_pr_pp += syst_effTnP_pt365y1624_pr_pp[ibin-1][ifile];
@@ -557,7 +557,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
               if( syst_fit_y1624MB_npr_pp[ibin-1][ivar] > fitContribution_y1624MB_npr_pp ) 
                 fitContribution_y1624MB_npr_pp = syst_fit_y1624MB_npr_pp[ibin-1][ivar];
             }
-            if(method==0) // rms of all variations
+            if(method==0) // rms of all variations for fit systm.
             {
               fitContribution_y1624MB_pr_aa += syst_fit_y1624MB_pr_aa[ibin-1][ivar];
               fitContribution_y1624MB_pr_pp += syst_fit_y1624MB_pr_pp[ibin-1][ivar];
@@ -589,7 +589,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
               if( syst_eff4d_y1624MB_npr_aa[ibin-1][ifile] > eff4dContribution_y1624MB_npr_aa ) eff4dContribution_y1624MB_npr_aa = syst_eff4d_y1624MB_npr_aa[ibin-1][ifile];
               if( syst_eff4d_y1624MB_npr_pp[ibin-1][ifile] > eff4dContribution_y1624MB_npr_pp ) eff4dContribution_y1624MB_npr_pp = syst_eff4d_y1624MB_npr_pp[ibin-1][ifile];
             }
-            if(method==0) // rms of all variations
+            if(method==0) // add in quadrature all independent variations
             {
               eff4dContribution_y1624MB_pr_aa += syst_eff4d_y1624MB_pr_aa[ibin-1][ifile];
               eff4dContribution_y1624MB_pr_pp += syst_eff4d_y1624MB_pr_pp[ibin-1][ifile];
@@ -621,7 +621,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
               if( syst_effTnP_y1624MB_npr_aa[ibin-1][ifile] > efftnpContribution_y1624MB_npr_aa ) efftnpContribution_y1624MB_npr_aa = syst_effTnP_y1624MB_npr_aa[ibin-1][ifile];
               if( syst_effTnP_y1624MB_npr_pp[ibin-1][ifile] > efftnpContribution_y1624MB_npr_pp ) efftnpContribution_y1624MB_npr_pp = syst_effTnP_y1624MB_npr_pp[ibin-1][ifile];
             }
-            if(method==0) // rms of all variations
+            if(method==0) // add in quadrature all independent variations
             {
               efftnpContribution_y1624MB_pr_aa += syst_effTnP_y1624MB_pr_aa[ibin-1][ifile];
               efftnpContribution_y1624MB_pr_pp += syst_effTnP_y1624MB_pr_pp[ibin-1][ifile];
@@ -659,7 +659,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
               if( syst_fit_mb_npr_aa[0][ivar] > fitContribution_mb_npr_aa )fitContribution_mb_npr_aa = syst_fit_mb_npr_aa[0][ivar];
               if( syst_fit_mb_npr_pp[0][ivar] > fitContribution_mb_npr_pp )fitContribution_mb_npr_pp = syst_fit_mb_npr_pp[0][ivar];
             }
-            if(method==0) // rms of all variations
+            if(method==0) // rms of all variations for fit systm.
             {
               fitContribution_mb_pr_aa += syst_fit_mb_pr_aa[0][ivar];
               fitContribution_mb_pr_pp += syst_fit_mb_pr_pp[0][ivar];
@@ -692,7 +692,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
               if( syst_eff4d_mb_npr_aa[0][ifile] > eff4dContribution_mb_npr_aa ) eff4dContribution_mb_npr_aa = syst_eff4d_mb_npr_aa[0][ifile];
               if( syst_eff4d_mb_npr_pp[0][ifile] > eff4dContribution_mb_npr_pp ) eff4dContribution_mb_npr_pp = syst_eff4d_mb_npr_pp[0][ifile];
             }
-            if(method==0) // rms of all variations
+            if(method==0) // add in quadrature all independent variations
             {
               eff4dContribution_mb_pr_aa += syst_eff4d_mb_pr_aa[0][ifile];
               eff4dContribution_mb_pr_pp += syst_eff4d_mb_pr_pp[0][ifile];
@@ -725,7 +725,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
               if( syst_effTnP_mb_npr_aa[0][ifile] > efftnpContribution_mb_npr_aa ) efftnpContribution_mb_npr_aa = syst_effTnP_mb_npr_aa[0][ifile];
               if( syst_effTnP_mb_npr_pp[0][ifile] > efftnpContribution_mb_npr_pp ) efftnpContribution_mb_npr_pp = syst_effTnP_mb_npr_pp[0][ifile];
             }
-            if(method==0) // rms of all variations
+            if(method==0) // add in quadrature all independent variations
             {
               efftnpContribution_mb_pr_aa += syst_effTnP_mb_pr_aa[0][ifile];
               efftnpContribution_mb_pr_pp += syst_effTnP_mb_pr_pp[0][ifile];
@@ -741,17 +741,16 @@ void makeSyst_pt( bool bSavePlots       = 1,
         }//switch ih==kinematic range 
       }// fit variation ivar (fit, 4dEff, tnp)
       
+      // normalization for rms of the fit variations
+      double rms_fitContribNorm = 1./nFitVariations;
+      if(method==1) rms_fitContribNorm = 1;
       switch(ih){
       case 0:
-        prJpsiErrSyst_pt[ibin-1] = yieldRatio_pr * TMath::Sqrt((fitContribution_pr_aa+eff4dContribution_pr_aa+efftnpContribution_pr_aa)+
-                                                               (fitContribution_pr_pp+eff4dContribution_pr_pp+efftnpContribution_pr_pp) );
-        nonPrJpsiErrSyst_pt[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_npr_aa+eff4dContribution_npr_aa+efftnpContribution_npr_aa)+
-                                                                   (fitContribution_npr_pp+eff4dContribution_npr_pp+efftnpContribution_npr_pp));  
-          if(method==0)
-          {   
-            prJpsiErrSyst_pt[ibin-1]    *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-            nonPrJpsiErrSyst_pt[ibin-1] *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-          }
+        prJpsiErrSyst_pt[ibin-1] = yieldRatio_pr * TMath::Sqrt((fitContribution_pr_aa/rms_fitContribNorm+eff4dContribution_pr_aa+efftnpContribution_pr_aa)+
+                                                               (fitContribution_pr_pp/rms_fitContribNorm+eff4dContribution_pr_pp+efftnpContribution_pr_pp) );
+        nonPrJpsiErrSyst_pt[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_npr_aa/rms_fitContribNorm+eff4dContribution_npr_aa+efftnpContribution_npr_aa)+
+                                                                   (fitContribution_npr_pp/rms_fitContribNorm+eff4dContribution_npr_pp+efftnpContribution_npr_pp));  
+          
           if(bDoDebug)
           {
             cout <<"---------------------------------------------------------------"<<endl;
@@ -767,16 +766,11 @@ void makeSyst_pt( bool bSavePlots       = 1,
         break;
 
       case 1:
-        prJpsiErrSyst_pt365y1624_pt[ibin-1] = yieldRatio_pr * TMath::Sqrt((fitContribution_pt365y1624_pr_aa+eff4dContribution_pt365y1624_pr_aa+efftnpContribution_pt365y1624_pr_aa)+
-                                                                          (fitContribution_pt365y1624_pr_pp+eff4dContribution_pt365y1624_pr_pp+efftnpContribution_pt365y1624_pr_pp));
-        nonPrJpsiErrSyst_pt365y1624_pt[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_pt365y1624_npr_aa+eff4dContribution_pt365y1624_npr_aa+efftnpContribution_pt365y1624_npr_aa)+
-                                                                              (fitContribution_pt365y1624_npr_pp+eff4dContribution_pt365y1624_npr_pp+efftnpContribution_pt365y1624_npr_pp));  
+        prJpsiErrSyst_pt365y1624_pt[ibin-1] = yieldRatio_pr * TMath::Sqrt((fitContribution_pt365y1624_pr_aa/rms_fitContribNorm+eff4dContribution_pt365y1624_pr_aa+efftnpContribution_pt365y1624_pr_aa)+
+                                                                          (fitContribution_pt365y1624_pr_pp/rms_fitContribNorm+eff4dContribution_pt365y1624_pr_pp+efftnpContribution_pt365y1624_pr_pp));
+        nonPrJpsiErrSyst_pt365y1624_pt[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_pt365y1624_npr_aa/rms_fitContribNorm+eff4dContribution_pt365y1624_npr_aa+efftnpContribution_pt365y1624_npr_aa)+
+                                                                              (fitContribution_pt365y1624_npr_pp/rms_fitContribNorm+eff4dContribution_pt365y1624_npr_pp+efftnpContribution_pt365y1624_npr_pp));  
 
-        if(method==0)
-        {   
-          prJpsiErrSyst_pt365y1624_pt[ibin-1]    *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-          nonPrJpsiErrSyst_pt365y1624_pt[ibin-1] *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-        }
         if(bDoDebug)
         {
           cout <<"---------------------------------------------------------------"<<endl;
@@ -792,15 +786,10 @@ void makeSyst_pt( bool bSavePlots       = 1,
         break;
 
       case 2: 
-        prJpsiErrSyst_y1624MB_pt[ibin-1] = yieldRatio_pr * TMath::Sqrt((fitContribution_y1624MB_pr_aa+eff4dContribution_y1624MB_pr_aa+efftnpContribution_y1624MB_pr_aa)+
-                                                                       (fitContribution_y1624MB_pr_pp+eff4dContribution_y1624MB_pr_pp+efftnpContribution_y1624MB_pr_pp));
-        nonPrJpsiErrSyst_y1624MB_pt[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_y1624MB_npr_aa+eff4dContribution_y1624MB_npr_aa+efftnpContribution_y1624MB_npr_aa)+
-                                                                           (fitContribution_y1624MB_npr_pp+eff4dContribution_y1624MB_npr_pp+efftnpContribution_y1624MB_npr_pp));  
-        if(method==0)
-        {   
-          prJpsiErrSyst_y1624MB_pt[ibin-1]    *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-          nonPrJpsiErrSyst_y1624MB_pt[ibin-1] *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-        }
+        prJpsiErrSyst_y1624MB_pt[ibin-1] = yieldRatio_pr * TMath::Sqrt((fitContribution_y1624MB_pr_aa/rms_fitContribNorm+eff4dContribution_y1624MB_pr_aa+efftnpContribution_y1624MB_pr_aa)+
+                                                                       (fitContribution_y1624MB_pr_pp/rms_fitContribNorm+eff4dContribution_y1624MB_pr_pp+efftnpContribution_y1624MB_pr_pp));
+        nonPrJpsiErrSyst_y1624MB_pt[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_y1624MB_npr_aa/rms_fitContribNorm+eff4dContribution_y1624MB_npr_aa+efftnpContribution_y1624MB_npr_aa)+
+                                                                           (fitContribution_y1624MB_npr_pp/rms_fitContribNorm+eff4dContribution_y1624MB_npr_pp+efftnpContribution_y1624MB_npr_pp));  
 
         if(bDoDebug)
         {
@@ -817,15 +806,11 @@ void makeSyst_pt( bool bSavePlots       = 1,
         break;
 
       case 3:
-        prJpsiErrSyst_mb[0] = yieldRatio_pr * TMath::Sqrt((fitContribution_mb_pr_aa+eff4dContribution_mb_pr_aa+efftnpContribution_mb_pr_aa)+
-                                                          (fitContribution_mb_pr_pp+eff4dContribution_mb_pr_pp+efftnpContribution_mb_pr_pp));
-        nonPrJpsiErrSyst_mb[0] = yieldRatio_npr *  TMath::Sqrt((fitContribution_mb_npr_aa+eff4dContribution_mb_npr_aa+efftnpContribution_mb_npr_aa)+
-                                                               (fitContribution_mb_npr_pp+eff4dContribution_mb_npr_pp+efftnpContribution_mb_npr_pp));  
-        if(method==0)
-        {   
-          prJpsiErrSyst_mb[0]    *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-          nonPrJpsiErrSyst_mb[0] *= 1./TMath::Sqrt(nFitVariations+nEff4DVariations+nEffTnPVariation); 
-        }
+        prJpsiErrSyst_mb[0] = yieldRatio_pr * TMath::Sqrt((fitContribution_mb_pr_aa/rms_fitContribNorm+eff4dContribution_mb_pr_aa+efftnpContribution_mb_pr_aa)+
+                                                          (fitContribution_mb_pr_pp/rms_fitContribNorm+eff4dContribution_mb_pr_pp+efftnpContribution_mb_pr_pp));
+        nonPrJpsiErrSyst_mb[0] = yieldRatio_npr *  TMath::Sqrt((fitContribution_mb_npr_aa/rms_fitContribNorm+eff4dContribution_mb_npr_aa+efftnpContribution_mb_npr_aa)+
+                                                               (fitContribution_mb_npr_pp/rms_fitContribNorm+eff4dContribution_mb_npr_pp+efftnpContribution_mb_npr_pp));  
+
         
         if(bDoDebug)
         {
