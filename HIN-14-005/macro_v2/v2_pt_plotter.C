@@ -38,14 +38,14 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #include "v2_dataNumbers_2015.h"
 #endif
 
-void v2_pt_plotter(
-    int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
-    string nDphiBins      = "4",
-    const char* outputDir = "output", 
-    const char* inputDir  = "outputNumbers",// where phi and v2 numbers are (root, and txt format)
-    bool bDoDebug         = false,
-    bool bSavePlots       = true
-    ) {
+void v2_pt_plotter( int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+		    int npNumBinsHighPt   = 1, // possible number of bins for non-prompt high-pt: 1 or 2
+		    string nDphiBins      = "4",
+		    const char* outputDir = "output", 
+		    const char* inputDir  = "outputNumbers",// where phi and v2 numbers are (root, and txt format)
+		    bool bDoDebug         = false,
+		    bool bSavePlots       = true
+		    ) {
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
   
@@ -56,14 +56,17 @@ void v2_pt_plotter(
   gStyle->SetOptTitle(kFALSE);
 
   // input files: prompt and non-prompt ones
-  const char* v2InFileDirs[1] = {"histsV2Yields_20151111_v2W_TnPAtRD3_4DEff_RapPtEffMap2_Ratio_dPhiBins4"};
+  const char* v2InFileDirs[1] = {"histsV2Yields_20160304_v2W_dPhiBins4"};
   const char* legend[4]       = {"","Prompt J/#psi","Non-prompt J/#psi","Background"};
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
  
   // Reminder for TGraphAssymError: gr = new TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);// n,x,y,err_x, err_y
   int nBins                   =  nPtBins_pr-1; // remove the low-pt bin
-  if(jpsiCategory==2) nBins   =  nPtBins_np-1;
-  
+  if(jpsiCategory==2) 
+    {
+      if(npNumBinsHighPt==2) nBins   = nPtBins_np-1;
+      if(npNumBinsHighPt==1) nBins   = nPtBins_np-2;
+    }
   cout<<" !!!!! Number of pT bins: "<< nBins<<endl;
   
   double adXaxis[nBins];//   location on x-axis  
@@ -81,7 +84,7 @@ void v2_pt_plotter(
 
   for(int ib=0; ib<nBins; ib++) {
     adWidth_systBox[ib] = 0.5;
-    adV2_syst[ib]    = adV2Pt_pr_syst[ib];
+    adV2_syst[ib]    = adV2Pt_pr_syst[ib];// systm. are read from *.h file
     adXaxis[ib]      = adXaxisPt_pr[ib];
     adXaxis_l[ib]    = adXaxisPt_pr_l[ib];
     adXaxis_h[ib]    = adXaxisPt_pr_h[ib];
@@ -90,14 +93,22 @@ void v2_pt_plotter(
     adV2_low_syst[0] = adV2_low_pr_syst[0];
 
     if(jpsiCategory==2) {
-      adV2_syst[ib]    = adV2Pt_np_syst[ib];
+      adV2_syst[ib]    = adV2Pt_np_syst[ib];// systm. are read from *.h file
       adXaxis[ib]      = adXaxisPt_np[ib];
       adXaxis_l[ib]    = adXaxisPt_np_l[ib];
       adXaxis_h[ib]    = adXaxisPt_np_h[ib];
 
+      if(npNumBinsHighPt==1)
+	{
+	  adV2_syst[ib]    = adV2Pt_np_mb_syst[0];// systm. are read from *.h file
+	  adXaxis[ib]      = adXaxisPt_np1[ib];
+	  adXaxis_l[ib]    = adXaxisPt_np1_l[ib];
+	  adXaxis_h[ib]    = adXaxisPt_np1_h[ib];
+
+	}
      adV2_low_syst[0] = adV2_low_np_syst[0];
     }
-  }
+  }//number of bins, low and high
   
   // // open the files with yields and do the math
   ifstream in;
@@ -105,6 +116,7 @@ void v2_pt_plotter(
   std::string nameSig   = signal[jpsiCategory];
   std::string nameDir   = v2InFileDirs[0];
   string inputFile      = nameVar + "_"+ nameSig + "_nphibin" + nDphiBins + ".dat";
+  string inputFile_mb   = "mb_"+ nameSig + "_nphibin" + nDphiBins + ".dat";
   
   cout << "!!!!!! Input file name: "<< inputFile <<endl;
   in.open(Form("%s/%s/data/%s",inputDir,nameDir.c_str(),inputFile.c_str()));
@@ -116,20 +128,43 @@ void v2_pt_plotter(
   int iline=0;
   string tmpstring;
   getline(in,tmpstring);
-  while ( in.good() && iline<nBins+1) {
+  while ( in.good() && iline<nBins+1 ) {
     in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> x[0] >> x[1] >> x[2] >> x[3];
     if(iline==0) {
       adV2_low[iline]      = x[2];      
       adV2_low_stat[iline] = x[3];
     } else {
-      adV2[iline-1]      = x[2];
-      adV2_stat[iline-1] = x[3];
+      if( (npNumBinsHighPt==2 && jpsiCategory==2) || jpsiCategory!=2 )
+	{
+	  adV2[iline-1]      = x[2];
+	  adV2_stat[iline-1] = x[3];
+	}
     }
     cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
     cout <<"v2= "<< x[2] << "\t error= "<< x[3]<<endl;
     iline++;
   }
   in.close();
+
+  if(npNumBinsHighPt==1 && jpsiCategory==2)
+    {
+      cout << "!!!!!! Input file name: "<< inputFile_mb <<endl;
+      in.open(Form("%s/%s/data/%s",inputDir,nameDir.c_str(),inputFile_mb.c_str()));
+      iline=0;
+      getline(in,tmpstring);
+      while ( in.good() && iline<nBins ){
+	in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> x[0] >> x[1] >> x[2] >> x[3];
+	adV2[iline]      = x[2];
+	adV2_stat[iline] = x[3];
+
+	cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
+	cout <<"v2= "<<adV2[iline] << "\t error= "<< adV2_stat[iline]<<endl;
+
+	iline++;
+      }
+      in.close();
+    }
+
   if(bDoDebug) {
     for(int ib=0; ib<nBins; ib++) {
       cout<<"Bin "<<ib<<"\t stat. uncert.: "<<adV2_stat[ib]<<endl;

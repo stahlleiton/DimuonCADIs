@@ -57,9 +57,14 @@
 //--------------------------------------- plotting location
 
 // pt axis
+// 2 pt bins for high-pt non-prompt
   double adXaxisPt_np_l[] = {0.7, 2.0};
   double adXaxisPt_np_h[] = {2.8,18.0};
   double adXaxisPt_np[]   = {7.2,12.0};
+// 1 pt bins for high-pt non-prompt
+  double adXaxisPt_np1_l[] = {3.5};// bin width to the left
+  double adXaxisPt_np1_h[] = {20.0}; // bin width to the right
+  double adXaxisPt_np1[]   = {10.};// location on x-axis
 
   double adXaxisPt_pr[]    = {7.2, 8.9, 13.2};// location on x-axis  
   double adXaxisPt_pr_l[]  = {0.7, 0.9,  3.2}; // bin width to the left
@@ -80,15 +85,16 @@
   double adXaxisY_pr_l[]  = {0.6, 0.2, 0.4}; // bin width to the left
   double adXaxisY_pr_h[]  = {0.6, 0.2, 0.4};// bin width to the right
  
-// cent axis
-double adXaxisCent_pr[]   = {90,187,261,355}; // Npart (60-30, 30-20, 20-10, 10-0)
-double adXaxisCent_np[]   = {90,224,355}; // Npart (60-30, 30-10, 10-0)
+  // cent axis
+  double adXaxisCent_pr[]   = {90,187,261,355}; // Npart (60-30, 30-20, 20-10, 10-0)
+  double adXaxisCent_np[]   = {90,224,355}; // Npart (60-30, 30-10, 10-0)
 // ------------------------------------------------------- systematic uncert (these are bogus for the moment)
+  double adV2Pt_pr_mb_syst[1]           = {0.011};
   double adV2Pt_pr_syst[nPtBins_pr]     = {0.011,0.011,0.011};
   double adV2Y_pr_syst[nYBins_pr]       = {0.011,0.011,0.011};
   double adV2Cent_pr_syst[nCentBins_pr] = {0.011,0.011,0.011,0.011};
 
-
+  double adV2Pt_np_mb_syst[1]           = {0.011};
   double adV2Pt_np_syst[nPtBins_np]     = {0.011,0.011};
   double adV2Y_np_syst[nYBins_np]       = {0.011,0.011};
   double adV2Cent_np_syst[nCentBins_np] = {0.011,0.011,0.011};
