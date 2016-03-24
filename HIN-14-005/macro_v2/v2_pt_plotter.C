@@ -38,7 +38,8 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #include "v2_dataNumbers_2015.h"
 #endif
 
-void v2_pt_plotter( int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+void v2_pt_plotter(
+        int jpsiCategory      = 1, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
 		    int npNumBinsHighPt   = 1, // possible number of bins for non-prompt high-pt: 1 or 2
 		    string nDphiBins      = "4",
 		    const char* outputDir = "output", 
@@ -56,7 +57,7 @@ void v2_pt_plotter( int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3:
   gStyle->SetOptTitle(kFALSE);
 
   // input files: prompt and non-prompt ones
-  const char* v2InFileDirs[1] = {"histsV2Yields_20160304_v2W_dPhiBins4"};
+  const char* v2InFileDirs[1] = {"histsV2Yields_20160304_v2W_minVar_dPhiBins4"};
   const char* legend[4]       = {"","Prompt J/#psi","Non-prompt J/#psi","Background"};
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
  

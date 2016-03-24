@@ -20,11 +20,10 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #include <TGraph.h>
 #include <TNtuple.h>
 #include <TString.h>
-#include <TH1D.h>
 #include <TFile.h>
-#include <TH1D.h>
 #include <TF1.h>
 #include <TMath.h>
+#include <TH1D.h>
 #include <TH2D.h>
 #include <TCanvas.h>
 #include <TLegend.h>
@@ -57,7 +56,9 @@ void v2_cent_plotter(
   gStyle->SetOptTitle(kFALSE);
 
   // input files: prompt and non-prompt ones
-  const char* v2InFileDirs[1] = {"histsV2Yields_20151111_v2W_TnPAtRD3_4DEff_RapPtEffMap2_Ratio_dPhiBins4"};
+  const char* v2InFileDirs[1] = {
+    "histsV2Yields_20160304_v2W_minVar_dPhiBins4"
+  };
   const char* legend[4]       = {"","Prompt J/#psi","Non-prompt J/#psi","Background"};
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
  

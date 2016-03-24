@@ -16,18 +16,17 @@ Note: binning, labels, etc, are defined in v2_dataNumbers_2015.h
 
 #include <Riostream.h>
 #include <TSystem.h>
-#include <TProfile.h>
 #include <TBrowser.h>
 #include <TROOT.h>
 #include <TGraph.h>
 #include <TNtuple.h>
 #include <TString.h>
 #include <TH1D.h>
-#include <TFile.h>
-#include <TH1D.h>
-#include <TF1.h>
-#include <TMath.h>
 #include <TH2D.h>
+#include <TFile.h>
+#include <TF1.h>
+#include <TProfile.h>
+#include <TMath.h>
 #include <TCanvas.h>
 #include <TLegend.h>
 #include <TStyle.h>
@@ -39,22 +38,30 @@ Note: binning, labels, etc, are defined in v2_dataNumbers_2015.h
 
 #endif
 
-void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+void v2_fitter(int jpsiCategory      = 1, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
                int nChoseCategory    = -1, // -1 = all; 0 integrated; 1 pt; 2: rapidity; 3: centrality;
-	       int nChoseSetting     = 0, // 0: nominal weighted; 1: systm. uncert (all fit settings in histYieldFile)
+               int nChoseSetting     = 0, // 0: nominal weighted; 1: systm. uncert (all fit settings in histYieldFile)
                int nDphiBins         = 4,
                const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are
                const char* outputDir = "outputNumbers",
                bool bSavePlots       = true)
 {
   const char* signal[4]      = {"", "Prp","NPrp","Bkg"};
-  const int nConfigFilesIn   = 4;
-  const char* histYieldFile[nConfigFilesIn] = {
-    "histsV2Yields_20160304_v2W_dPhiBins4",
+  string histYieldFile[] = {
+    "histsV2Yields_20160304_v2W_const_dPhiBins4",
     "histsV2Yields_20160304_v2noW_dPhiBins4",
+    "histsV2Yields_20160304_v2W_dPhiBins4",
+    "histsV2Yields_20160304_v2W_maxVar_dPhiBins4",
+    "histsV2Yields_20160304_v2W_minVar_dPhiBins4",
+    "histsV2Yields_20160304_v2W_MLAR_dPhiBins4",
     "histsV2Yields_20160304_v2W_muIDTrig_dPhiBins4",
-    "histsV2Yields_20160304_v2W_noTnPSF_dPhiBins4"
+    "histsV2Yields_20160304_v2W_noTnPSF_dPhiBins4",
+    "histsV2Yields_20160304_v2W_polFunct_dPhiBins4",
+    "histsV2Yields_20160304_v2W_prof_dPhiBins4",
+    "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",
+    "histsV2Yields_20160304_v2W_signalCB3WN_dPhiBins4",
   };
+  const int nConfigFilesIn = sizeof(histYieldFile)/sizeof(string);
   const char* histYieldFile_noWeight[1]     = {
     "histsV2Yields_20160304_v2noW_dPhiBins4"
   };
@@ -95,20 +102,20 @@ void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
       std::string nameSigCateg   = signal[jpsiCategory];
       std::string nameOutDir     = outputDir;
       std::string inFile         = histYieldFile[iFile];
-      gSystem->mkdir(Form("./%s/%s/root",outputDir,histYieldFile[iFile]), kTRUE);// numbers
-      gSystem->mkdir(Form("./%s/%s/data",outputDir,histYieldFile[iFile]), kTRUE);// numbers
-      gSystem->mkdir(Form("./%s/%s/figs/png",outputDir,histYieldFile[iFile]), kTRUE);// figures
-      gSystem->mkdir(Form("./%s/%s/figs/pdf",outputDir,histYieldFile[iFile]), kTRUE);// figures
+      gSystem->mkdir(Form("./%s/%s/root",outputDir,inFile.c_str()), kTRUE);// numbers
+      gSystem->mkdir(Form("./%s/%s/data",outputDir,inFile.c_str()), kTRUE);// numbers
+      gSystem->mkdir(Form("./%s/%s/figs/png",outputDir,inFile.c_str()), kTRUE);// figures
+      gSystem->mkdir(Form("./%s/%s/figs/pdf",outputDir,inFile.c_str()), kTRUE);// figures
     
       std::string outputLocation = nameOutDir +"/"+ inFile;
-      std::string outputFileName = nameVarCateg + "_" + nameSigCateg + "_nphibin" + std::to_string(nDphiBins);
+      std::string outputFileName = Form("%s_%s_nphibin%d",nameVarCateg.c_str(),nameSigCateg.c_str(),nDphiBins);
       std::string outputDats     = outputLocation + "/data/";
       std::string outputRoots    = outputLocation + "/root/";
       std::string outputFigs     = outputLocation + "/figs/";
       
       cout<< "#### Input file is: "<< histYieldFile[iFile] <<endl;
       // ###################################  get the yields from input files
-      TFile *fWeighFile   = new TFile(Form("%s/%s.root",inputDir,histYieldFile[iFile]));
+      TFile *fWeighFile   = new TFile(Form("%s/%s.root",inputDir,inFile.c_str()));
       TFile *fUnweighFile = new TFile(Form("%s/%s.root",inputDir,histYieldFile_noWeight[0]));
 
       TH1F *phPhi[20]; 
@@ -183,46 +190,46 @@ void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
     
       TH1F *phPhiNor[40];
       for(int iKin = 0; iKin < nBins; iKin++) // for all pt or y or cent  bins, including the minbias one (iKin==0)
-	{
-	  cout << "\t" << iKin << " " << nBins << " " << endl;
-	  if (!phPhi[iKin] || !phPhi_noWeight[iKin]) {
-	    cout << "skip" << endl;
-	    continue;
-	  } else {
-	    cout << phPhi_noWeight[iKin]->GetName() << " " << phPhi[iKin]->GetName() << endl;
-	  }
+        {
+          cout << "\t" << iKin << " " << nBins << " " << endl;
+          if (!phPhi[iKin] || !phPhi_noWeight[iKin]) {
+            cout << "skip" << endl;
+            continue;
+          } else {
+            cout << phPhi_noWeight[iKin]->GetName() << " " << phPhi[iKin]->GetName() << endl;
+          }
       
-	  for(int ibin = 0; ibin < nDphiBins; ibin++) // add the yield in all dPhi bins
-	    {
-	      // get relative error from the 'unweighted case'
-	      double dRelErr_unweight    = phPhi_noWeight[iKin]->GetBinError(ibin+1)/phPhi_noWeight[iKin]->GetBinContent(ibin+1);
-	      nDphi_yieldErr[iKin][ibin] = dRelErr_unweight*phPhi[iKin]->GetBinContent(ibin+1);
-	      nDphi_yield[iKin][ibin]    = phPhi[iKin]->GetBinContent(ibin+1);
-	      nSumDphiYield[iKin]       += nDphi_yield[iKin][ibin];
+          for(int ibin = 0; ibin < nDphiBins; ibin++) // add the yield in all dPhi bins
+            {
+              // get relative error from the 'unweighted case'
+              double dRelErr_unweight    = phPhi_noWeight[iKin]->GetBinError(ibin+1)/phPhi_noWeight[iKin]->GetBinContent(ibin+1);
+              nDphi_yieldErr[iKin][ibin] = dRelErr_unweight*phPhi[iKin]->GetBinContent(ibin+1);
+              nDphi_yield[iKin][ibin]    = phPhi[iKin]->GetBinContent(ibin+1);
+              nSumDphiYield[iKin]       += nDphi_yield[iKin][ibin];
 
-	      cout<<"dPhiBin= "<<ibin<< " yieldErr : "<<nDphi_yieldErr[iKin][ibin]<<"\t yield: "<< nDphi_yield[iKin][ibin] <<"\t Total: "<<nSumDphiYield[iKin]<<endl;
-	    }
+              cout<<"dPhiBin= "<<ibin<< " yieldErr : "<<nDphi_yieldErr[iKin][ibin]<<"\t yield: "<< nDphi_yield[iKin][ibin] <<"\t Total: "<<nSumDphiYield[iKin]<<endl;
+            }
     
-	  char tmp[512];
-	  // ###################################   create the normalized histograms
-	  double wbin = TMath::Pi()/8;
-	  sprintf(tmp,"phPhiNor_%d",iKin);
-	  phPhiNor[iKin] = new TH1F(tmp,tmp,4,0,TMath::Pi()/2);
-	  if(nDphiBins==2) 
-	    {
-	      phPhiNor[iKin] = new TH1F(tmp,tmp,2,0,TMath::Pi()/2);
-	      wbin = TMath::Pi()/4;
-	    }
-	  phPhiNor[iKin]->Sumw2();
-	  
-	  for(int ibin = 0; ibin < nDphiBins; ibin++)
-	    {
-	      phPhiNor[iKin]->SetBinContent(ibin+1,(double)nDphi_yield[iKin][ibin]/((double)nSumDphiYield[iKin]*wbin));
-	      phPhiNor[iKin]->SetBinError(ibin+1,(double)nDphi_yieldErr[iKin][ibin]/((double)nSumDphiYield[iKin]*wbin));
-	      // cout<<ibin<<"\t content "<<phPhiNor[iKin]->GetBinContent(ibin+1)<<endl;
-	    }
-	  cout<< "iKin " << iKin << " nSumDphiYield : "<<nSumDphiYield[iKin]<<endl;
-	}//ikin loop
+          char tmp[512];
+          // ###################################   create the normalized histograms
+          double wbin = TMath::Pi()/8;
+          sprintf(tmp,"phPhiNor_%d",iKin);
+          phPhiNor[iKin] = new TH1F(tmp,tmp,4,0,TMath::Pi()/2);
+          if(nDphiBins==2) 
+            {
+              phPhiNor[iKin] = new TH1F(tmp,tmp,2,0,TMath::Pi()/2);
+              wbin = TMath::Pi()/4;
+            }
+          phPhiNor[iKin]->Sumw2();
+          
+          for(int ibin = 0; ibin < nDphiBins; ibin++)
+            {
+              phPhiNor[iKin]->SetBinContent(ibin+1,(double)nDphi_yield[iKin][ibin]/((double)nSumDphiYield[iKin]*wbin));
+              phPhiNor[iKin]->SetBinError(ibin+1,(double)nDphi_yieldErr[iKin][ibin]/((double)nSumDphiYield[iKin]*wbin));
+              // cout<<ibin<<"\t content "<<phPhiNor[iKin]->GetBinContent(ibin+1)<<endl;
+            }
+          cout<< "iKin " << iKin << " nSumDphiYield : "<<nSumDphiYield[iKin]<<endl;
+        }//ikin loop
       cout<<"Finished with the histograms!!!!!!"<<endl;
     
       //###################################  fit to get v2 , and store the fit parameters, again for all kinematic regions
@@ -235,13 +242,13 @@ void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
       double dFit_v2Err[30] = {0.0};
     
       for(int iKin = 0; iKin < nBins; iKin++)
-	{
-	  cout<<"Bin "<<iKin<<" fitting ... "<<endl;
-	  phPhiNor[iKin]->Fit(v2Fit,"rqm"); 
-	  dFit_v2[iKin]    = v2Fit->GetParameter(0);
-	  dFit_v2Err[iKin] = v2Fit->GetParError(0);
-	  cout<<"v2= "<<dFit_v2[iKin]<<"\t v2_err= "<<dFit_v2Err[iKin]<< endl;
-	}
+        {
+          cout<<"Bin "<<iKin<<" fitting ... "<<endl;
+          phPhiNor[iKin]->Fit(v2Fit,"rqm"); 
+          dFit_v2[iKin]    = v2Fit->GetParameter(0);
+          dFit_v2Err[iKin] = v2Fit->GetParError(0);
+          cout<<"v2= "<<dFit_v2[iKin]<<"\t v2_err= "<<dFit_v2Err[iKin]<< endl;
+        }
       cout<<"Finished fitting all bins!"<<endl;
       
       // ###################################  make EP resolution corrections (for all bins, used and not used)
@@ -250,17 +257,17 @@ void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
       double resCorrection       = dEvPlResCorr[0];
       double resCorrectionErr    = dEvPlResCorrErr[0];
       for(int iBin = 0; iBin < nBins; iBin++)
-	{
-	  cout<<"Bin "<<iBin<<" corrected for resolution!!"<<endl;
-	  if(iVar==3)
-	    {
-	      resCorrection    = dEvPlResCorr[iBin];
-	      resCorrectionErr = dEvPlResCorrErr[iBin];
-	    }
-	  dFit_v2Final[iBin]    = dFit_v2[iBin]/resCorrection;
-	  dFit_v2FinalErr[iBin] =  fabs( dFit_v2[iBin]/resCorrection * sqrt( TMath::Power(dFit_v2Err[iBin]/dFit_v2[iBin],2) + TMath::Power(resCorrectionErr/resCorrection,2) ) );
-	  cout<<"Bin = "<<iBin<<"\t raw_v2 = " << dFit_v2[iBin] << "\t corr_v2 = "<<dFit_v2Final[iBin]<<endl;
-	}
+        {
+          cout<<"Bin "<<iBin<<" corrected for resolution!!"<<endl;
+          if(iVar==3)
+            {
+              resCorrection    = dEvPlResCorr[iBin];
+              resCorrectionErr = dEvPlResCorrErr[iBin];
+            }
+          dFit_v2Final[iBin]    = dFit_v2[iBin]/resCorrection;
+          dFit_v2FinalErr[iBin] =  fabs( dFit_v2[iBin]/resCorrection * sqrt( TMath::Power(dFit_v2Err[iBin]/dFit_v2[iBin],2) + TMath::Power(resCorrectionErr/resCorrection,2) ) );
+          cout<<"Bin = "<<iBin<<"\t raw_v2 = " << dFit_v2[iBin] << "\t corr_v2 = "<<dFit_v2Final[iBin]<<endl;
+        }
       cout<<"Finished making the resolution corrections"<<endl;
     
       // ###################################  Setting v2 histograms, with different bins for prompt and non-prompt 
@@ -321,15 +328,15 @@ void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
       int binStart = 1;
       int binEnd = nBins-nBins_np;
       if(jpsiCategory==2) 
-	{
-	  binStart = nBins-nBins_np;
-	  binEnd   = nBins;
-	}
+        {
+          binStart = nBins-nBins_np;
+          binEnd   = nBins;
+        }
       if(iVar==0)//integrated bin for all of them
-	{
-	  binStart = 0;
-	  binEnd   = 1;
-	}
+        {
+          binStart = 0;
+          binEnd   = 1;
+        }
       cout << "Starting bin: "<< binStart << "\t ending bins: " << binEnd << endl;
   
       // fill histograms, and write *.txt file with numbers
@@ -339,25 +346,25 @@ void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
       outputData << "pT " << " rapidity " << " cent " << " v2Raw " << " v2RawErr " << " v2 " << " v2Err " << "\n";
       int bin =1;
       for(int iBin = binStart; iBin < binEnd; iBin++)
-	{
-	  phV2Raw->SetBinContent(bin, dFit_v2[iBin]);
-	  phV2Raw->SetBinError(bin,   dFit_v2Err[iBin]); 
+        {
+          phV2Raw->SetBinContent(bin, dFit_v2[iBin]);
+          phV2Raw->SetBinError(bin,   dFit_v2Err[iBin]); 
       
-	  phV2->SetBinContent(bin, dFit_v2Final[iBin]);
-	  phV2->SetBinError(bin,   dFit_v2FinalErr[iBin]); 
-	  bin++;
-	  cout<<bin<<"\t v2_raw= "<<dFit_v2[iBin]<<"\t v2= "<<dFit_v2Final[iBin]<<endl;
-	  
-	  if(iVar==0) //integrated bin
-	    outputData << ptbin <<" " << rapidity << " " << centbin << " " <<dFit_v2[iBin] << " " <<dFit_v2Err[iBin] << " " <<dFit_v2Final[iBin] << " " <<dFit_v2FinalErr[iBin] << "\n";
-	  if(iVar==1) //pt dependence
-	    outputData << ptBinsName[iBin] <<" " << rapidity << " " << centbin << " " <<dFit_v2[iBin] << " " <<dFit_v2Err[iBin] << " " <<dFit_v2Final[iBin] << " " <<dFit_v2FinalErr[iBin] << "\n";
-	  if(iVar==2) //y dependence
-	    outputData << ptbin <<" " << yBinsName [iBin] << " " << centbin << " " <<dFit_v2[iBin] << " " <<dFit_v2Err[iBin] << " " <<dFit_v2Final[iBin] << " " <<dFit_v2FinalErr[iBin] << "\n";
-	  if(iVar==3) //cent dependence
-	    outputData << ptbin <<" " << rapidity << " " << centBinsName[iBin] << " " <<dFit_v2[iBin] << " " <<dFit_v2Err[iBin] << " " <<dFit_v2Final[iBin] << " " <<dFit_v2FinalErr[iBin] << "\n";
+          phV2->SetBinContent(bin, dFit_v2Final[iBin]);
+          phV2->SetBinError(bin,   dFit_v2FinalErr[iBin]); 
+          bin++;
+          cout<<bin<<"\t v2_raw= "<<dFit_v2[iBin]<<"\t v2= "<<dFit_v2Final[iBin]<<endl;
+          
+          if(iVar==0) //integrated bin
+            outputData << ptbin <<" " << rapidity << " " << centbin << " " <<dFit_v2[iBin] << " " <<dFit_v2Err[iBin] << " " <<dFit_v2Final[iBin] << " " <<dFit_v2FinalErr[iBin] << "\n";
+          if(iVar==1) //pt dependence
+            outputData << ptBinsName[iBin] <<" " << rapidity << " " << centbin << " " <<dFit_v2[iBin] << " " <<dFit_v2Err[iBin] << " " <<dFit_v2Final[iBin] << " " <<dFit_v2FinalErr[iBin] << "\n";
+          if(iVar==2) //y dependence
+            outputData << ptbin <<" " << yBinsName [iBin] << " " << centbin << " " <<dFit_v2[iBin] << " " <<dFit_v2Err[iBin] << " " <<dFit_v2Final[iBin] << " " <<dFit_v2FinalErr[iBin] << "\n";
+          if(iVar==3) //cent dependence
+            outputData << ptbin <<" " << rapidity << " " << centBinsName[iBin] << " " <<dFit_v2[iBin] << " " <<dFit_v2Err[iBin] << " " <<dFit_v2Final[iBin] << " " <<dFit_v2FinalErr[iBin] << "\n";
         
-	}
+        }
       outputData.close();
       // ----------------------------------------------------------------- DRAWING
       TLatex *lt1 = new TLatex();
@@ -369,26 +376,26 @@ void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
       pcDPhi->Divide(3,3);
       if(iVar==0) pcDPhi = new TCanvas("pcDPhi","pcDPhi");
       for(int iBin = 0; iBin < nBins; iBin++)
-	{
-	  pcDPhi->cd(iBin+1);
-	  phPhiNor[iBin]->SetTitle("");
-	  phPhiNor[iBin]->SetMaximum(1.0);
-	  phPhiNor[iBin]->SetMinimum(0.2);
-	  phPhiNor[iBin]->GetXaxis()->CenterTitle();
-	  phPhiNor[iBin]->GetYaxis()->CenterTitle();
-	  phPhiNor[iBin]->GetYaxis()->SetTitleOffset(1.3);
-	  phPhiNor[iBin]->GetYaxis()->SetTitleSize(0.05);
-	  phPhiNor[iBin]->GetYaxis()->SetTitle("#frac{1}{N_{total J/#psi}} #frac{dN}{d#phi}(rad^{-1})");
-	  phPhiNor[iBin]->GetXaxis()->SetTitle("|#phi^{J/#psi} - #Psi_{2}| (rad)");
-	  phPhiNor[iBin]->SetMarkerStyle(20);
-	  phPhiNor[iBin]->SetMarkerColor(kBlack);
-	  phPhiNor[iBin]->SetMarkerSize(1.5);
-	  phPhiNor[iBin]->Draw("e1");
-	  lt1->DrawLatex(0.5,0.18,Form("v_{2}= %.3f #pm %.3f",dFit_v2[iBin],dFit_v2Err[iBin]));
-	  if(iVar==1) lt1->DrawLatex(0.45,0.40,Form("%s",ptBinsLegend[iBin]));
-	  if(iVar==2) lt1->DrawLatex(0.60,0.40,Form("%s",yBinsLegend[iBin]));
-	  if(iVar==3) lt1->DrawLatex(0.60,0.40,Form("%s",centBinsLegend[iBin]));
-	}
+        {
+          pcDPhi->cd(iBin+1);
+          phPhiNor[iBin]->SetTitle("");
+          phPhiNor[iBin]->SetMaximum(1.0);
+          phPhiNor[iBin]->SetMinimum(0.2);
+          phPhiNor[iBin]->GetXaxis()->CenterTitle();
+          phPhiNor[iBin]->GetYaxis()->CenterTitle();
+          phPhiNor[iBin]->GetYaxis()->SetTitleOffset(1.3);
+          phPhiNor[iBin]->GetYaxis()->SetTitleSize(0.05);
+          phPhiNor[iBin]->GetYaxis()->SetTitle("#frac{1}{N_{total J/#psi}} #frac{dN}{d#phi}(rad^{-1})");
+          phPhiNor[iBin]->GetXaxis()->SetTitle("|#phi^{J/#psi} - #Psi_{2}| (rad)");
+          phPhiNor[iBin]->SetMarkerStyle(20);
+          phPhiNor[iBin]->SetMarkerColor(kBlack);
+          phPhiNor[iBin]->SetMarkerSize(1.5);
+          phPhiNor[iBin]->Draw("e1");
+          lt1->DrawLatex(0.5,0.18,Form("v_{2}= %.3f #pm %.3f",dFit_v2[iBin],dFit_v2Err[iBin]));
+          if(iVar==1) lt1->DrawLatex(0.45,0.40,Form("%s",ptBinsLegend[iBin]));
+          if(iVar==2) lt1->DrawLatex(0.60,0.40,Form("%s",yBinsLegend[iBin]));
+          if(iVar==3) lt1->DrawLatex(0.60,0.40,Form("%s",centBinsLegend[iBin]));
+        }
       
       pcDPhi->cd(1);
       lt1->SetTextSize(0.05);
@@ -398,21 +405,21 @@ void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
       lt1->DrawLatex(0.20,0.32,legend[jpsiCategory]);
     
       if(iVar==1) //pt dependence
-	{
-	  lt1->DrawLatex(0.20,0.24,"Cent. 10 - 60 %, |y| < 2.4");
-	  pcDPhi->cd(2);
-	  lt1->DrawLatex(0.20,0.24,"1.6< |y| < 2.4");
-	  pcDPhi->cd(6);
-	  lt1->DrawLatex(0.20,0.24,"1.6< |y| < 2.4");
-	}
+        {
+          lt1->DrawLatex(0.20,0.24,"Cent. 10 - 60 %, |y| < 2.4");
+          pcDPhi->cd(2);
+          lt1->DrawLatex(0.20,0.24,"1.6< |y| < 2.4");
+          pcDPhi->cd(6);
+          lt1->DrawLatex(0.20,0.24,"1.6< |y| < 2.4");
+        }
       if(iVar==2) lt1->DrawLatex(0.20,0.24,"Cent. 10 - 60 %, 6.5 < p_{T} < 30 GeV/c");//rapidity dependence
       if(iVar==3) lt1->DrawLatex(0.20,0.24,"6.5 < p_{T} < 30 GeV/c, |y| < 2.4"); // centrality dependence
     
       if (bSavePlots)
-	{
-	  pcDPhi->SaveAs(Form("./%s/png/phi_%s.png",outputFigs.c_str(),outputFileName.c_str()));
-	  pcDPhi->SaveAs(Form("./%s/pdf/phi_%s.pdf",outputFigs.c_str(),outputFileName.c_str()));
-	}
+        {
+          pcDPhi->SaveAs(Form("./%s/png/phi_%s.png",outputFigs.c_str(),outputFileName.c_str()));
+          pcDPhi->SaveAs(Form("./%s/pdf/phi_%s.pdf",outputFigs.c_str(),outputFileName.c_str()));
+        }
 
       // -------------- make the results plots ---------------....
       
@@ -432,24 +439,24 @@ void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
       phV2->SetMarkerSize(1.4);
       
       if(jpsiCategory == 1){// prompt
-	phV2Raw->SetMarkerStyle(21);
-	phV2Raw->SetMarkerColor(kRed+2);
-	phV2Raw->SetLineColor(kRed+2);
-	
-	phV2->SetMarkerStyle(21);
-	phV2->SetMarkerColor(kRed+2);
-	phV2->SetLineColor(kRed+2);
+        phV2Raw->SetMarkerStyle(21);
+        phV2Raw->SetMarkerColor(kRed+2);
+        phV2Raw->SetLineColor(kRed+2);
+        
+        phV2->SetMarkerStyle(21);
+        phV2->SetMarkerColor(kRed+2);
+        phV2->SetLineColor(kRed+2);
       }
       if(jpsiCategory == 2){// non-prompt
-	phV2Raw->SetMarkerStyle(29);
-	phV2Raw->SetMarkerColor(kOrange+2);
-	phV2Raw->SetLineColor(kOrange+2);
-	phV2Raw->SetMarkerSize(2.0);
+        phV2Raw->SetMarkerStyle(29);
+        phV2Raw->SetMarkerColor(kOrange+2);
+        phV2Raw->SetLineColor(kOrange+2);
+        phV2Raw->SetMarkerSize(2.0);
          
-	phV2->SetMarkerStyle(29);
-	phV2->SetMarkerColor(kOrange+2);
-	phV2->SetLineColor(kOrange+2);
-	phV2->SetMarkerSize(2.0);
+        phV2->SetMarkerStyle(29);
+        phV2->SetMarkerColor(kOrange+2);
+        phV2->SetLineColor(kOrange+2);
+        phV2->SetMarkerSize(2.0);
       }
       // ---------------- draw the v2 w/o the EP res correction
       phV2Raw->Draw("e1 same");
@@ -462,26 +469,26 @@ void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
       lt1->DrawLatex(0.18,0.88,legend[jpsiCategory]);
     
       if(iVar==1)// pt
-	{
-	  lt1->DrawLatex(0.48,0.66,"Cent. 10 - 60 %");
-	  lt1->DrawLatex(0.48,0.60,"|y| < 2.4, 1.6<|y| < 2.4");
-	}
+        {
+          lt1->DrawLatex(0.48,0.66,"Cent. 10 - 60 %");
+          lt1->DrawLatex(0.48,0.60,"|y| < 2.4, 1.6<|y| < 2.4");
+        }
       if(iVar==2)//rap
-	{
-	  lt1->DrawLatex(0.64,0.87,"Cent. 10 - 60 %");
-	  lt1->DrawLatex(0.21,0.28,"6.5 < p_{T} < 30 GeV/c");
-	}
+        {
+          lt1->DrawLatex(0.64,0.87,"Cent. 10 - 60 %");
+          lt1->DrawLatex(0.21,0.28,"6.5 < p_{T} < 30 GeV/c");
+        }
       if(iVar==3)// centrality
-	{
-	  lt1->DrawLatex(0.48,0.66,"p_{T} > 6.5 GeV/c");
-	  lt1->DrawLatex(0.48,0.60,"|y| < 2.4");
-	}
+        {
+          lt1->DrawLatex(0.48,0.66,"p_{T} > 6.5 GeV/c");
+          lt1->DrawLatex(0.48,0.60,"|y| < 2.4");
+        }
       // save the v2 w/o resolution correction
       if(bSavePlots)
-	{
-	  pcResult->SaveAs(Form("./%s/png/v2Raw_%s.png",outputFigs.c_str(),outputFileName.c_str()));
-	  pcResult->SaveAs(Form("./%s/pdf/v2Raw_%s.pdf",outputFigs.c_str(),outputFileName.c_str()));
-	}
+        {
+          pcResult->SaveAs(Form("./%s/png/v2Raw_%s.png",outputFigs.c_str(),outputFileName.c_str()));
+          pcResult->SaveAs(Form("./%s/pdf/v2Raw_%s.pdf",outputFigs.c_str(),outputFileName.c_str()));
+        }
       
       // ------------------  draw the EP -resolution corrected v2 
       hPad->Draw();
@@ -494,26 +501,26 @@ void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
       lt1->DrawLatex(0.18,0.88,legend[jpsiCategory]);
       
       if(iVar==1)// pt
-	{
-	  lt1->DrawLatex(0.48,0.66,"Cent. 10 - 60 %");
-	  lt1->DrawLatex(0.48,0.60,"|y| < 2.4, 1.6<|y| < 2.4");
-	}
+        {
+          lt1->DrawLatex(0.48,0.66,"Cent. 10 - 60 %");
+          lt1->DrawLatex(0.48,0.60,"|y| < 2.4, 1.6<|y| < 2.4");
+        }
       if(iVar==2)//rap
-	{
-	  lt1->DrawLatex(0.64,0.66,"Cent. 10 - 60 %");
-	  lt1->DrawLatex(0.21,0.28,"6.5 < p_{T} < 30 GeV/c");
-	}
+        {
+          lt1->DrawLatex(0.64,0.66,"Cent. 10 - 60 %");
+          lt1->DrawLatex(0.21,0.28,"6.5 < p_{T} < 30 GeV/c");
+        }
       if(iVar==3)// centrality
-	{
-	  lt1->DrawLatex(0.48,0.66,"p_{T} > 6.5 GeV/c");
-	  lt1->DrawLatex(0.48,0.60,"|y| < 2.4");
-	}
+        {
+          lt1->DrawLatex(0.48,0.66,"p_{T} > 6.5 GeV/c");
+          lt1->DrawLatex(0.48,0.60,"|y| < 2.4");
+        }
       // save the v2 w/o resolution correction
       if(bSavePlots)
-	{
-	  pcResult->SaveAs(Form("./%s/png/v2_%s.png",outputFigs.c_str(),outputFileName.c_str()));
-	  pcResult->SaveAs(Form("./%s/pdf/v2_%s.pdf",outputFigs.c_str(),outputFileName.c_str()));
-	}
+        {
+          pcResult->SaveAs(Form("./%s/png/v2_%s.png",outputFigs.c_str(),outputFileName.c_str()));
+          pcResult->SaveAs(Form("./%s/pdf/v2_%s.pdf",outputFigs.c_str(),outputFileName.c_str()));
+        }
       
       // ---------------------------OUTPUT FILE------------------------------
       // output file with all numbers/histograms
@@ -528,9 +535,9 @@ void v2_fitter(int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
         cout<<"You are writting pt dependence!"<<endl;
         for(int iBin = 0; iBin < nBins; iBin++)
         {
-	  phPhiNor[iBin]->SetName(Form("Rap_%s_pt_%s_cent_%s_%s",rapidity,ptBinsName[iBin],centbin,signal[jpsiCategory]));
-	  if(iBin==1 || iBin==5)  phPhiNor[iBin]->SetName(Form("Rap_%s_pt_%s_cent_%s_%s",yBinsName[3],ptBinsName[iBin],centbin,signal[jpsiCategory]));
-	  phPhiNor[iBin]->Write();
+          phPhiNor[iBin]->SetName(Form("Rap_%s_pt_%s_cent_%s_%s",rapidity,ptBinsName[iBin],centbin,signal[jpsiCategory]));
+          if(iBin==1 || iBin==5)  phPhiNor[iBin]->SetName(Form("Rap_%s_pt_%s_cent_%s_%s",yBinsName[3],ptBinsName[iBin],centbin,signal[jpsiCategory]));
+          phPhiNor[iBin]->Write();
         }
         break;
     
