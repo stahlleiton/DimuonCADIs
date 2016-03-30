@@ -39,7 +39,7 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #endif
 
 void v2_y_plotter(
-    int jpsiCategory      = 1, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+    int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
     string nDphiBins      = "4",
     const char* outputDir = "output", 
     const char* inputDir  = "outputNumbers",// where phi and v2 numbers are (root, and txt format)
@@ -56,7 +56,7 @@ void v2_y_plotter(
   gStyle->SetOptTitle(kFALSE);
 
   // input files: prompt and non-prompt ones
-  const char* v2InFileDirs[1] = {"histsV2Yields_20160304_v2W_minVar_dPhiBins4"};
+  const char* v2InFileDirs[1] = {"histsV2Yields_20160304_v2W_dPhiBins4"};
   const char* legend[4]       = {"","Prompt J/#psi","Non-prompt J/#psi","Background"};
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
  
@@ -166,7 +166,8 @@ void v2_y_plotter(
   lt1->SetNDC();
 
   TH1F *phAxis = new TH1F("phAxis",";|y|;v_{2}",10,0,2.4);
-  phAxis->GetYaxis()->SetRangeUser(-0.05,0.25);
+  phAxis->GetYaxis()->SetRangeUser(-0.07,0.25);
+//  phAxis->GetYaxis()->SetRangeUser(-0.05,0.25);
   phAxis->GetXaxis()->CenterTitle();
   phAxis->GetYaxis()->CenterTitle();
   phAxis->GetXaxis()->SetNdivisions(-6);
