@@ -1,12 +1,12 @@
 /*
-Macro to plot the
-a)  v2 vs pT for prompt, non-prompt and bkg, 
-b)  the phi fits for each bin
+Macro to calculate the systm. uncertainty for v2
 Input:
-a) *.dat and *.root produced by v2_fitter.C macro in the same directory
-b) the systematic uncertainties, which are calculated in excel, and hard-coded in v2_dataBinning_2015.h
+ *.dat produced by v2_fitter.C macro
+Output:
+ *.dat files, containing the total uncert, as well as individual contributions
 
  */
+
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <iostream>
 #include <fstream>
@@ -20,10 +20,11 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #include <TGraph.h>
 #include <TNtuple.h>
 #include <TString.h>
+#include <TH1D.h>
 #include <TFile.h>
+#include <TH1D.h>
 #include <TF1.h>
 #include <TMath.h>
-#include <TH1D.h>
 #include <TH2D.h>
 #include <TCanvas.h>
 #include <TLegend.h>
@@ -34,190 +35,174 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #include <TGraphErrors.h>
 #include "../CMS_lumi.C"
 #include "../tdrstyle.C"
-#include "v2_dataNumbers_2015.h"
+#include "../macro_v2/v2_dataNumbers_2015.h"
 #endif
 
-void v2_cent_plotter(
-   int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
-   string nDphiBins      = "4",
-   const char* outputDir = "output", 
-   const char* inputDir  = "outputNumbers",// where phi and v2 numbers are (root, and txt format)
-   bool bDoDebug         = true,
-   bool bAddCent010      = false, 
-   bool bSavePlots       = true
-   ) {
+void makeSyst_cent(
+		int jpsiCategory      = -1, // -1: all, 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+		string nDphiBins      = "4",
+		const char* inputDir  = "../macro_v2/outputNumbers", // the place where the input root files, with the histograms are
+		const char* outputDir = "histSyst",// where the output figures will be
+		bool bDoDebug         = false,
+		bool bSavePlots       = true
+		) {
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
   
-  // set the style
-  setTDRStyle();
-  gStyle->SetOptFit(0);
-  gStyle->SetOptStat(0);
-  gStyle->SetOptTitle(kFALSE);
-
   // input files: prompt and non-prompt ones
-  const char* v2InFileDirs[1] = {
-    "histsV2Yields_20160304_v2W_dPhiBins4"
+  const int nFiles = 10;
+  // the position of the variations in the array is used later; make sure it corresponds to wht's in array
+  int iVar_tnp = 1;
+  int iVar_4d  = 2;
+  int iVar_3d  = 3;
+  int iVar_fit = 5;
+  const char* v2InFileDirs[nFiles] = {"histsV2Yields_20160304_v2W_dPhiBins4",  //0
+				      "histsV2Yields_20160304_v2W_noTnPSF_dPhiBins4",//1
+				      "histsV2Yields_20160304_v2W_prof_dPhiBins4",//2
+				      "histsV2Yields_20160304_v2W_maxVar_dPhiBins4", //3
+				      "histsV2Yields_20160304_v2W_minVar_dPhiBins4",//4
+				      "histsV2Yields_20160304_v2W_const_dPhiBins4",//5
+				      "histsV2Yields_20160304_v2W_MLAR_dPhiBins4",//6
+				      "histsV2Yields_20160304_v2W_polFunct_dPhiBins4",//7
+				      "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",//8
+				      "histsV2Yields_20160304_v2W_signalCB3WN_dPhiBins4",//9
   };
   const char* legend[4]       = {"","Prompt J/#psi","Non-prompt J/#psi","Background"};
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
  
   // Reminder for TGraphAssymError: gr = new TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);// n,x,y,err_x, err_y
-  int nBins                   =  nCentBins_pr; 
-  if(jpsiCategory==2) nBins   =  nCentBins_np;
-  
-  cout<<" !!!!! Number of Y bins: "<< nBins<<endl;
-  
-  double adXaxis[nBins];//   location on x-axis  
 
-  double adV2[nBins]      ; // v2 values
-  double adV2_stat[nBins] ;// stat uncert
-  double adV2_syst[nBins] ;// stat uncert
-  double adV2_err0[nBins] ;// error  0
-  double adWidth_systBox[nBins]; // width of the systm. uncert.
+  // Check if categEnd is small or equal to the array size of sample list 
+  int categStart        = 1;
+  int categEnd          = 4;
+  if (jpsiCategory==1) categEnd=2;
+  if (jpsiCategory==2) {categStart=2; categEnd=3;}
+  if (jpsiCategory==3) {categStart=3;}
 
-  for(int ib=0; ib<nBins; ib++)
-  {
-    adWidth_systBox[ib] = 10;
-    adV2_syst[ib]       = adV2Cent_pr_syst[ib];
-    adXaxis[ib]         = adXaxisCent_pr[ib];
-
-    if(jpsiCategory==2)
+  for(int iCateg=categStart; iCateg<categEnd; iCateg++)
     {
-      adV2_syst[ib]    = adV2Cent_np_syst[ib];
-      adXaxis[ib]      = adXaxisCent_np[ib];
-    }
-
-    if(bDoDebug) cout<<"Bin "<<ib<<"\t adAxis= "<<adXaxis[ib]<<endl;
-  }
+      cout<<"====================== Doing "<< signal[iCateg] << "==========================="<<endl;
+      int nBins           =  nCentBins_pr; 
+      if(iCateg==2) nBins =  nCentBins_np;
   
-  // // open the files with yields and do the math
-  ifstream in;
-  std::string nameVar   = outFilePlot[3]; // cent
-  std::string nameSig   = signal[jpsiCategory]; // prompt, non-pro or bkg
-  std::string nameDir   = v2InFileDirs[0];
-  string inputFile      = nameVar + "_"+ nameSig + "_nphibin" + nDphiBins + ".dat";
+      cout<<" !!!!! Number of Y bins: "<< nBins<<endl;
   
-  cout << "!!!!!! Input file name: "<< inputFile <<endl;
-  in.open(Form("%s/%s/data/%s",inputDir,nameDir.c_str(),inputFile.c_str()));
+      double adV2[nFiles][nBins]; // v2 values
   
+      std::vector<std::vector<std::string>> str_kin;// pt, rapidity, centrlaity, to store for output dat files
+      str_kin.resize( nBins );
+      for( auto &i : str_kin )
+	i.resize( 3 );
 
-  // read the v2 and v2_stat uncert from input file
-  string whatBin[3];
-  double x[4]={0};
-  int iline=0;
-  string tmpstring;
-  getline(in,tmpstring);
-  while ( in.good() && iline<nBins)
-  {
-    in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> x[0] >> x[1] >> x[2] >> x[3];
+      // open the files with v2, and store them in arrays
+      for(int iFile = 0; iFile<nFiles; iFile++)
+	{
+	  ifstream in;
+	  std::string nameVar   = outFilePlot[3]; //cent
+	  std::string nameSig   = signal[iCateg];// pr, npr, bkg
+	  std::string nameDir   = v2InFileDirs[iFile];// 
+	  string inputFile      = nameVar + "_"+ nameSig + "_nphibin" + nDphiBins + ".dat";
+	  cout << "!!!!!! Input file name: "<< nameDir <<"/\t"<<inputFile <<endl;
+	  // read the v2 nominal value from input file
+	  
+	  string whatBin[3];
+	  double x[4] = {0};
+	  int   iline = 0;
+	  string tmpstring;
+	  in.open(Form("%s/%s/data/%s",inputDir,nameDir.c_str(),inputFile.c_str()));
+	  
+	  getline(in,tmpstring);
+	  
+	  while ( in.good() && iline<nBins ) {
+	    in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> x[0] >> x[1] >> x[2] >> x[3];
+	    str_kin[iline][0] = whatBin[0];
+	    str_kin[iline][1] = whatBin[1];
+	    str_kin[iline][2] = whatBin[2];
+	    
+	    adV2[iFile][iline]  = x[2];
+	    
+	    cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
+	    cout <<"v2= "<< x[2] <<endl;
+	    iline++;
+	  }
+	  in.close();
+	}// iFile
+      
+      if(bDoDebug) {
+	for(int ib=0; ib<nBins; ib++) {
+	  cout <<"!!!! Looking at: pt = "<< str_kin[ib][0]<<"\t y: "<<str_kin[ib][1]<<"\t cent: "<<str_kin[ib][2]<<endl;
+	}
+      }
+      // at this point have in the 2D arrays all variations; nominal value is stored in [0][0] 
+      //-------------------------------------------
+      // calculate the systm. uncertainty: 
+      // A) for TnP: full difference between with and without TnP -- variation #1
+      // B) for 4D efficiency: -- variation # 2
+      // C) for 3D efficiency: full difference between max and min variation -- #3 and #4
+      // D) for fit(sgn+bkg) systm: RMS of all variations -- #5--#9
+      // finaly uncert: sqrt of sum in quadrature of A->D
+      
+      // we'll calculate each individually, and store them too (for future plotting if needed), and then calculate the final uncertainty
+      
+      double v2[nBins];
+      double contrib_tnp[nBins];
+      double contrib_4d[nBins];
+      double contrib_3d[nBins];
+      double contrib_fit[nBins];
+      
+      double v2Syst[nBins];
+      
+      for(int ib=0; ib<nBins; ib++) {
+	double v2 = adV2[0][ib];// nominal value for bin ib
+	
+	// calculate individual contributions
+	double relContrib_tnp = (v2-adV2[iVar_tnp][ib])/v2;
+	contrib_tnp[ib]       = TMath::Power(relContrib_tnp,2);
 
-    adV2[nBins-iline-1]      = x[2];
-    adV2_stat[nBins-iline-1] = x[3];
+	double relContrib_4d = (v2-adV2[iVar_4d][ib])/v2;
+	contrib_4d[ib]       = TMath::Power(relContrib_4d,2);
+	
+	double relContrib_3d_max = (v2-adV2[iVar_3d][ib])/v2;
+	double relContrib_3d_min = (v2-adV2[iVar_3d+1][ib])/v2;
+	contrib_3d[ib]           = TMath::Power(relContrib_3d_max+relContrib_3d_min,2);
+	
+	for (int iFit=iVar_fit; iFit<nFiles; iFit++)
+	  {
+	    double iFitContrib = (v2-adV2[iFit][ib])/v2;
+	    contrib_fit[ib]+=TMath::Power(iFitContrib,2);
+	  }
+	// calculate total contribution: 
+	v2Syst[ib] = v2 * TMath::Sqrt( contrib_tnp[ib] + contrib_4d[ib] + contrib_3d[ib] + contrib_fit[ib]/(nFiles-iVar_fit) );
+	if(bDoDebug)
+	  {
+	    cout<<"Bin "<<ib <<" v2 = "<< v2<<"\t Total_systm= " << v2Syst[ib] <<endl;
+	    cout<<"TnP: "<<contrib_tnp[ib]<<"\t 4D= "<<contrib_4d[ib]<<"\t 3D= "<< contrib_3d[ib] <<"\t fit= "<<contrib_fit[ib]<<endl;
+	  }
+      }//for each bin
+      
+      // -----------------------------------------------------------------------------
+      // write out the output
+      std::string nameVar   = outFilePlot[3]; //cent
+      std::string nameSig   = signal[iCateg];// pr, npr, bkg
+      string outputFileName     = "syst_"+nameVar + "_"+ nameSig + "_nphibin" + nDphiBins + ".dat";
+      
+      std::string nameOutDir     = outputDir;
+      std::string outputDats     = nameOutDir + "/data/";
+      gSystem->mkdir(Form("./%s",outputDats.c_str()), kTRUE);// numbers   
+      
+      string outDataName = outputDats + outputFileName; 
+      ofstream outputData(outDataName.c_str());
+      if (!outputData.good()) {cout << "######### Fail to open *.txt file.##################" << endl;}
+      
+      outputData << "pT " << " rapidity " << " cent " << " v2_nominal " << " v2Syst_tot " << " contrib_tnp " << " contrib_4d " << " contrib_3d "<< "contrib_fit "<<"\n";
+      for(int iBin=0; iBin<nBins; iBin++)
+	{
+	  outputData << str_kin[iBin][0] <<" " << str_kin[iBin][1] << " " << str_kin[iBin][2] << " " << adV2[0][iBin] << " " << v2Syst[iBin] << " " <<contrib_tnp[iBin] << " " <<contrib_4d[iBin] << " " <<contrib_3d[iBin] << " "<< contrib_fit[iBin]<<"\n";
 
-    cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
-    cout <<"v2= "<< x[2] << "\t error= "<< x[3]<<endl;
-    iline++;
-  }
-  in.close();
-  if(bDoDebug)
-  {
-    for(int ib=0; ib<nBins; ib++) cout<<"Bin "<<ib<<"\t adXaxis: "<< adXaxis[ib]<<"\t v2= "<<adV2[ib]<<endl;
-  }
-  // high-pt
-  TGraphErrors *pgV2          = new TGraphErrors(nBins, adXaxis, adV2, adV2_stat, adV2_stat);
-  TGraphAsymmErrors *pgV2_sys = new TGraphAsymmErrors(nBins, adXaxis, adV2, adWidth_systBox,adWidth_systBox, adV2_syst, adV2_syst);
-  TGraphErrors *pgV2_cont     = new TGraphErrors(nBins, adXaxis, adV2, adV2_err0, adV2_err0);
-  
-  //-------------------------------------------------- Drawing stuff
-  // colors and symbols
-  // high-pt
-  pgV2->SetMarkerColor(kRed+1);
-  pgV2_sys->SetFillColor(kRed-9);
-
-  pgV2->SetMarkerStyle(21);
-  pgV2_sys->SetMarkerStyle(21);
-  pgV2_cont->SetMarkerStyle(25); 
- 
-  pgV2->SetMarkerSize(1.1);
-  pgV2_cont->SetMarkerSize(1.1);
-
-  if(jpsiCategory==2)
-  {
-    pgV2->SetMarkerColor(kOrange+2);
-    pgV2_sys->SetFillColor(kOrange-9);
-  }
-  if(jpsiCategory==3)// bkg
-  {
-    pgV2->SetMarkerColor(1);
-    pgV2_sys->SetFillColor(19);
-  }
- 
-  //-------------------------------------------------------
-  // general labels 
-  TLatex *lt1  = new TLatex();
-  lt1->SetNDC();
-
-  TH1F *phAxis = new TH1F("phAxis",";N_{part};v_{2}",10,0,400);
-  phAxis->GetYaxis()->SetRangeUser(-0.05,0.25);
-  phAxis->GetXaxis()->CenterTitle();
-  phAxis->GetYaxis()->CenterTitle();
-
-  TF1 *line    = new TF1("line","0",0,400);
-  line->SetLineWidth(1);
- 
-  TLatex *pre = new TLatex(20.0,0.22,Form("%s",legend[jpsiCategory]));
-  pre->SetTextFont(42);
-  pre->SetTextSize(0.05);
-
-  TLatex *ly     = new TLatex(20.0,0.18,Form("%s",yBinsLegend[0]));
-  ly->SetTextFont(42);
-  ly->SetTextSize(0.04);
-
-  TLatex *lpt     = new TLatex(20.0,0.2,Form("%s",ptBinsLegend[0]));
-  lpt->SetTextFont(42);
-  lpt->SetTextSize(0.04);
-
-  TLatex *lcent = new TLatex(10.0,-0.025,Form("Cent."));
-  lcent->SetTextFont(42);
-  lcent->SetTextSize(0.04);
-
-  //-------------- Drawing 
-  TCanvas *pc = new TCanvas("pc","pc");
-  phAxis->Draw();
-  CMS_lumi(pc,101,33);
-  pre->Draw();
-  lpt->Draw();
-  ly->Draw();
-  lcent->Draw();
-
-  int write2 = nBins;
-  if(!bAddCent010) 
-  {
-    write2 = nBins-1;
-    pgV2_sys->RemovePoint(write2);
-    pgV2->RemovePoint(write2);
-    pgV2_cont->RemovePoint(write2);
-  }
-
-  for(int ib=0; ib<write2; ib++)
-  {
-   if(jpsiCategory==2) lcent->DrawLatex(adXaxis[ib]-30,-0.025,Form("%s",centBinsLegend[nCentBins-1-ib]));
-   else lcent->DrawLatex(adXaxis[ib]-30,-0.025,Form("%s",centBinsLegend[nCentBins-nBins-ib]));
-  }
-  
-  pgV2_sys->Draw("2");
-  pgV2->Draw("PZ");
-  pgV2_cont->Draw("P");
-  gPad->RedrawAxis();
-
- 
-  if(bSavePlots)
-  {
-    pc->SaveAs(Form("%s/png/v2_%s_%s_nphi%s.png",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));
-    pc->SaveAs(Form("%s/pdf/v2_%s_%s_nphi%s.pdf",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));
-  }
-
+	}
+      outputData.close();
+      
+    }// for each category
 }
 
 

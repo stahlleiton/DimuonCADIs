@@ -38,14 +38,15 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #endif
 
 void v2_cent_plotter(
-   int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
-   string nDphiBins      = "4",
-   const char* outputDir = "output", 
-   const char* inputDir  = "outputNumbers",// where phi and v2 numbers are (root, and txt format)
-   bool bDoDebug         = true,
-   bool bAddCent010      = false, 
-   bool bSavePlots       = true
-   ) {
+		     int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+		     string nDphiBins      = "4",
+		     const char* outputDir = "output", 
+		     const char* inputDir  = "outputNumbers",// where phi and v2 numbers are (root, and txt format)
+		     const char* inputDirSyst = "../calcSyst_v2/histSyst",// where phi and v2 numbers are (root, and txt format)
+		     bool bDoDebug         = true,
+		     bool bAddCent010      = false, 
+		     bool bSavePlots       = true
+		     ) {
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
   
@@ -74,24 +75,20 @@ void v2_cent_plotter(
   double adV2_stat[nBins] ;// stat uncert
   double adV2_syst[nBins] ;// stat uncert
   double adV2_err0[nBins] ;// error  0
-  double adWidth_systBox[nBins]; // width of the systm. uncert.
-
+ 
   for(int ib=0; ib<nBins; ib++)
   {
     adWidth_systBox[ib] = 10;
-    adV2_syst[ib]       = adV2Cent_pr_syst[ib];
     adXaxis[ib]         = adXaxisCent_pr[ib];
 
     if(jpsiCategory==2)
-    {
-      adV2_syst[ib]    = adV2Cent_np_syst[ib];
       adXaxis[ib]      = adXaxisCent_np[ib];
-    }
-
+    
     if(bDoDebug) cout<<"Bin "<<ib<<"\t adAxis= "<<adXaxis[ib]<<endl;
   }
   
-  // // open the files with yields and do the math
+  //--------------------------------------------------------
+  // read from input file
   ifstream in;
   std::string nameVar   = outFilePlot[3]; // cent
   std::string nameSig   = signal[jpsiCategory]; // prompt, non-pro or bkg
@@ -101,8 +98,7 @@ void v2_cent_plotter(
   cout << "!!!!!! Input file name: "<< inputFile <<endl;
   in.open(Form("%s/%s/data/%s",inputDir,nameDir.c_str(),inputFile.c_str()));
   
-
-  // read the v2 and v2_stat uncert from input file
+  // *************** read the v2 and v2_stat 
   string whatBin[3];
   double x[4]={0};
   int iline=0;
@@ -120,13 +116,36 @@ void v2_cent_plotter(
     iline++;
   }
   in.close();
+  //--------------------------------------------------------
+  // ******* read the systematic numbers 
+  string inputFile_syst      = "syst_" + inputFile;
+  cout << "!!!!!! Input syst. file name: "<< inputFile_syst <<endl;
+  in.open(Form("%s/data/%s",inputDirSyst,inputFile_syst.c_str()));
+  
+  if (!in.good()) {cout << "######### Fail to open syst_input.txt file.##################" << endl;}
+
+  double y[6] = {0};
+  iline       = 0;
+  getline(in,tmpstring);
+  while ( in.good() && iline<nBins) {
+    in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> y[0] >> y[1] >> y[2] >> y[3] >> y[4] >> y[5];
+    adV2_syst[iline]      = y[1];
+
+    cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
+    cout <<"v2= "<< y[0] << "\t syst_error= "<< y[1] <<endl;
+    iline++;
+  }
+  in.close();
+
+  //--------------------------------------------------------
+
   if(bDoDebug)
   {
     for(int ib=0; ib<nBins; ib++) cout<<"Bin "<<ib<<"\t adXaxis: "<< adXaxis[ib]<<"\t v2= "<<adV2[ib]<<endl;
   }
   // high-pt
   TGraphErrors *pgV2          = new TGraphErrors(nBins, adXaxis, adV2, adV2_stat, adV2_stat);
-  TGraphAsymmErrors *pgV2_sys = new TGraphAsymmErrors(nBins, adXaxis, adV2, adWidth_systBox,adWidth_systBox, adV2_syst, adV2_syst);
+  TGraphErrors *pgV2_sys      = new TGraphErrors(nBins, adXaxis, adV2, adWidth_systBox,adV2_syst);
   TGraphErrors *pgV2_cont     = new TGraphErrors(nBins, adXaxis, adV2, adV2_err0, adV2_err0);
   
   //-------------------------------------------------- Drawing stuff
