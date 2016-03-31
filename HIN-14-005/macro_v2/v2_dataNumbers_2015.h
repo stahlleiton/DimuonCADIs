@@ -58,34 +58,34 @@ const int nCentBins_np = sizeof(centBins_np)/sizeof(double) -1;
 
 // pt axis
 // 2 <pt> bins for high-pt non-prompt
-double adXaxisPt_np[]   = {7.77,13.09};
-double adXaxisPt_np_l[] = {0.7,2.0};
-double adXaxisPt_np_h[] = {2.8,18.0};
+double adXaxisPt_np[]   = {7.8,13.1};
+double adXaxisPt_np_l[] = {1.3,3.1};
+double adXaxisPt_np_h[] = {2.2,16.9};
 // 1 <pt> bins for high-pt non-prompt
-double adXaxisPt_np1[]   = {8.92};// location on x-axis
-double adXaxisPt_np1_l[] = {3.5};// bin width to the left
-double adXaxisPt_np1_h[] = {20.0}; // bin width to the right
+double adXaxisPt_np1[]   = {8.9};// location on x-axis
+double adXaxisPt_np1_l[] = {2.4};// bin width to the left
+double adXaxisPt_np1_h[] = {21.1}; // bin width to the right
 // 3 <pt> bins for high-pt prompt
-double adXaxisPt_pr[]    = {7.16, 8.84, 13.09};// location on x-axis  
-double adXaxisPt_pr_l[]  = {0.7, 0.9,  3.2}; // bin width to the left
-double adXaxisPt_pr_h[]  = {0.8, 1.1, 16.8};// bin width to the right
+double adXaxisPt_pr[]    = {7.2, 8.8, 13.1};// location on x-axis  
+double adXaxisPt_pr_l[]  = {0.7, 0.8,  3.1}; // bin width to the left
+double adXaxisPt_pr_h[]  = {0.8, 1.2, 16.9};// bin width to the right
 
 // 1 <pt> bins for low-pt
-double adXaxis_low[1]         = {4.38}; // bin width to the left
-double adXaxis_low_l[1]       = {1.3}; // bin width to the left
-double adXaxis_low_h[1]       = {2.2};// bin width to the right
+double adXaxis_low[1]         = {4.4}; // bin width to the left
+double adXaxis_low_l[1]       = {1.4}; // bin width to the left
+double adXaxis_low_h[1]       = {2.1};// bin width to the right
 double adWidth_low_systBox[1] = {0.5}; // width of the systm. uncert.
 
 // rapidity axis
 // 2 <|y|> bins for high-pt non-prompt
-double adXaxisY_np[]   = {0.71,1.65};
-double adXaxisY_np_l[] = {0.6,0.6};
-double adXaxisY_np_h[] = {0.6,0.6};
+double adXaxisY_np[]   = {0.7,1.7};
+double adXaxisY_np_l[] = {0.7,0.5};
+double adXaxisY_np_h[] = {0.6,0.7};
 
 // 3 <|y|> bins for high-pt prompt
-double adXaxisY_pr[]    = {0.71, 1.41, 1.86};// location on x-axis  
-double adXaxisY_pr_l[]  = {0.6, 0.2, 0.4}; // bin width to the left
-double adXaxisY_pr_h[]  = {0.6, 0.2, 0.4};// bin width to the right
+double adXaxisY_pr[]    = {0.7, 1.4, 1.9};// location on x-axis  
+double adXaxisY_pr_l[]  = {0.7, 0.2, 0.3}; // bin width to the left
+double adXaxisY_pr_h[]  = {0.5, 0.2, 0.5};// bin width to the right
 
 // cent axis
 double adXaxisCent_pr[]   = {90,187,261,355}; // Npart (60-30, 30-20, 20-10, 10-0)
