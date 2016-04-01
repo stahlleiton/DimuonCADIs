@@ -38,7 +38,7 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #endif
 
 void v2_cent_plotter(
-		     int jpsiCategory      = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+		     int jpsiCategory      = 1, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
 		     string nDphiBins      = "4",
 		     const char* outputDir = "output", 
 		     const char* inputDir  = "outputNumbers",// where phi and v2 numbers are (root, and txt format)
@@ -60,7 +60,7 @@ void v2_cent_plotter(
   const char* v2InFileDirs[1] = {
     "histsV2Yields_20160304_v2W_dPhiBins4"
   };
-  const char* legend[4]       = {"","Prompt J/#psi","Non-prompt J/#psi","Background"};
+//  const char* legend[4]       = {"","Prompt J/#psi","Non-prompt J/#psi","Background"}; // This is already defined in v2_dataNumbers_2015.h file
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
  
   // Reminder for TGraphAssymError: gr = new TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);// n,x,y,err_x, err_y

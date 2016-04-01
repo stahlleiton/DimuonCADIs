@@ -39,15 +39,15 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #endif
 
 void v2_pt_plotter(
-		   int jpsiCategory         = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
-		   int npNumBinsHighPt      = 2, // possible number of bins for non-prompt high-pt: 1 or 2
-		   string nDphiBins         = "4",
-		   const char* outputDir    = "output", 
-		   const char* inputDir     = "outputNumbers",// where phi and v2 numbers are (root, and txt format)
-		   const char* inputDirSyst = "../calcSyst_v2/histSyst",// where phi and v2 numbers are (root, and txt format)
-		   bool bDoDebug            = true,
-		   bool bSavePlots          = true
-		    ) {
+       int jpsiCategory         = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+       int npNumBinsHighPt      = 1, // possible number of bins for non-prompt high-pt: 1 or 2
+       string nDphiBins         = "4",
+       const char* outputDir    = "output", 
+       const char* inputDir     = "outputNumbers",// where phi and v2 numbers are (root, and txt format)
+       const char* inputDirSyst = "../calcSyst_v2/histSyst",// where phi and v2 numbers are (root, and txt format)
+       bool bDoDebug            = true,
+       bool bSavePlots          = true
+        ) {
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
 
@@ -62,7 +62,7 @@ void v2_pt_plotter(
 
   // input files: prompt and non-prompt ones
   const char* v2InFileDirs[1] = {"histsV2Yields_20160304_v2W_dPhiBins4"};
-  const char* legend[4]       = {"","Prompt J/#psi","Non-prompt J/#psi","Background"};
+//  const char* legend[4]       = {"","Prompt J/#psi","Non-prompt J/#psi","Background"}; // This is already defined in v2_dataNumbers_2015.h file
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
  
   // Reminder for TGraphAssymError: gr = new TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);// n,x,y,err_x, err_y
@@ -100,7 +100,7 @@ void v2_pt_plotter(
 
       if(npNumBinsHighPt==1)
       {
-	adXaxis[ib]      = adXaxisPt_np1[ib];
+        adXaxis[ib]      = adXaxisPt_np1[ib];
         adXaxis_l[ib]    = adXaxisPt_np1_l[ib];
         adXaxis_h[ib]    = adXaxisPt_np1_h[ib];
       }
@@ -182,7 +182,7 @@ void v2_pt_plotter(
     if(iline==0 ) { adV2_low_syst[iline] = y[1];
     } else {
       if(!(npNumBinsHighPt==1 && jpsiCategory==2) || jpsiCategory!=2 )
-	adV2_syst[iline-1]      = y[1];
+        adV2_syst[iline-1]      = y[1];
     }
 
     cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
@@ -320,13 +320,13 @@ void v2_pt_plotter(
   {
     if(npNumBinsHighPt==1 && jpsiCategory==2) 
       {
-	pc->SaveAs(Form("%s/npr2ptbin/png/v2_%s_%s_nphi%s.png",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));
-	pc->SaveAs(Form("%s/npr2ptbin/pdf/v2_%s_%s_nphi%s.pdf",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));
+        pc->SaveAs(Form("%s/npr2ptbin/png/v2_%s_%s_nphi%s.png",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));
+        pc->SaveAs(Form("%s/npr2ptbin/pdf/v2_%s_%s_nphi%s.pdf",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));
       }
     else
       {
-	pc->SaveAs(Form("%s/png/v2_%s_%s_nphi%s.png",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));
-	pc->SaveAs(Form("%s/pdf/v2_%s_%s_nphi%s.pdf",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));
+        pc->SaveAs(Form("%s/png/v2_%s_%s_nphi%s.png",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));
+        pc->SaveAs(Form("%s/pdf/v2_%s_%s_nphi%s.pdf",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));
       }
   }
 
