@@ -106,6 +106,12 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
       double genpt = tlvgenqq->Pt();
       b_Centrality->GetEntry(ientry); //read only this branch
 
+      // check that the dimuon is inside the analysis bins
+      bool gen_inbin = false;
+      if (fabs(tlvgenqq->Rapidity())<1.6 && tlvgenqq->Pt()>6.5 && tlvgenqq->Pt()<30.) gen_inbin = true;
+      if (fabs(tlvgenqq->Rapidity())>1.6 && fabs(tlvgenqq->Rapidity())<2.4 && tlvgenqq->Pt()>3. && tlvgenqq->Pt()<30.) gen_inbin = true;
+      if (!gen_inbin) continue;
+
       double weight = ispbpb ? fChain->GetWeight()*findNcoll(Centrality) : 1.;
 
       if (fabs(tlvgenqq->Rapidity()) < 1.6) {
@@ -140,6 +146,12 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
          double mass = ((TLorentzVector*) Reco_QQ_4mom->At(i))->M();
          double mass0 = isPsip ? masspsip : massjpsi;
          if (mass<(mass0-massdown) || mass>(mass0+massup)) continue;
+         // check that the dimuon is inside the analysis bins
+         bool rec_inbin = false;
+         TLorentzVector *tlvrecqq = (TLorentzVector*) Reco_QQ_4mom->At(i);
+         if (fabs(tlvrecqq->Rapidity())<1.6 && tlvrecqq->Pt()>6.5 && tlvrecqq->Pt()<30.) rec_inbin = true;
+         if (fabs(tlvrecqq->Rapidity())>1.6 && fabs(tlvrecqq->Rapidity())<2.4 && tlvrecqq->Pt()>3. && tlvrecqq->Pt()<30.) rec_inbin = true;
+         if (!rec_inbin) continue;
          // gen-reco matching
          TLorentzVector *tlvrecpl = (TLorentzVector*) Reco_QQ_mupl_4mom->At(i);
          TLorentzVector *tlvrecmi = (TLorentzVector*) Reco_QQ_mumi_4mom->At(i);
