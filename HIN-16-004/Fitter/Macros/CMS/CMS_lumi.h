@@ -38,9 +38,9 @@ TString lumi_8TeV  = "19.7 fb^{-1}";
 TString lumi_7TeV  = "5.1 fb^{-1}";
 TString lumi_5TeV  = "pPb 34.6 nb^{-1}";
 TString lumi_PbPb2011  = "PbPb 166 #mub^{-1}";
-TString lumi_PbPb2015  = "PbPb ?.? #mub^{-1}";
+TString lumi_PbPb2015  = "PbPb 351 #mub^{-1}";
 TString lumi_pp2013  = "pp 5.4 pb^{-1}";
-TString lumi_pp2015  = "pp ?.? pb^{-1}";
+TString lumi_pp2015  = "pp 27.7 pb^{-1}";
 
 bool drawLogo      = false;
 
