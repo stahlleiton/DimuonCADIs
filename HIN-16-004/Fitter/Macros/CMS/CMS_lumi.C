@@ -115,8 +115,10 @@ CMS_lumi( TPad* pad, int iPeriod, int iPosX, TString label )
     }
   else if (iPeriod==106)
     {
-      lumiText += label;
-      lumiText2 += "";
+      lumiText += lumi_PbPb2015;
+      lumiText += ", ";
+      lumiText += lumi_pp2015;
+      lumiText2 += " #sqrt{s_{NN}} = 5.02 TeV";
     }
    
   cout << lumiText << endl;
