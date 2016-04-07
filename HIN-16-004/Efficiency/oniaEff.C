@@ -23,12 +23,36 @@ const double ctaucutfwd_pp = 0.05;
 const double ctaucutmid_pbpb = 0.03;
 const double ctaucutfwd_pbpb = 0.05;
 
+// pt-dependent ctau cuts
+const double ctaucut_a_mid_pp = 0.010;
+const double ctaucut_a_fwd_pp = 0.013;
+const double ctaucut_a_mid_pbpb = 0.013;
+const double ctaucut_a_fwd_pbpb = 0.015;
+const double ctaucut_b_mid_pp = 0.25;
+const double ctaucut_b_fwd_pp = 0.29;
+const double ctaucut_b_mid_pbpb = 0.22;
+const double ctaucut_b_fwd_pbpb = 0.28;
+
 // other settings
 const double maxdr = 0.03;
 const double massjpsi = 3.096;
 const double masspsip = 3.686;
 const double massdown = 0.25;
 const double massup = 0.15;
+
+// function for ctau cuts
+bool ctaucut(double ctau, double y, double pt, bool ispbpb) {
+   double a=1,b=1;
+   if (ispbpb) {
+      if (fabs(y)<1.6){a=ctaucut_a_mid_pbpb; b=ctaucut_b_mid_pbpb;} 
+      else {a=ctaucut_a_fwd_pbpb; b=ctaucut_b_fwd_pbpb;}
+   } else {
+      if (fabs(y)<1.6){a=ctaucut_a_mid_pp; b=ctaucut_b_mid_pp;} 
+      else {a=ctaucut_a_fwd_pp; b=ctaucut_b_fwd_pp;}
+   }
+
+   return ctau < a + b / pt;
+};
 
 using namespace HI;
 using namespace std;
@@ -78,10 +102,19 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
    TH1F *hnumcut_centfwd = new TH1F("hnumcut_centfwd","hnumcut_centfwd",nbins_centfwd,bins_centfwd);
    TH1F *hnumcut_ptmid = new TH1F("hnumcut_ptmid","hnumcut_ptmid",nbins_ptmid,bins_ptmid);
    TH1F *hnumcut_ptfwd = new TH1F("hnumcut_ptfwd","hnumcut_ptfwd",nbins_ptfwd,bins_ptfwd);
+   TH1F *hnumptdepcut_centmid = new TH1F("hnumptdepcut_centmid","hnumptdepcut_centmid",nbins_centmid,bins_centmid);
+   TH1F *hnumptdepcut_centfwd = new TH1F("hnumptdepcut_centfwd","hnumptdepcut_centfwd",nbins_centfwd,bins_centfwd);
+   TH1F *hnumptdepcut_ptmid = new TH1F("hnumptdepcut_ptmid","hnumptdepcut_ptmid",nbins_ptmid,bins_ptmid);
+   TH1F *hnumptdepcut_ptfwd = new TH1F("hnumptdepcut_ptfwd","hnumptdepcut_ptfwd",nbins_ptfwd,bins_ptfwd);
    TH1F *hden_centmid = new TH1F("hden_centmid","hden_centmid",nbins_centmid,bins_centmid);
    TH1F *hden_centfwd = new TH1F("hden_centfwd","hden_centfwd",nbins_centfwd,bins_centfwd);
    TH1F *hden_ptmid = new TH1F("hden_ptmid","hden_ptmid",nbins_ptmid,bins_ptmid);
    TH1F *hden_ptfwd = new TH1F("hden_ptfwd","hden_ptfwd",nbins_ptfwd,bins_ptfwd);
+
+   // also store more finely binned histos
+   TH1F *hcentfine = new TH1F("hcentfine","hcentfine",200,0,200);
+   TH2F *hnum2d = new TH2F("hnum2d","hnum2d",48,0,2.4,150,0,30);
+   TH2F *hden2d = new TH2F("hden2d","hden2d",48,0,2.4,150,0,30);
 
    Long64_t nbytes = 0, nb = 0;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
@@ -113,6 +146,9 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
       if (!gen_inbin) continue;
 
       double weight = ispbpb ? fChain->GetWeight()*findNcoll(Centrality) : 1.;
+
+      hcentfine->Fill(Centrality,weight);
+      hden2d->Fill(fabs(tlvgenqq->Rapidity()),genpt,weight);
 
       if (fabs(tlvgenqq->Rapidity()) < 1.6) {
          hden_centmid->Fill(Centrality,weight);
@@ -190,15 +226,29 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
          }
       }
 
-      if (!ctaucutok) continue;
-      if (fabs(tlvgenqq->Rapidity()) < 1.6) {
-         hnumcut_centmid->Fill(Centrality,weight);
-         hnumcut_ptmid->Fill(genpt,weight);
-      } else {
-         hnumcut_centfwd->Fill(Centrality,weight);
-         hnumcut_ptfwd->Fill(genpt,weight);
+      if (ctaucutok) {
+         if (fabs(tlvgenqq->Rapidity()) < 1.6) {
+            hnumcut_centmid->Fill(Centrality,weight);
+            hnumcut_ptmid->Fill(genpt,weight);
+         } else {
+            hnumcut_centfwd->Fill(Centrality,weight);
+            hnumcut_ptfwd->Fill(genpt,weight);
+         }
       }
 
+      bool ctauptdepcutok = ctaucut(Reco_QQ_ctau3D[ibestqq], tlvrecqq->Rapidity(), tlvrecqq->Pt(), ispbpb);
+
+      if (ctauptdepcutok) {
+         if (fabs(tlvgenqq->Rapidity()) < 1.6) {
+            hnumptdepcut_centmid->Fill(Centrality,weight);
+            hnumptdepcut_ptmid->Fill(genpt,weight);
+         } else {
+            hnumptdepcut_centfwd->Fill(Centrality,weight);
+            hnumptdepcut_ptfwd->Fill(genpt,weight);
+         }
+      }
+
+      hnum2d->Fill(fabs(tlvrecqq->Rapidity()),tlvrecqq->Pt(),weight);
    } // event loop
 
    f->Write();

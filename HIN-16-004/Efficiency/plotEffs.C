@@ -28,12 +28,13 @@ void plotEffs() {
 
    ofstream file_nocut("files/syst_PbPb_eff_MCstat_nocut.csv");
    ofstream file_ctaucut("files/syst_PbPb_eff_MCstat_ctaucut.csv");
+   ofstream file_ctauptdepcut("files/syst_PbPb_eff_MCstat_ctauptdepcut.csv");
    file_nocut << "MC statistics in efficiency (no ctau cut)" << endl;
-   file_ctaucut << "MC statistics in efficiency (with ctau cut)" << endl;
+   file_ctauptdepcut << "MC statistics in efficiency (with ctau ptdepcut)" << endl;
 
    // first, let's draw simple efficiencies
    // we'll draw on the same plot the efficiencies for prompt and non-prompt J/psi, and psi(2S)
-   // both for pp and pbpb, and both for the pp and centrality dependences, and both for midrapidity and forward rapidities, and both with and without ctau cut (2*2*2*2 = 16 plots)
+   // both for pp and pbpb, and both for the pp and centrality dependences, and both for midrapidity and forward rapidities, and both with and without ctau cut (2*2*2*3 = 24 plots)
 
    TString colltag, deptag, raptag, cuttag;
    for (int icoll=0; icoll<2; icoll++) {
@@ -51,8 +52,10 @@ void plotEffs() {
          for (int irap=0; irap<2; irap++) {
             raptag = (irap==0) ? "mid" : "fwd";
 
-            for (int icut=0; icut<2; icut++) {
-               cuttag = (icut==0) ? "_" : "cut_";
+            for (int icut=0; icut<3; icut++) {
+               if(icut==0) cuttag = "_";
+               else if (icut==1) cuttag = "cut_";
+               else cuttag = "ptdepcut_";
 
                setTDRStyle();
                gStyle->SetEndErrorSize(3);
@@ -120,7 +123,7 @@ void plotEffs() {
 
                   tl.DrawLatex((idep==0) ? 1.5 : 10, 0.9, colltag + TString(", ") 
                         + ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
-                        + ((icut==0) ? "no cut" : "ctau3D cut"));
+                        + ((icut==0) ? "no ctau3D cut" : ((icut==1) ? "cst ctau3D cut" : "pt-dep ctau3D cut")));
 
 
                   c1->SaveAs(cname + ".root");
@@ -211,7 +214,7 @@ void plotEffs() {
                   tleg2->Draw();
 
                   tl.DrawLatex((idep==0) ? 1.5 : 10, 1.4, ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
-                        + ((icut==0) ? "no cut" : "ctau3D cut"));
+                        + ((icut==0) ? "no ctau3D cut" : ((icut==1) ? "cst ctau3D cut" : "pt-dep ctau3D cut")));
 
                   c1->SaveAs(cname + ".root");
                   c1->SaveAs(cname + ".png");
@@ -249,7 +252,7 @@ void plotEffs() {
                   haxes->Draw();
                   hpsi2spbpb->Draw("E1 same");
                   tl.DrawLatex((idep==0) ? 1.5 : 10, 1.4, ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
-                        + ((icut==0) ? "no cut" : "ctau3D cut"));
+                        + ((icut==0) ? "no ctau3D cut" : ((icut==1) ? "cst ctau3D cut" : "pt-dep ctau3D cut")));
                   c1->SaveAs(cname + ".root");
                   c1->SaveAs(cname + ".png");
                   c1->SaveAs(cname + ".pdf");
@@ -270,7 +273,10 @@ void plotEffs() {
                }
 
                // print the uncertainty values to the csv
-               ofstream *file = (icut==0) ? &file_nocut : &file_ctaucut;
+               ofstream *file = NULL;
+               if (icut==0) file = &file_nocut;
+               else if (icut==1) file = &file_ctaucut;
+               else file = &file_ctauptdepcut;
                double rapmin, rapmax, ptmin, ptmax, centmin, centmax, value;
                rapmin = (irap==0) ? 0 : 1.6;
                rapmax = (irap==0) ? 1.6 : 2.4;
@@ -280,7 +286,8 @@ void plotEffs() {
                   for (int ibin=1; ibin<hpsi2spbpb->GetNbinsX()+1; ibin++) {
                      ptmin = hpsi2spbpb->GetXaxis()->GetBinLowEdge(ibin);
                      ptmax = hpsi2spbpb->GetXaxis()->GetBinUpEdge(ibin);
-                     value = hpsi2spbpb->GetBinError(ibin);
+                     // value = hpsi2spbpb->GetBinError(ibin);
+                     value = max(fabs(hpsi2spbpb->GetBinContent(ibin)-1),hpsi2spbpb->GetBinError(ibin));
                      *file << rapmin << ", " << rapmax << ", " << ptmin << ", " << ptmax << ", " << centmin << ", " << centmax << ", " << value << endl;
                   }
                } else if (idep==1) {
