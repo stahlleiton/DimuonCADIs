@@ -74,6 +74,7 @@ typedef struct EvtPar {
 
 typedef struct DiMuonPar {
   MinMax ctau, ctauErr, M, Pt, AbsRap;
+  string ctauCut;
 } DiMuonPar;
 
 typedef struct SiMuonPar {
