@@ -345,6 +345,7 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
   cut.dMuon.ctauErr.Max = 100.0;
   cut.dMuon.ctau.Min = -100.0;   
   cut.dMuon.ctau.Max = 100.0;    
+  cut.dMuon.ctauCut = "";   
   cut.dMuon.M.Min = 2.0; 
   cut.dMuon.M.Max = 5.0;  
   cut.dMuon.AbsRap.Min = 0.0;
