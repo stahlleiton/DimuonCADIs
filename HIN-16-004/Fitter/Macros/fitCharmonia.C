@@ -47,8 +47,8 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
       cut.dMuon.M.Max = 3.5;
     }
     else if ( !incJpsi && incPsi2S) {
-      cut.dMuon.M.Min = 3.4;
-      cut.dMuon.M.Max = 4.2;
+      cut.dMuon.M.Min = 3.0;
+      cut.dMuon.M.Max = 4.1;
     }
     else {
       cut.dMuon.M.Min = 2.2;
@@ -231,16 +231,16 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
 void setCtauCuts(struct KinCuts& cut, bool isPbPb) 
 {
   if (cut.dMuon.AbsRap.Max<=1.6 && isPbPb) {
-    cut.dMuon.ctau.Max = 0.03;
+    cut.dMuon.ctauCut = "( ctau < (0.0134 + (0.216/pt)) )";
   }
   if (cut.dMuon.AbsRap.Min>=1.6 && isPbPb) {
-    cut.dMuon.ctau.Max = 0.05;
+    cut.dMuon.ctauCut = "( ctau < (0.0147 + (0.279/pt)) )";
   }
   if (cut.dMuon.AbsRap.Max<=1.6 && !isPbPb) {
-    cut.dMuon.ctau.Max = 0.03;
+    cut.dMuon.ctauCut = "( ctau < (0.0097 + (0.249/pt)) )";
   }
   if (cut.dMuon.AbsRap.Min>=1.6 && !isPbPb) {
-    cut.dMuon.ctau.Max = 0.05;
+    cut.dMuon.ctauCut = "( ctau < (0.0128 + (0.288/pt)) )";
   }
 };
 
@@ -317,7 +317,8 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut,
   string indMuonMass    = Form("(%.6f < invMass && invMass < %.6f)",       cut.dMuon.M.Min,       cut.dMuon.M.Max);
   string indMuonRap     = Form("(%.6f <= abs(rap) && abs(rap) < %.6f)",    cut.dMuon.AbsRap.Min,  cut.dMuon.AbsRap.Max);
   string indMuonPt      = Form("(%.6f <= pt && pt < %.6f)",                cut.dMuon.Pt.Min,      cut.dMuon.Pt.Max);
-  string indMuonCtau    = Form("(%.6f < ctau && ctau < %.6f)",             cut.dMuon.ctau.Min,    cut.dMuon.ctau.Max);
+  string indMuonCtau    = Form("(%.6f < ctau && ctau < %.6f)",             cut.dMuon.ctau.Min,    cut.dMuon.ctau.Max); 
+  if(cut.dMuon.ctauCut!=""){ indMuonCtau = cut.dMuon.ctauCut; }
   string indMuonCtauErr = Form("(%.6f < ctauErr && ctauErr < %.6f)",       cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max);
   string inCentrality   = Form("(%d <= cent && cent < %d)",                cut.Centrality.Start,  cut.Centrality.End);
 
@@ -369,8 +370,16 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut,
 
   if (label.find("MC")!=std::string::npos)
   {
-    if (cut.dMuon.AbsRap.Min >= 1.6) myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, 3.32);
-    else myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, 3.26);
+    if (label.find("PSI2S")!=std::string::npos)
+    {
+      if (cut.dMuon.AbsRap.Min >= 1.6) myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, 3.95);
+      else myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, 3.85);
+    }
+    else
+    {
+      if (cut.dMuon.AbsRap.Min >= 1.6) myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, 3.32);
+      else myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, 3.26);
+    }
    
   }
   else myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, cut.dMuon.M.Max);
