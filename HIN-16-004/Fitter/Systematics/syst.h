@@ -17,6 +17,13 @@ struct syst {
 
 using namespace std;
 
+vector<TString> fileList_syst(const char* token);
+map<anabin, syst> readSyst(const char* systfile);
+map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name="Total");
+map<anabin, syst> readSyst_all(const char* token, bool doPrintTex=false, const char* texName="Systematics/systs.tex");
+void printTex(vector< map<anabin, syst> > theSysts, const char* texName="Systematics/systs.tex", bool isLastTotal=false);
+map<anabin, vector<syst> > vm2mv(vector< map<anabin,syst> > v);
+
 vector<TString> fileList_syst(const char* token) {
    vector<TString> ans;
 
@@ -81,7 +88,7 @@ map<anabin, syst> readSyst(const char* systfile) {
    return ans;
 };
 
-map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name="total") {
+map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name) {
    map<anabin, syst> ans;
 
    vector< map<anabin, syst> >::const_iterator it;
@@ -101,7 +108,7 @@ map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name=
    return ans;
 };
 
-map<anabin, syst> readSyst_all(const char* token) {
+map<anabin, syst> readSyst_all(const char* token, bool doPrintTex, const char* texName) {
    // token should be PP or PbPb
 
    vector< map<anabin, syst> > systmap_all;
@@ -114,8 +121,87 @@ map<anabin, syst> readSyst_all(const char* token) {
    }
 
    map<anabin,syst> ans = combineSyst(systmap_all,token);
+   systmap_all.push_back(ans);
+
+   if (doPrintTex) printTex(systmap_all, texName, true);
+
    return ans;
+};
+
+void printTex(vector< map<anabin, syst> > theSysts, const char* texName, bool isLastTotal) {
+   unsigned int nsyst = theSysts.size();
+
+   ofstream file(texName);
+   file << "\\begin{tabular}{|ccc|"; 
+   for (unsigned int i=0; i<nsyst; i++) {
+      if (i==nsyst-1) file << "|";
+      file << "c|";
+   }
+   file << "}" << endl;
+   file << "\\hline" << endl;
+   file << "$|y|$ & \\pt & Centrality";
+   for (unsigned int i=0; i<nsyst; i++) file << " & " << theSysts[i].begin()->second.name;
+   file<< "\\\\" << endl;
+   file << "\\hline" << endl;
+
+   anabin oldbin(0,0,0,0,0,0);
+   map<anabin, vector<syst> > themap = vm2mv(theSysts);
+   map<anabin, vector<syst> >::const_iterator itm;
+   for (itm=themap.begin(); itm!=themap.end(); itm++) {
+      vector<syst> v = itm->second;
+      if (v.size() != nsyst) {
+         cout << "Error, not all systematics have the same size. Aborting." << endl;
+         file.close();
+         return;
+      }
+      anabin thebin = itm->first;
+      if (thebin.rapbin() == oldbin.rapbin()) {
+         file << " - ";
+      } else {
+         if (itm != themap.begin()) file << "\\hline" << endl;
+         file.precision(1); file.setf(ios::fixed);
+         file << thebin.rapbin().low() << " $< |y| < $ " << thebin.rapbin().high();
+      }
+      file << " & ";
+      if (thebin.ptbin() == oldbin.ptbin()) {
+         file << " - ";
+      } else {
+         file.precision(1); file.setf(ios::fixed);
+         file << thebin.ptbin().low() << " $< \\pt < $ " << thebin.ptbin().high();
+      }
+      file << " & ";
+      file.unsetf(ios::fixed);
+      file << thebin.centbin().low()/2 << "-" << thebin.centbin().high()/2 << "\\% ";
+      file.precision(2);
+      file.setf(ios::fixed);
+
+      for (unsigned int i=0; i<nsyst; i++) {
+         file << " & " << 100.*v[i].value;
+      }
+      file << " \\\\" << endl;
+
+      oldbin = thebin;
+   }
+
+   file << "\\end{tabular}" << endl;
+   file.close();
+   cout << "Closed " << texName << endl;
 }
 
+map<anabin, vector<syst> > vm2mv(vector< map<anabin,syst> > v) {
+   map<anabin, vector<syst> > ans;
+
+   vector<map<anabin,syst> >::const_iterator itv;
+   map<anabin,syst>::const_iterator itm;
+   for (itv=v.begin(); itv!=v.end(); itv++) {
+      for (itm=itv->begin(); itm!=itv->end(); itm++) {
+         anabin thebin = itm->first;
+         if (ans.find(thebin)==ans.end()) ans[thebin] = vector<syst>();
+         ans[thebin].push_back(itm->second);
+      }
+   }
+
+   return ans;
+}
 
 #endif // ifndef syst_h

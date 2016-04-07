@@ -28,7 +28,7 @@ using namespace std;
 // PARAMETERS //
 ////////////////
 
-const char* ylabel = "(#Psi(2S)/J/#Psi)_{PbPb} / (#Psi(2S)/J/#Psi)_{pp}";
+const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
 const char* poiname = "RFrac2Svs1S";
 const bool  doratio = true; // true -> look for separate PP and PbPb files, false -> input files are with simultaneous pp-PbPb fits
 
@@ -208,6 +208,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
             exh = (high-low)/2./2.;
             exl = (high-low)/2./2.;
             // exsyst = !isMB ? 5 : 5./(1.-xfrac);
+            exsyst = exl;
             eysyst = syst_PbPb[thebin].value; // only PbPb syst: the PP one will go to a dedicated box
             // also add
          }
@@ -219,7 +220,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
          theGraphs[*it]->SetPointError(i,exl,exh,eyl,eyh);
          theGraphs_syst[*it]->SetPoint(i,x,y);
          // theGraphs_syst[*it]->SetPointError(i,exsyst,exsyst,eysyst,eysyst);
-         theGraphs_syst[*it]->SetPointError(i,exl,exh,eysyst,eysyst);
+         theGraphs_syst[*it]->SetPointError(i,exsyst,exsyst,eysyst,eysyst);
          cout << x << " " << y << " " << eyl << " " << eyh << " " << eysyst << endl;
 
          // theGraphs[*it]->Sort();
@@ -342,6 +343,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          tg->SetLineColor(kGreen);
          tg_syst->SetFillColorAlpha(kGreen, 0.5);
       }
+      tg->SetMarkerSize(1.5);
 
       if (xaxis=="cent") {
          if (thebin.centbin().low()<=0 && thebin.centbin().high()<=0) padr->cd();
@@ -402,7 +404,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    tleg->Draw();
 
    int iPos = 33;
-   CMS_lumi( (TPad*) gPad, 105, iPos, "PbPb-PP" );
+   CMS_lumi( (TPad*) gPad, 106, iPos, "" );
 
    c1->cd();
    c1->Update();

@@ -29,7 +29,7 @@ using namespace std;
 // will plot the dependence of varname in workDirName, as a function of pt, centrality or rapidity. 
 // collTag should be PP or PbPb. If collTag="", then both PP and PbPb are plotted.
 void plotPt(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, bool isMC=false);
-void plotCent(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, bool isMC=false);
+void plotCent(const char* workDirName, const char* varname, const char* collTag="PbPb", bool plotErr=true, bool isMC=false);
 void plotRap(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, bool isMC=false);
 
 // will plot the dependence of varname as a function to xaxis (=pt, cent or rap) for the file in workDirNames (of the form "dir1,dir2,dir3,...")
@@ -58,7 +58,7 @@ void plotPt(const char* workDirName, const char* varname, const char* collTag, b
    theCats.push_back(anabin(1.6,2.4,3,30,0,200));
 
    TFile *f = new TFile(treeFileName(workDirName,isMC));
-   if (!f) {
+   if (!f || !f->IsOpen()) {
       results2tree(workDirName,isMC);
       f = new TFile(treeFileName(workDirName,isMC));
       if (!f) return;
@@ -144,16 +144,34 @@ void plotRap(const char* workDirName, const char* varname, const char* collTag, 
    TTree *tr = (TTree*) f->Get("fitresults");
    if (!tr) return;
 
-   vector<TGraphErrors*> tg = plotVar(tr, varname, theCats, xaxis, collTag, plotErr);
+   vector<TGraphErrors*> tg;
+   if (string(collTag) != "") tg = plotVar(tr, varname, theCats, xaxis, collTag, plotErr);
+   else {
+      // plot for pp and pbpb and concatenate the results to tg
+      vector<TGraphErrors*> tgpp =  plotVar(tr, varname, theCats, xaxis, "PP", plotErr);
+      vector<TGraphErrors*> tgpbpb =  plotVar(tr, varname, theCats, xaxis, "PbPb", plotErr);
+      tg.insert(tg.end(), tgpp.begin(), tgpp.end());
+      tg.insert(tg.end(), tgpbpb.begin(), tgpbpb.end());
+   }
    vector<string> tags;
+   vector<string> collTags;
+   if (string(collTag) != "") collTags.push_back(collTag);
+   else {
+      collTags.push_back("PP");
+      collTags.push_back("PbPb");
+   }
    vector<anabin>::const_iterator it;
-   for (it=theCats.begin(); it!=theCats.end(); it++) {
-      ostringstream oss;
-      oss.precision(1);
-      oss.setf(ios::fixed);
-      oss << it->rapbin().low() << " < |y| < " << it->rapbin().high() << ", " 
-         << it->ptbin().low() << " < p_{T} < " << it->ptbin().high() << " GeV/c";
-      tags.push_back(oss.str());
+   vector<string>::const_iterator itc;
+   for (itc=collTags.begin(); itc!=collTags.end(); itc++) {
+      for (it=theCats.begin(); it!=theCats.end(); it++) {
+         ostringstream oss;
+         oss.precision(1);
+         oss.setf(ios::fixed);
+         oss << *itc << ": "
+            << it->rapbin().low() << " < |y| < " << it->rapbin().high() << ", " 
+            << it->ptbin().low() << " < p_{T} < " << it->ptbin().high() << " GeV/c";
+         tags.push_back(oss.str());
+      }
    }
    plotGraphs(tg, tags, workDirName);
 }
@@ -251,7 +269,7 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
    }
    haxes->GetYaxis()->SetLimits(valmin, valmax);
    haxes->GetYaxis()->SetRangeUser(valmin, valmax);
-   haxes->GetYaxis()->SetTitleOffset(2);
+   haxes->GetYaxis()->SetTitleOffset(1.4);
    ans->SetHistogram(haxes);
 
    ans->Sort();
@@ -299,6 +317,7 @@ void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* w
       graphs[i]->SetLineColor(1+i);
       graphs[i]->SetMarkerColor(1+i);
       graphs[i]->SetMarkerStyle(20+i);
+      graphs[i]->SetMarkerSize(1.5);
       if (i==0) {
          graphs[i]->Draw("AP");
          haxes = graphs[i]->GetHistogram();
@@ -318,12 +337,18 @@ void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* w
 
    tleg->Draw();
 
+   int iPos = 33;
+   CMS_lumi( (TPad*) gPad, 106, iPos, "" );
+
    string yaxis = haxes->GetYaxis()->GetTitle();
    string xaxis = "rap";
    TString txaxis(haxes->GetXaxis()->GetTitle());
    if (txaxis.Index("Centrality") != kNPOS) xaxis = "cent";
    if (txaxis.Index("p_{T}") != kNPOS) xaxis = "pt";
 
+   c1->cd();
+   c1->Update();
+   c1->RedrawAxis();
    gSystem->mkdir(Form("Output/%s/plot/RESULT/root/", workDirName), kTRUE); 
    c1->SaveAs(Form("Output/%s/plot/RESULT/root/plot_%s_%s_vs_%s.root",workDirName, basename, yaxis.c_str(), xaxis.c_str()));
    gSystem->mkdir(Form("Output/%s/plot/RESULT/png/", workDirName), kTRUE);

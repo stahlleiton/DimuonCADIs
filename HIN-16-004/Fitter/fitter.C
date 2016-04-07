@@ -37,7 +37,7 @@ void fitter(
             bool setLogScale = true,         // Draw plot with log scale
             bool incSS       = false,        // Include Same Sign data
             bool zoomPsi     = false,        // Zoom Psi(2S) peak on extra pad
-            int  nBins       = 54            // Number of bins used for plotting
+            int  nBins       = 46            // Number of bins used for plotting
             ) 
 {
   // -------------------------------------------------------------------------------
