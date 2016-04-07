@@ -29,7 +29,7 @@ using namespace std;
 // will plot the dependence of varname in workDirName, as a function of pt, centrality or rapidity. 
 // collTag should be PP or PbPb. If collTag="", then both PP and PbPb are plotted.
 void plotPt(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, bool isMC=false);
-void plotCent(const char* workDirName, const char* varname, const char* collTag="PbPb", bool plotErr=true, bool isMC=false);
+void plotCent(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, bool isMC=false);
 void plotRap(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, bool isMC=false);
 
 // will plot the dependence of varname as a function to xaxis (=pt, cent or rap) for the file in workDirNames (of the form "dir1,dir2,dir3,...")
@@ -91,7 +91,7 @@ void plotPt(const char* workDirName, const char* varname, const char* collTag, b
          oss.setf(ios::fixed);
          oss << *itc << ": "
             << it->rapbin().low() << " < |y| < " << it->rapbin().high() << ", " 
-            << it->ptbin().low() << " < p_{T} < " << it->ptbin().high() << " GeV/c";
+            << it->centbin().low()/2. << "%-" << it->centbin().high()/2. << "%";
          tags.push_back(oss.str());
       }
    }
@@ -115,16 +115,34 @@ void plotCent(const char* workDirName, const char* varname, const char* collTag,
    TTree *tr = (TTree*) f->Get("fitresults");
    if (!tr) return;
 
-   vector<TGraphErrors*> tg = plotVar(tr, varname, theCats, xaxis, collTag, plotErr);
+   vector<TGraphErrors*> tg;
+   if (string(collTag) != "") tg = plotVar(tr, varname, theCats, xaxis, collTag, plotErr);
+   else {
+      // plot for pp and pbpb and concatenate the results to tg
+      vector<TGraphErrors*> tgpp =  plotVar(tr, varname, theCats, xaxis, "PP", plotErr);
+      vector<TGraphErrors*> tgpbpb =  plotVar(tr, varname, theCats, xaxis, "PbPb", plotErr);
+      tg.insert(tg.end(), tgpp.begin(), tgpp.end());
+      tg.insert(tg.end(), tgpbpb.begin(), tgpbpb.end());
+   }
    vector<string> tags;
+   vector<string> collTags;
+   if (string(collTag) != "") collTags.push_back(collTag);
+   else {
+      collTags.push_back("PP");
+      collTags.push_back("PbPb");
+   }
    vector<anabin>::const_iterator it;
-   for (it=theCats.begin(); it!=theCats.end(); it++) {
-      ostringstream oss;
-      oss.precision(1);
-      oss.setf(ios::fixed);
-      oss << it->rapbin().low() << " < |y| < " << it->rapbin().high() << ", " 
-         << it->centbin().low()/2. << "%-" << it->centbin().high()/2. << "%";
-      tags.push_back(oss.str());
+   vector<string>::const_iterator itc;
+   for (itc=collTags.begin(); itc!=collTags.end(); itc++) {
+      for (it=theCats.begin(); it!=theCats.end(); it++) {
+         ostringstream oss;
+         oss.precision(1);
+         oss.setf(ios::fixed);
+         oss << *itc << ": "
+            << it->rapbin().low() << " < |y| < " << it->rapbin().high() << ", " 
+            << it->ptbin().low() << " < p_{T} < " << it->ptbin().high() << " GeV/c";
+         tags.push_back(oss.str());
+      }
    }
    plotGraphs(tg, tags, workDirName);
 }
@@ -228,6 +246,9 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
    for (int i=0; i<ntr; i++) {
       tr->GetEntry(i);
       anabin trbin(ymin, ymax, ptmin, ptmax, centmin, centmax);
+      // special case of PP and centrality
+      if (collTag=="PP" && xaxis=="cent") trbin = anabin(ymin, ymax, ptmin, ptmax, centmin, -centmax);
+      // general case
       if (!binok(theBin, xaxis, trbin)) continue;
       if (string(collSystem) != collTag) continue;
 
