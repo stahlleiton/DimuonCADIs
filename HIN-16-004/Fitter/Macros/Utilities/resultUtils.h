@@ -211,8 +211,8 @@ void prune(TGraphAsymmErrors *g, TGraphAsymmErrors *gsyst, bool keepshort) {
          if (fabs(xl1-xl2)<1e-3 && !keepshort && xh1<xh2) binok=false;
       } // for i2
       if (!binok) {
-         g->SetPoint(i1,-g->GetX()[i1],g->GetY()[i1]);
-         if (gsyst) gsyst->SetPoint(i1,-gsyst->GetX()[i1],gsyst->GetY()[i1]);
+         g->SetPoint(i1,g->GetX()[i1],-g->GetY()[i1]);
+         if (gsyst) gsyst->SetPoint(i1,gsyst->GetX()[i1],-gsyst->GetY()[i1]);
       }
    } // for i1
 }
@@ -230,7 +230,7 @@ void prune(TGraphErrors *g, bool keepshort) {
          if (fabs(xl1-xl2)<1e-3 && keepshort && xh1>xh2) binok=false;
          if (fabs(xl1-xl2)<1e-3 && !keepshort && xh1<xh2) binok=false;
       } // for i2
-      if (!binok) g->SetPoint(i1,-g->GetX()[i1],g->GetY()[i1]);
+      if (!binok) g->SetPoint(i1,g->GetX()[i1],-g->GetY()[i1]);
    } // for i1
 }
 

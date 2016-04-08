@@ -26,7 +26,7 @@ struct poi {
    float err;
 };
 
-const int nBins = 54;
+const int nBins = 46;
 
 void results2tree(
       const char* workDirName, 
@@ -161,6 +161,9 @@ void results2tree(
             itpoi->err = thevar ? thevar->getError() : 0;
          }
 
+         // delete model;
+         // delete model_bkg;
+         // delete dat;
          delete ws;
          delete f;
       } else {
