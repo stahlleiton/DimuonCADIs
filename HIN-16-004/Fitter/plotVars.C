@@ -29,7 +29,7 @@ using namespace std;
 // will plot the dependence of varname in workDirName, as a function of pt, centrality or rapidity. 
 // collTag should be PP or PbPb. If collTag="", then both PP and PbPb are plotted.
 void plotPt(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, bool isMC=false);
-void plotCent(const char* workDirName, const char* varname, const char* collTag="PbPb", bool plotErr=true, bool isMC=false);
+void plotCent(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, bool isMC=false);
 void plotRap(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, bool isMC=false);
 
 // will plot the dependence of varname as a function to xaxis (=pt, cent or rap) for the file in workDirNames (of the form "dir1,dir2,dir3,...")
@@ -43,7 +43,7 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
 TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxis, string collTag, bool plotErr=true);
 vector<TGraphErrors*> plotVar(TTree *tr, const char* varname, vector<anabin> theBin, string xaxis, string collTag, bool plotErr=true);
 TGraphErrors* plotVar(const char* filename, const char* varname, anabin theBin, string xaxis, string collTag, bool plotErr=true);
-void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* workDirName, const char* basename="");
+void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* workDirName, string collTag="", const char* basename="");
 
 
 
@@ -91,11 +91,11 @@ void plotPt(const char* workDirName, const char* varname, const char* collTag, b
          oss.setf(ios::fixed);
          oss << *itc << ": "
             << it->rapbin().low() << " < |y| < " << it->rapbin().high() << ", " 
-            << it->ptbin().low() << " < p_{T} < " << it->ptbin().high() << " GeV/c";
+            << it->centbin().low()/2. << "%-" << it->centbin().high()/2. << "%";
          tags.push_back(oss.str());
       }
    }
-   plotGraphs(tg, tags, workDirName);
+   plotGraphs(tg, tags, workDirName, collTag);
 }
 
 void plotCent(const char* workDirName, const char* varname, const char* collTag, bool plotErr, bool isMC) {
@@ -107,36 +107,7 @@ void plotCent(const char* workDirName, const char* varname, const char* collTag,
    theCats.push_back(anabin(1.6,2.4,3,30,0,200));
 
    TFile *f = new TFile(treeFileName(workDirName,isMC));
-   if (!f) {
-      results2tree(workDirName,isMC);
-      f = new TFile(treeFileName(workDirName,isMC));
-      if (!f) return;
-   }
-   TTree *tr = (TTree*) f->Get("fitresults");
-   if (!tr) return;
-
-   vector<TGraphErrors*> tg = plotVar(tr, varname, theCats, xaxis, collTag, plotErr);
-   vector<string> tags;
-   vector<anabin>::const_iterator it;
-   for (it=theCats.begin(); it!=theCats.end(); it++) {
-      ostringstream oss;
-      oss.precision(1);
-      oss.setf(ios::fixed);
-      oss << it->rapbin().low() << " < |y| < " << it->rapbin().high() << ", " 
-         << it->centbin().low()/2. << "%-" << it->centbin().high()/2. << "%";
-      tags.push_back(oss.str());
-   }
-   plotGraphs(tg, tags, workDirName);
-}
-
-void plotRap(const char* workDirName, const char* varname, const char* collTag, bool plotErr, bool isMC) {
-   string xaxis = "rap";
-   vector<anabin> theCats;
-   theCats.push_back(anabin(0,1.6,6.5,30,0,-200));
-   theCats.push_back(anabin(1.6,2.4,3,30,0,-200));
-
-   TFile *f = new TFile(treeFileName(workDirName,isMC));
-   if (!f) {
+   if (!f || !f->IsOpen()) {
       results2tree(workDirName,isMC);
       f = new TFile(treeFileName(workDirName,isMC));
       if (!f) return;
@@ -173,7 +144,54 @@ void plotRap(const char* workDirName, const char* varname, const char* collTag, 
          tags.push_back(oss.str());
       }
    }
-   plotGraphs(tg, tags, workDirName);
+   plotGraphs(tg, tags, workDirName, collTag);
+}
+
+void plotRap(const char* workDirName, const char* varname, const char* collTag, bool plotErr, bool isMC) {
+   string xaxis = "rap";
+   vector<anabin> theCats;
+   theCats.push_back(anabin(0,1.6,6.5,30,0,-200));
+   theCats.push_back(anabin(1.6,2.4,3,30,0,-200));
+
+   TFile *f = new TFile(treeFileName(workDirName,isMC));
+   if (!f || !f->IsOpen()) {
+      results2tree(workDirName,isMC);
+      f = new TFile(treeFileName(workDirName,isMC));
+      if (!f) return;
+   }
+   TTree *tr = (TTree*) f->Get("fitresults");
+   if (!tr) return;
+
+   vector<TGraphErrors*> tg;
+   if (string(collTag) != "") tg = plotVar(tr, varname, theCats, xaxis, collTag, plotErr);
+   else {
+      // plot for pp and pbpb and concatenate the results to tg
+      vector<TGraphErrors*> tgpp =  plotVar(tr, varname, theCats, xaxis, "PP", plotErr);
+      vector<TGraphErrors*> tgpbpb =  plotVar(tr, varname, theCats, xaxis, "PbPb", plotErr);
+      tg.insert(tg.end(), tgpp.begin(), tgpp.end());
+      tg.insert(tg.end(), tgpbpb.begin(), tgpbpb.end());
+   }
+   vector<string> tags;
+   vector<string> collTags;
+   if (string(collTag) != "") collTags.push_back(collTag);
+   else {
+      collTags.push_back("PP");
+      collTags.push_back("PbPb");
+   }
+   vector<anabin>::const_iterator it;
+   vector<string>::const_iterator itc;
+   for (itc=collTags.begin(); itc!=collTags.end(); itc++) {
+      for (it=theCats.begin(); it!=theCats.end(); it++) {
+         ostringstream oss;
+         oss.precision(1);
+         oss.setf(ios::fixed);
+         oss << *itc << ": "
+            << it->rapbin().low() << " < |y| < " << it->rapbin().high() << ", " 
+            << it->ptbin().low() << " < p_{T} < " << it->ptbin().high() << " GeV/c";
+         tags.push_back(oss.str());
+      }
+   }
+   plotGraphs(tg, tags, workDirName, collTag);
 }
 
 void plotFiles(const char* workDirNames, const char* varname, const char* xaxis, float rapmin, float rapmax, float ptmin, float ptmax, int centmin, int centmax, 
@@ -200,7 +218,7 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
    ostringstream oss; oss.precision(0); oss.setf(ios::fixed);
    oss << collTag << "_pt" << ptmin*10. << ptmax*10. << "_rap" << rapmin*10. << rapmax*10. << "_cent" << centmin << centmax;
 
-   if (tg.size()>0) plotGraphs(tg, tags, tags[0].c_str(), oss.str().c_str());
+   if (tg.size()>0) plotGraphs(tg, tags, tags[0].c_str(), collTag, oss.str().c_str());
 }
 
 TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxis, string collTag, bool plotErr) {
@@ -208,6 +226,7 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
    vector<double> x, ex, y, ey;
    float ptmin, ptmax, ymin, ymax, centmin, centmax;
    float val, val_err=0;
+   int ival=-999;
    float valmax=0, valmin=0;
    char collSystem[5];
    tr->SetBranchAddress("ptmin",&ptmin);
@@ -218,6 +237,8 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
    tr->SetBranchAddress("centmax",&centmax);
    if (string(varname)=="nll" || string(varname)=="chi2" || string(varname)=="normchi2") {
       tr->SetBranchAddress(varname,&val);
+   } else if (string(varname).find("npar") != string::npos) {
+      tr->SetBranchAddress(varname,&ival);
    } else {
       tr->SetBranchAddress(Form("%s_val",varname),&val);
    }
@@ -227,7 +248,14 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
    int ntr = tr->GetEntries();
    for (int i=0; i<ntr; i++) {
       tr->GetEntry(i);
+
+      // special case of npar
+      if (ival>=0) val=ival;
+
       anabin trbin(ymin, ymax, ptmin, ptmax, centmin, centmax);
+      // special case of PP and centrality
+      if (collTag=="PP" && xaxis=="cent") trbin = anabin(ymin, ymax, ptmin, ptmax, centmin, -centmax);
+      // general case
       if (!binok(theBin, xaxis, trbin)) continue;
       if (string(collSystem) != collTag) continue;
 
@@ -259,6 +287,10 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
    TString gname = "gr_" + name;
    TGraphErrors *ans = new TGraphErrors(n, x.data(), y.data(), ex.data(), ey.data());
    ans->SetName(gname);
+   
+   // if plotting vs. centrality, do not plot wide bins
+   prune(ans);
+
    TH1F *haxes=NULL;
    if (xaxis=="pt") {
       haxes = new TH1F(hname,Form(";p_{T} (GeV/c);%s",varname),1,0,30);
@@ -296,7 +328,7 @@ TGraphErrors* plotVar(const char* filename, const char* varname, anabin theBin, 
    return plotVar(tr, varname, theBin, xaxis, collTag, plotErr);
 }
 
-void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* workDirName, const char* basename) {
+void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* workDirName, string collTag, const char* basename) {
    if (graphs.size() != tags.size()) {
       cout << "Different number of graphs and legends" << endl;
       return;
@@ -338,7 +370,10 @@ void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* w
    tleg->Draw();
 
    int iPos = 33;
-   CMS_lumi( (TPad*) gPad, 106, iPos, "" );
+   int ilumi = 106;
+   if (collTag=="PP") ilumi = 107;
+   if (collTag=="PbPb") ilumi = 108;
+   CMS_lumi( (TPad*) gPad, ilumi, iPos, "" );
 
    string yaxis = haxes->GetYaxis()->GetTitle();
    string xaxis = "rap";
