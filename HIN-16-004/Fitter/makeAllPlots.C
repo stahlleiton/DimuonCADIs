@@ -81,14 +81,27 @@ void makeAllPlots(const char* nominalDir, const char* systDirs="") {
 
    // we're done! and now, a script so that everything is in the right place
    cout << "We're done! Let's copy everything to the note now." << endl << endl << endl;
-   cout << "### Copy the lines below to a script" << endl << endl;
+   cout << "### Copy the lines below to a script ###" << endl << endl;
    cout << "#!/bin/bash" << endl << endl;
    cout << "# settings" << endl;
-   cout << "basedir=" << gSystem->pwd() << "/" << nominalDir << "/" << endl;
-   cout << "notdir=/path/to/the/notes/notes/AN-16-067/trunk/" << endl << endl;
+   cout << "basedir=" << gSystem->pwd() << "/" << endl;
+   cout << "notedir=/path/to/the/notes/notes/AN-16-067/trunk/" << endl << endl;
+
    // copy stuff...
+   cout << "cp $basedir/Systematics/tex/*tex $notedir/tables" << endl;
+   cout << "cp $basedir/Output/" << nominalDir << "/plot/RESULT/pdf/*pdf $notedir/figures/Results" << endl;
+   cout << "cp $basedir/Output/" << nominalDir << "/tex/*tex $notedir/tables/Results" << endl;
+   TString workDirNamesStr(systDirs);
+   TString workDirName; Int_t from = 0;
+   while (workDirNamesStr.Tokenize(workDirName, from , ",")) {
+      cout << "mkdir -p $notedir/figures/Results/" << workDirName.Data() << " $notedir/tables/Results/" << workDirName.Data() << endl;
+      cout << "cp $basedir/Output/" << workDirName.Data() << "/plot/RESULT/pdf/*pdf $notedir/figures/Results/" << workDirName.Data() << endl;
+      cout << "cp $basedir/Output/" << workDirName.Data() << "/tex/*tex $notedir/tables/Results/" << workDirName.Data() << endl;
+   }
+
+   cout << endl;
    cout << "echo \"Done copying files. Now do:\"" << endl;
-   cout << "echo \"cd  $basedir\"" << endl;
+   cout << "echo \"cd  $notedir\"" << endl;
    cout << "echo \"cd ../../..\"" << endl;
    cout << "echo \"eval `notes/tdr runtime -sh`\"" << endl;
    cout << "echo \"cd -\"" << endl;
@@ -96,5 +109,5 @@ void makeAllPlots(const char* nominalDir, const char* systDirs="") {
    cout << "echo \"cp ../../tmp/AN-16-067_temp.pdf AN-16-067.pdf\"" << endl;
    cout << "echo \"svn commit\"" << endl;
    cout << "echo \"# freeze note; get approved; publish\"" << endl << endl;
-   cout << "### Copy the lines above to a script" << endl;
+   cout << "### Copy the lines above to a script ###" << endl;
 }
