@@ -1,5 +1,7 @@
 // a macro that simply extracts the ratio of Psi2S/Jpsi from a list of files containing fit results
 
+#include "TSystem.h"
+#include "TROOT.h"
 #include "TFile.h"
 #include "TMath.h"
 #include "RooWorkspace.h"
@@ -34,10 +36,11 @@ typedef set<model_t> setModels_t;
 
 
 
-vector<string> printNLL(map< string, setModels_t > content, string dirPath, string type, string dirLabel) ;
+vector<string> printNLL(map< string, setModels_t > content, string outputDir, string type, string dirLabel) ;
 void setLines(vector<string>& strLin, vector<string> lin); 
 void printLines(vector<string> strLin, ofstream& fout); 
 bool findFiles(string dirPath, vector<string>& fileNames); 
+bool existDir(string dir);
 void splitString(string stringOriginal, const string Key, string& stringWithoutKey, string& stringWithKey); 
 bool readFiles(string dirPath, vector<string> fileNames, map<string, setModels_t>& content, string type);
 bool extractNLL(string fileName, model_t& value) ;
@@ -59,26 +62,46 @@ void printLLRStudy(
   map<string, setModels_t> content;
   if (!readFiles(dirPath, fileNames, content, type)) { return; }
 
+  string plotDir = Form("./Output/%s/plot/DATA/", dirLabel.c_str());
+  string outputDir = Form("./Output/%s/LLR/DATA/", dirLabel.c_str());
+  if (existDir(outputDir)==false){ 
+    cout << "[INFO] Output directory: " << outputDir << " does not exist, will create it!" << endl;  
+    if (existDir(outputDir)==false){ gSystem->mkdir(outputDir.c_str(), kTRUE); }
+    if (existDir(outputDir+"pdf/")==false) { gSystem->mkdir((outputDir+"pdf/").c_str(), kTRUE);  }
+    if (existDir(outputDir+"png/")==false) { gSystem->mkdir((outputDir+"png/").c_str(), kTRUE);  }
+    if (existDir(outputDir+"root/")==false){ gSystem->mkdir((outputDir+"root/").c_str(), kTRUE); }
+    if (existDir(outputDir+"tex/")==false) { gSystem->mkdir((outputDir+"tex/").c_str(), kTRUE);  }
+  }
+
   // Loop over each kinematic bin and compute the LLR/AIC tests
-  vector<string> bestModelFiles = printNLL(content, dirPath, type, dirLabel); 
+  vector<string> bestModelFiles = printNLL(content, outputDir, type, dirLabel); 
   
   cout << "[INFO] " << ((type=="Bkg")?"Background":"Signal") << " Study summary file done!" << endl; 
     
   cout << "The files for the best models are: " << endl;
   for (vector<string>::iterator it = bestModelFiles.begin(); it != bestModelFiles.end(); it++) {
      cout << *it << endl;
+ 
+     string bestModelFile = *it;
+     bestModelFile.erase(bestModelFile.find(".root"), bestModelFile.size());
+
+     gSystem->CopyFile((dirPath+bestModelFile+".root").c_str(), (outputDir+"root/"+bestModelFile+".root").c_str());
+ 
+     bestModelFile.erase(0, bestModelFile.find("FIT_")+ string("FIT_").length());
+     gSystem->CopyFile((plotDir+"pdf/"+bestModelFile+".pdf").c_str(), (outputDir+"pdf/"+bestModelFile+".pdf").c_str());
+     gSystem->CopyFile((plotDir+"png/"+bestModelFile+".png").c_str(), (outputDir+"png/"+bestModelFile+".png").c_str());
   }
 
 };
 
 
-vector<string> printNLL(map< string, setModels_t > content, string dirPath, string type, string dirLabel) 
+vector<string> printNLL(map< string, setModels_t > content, string outputDir, string type, string dirLabel) 
 { 
   vector<string> ans;
 
-  string outputFile = Form("%s/../LLRTest_%s.txt",dirPath.c_str(), type.c_str());
+  string outputFile = Form("%s/LLRTest_%s.txt", outputDir.c_str(), type.c_str());
   ofstream fout( outputFile );
-  string outputFileTexTable = Form("%s/../LLRTest_%s_TexTables.txt",dirPath.c_str(), type.c_str());
+  string outputFileTexTable = Form("%s/tex/LLRTest_%s_TexTables.txt", outputDir.c_str(), type.c_str());
   ofstream foutTexTable( outputFileTexTable );
   map< string, setModels_t>::iterator contIt;
 
@@ -345,6 +368,17 @@ bool extractNLL(string fileName, model_t& value)
   return true;
 }
 
+
+bool existDir(string dir)
+{
+  bool exist = false;
+  void * dirp = gSystem->OpenDirectory(dir.c_str());
+  if (dirp){
+    gSystem->FreeDirectory(dirp);
+    exist = true;
+  }
+  return exist;
+};
 
 
 bool readFiles(string dirPath, vector<string> fileNames, map<string, setModels_t>& content, string type)
