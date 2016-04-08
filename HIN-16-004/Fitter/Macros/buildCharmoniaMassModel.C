@@ -945,22 +945,22 @@ void setDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEn
   }
   else if (parIni[Form("Model_Bkg_%s",(isPbPb?"PbPb":"PP"))].find("Chebychev")!=std::string::npos) {
     if (parIni.count(Form("lambda1_Bkg_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("lambda1_Bkg_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-      parIni[Form("lambda1_Bkg_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("lambda1_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.0, -1.0, 1.0);
+      parIni[Form("lambda1_Bkg_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("lambda1_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.0, -2.0, 2.0);
     }
     if (parIni.count(Form("lambda2_Bkg_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("lambda2_Bkg_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-      parIni[Form("lambda2_Bkg_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("lambda2_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.0, -1.0, 1.0);
+      parIni[Form("lambda2_Bkg_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("lambda2_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.0, -2.0, 2.0);
     }
     if (parIni.count(Form("lambda3_Bkg_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("lambda3_Bkg_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-      parIni[Form("lambda3_Bkg_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("lambda3_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.0, -1.0, 1.0);
+      parIni[Form("lambda3_Bkg_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("lambda3_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.0, -2.0, 2.0);
     }
     if (parIni.count(Form("lambda4_Bkg_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("lambda4_Bkg_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-      parIni[Form("lambda4_Bkg_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("lambda4_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.0, -1.0, 1.0);
+      parIni[Form("lambda4_Bkg_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("lambda4_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.0, -2.0, 2.0);
     }
     if (parIni.count(Form("lambda5_Bkg_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("lambda5_Bkg_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-      parIni[Form("lambda5_Bkg_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("lambda5_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.0, -1.0, 1.0);
+      parIni[Form("lambda5_Bkg_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("lambda5_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.0, -2.0, 2.0);
     }
     if (parIni.count(Form("lambda6_Bkg_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("lambda6_Bkg_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-      parIni[Form("lambda6_Bkg_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("lambda6_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.0, -1.0, 1.0);
+      parIni[Form("lambda6_Bkg_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("lambda6_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.0, -2.0, 2.0);
     }
   } 
   else if (parIni[Form("Model_Bkg_%s",(isPbPb?"PbPb":"PP"))].find("Exponential")!=std::string::npos) {
