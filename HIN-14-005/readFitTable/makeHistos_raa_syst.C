@@ -33,7 +33,7 @@ The output root files of this macro, wich contains the histograms with the yield
 #include <TGraphAsymmErrors.h>
 #include <TGraphErrors.h>
 #include "Riostream.h"
-#include "dataBinning_2015.h"
+#include "../macro_raa/dataBinning_2015.h"
 
 void makeHistos_raa_syst(int sample   = 0,// 0=PbPb,     1= pp
                          int varStart = 0,// the variations to read; all listed in 'whichVariation' array
@@ -41,7 +41,7 @@ void makeHistos_raa_syst(int sample   = 0,// 0=PbPb,     1= pp
                         ) 
 {
   const char* whichSample[2]              = {"20160304_PbPb",      "20160304_pp"};
-  const int nVariations = 7; 
+  const int nVariations = 6; 
   const char* whichVariation[nVariations] = {"MLAR","const","polFunct","resOpt2","signalCB3WN","weighted_prof"};
 
   const char* outputHistDataFile[1] = {"histsRaaYields"};

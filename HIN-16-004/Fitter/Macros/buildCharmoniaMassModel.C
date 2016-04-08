@@ -683,8 +683,8 @@ bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<st
       if (!( 
             parIni.count(Form("m_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) && 
             parIni.count(Form("sigma1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) && 
-            parIni.count(Form("alpha_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) && 
-            parIni.count(Form("n_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) 
+            parIni.count(Form("alpha_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) &&
+            parIni.count(Form("n_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))
              )) {
 	cout << Form("[ERROR] Initial parameters where not found for %s Single Crystal Ball Model in %s", object.c_str(), (isPbPb?"PbPb":"PP")) << endl; return false; 
       }
@@ -718,7 +718,9 @@ bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<st
               parIni.count(Form("sigma1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) &&
               parIni.count(Form("sigma2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) &&
               parIni.count(Form("alpha_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) &&
+              parIni.count(Form("alpha2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) &&
               parIni.count(Form("n_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) &&
+              parIni.count(Form("n2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) &&
               parIni.count(Form("f_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))
               )) {
           cout << Form("[ERROR] Initial parameters where not found for %s Double Crystal Ball Model in %s", object.c_str(), (isPbPb?"PbPb":"PP")) << endl; return false;
@@ -729,7 +731,9 @@ bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<st
       ws.factory( parIni[Form("m_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() );
       ws.factory( parIni[Form("sigma1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() );
       ws.factory( parIni[Form("alpha_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() );
+      ws.factory( parIni[Form("alpha2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() );
       ws.factory( parIni[Form("n_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() );
+      ws.factory( parIni[Form("n2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() );
       ws.factory( parIni[Form("sigma2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() );
 
       // create the two PDFs
@@ -742,8 +746,8 @@ bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<st
       ws.factory(Form("CBShape::%s(%s, %s, %s, %s, %s)", Form("pdfMASS2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), "invMass", 
                       Form("m_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
                       Form("sigma2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),
-                      Form("alpha_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),
-                      Form("n_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))
+                      Form("alpha2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),
+                      Form("n2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))
                       ));
 
       // Sum the PDFs to get the signal PDF
@@ -767,8 +771,8 @@ bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<st
             parIni.count(Form("m_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) && 
             parIni.count(Form("sigma1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) && 
             parIni.count(Form("sigma2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) && 
-            parIni.count(Form("alpha_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) && 
-            parIni.count(Form("n_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) && 
+            parIni.count(Form("alpha_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) &&
+            parIni.count(Form("n_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) &&
             parIni.count(Form("f_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))  
              )) { 
 	cout << Form("[ERROR] Initial parameters where not found for %s Gaussian and Crystal Ball Model in %s", object.c_str(), (isPbPb?"PbPb":"PP")) << endl; return false;
@@ -896,7 +900,8 @@ void setDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEn
     if (parIni.count(Form("sigma2_Psi2S_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("sigma2_Psi2S_%s", (isPbPb?"PbPb":"PP"))]=="") {
       parIni[Form("sigma2_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("sigma2_Psi2S_%s", (isPbPb?"PbPb":"PP")), 0.04, 0.01, 0.10);
     }
-  } else {
+  }
+  else {
     if (parIni[Form("rSigma21_Psi2S_%s", (isPbPb?"PbPb":"PP"))]=="") {
       parIni[Form("rSigma21_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rSigma21_Psi2S_%s", (isPbPb?"PbPb":"PP")), 2.0, 1.0, 4.0);
     }
@@ -906,14 +911,42 @@ void setDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEn
   if (parIni.count(Form("alpha_Jpsi_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("alpha_Jpsi_%s", (isPbPb?"PbPb":"PP"))]=="") {
     parIni[Form("alpha_Jpsi_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("alpha_Jpsi_%s", (isPbPb?"PbPb":"PP")), 2.0, 0.5, 30.0);
   }
+  if (parIni.count(Form("alpha2_Jpsi_%s", (isPbPb?"PbPb":"PP")))==0) {
+    parIni[Form("alpha2_Jpsi_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0',{%s})", Form("alpha2_Jpsi_%s", (isPbPb?"PbPb":"PP")), parIni[Form("alpha_Jpsi_%s", (isPbPb?"PbPb":"PP"))].c_str());
+  }
+  else if (parIni[Form("alpha2_Jpsi_%s", (isPbPb?"PbPb":"PP"))]=="")
+  {
+    parIni[Form("alpha2_Jpsi_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("alpha2_Jpsi_%s", (isPbPb?"PbPb":"PP")), 2.0, 0.5, 30.0);
+  }
   if (parIni.count(Form("alpha_Psi2S_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("alpha_Psi2S_%s", (isPbPb?"PbPb":"PP"))]=="") {
     parIni[Form("alpha_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("alpha_Psi2S_%s", (isPbPb?"PbPb":"PP")), 2.0, 0.5, 30.0);
+  }
+  if (parIni.count(Form("alpha2_Psi2S_%s", (isPbPb?"PbPb":"PP")))==0) {
+    parIni[Form("alpha2_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0',{%s})", Form("alpha2_Psi2S_%s", (isPbPb?"PbPb":"PP")), parIni[Form("alpha_Psi2S_%s", (isPbPb?"PbPb":"PP"))].c_str());
+  }
+  else if (parIni[Form("alpha2_Psi2S_%s", (isPbPb?"PbPb":"PP"))]=="")
+  {
+    parIni[Form("alpha2_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("alpha2_Psi2S_%s", (isPbPb?"PbPb":"PP")), 2.0, 0.5, 30.0);
   }
   if (parIni.count(Form("n_Jpsi_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("n_Jpsi_%s", (isPbPb?"PbPb":"PP"))]=="") {
     parIni[Form("n_Jpsi_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("n_Jpsi_%s", (isPbPb?"PbPb":"PP")), 1.8, 0.5, 10.0);
   }
+  if (parIni.count(Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP")))==0) {
+    parIni[Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0',{%s})", Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP")), parIni[Form("n_Jpsi_%s", (isPbPb?"PbPb":"PP"))].c_str());
+  }
+  else if (parIni[Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP"))]=="")
+  {
+    parIni[Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP")), 1.8, 0.5, 10.0);
+  }
   if (parIni.count(Form("n_Psi2S_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("n_Psi2S_%s", (isPbPb?"PbPb":"PP"))]=="") {
     parIni[Form("n_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("n_Psi2S_%s", (isPbPb?"PbPb":"PP")), 1.8, 0.5, 10.0);
+  }
+  if (parIni.count(Form("n2_Psi2S_%s", (isPbPb?"PbPb":"PP")))==0) {
+    parIni[Form("n2_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0',{%s})", Form("n2_Psi2S_%s", (isPbPb?"PbPb":"PP")), parIni[Form("n_Psi2S_%s", (isPbPb?"PbPb":"PP"))].c_str());
+  }
+  else if (parIni[Form("n2_Psi2S_%s", (isPbPb?"PbPb":"PP"))]=="")
+  {
+        parIni[Form("n2_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("n2_Psi2S_%s", (isPbPb?"PbPb":"PP")), 1.8, 0.5, 10.0);
   }
   if (parIni.count(Form("f_Jpsi_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("f_Jpsi_%s", (isPbPb?"PbPb":"PP"))]=="") {
     parIni[Form("f_Jpsi_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("f_Jpsi_%s", (isPbPb?"PbPb":"PP")), 0.5, 0.0, 1.0);

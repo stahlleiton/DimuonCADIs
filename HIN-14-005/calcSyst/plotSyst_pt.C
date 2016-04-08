@@ -85,47 +85,35 @@ void plotSyst_pt( bool bSavePlots       = 1,
   f4->GetYaxis()->SetRangeUser(-10,10);
   f4->GetXaxis()->CenterTitle(kTRUE);
   f4->GetXaxis()->SetRangeUser(6.5,30);
-
-
-  // possible legends
-  TLegend *leg1 = new TLegend(0.65,0.52,0.8,0.65);
-  leg1->SetFillStyle(0);
-  leg1->SetFillColor(0);
-  leg1->SetBorderSize(0);
-  leg1->SetMargin(0.2);
-  leg1->SetTextSize(0.04);
-  //leg11a->AddEntry(gPrJpsiSyst,"|y|<2.4","f");
-  //  leg11b->AddEntry(gNonPrJpsiSyst_pt365y1624,"1.6<|y|<2.4","f");
- // leg22a->AddEntry(gNonPrJpsiSyst_mb,"|y|<2.4","f");
-
-
-
+ 
   //---------------------------------------------
   for(int ih=0; ih<nInHist;ih++)// for each kinematic range
     { 
+      f4->GetYaxis()->SetRangeUser(-10,10);
         //---------------- laex and shit
-      TLatex *ly     = new TLatex(20.0,-8,"|y| < 2.4");
+      TLatex *ly     = new TLatex(20.0,-8.5,"|y| < 2.4");
       ly->SetTextFont(42);
       ly->SetTextSize(0.05);
-      TLatex *lcent = new TLatex(20,-6,"Cent. 0-100%");
+      TLatex *lcent = new TLatex(20,-7,"Cent. 0-100%");
       lcent->SetTextFont(42);
       lcent->SetTextSize(0.05);
 
-      TLatex *lPr = new TLatex(20,-4,"Prompt J/#psi");
+      TLatex *lPr = new TLatex(7,8,"Prompt J/#psi");
       lPr->SetTextFont(42);
       lPr->SetTextSize(0.05);
       
-      TLatex *lNpr = new TLatex(18,-4,"Non-prompt J/#psi");
+      TLatex *lNpr = new TLatex(7, 8,"Non-prompt J/#psi");
       lNpr->SetTextFont(42);
       lNpr->SetTextSize(0.05);
 
       if(ih==1) 
 	{
 	  f4->GetXaxis()->SetRangeUser(3,6.5);
-	  lPr   = new TLatex(3.3,8,"Prompt J/#psi");
-	  lNpr  = new TLatex(3.3,8,"Non-prompt J/#psi");
-	  lcent = new TLatex(5.,-8,"Cent. 0-100%");
-	  ly    = new TLatex(5.,-9,"1.6 < |y| < 2.4");
+	  f4->GetYaxis()->SetRangeUser(-40,40);
+	  lPr   = new TLatex(3.3,30,"Prompt J/#psi");
+	  lNpr  = new TLatex(3.3,30,"Non-prompt J/#psi");
+	  lcent = new TLatex(5.,-25,"Cent. 0-100%");
+	  ly    = new TLatex(5.,-30,"1.6 < |y| < 2.4");
 
 	}
       if(ih==2) 
@@ -150,7 +138,7 @@ void plotSyst_pt( bool bSavePlots       = 1,
 
 
       // legend for fit variation  
-      TLegend *leg2a = new TLegend(0.6,0.6,0.8,0.9);
+      TLegend *leg2a = new TLegend(0.65,0.6,0.8,0.9);
       leg2a->SetFillStyle(0);
       leg2a->SetFillColor(0);
       leg2a->SetBorderSize(0);
@@ -158,7 +146,7 @@ void plotSyst_pt( bool bSavePlots       = 1,
       leg2a->SetTextSize(0.04);
   
       // legend for rest of variations
-      TLegend *leg2b = new TLegend(0.6,0.65,0.8,0.95);
+      TLegend *leg2b = new TLegend(0.7,0.65,0.8,0.9);
       leg2b->SetFillStyle(0);
       leg2b->SetFillColor(0);
       leg2b->SetBorderSize(0);
@@ -193,9 +181,8 @@ void plotSyst_pt( bool bSavePlots       = 1,
       cout <<"###################################################################"<<endl;
       if(bDoDebug) cout << "################ Kinematic region: " <<yieldHistNames[ih]<<endl;
       // for each source of uncert, calc variation wrt nominal value
-      //  for(int ivar=0; ivar<(nFitVariations+nEff4DVariations+nEffTnPVariation); ivar++)
-      for(int ivar=0; ivar<(nFitVariations+nEff4DVariations); ivar++)
-	{
+      for(int ivar=0; ivar<(nFitVariations+nEff4DVariations+nEffTnPVariation); ivar++)
+    	{
 	  cout <<"@@@@@@@ Variation = " << ivar <<endl; 
 	  char nameFile1[200], nameFile2[200];
 	      
