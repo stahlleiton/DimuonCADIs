@@ -1,10 +1,11 @@
 /*
-Macro to calcualte the systm uncertainties for the Raa vs pt: bin-by-bin and global uncert.
+Macro to calcualte the systm uncertainties for the Raa vs centrality: bin-by-bin and global uncert.
+-- bin-to-bin: aa and pp systm, taa
+-- global: lumi and hf gating and counting (each contribution in the numbersRaaSyst_2015.h file)
 
 Input: root files produced by the readFitTable/makeHisto_raa_syst.C (check there the input file names)
 
 Output: root file with the systm. histograms for Raa vs pT.
-
 */
 
 #if !defined(__CINT__) || defined(__MAKECINT__)
@@ -15,20 +16,19 @@ Output: root file with the systm. histograms for Raa vs pT.
 #include <iomanip>
 
 #include "TROOT.h"
-#include "TSystem.h"
 #include "TStyle.h"
-#include "TMath.h"
-#include "TFile.h"
+#include "TSystem.h"
+
+#include "TBox.h"
 #include "TCanvas.h"
 #include "TF1.h"
-#include "TH1.h"
-#include "TH2.h"
-#include "TH3.h"
+#include "TFile.h"
 #include "TGraphErrors.h"
 #include "TGraphAsymmErrors.h"
-#include "TPaveStats.h"
+#include "TH1.h"
 #include "TLatex.h"
 #include "TLegend.h"
+#include "TMath.h"
 
 #include "../macro_raa/dataBinning_2015.h"
 #include "../macro_raa/filesRaa_2015.h"
@@ -38,10 +38,10 @@ Output: root file with the systm. histograms for Raa vs pT.
 #include "../tdrstyle.C"
 #endif
 
-void plotSyst_pt( bool bSavePlots       = 1,
-                  bool bDoDebug         = 1, // prints numbers, numerator, denominator, to help figure out if things are read properly
-                  const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are
-                  const char* outputDir = "histPlotSyst")// where the output figures will be
+void plotSyst_cent( bool bSavePlots       = 1,
+                    bool bDoDebug         = 0, // prints numbers, numerator, denominator, to help figure out if things are read properly
+                    const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are
+                    const char* outputDir = "histPlotSyst")// where the output figures will be
 {
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
@@ -51,8 +51,8 @@ void plotSyst_pt( bool bSavePlots       = 1,
   // type of available comparisons:
   const char* system[2] = {"aa", "pp"};
 
-  const int nInHist = 4;
-  const char* yieldHistNames[nInHist] = {"pt", "ptLow", "ptLow_mb", "mb"}; // ptLow_mb is MB integrated in, 3-6.5, 6.5-30, and 3-30
+  const int nInHist = 5;
+  const char* yieldHistNames[nInHist] = {"cent", "y1624LowPtCent","y012Cent", "y1216Cent", "y1624Cent"};
 
   // input files: are in the filesRaa_2015.h
   // open the files with yields and do the math
@@ -65,6 +65,50 @@ void plotSyst_pt( bool bSavePlots       = 1,
     return ;
   }
 
+  //---------------------------------------------- DRAWING STUFF ---------------------------
+ //-------------------------------------------
+  TF1 *f4 = new TF1("f4","0",0,400);
+  f4->SetLineWidth(1);
+  f4->GetXaxis()->SetTitle("N_{part}");
+  f4->GetYaxis()->SetTitle(" (nominal-variation)/nominal [%]");
+  f4->GetYaxis()->SetRangeUser(-20,20);
+  f4->GetXaxis()->CenterTitle(kTRUE);
+  f4->GetXaxis()->SetRangeUser(0,400);
+
+  //---------------- general stuff
+  TLatex *lPr = new TLatex(20,15,"Prompt J/#psi");
+  lPr->SetTextFont(42);
+  lPr->SetTextSize(0.05);
+
+  TLatex *lNpr = new TLatex(20,15,"Non-prompt J/#psi");
+  lNpr->SetTextFont(42);
+  lNpr->SetTextSize(0.05);
+
+  TLatex *ly = new TLatex(20.0,-13,"|y| < 2.4");
+  ly->SetTextFont(42);
+  ly->SetTextSize(0.05);
+
+  TLatex *lyfwd = new TLatex(20.0,-13,"1.6 < |y| < 2.4");
+  lyfwd->SetTextFont(42);
+  lyfwd->SetTextSize(0.05);
+
+  TLatex *lymid = new TLatex(20.0,-13,"0 < |y| < 1.2");
+  lymid->SetTextFont(42);
+  lymid->SetTextSize(0.05);
+
+  TLatex *lyinter = new TLatex(20.0,-13,"1.2 < |y| < 1.6");
+  lyinter->SetTextFont(42);
+  lyinter->SetTextSize(0.05);
+
+  TLatex *lptlow = new TLatex(20.0,-18,"3.0 < p_{T} < 6.5 GeV/c");
+  lptlow->SetTextFont(42);
+  lptlow->SetTextSize(0.05);
+
+  TLatex *lpt = new TLatex(20.0,-18,"6.5 < p_{T} < 30 GeV/c");
+  lpt->SetTextFont(42);
+  lpt->SetTextSize(0.05);
+
+  //------------------------------------------------------------------------------------------
   TH1F *phCorr_pr_pp;
   TH1F *phCorr_pr_aa;
 
@@ -76,52 +120,10 @@ void plotSyst_pt( bool bSavePlots       = 1,
 
   TH1F *phCorrVar_npr_pp;
   TH1F *phCorrVar_npr_aa;
- 
-  // ----------------- general drawing area setup
-  //---axes
-  TF1 *f4 = new TF1("f4","0",0,30);
-  f4->SetLineWidth(1);
-  f4->GetXaxis()->SetTitle("p_{T} (GeV/c)");
-  f4->GetYaxis()->SetTitle(" (nominal-variation)/nominal [%]");
-  f4->GetYaxis()->SetRangeUser(-10,10);
-  f4->GetXaxis()->CenterTitle(kTRUE);
-  f4->GetXaxis()->SetRangeUser(6.5,30);
- 
-  //---------------------------------------------
+
   for(int ih=0; ih<nInHist;ih++)// for each kinematic range
+  //  for(int ih=0; ih<1;ih++)// for each kinematic range
   { 
-    f4->GetYaxis()->SetRangeUser(-10,10);
-    //---------------- laex and shit
-    TLatex *ly     = new TLatex(20.0,-8.5,"|y| < 2.4");
-    ly->SetTextFont(42);
-    ly->SetTextSize(0.05);
-    TLatex *lcent = new TLatex(20,-7,"Cent. 0-100%");
-    lcent->SetTextFont(42);
-    lcent->SetTextSize(0.05);
-
-    TLatex *lPr = new TLatex(7,8,"Prompt J/#psi");
-    lPr->SetTextFont(42);
-    lPr->SetTextSize(0.05);
-    
-    TLatex *lNpr = new TLatex(7, 8,"Non-prompt J/#psi");
-    lNpr->SetTextFont(42);
-    lNpr->SetTextSize(0.05);
-
-    if(ih==1) 
-    {
-      f4->GetXaxis()->SetRangeUser(3,6.5);
-      f4->GetYaxis()->SetRangeUser(-40,40);
-      lPr   = new TLatex(3.3,30,"Prompt J/#psi");
-      lNpr  = new TLatex(3.3,30,"Non-prompt J/#psi");
-      lcent = new TLatex(5.,-25,"Cent. 0-100%");
-      ly    = new TLatex(5.,-30,"1.6 < |y| < 2.4");
-
-    }
-    if(ih==2) 
-    {
-      f4->GetXaxis()->SetRangeUser(3,30);
-      ly     = new TLatex(5.,-9,"1.6 < |y| < 2.4");
-    }
     // -------- drawing setting, for each kinematic region
     TCanvas *c1_pp = new TCanvas("c1_pp","c1_pp", 800,1000);
     c1_pp->Divide(2,2);
@@ -136,18 +138,18 @@ void plotSyst_pt( bool bSavePlots       = 1,
     c1_aa->cd(2); f4->Draw();
     c1_aa->cd(3); f4->Draw();
     c1_aa->cd(4); f4->Draw();
-
+    
 
     // legend for fit variation  
-    TLegend *leg2a = new TLegend(0.65,0.6,0.8,0.9);
+    TLegend *leg2a = new TLegend(0.65,0.7,0.8,0.9);
     leg2a->SetFillStyle(0);
     leg2a->SetFillColor(0);
     leg2a->SetBorderSize(0);
     leg2a->SetMargin(0.2);
     leg2a->SetTextSize(0.04);
-
-    // legend for rest of variations
-    TLegend *leg2b = new TLegend(0.7,0.65,0.8,0.9);
+    
+      // legend for rest of variations
+    TLegend *leg2b = new TLegend(0.65,0.15,0.8,0.35);
     leg2b->SetFillStyle(0);
     leg2b->SetFillColor(0);
     leg2b->SetBorderSize(0);
@@ -157,43 +159,40 @@ void plotSyst_pt( bool bSavePlots       = 1,
     //------------------------------------------------------------
     TString hist_pr(Form("phPrp_%s",yieldHistNames[ih]));
     TString hist_npr(Form("phNPrp_%s",yieldHistNames[ih]));
-
-    cout <<"histogram input name: "<< hist_pr<<"\t"<<hist_npr<<endl; 
   
+    cout <<"histogram input name: "<< hist_pr<<"\t"<<hist_npr<<endl; 
+    
     // prompt histos
     phCorr_pr_pp = (TH1F*)fYesWeighFile_pp->Get(hist_pr);
     phCorr_pr_aa = (TH1F*)fYesWeighFile_aa->Get(hist_pr);
-  
+    
     // non-prompt histos
     phCorr_npr_pp = (TH1F*)fYesWeighFile_pp->Get(hist_npr);
     phCorr_npr_aa = (TH1F*)fYesWeighFile_aa->Get(hist_npr);
-  
-    int numBins = 0;
-    if(ih==0) numBins = nBinsPt; // high-pt bins
-    if(ih==1 || ih==2) numBins = nBinsPt3;// mb pt fwd bins; 3-6.5, 6.5-30, 3-30
-    if(ih==3) numBins = nBinsMB;// mb bin=1
-
+    
+    unsigned int numBins = 0;
+    if(ih==0) numBins = nBinsNpart12;
+    if(ih!=0) numBins = nBinsNpart6;      
+   
     double relVar_pr_aa[numBins];
     double relVar_pr_pp[numBins];
-
+  
     double relVar_npr_aa[numBins];
     double relVar_npr_pp[numBins];
-
     cout <<"###################################################################"<<endl;
     if(bDoDebug) cout << "################ Kinematic region: " <<yieldHistNames[ih]<<endl;
     // for each source of uncert, calc variation wrt nominal value
-    for(int ivar=0; ivar<(nFitVariations+nEff4DVariations+nEffTnPVariation); ivar++)
-    {
-      cout <<"@@@@@@@ Variation = " << ivar <<endl; 
+    for(int ivar=0; ivar<(nFitVariations+nEff4DVariations+nEffTnPVariation); ivar++) {
+
       char nameFile1[200], nameFile2[200];
-          
+      
       if(ivar<nFitVariations)
       {
         int ifile = ivar;
         sprintf(nameFile1,Form("%s/%s",inputDir,yieldHistFile_aa_systSgnBkg[ifile]));
         sprintf(nameFile2,Form("%s/%s",inputDir,yieldHistFile_pp_systSgnBkg[ifile]));
       }
-          
+  
       if( (ivar>=nFitVariations) && ivar<(nFitVariations+nEff4DVariations) )
       {
         int ifile = ivar-nFitVariations;
@@ -215,103 +214,83 @@ void plotSyst_pt( bool bSavePlots       = 1,
         cout << "One or more input files are missing" << endl;
         return ;
       }
-          
+      
       // prompt histos
       phCorrVar_pr_pp = (TH1F*)fVar_pp->Get(hist_pr);
       phCorrVar_pr_aa = (TH1F*)fVar_aa->Get(hist_pr);
-          
       phCorrVar_pr_pp->SetDirectory(0);
       phCorrVar_pr_aa->SetDirectory(0);
-          
       // non-prompt histos
       phCorrVar_npr_pp = (TH1F*)fVar_pp->Get(hist_npr);
       phCorrVar_npr_aa = (TH1F*)fVar_aa->Get(hist_npr);
-      
       phCorrVar_npr_pp->SetDirectory(0);
       phCorrVar_npr_aa->SetDirectory(0);
-          
+
       fVar_aa->Close();
       fVar_pp->Close();
-      
-      for(int ibin=1; ibin<=numBins; ibin++)
-      {
+
+      for(unsigned int ibin=1; ibin<=numBins; ibin++) {
+        
         //nominal prompt and non-prompt yield ratios
         const double yield_aa_pr  = phCorr_pr_aa->GetBinContent(ibin);
         const double yield_aa_npr = phCorr_npr_aa->GetBinContent(ibin);
-      
-        const double yield_pp_pr  = phCorr_pr_pp->GetBinContent(ibin);
-        const double yield_pp_npr = phCorr_npr_pp->GetBinContent(ibin);
-    
+          
+        // the pp yields are the same for all centrality bins
+        const double yield_pp_pr  = phCorr_pr_pp->GetBinContent(1);
+        const double yield_pp_npr = phCorr_npr_pp->GetBinContent(1);
+
         if(bDoDebug) cout << "################ Bin " <<ibin << endl
-        << "  Nominal yields are (prompt_aa & nonPr_aa ; prompt_pp & nonPr_pp): " 
-        << yield_aa_pr<<"\t& "<<yield_aa_npr<<"\t; "<<yield_pp_pr<<"\t& "<<yield_pp_npr<<endl;
-    
+              << "  Nominal yields are (prompt_aa & nonPr_aa ; prompt_pp & nonPr_pp): " 
+              << yield_aa_pr<<"\t& "<<yield_aa_npr<<"\t; "<<yield_pp_pr<<"\t& "<<yield_pp_npr<<endl;
+
         double yieldVar_aa_pr  = phCorrVar_pr_aa->GetBinContent(ibin);
         double yieldVar_aa_npr = phCorrVar_npr_aa->GetBinContent(ibin);
-    
-        double yieldVar_pp_pr  = phCorrVar_pr_pp->GetBinContent(ibin);
-        double yieldVar_pp_npr = phCorrVar_npr_pp->GetBinContent(ibin);
-        
-        if(bDoDebug) cout << "+++++++++++ Variation " << ivar << " yields are: "
-        <<yieldVar_aa_pr<<"\t& "<<yieldVar_aa_npr<<"\t;  "<<yieldVar_pp_pr<<"\t& "<<yieldVar_pp_npr<<endl;
-        
-        double relVar_aa_pr = 100*( (yield_aa_pr - yieldVar_aa_pr)/yield_aa_pr );
-        double relVar_pp_pr = 100*( (yield_pp_pr - yieldVar_pp_pr)/yield_pp_pr ); 
-        
-        double relVar_aa_npr = 100*( (yield_aa_npr - yieldVar_aa_npr)/yield_aa_npr );
-        double relVar_pp_npr = 100*( (yield_pp_npr - yieldVar_pp_npr)/yield_pp_npr );
+            
+        // pp values ar ethe same for each centrality, for a given centrality region
+        double yieldVar_pp_pr  = phCorrVar_pr_pp->GetBinContent(1);
+        double yieldVar_pp_npr = phCorrVar_npr_pp->GetBinContent(1);
+            
+        double relVar_aa_pr = 100*(yield_aa_pr - yieldVar_aa_pr)/yield_aa_pr;
+        double relVar_pp_pr = 100*(yield_pp_pr - yieldVar_pp_pr)/yield_pp_pr; 
+
+        double relVar_aa_npr = 100*(yield_aa_npr - yieldVar_aa_npr)/yield_aa_npr;
+        double relVar_pp_npr = 100*(yield_pp_npr - yieldVar_pp_npr)/yield_pp_npr;
 
         if((ivar>=(nFitVariations+nEff4DVariations)) && (ivar < (nFitVariations+nEff4DVariations+nEffTnPVariation)))
         {
           // the TnP and 3D uncertainties, already come as relative uncertainties
           relVar_aa_pr = 100*yieldVar_aa_pr;
           relVar_pp_pr = 100*yieldVar_pp_pr; 
-
+      
           relVar_aa_npr = 100*yieldVar_aa_npr;
           relVar_pp_npr = 100*yieldVar_pp_npr;
+        }
+    
+        relVar_pr_aa[ibin-1]  = relVar_aa_pr;
+        relVar_pr_pp[ibin-1]  = relVar_pp_pr;
+          
+        relVar_npr_aa[ibin-1] = relVar_aa_npr;
+        relVar_npr_pp[ibin-1] = relVar_pp_npr;
 
+        if(bDoDebug) cout << "+++++++++++ Variation " << ivar << " yields are: "
+              <<yieldVar_aa_pr<<"\t& "<<yieldVar_aa_npr<<"\t;  "<<yieldVar_pp_pr<<"\t& "<<yieldVar_pp_npr<<endl;
+        }//loop end: for(int ibin=1; ibin<=numBins; ibin++): 
+  
+        for(unsigned int ib=0; ib<numBins; ib++) {
+          cout << "##### pp prompt relUncert.Vectors["<<ib<<"] = "<< relVar_pr_pp[ib]<<endl;
+          cout << "##### aa prompt relUncert.Vectors["<<ib<<"] = "<< relVar_pr_aa[ib]<<endl;
+          cout << "to be placed at this x: "<<binsPt[ib] <<endl;
         }
 
-        int bin = ibin-1;
-        if (numBins==1) bin = 0;
-
-        relVar_pr_aa[bin]  = relVar_aa_pr;
-        relVar_pr_pp[bin]  = relVar_pp_pr;
-
-        relVar_npr_aa[bin] = relVar_aa_npr;
-        relVar_npr_pp[bin] = relVar_pp_npr;
-      
-      }//loop end: for(int ibin=1; ibin<=numBins; ibin++): 7 for highpt, 3 for low-pt, ...
-      for(int ib=0; ib<numBins; ib++)
-      {
-        cout << "##### pp prompt relUncert.Vectors["<<ib<<"] = "<< relVar_pr_pp[ib]<<endl;
-        cout << "##### aa prompt relUncert.Vectors["<<ib<<"] = "<< relVar_pr_aa[ib]<<endl;
-        cout << "to be placed at this x: "<<binsPt[ib] <<endl;
-      }
+      //------------ Drawing -----
       // high-pt bins
-      TGraph *gPrJpsiSyst_aa;
-      TGraph *gNPrJpsiSyst_aa;
-      TGraph *gPrJpsiSyst_pp;
-      TGraph *gNPrJpsiSyst_pp;
+      TGraph *gPrJpsiSyst_aa  = new TGraph(nBinsNpart12,binsNpart12, relVar_pr_aa);
+      TGraph *gNPrJpsiSyst_aa = new TGraph(nBinsNpart6, binsNpart6, relVar_npr_aa);
+      TGraph *gPrJpsiSyst_pp  = new TGraph(nBinsNpart6, binsNpart6, relVar_pr_pp);
+      TGraph *gNPrJpsiSyst_pp = new TGraph(nBinsNpart6, binsNpart6, relVar_npr_pp);
 
-      // low-pt bins
-      if(ih==1 || ih==2) { // mb pt fwd bins; 3-6.5, 6.5-30, 3-30
-        gPrJpsiSyst_aa  = new TGraph(numBins, binsPt3, relVar_pr_aa);
-        gNPrJpsiSyst_aa = new TGraph(numBins, binsPt3, relVar_npr_aa);
-        gPrJpsiSyst_pp  = new TGraph(numBins, binsPt3, relVar_pr_pp);
-        gNPrJpsiSyst_pp = new TGraph(numBins, binsPt3, relVar_npr_pp); 
-      } else if(ih==3) { //mb
-        gPrJpsiSyst_aa  = new TGraph(numBins, binsPtMB, relVar_pr_aa);
-        gNPrJpsiSyst_aa = new TGraph(numBins, binsPtMB, relVar_npr_aa);
-        gPrJpsiSyst_pp  = new TGraph(numBins, binsPtMB, relVar_pr_pp);
-        gNPrJpsiSyst_pp = new TGraph(numBins, binsPtMB, relVar_npr_pp); 
-      } else {
-        gPrJpsiSyst_aa  = new TGraph(numBins, binsPt, relVar_pr_aa);
-        gNPrJpsiSyst_aa = new TGraph(numBins, binsPt, relVar_npr_aa);
-        gPrJpsiSyst_pp  = new TGraph(numBins, binsPt, relVar_pr_pp);
-        gNPrJpsiSyst_pp = new TGraph(numBins, binsPt, relVar_npr_pp);
-      }
-
+      if(ih>0 ) gPrJpsiSyst_aa  = new TGraph(nBinsNpart6, binsNpart6, relVar_pr_aa);
+     
       //-------------------------------------------------------------------------------------------------------
       // set marker style
       gPrJpsiSyst_aa->SetMarkerStyle(20+ivar);
@@ -324,7 +303,7 @@ void plotSyst_pt( bool bSavePlots       = 1,
       gNPrJpsiSyst_aa->SetMarkerSize(1.2);
       gPrJpsiSyst_pp->SetMarkerSize(1.2);
       gNPrJpsiSyst_pp->SetMarkerSize(1.2);
-
+    
       // fill the pp Canvas
       if(ivar<nFitVariations)
       {  
@@ -359,28 +338,50 @@ void plotSyst_pt( bool bSavePlots       = 1,
       }
       c1_pp->Update();
       c1_aa->Update();
-    }// fit variation ivar (fit, 4dEff, tnp)
 
-    c1_pp->cd(1); lPr->Draw(); lcent->Draw(); ly->Draw(); leg2a->Draw(); c1_pp->Update();
-    c1_aa->cd(1); lPr->Draw(); lcent->Draw(); ly->Draw(); leg2a->Draw(); c1_aa->Update();
+    }// fit variation ivar (fit, 4dEff, tnp)
+    //   const char* yieldHistNames[nInHist] = {"cent", "y1624LowPtCent","y012Cent", "y1216Cent", "y1624Cent"};
+    if(ih==0)
+    {
+      c1_pp->cd(1); lPr->Draw(); lpt->Draw(); ly->Draw(); leg2a->Draw(); c1_pp->Update();
+      c1_aa->cd(1); lPr->Draw(); lpt->Draw(); ly->Draw(); leg2a->Draw(); c1_aa->Update();
+    }
+    if(ih==1)
+    {
+      c1_pp->cd(1); lPr->Draw(); lptlow->Draw(); lyfwd->Draw(); leg2a->Draw(); c1_pp->Update();
+      c1_aa->cd(1); lPr->Draw(); lptlow->Draw(); lyfwd->Draw(); leg2a->Draw(); c1_aa->Update();
+    }
+    if(ih==2)
+    {
+      c1_pp->cd(1); lPr->Draw(); lpt->Draw(); lymid->Draw(); leg2a->Draw(); c1_pp->Update();
+      c1_aa->cd(1); lPr->Draw(); lpt->Draw(); lymid->Draw(); leg2a->Draw(); c1_aa->Update();
+    }
+    if(ih==3)
+    {
+      c1_pp->cd(1); lPr->Draw(); lpt->Draw(); lyinter->Draw(); leg2a->Draw(); c1_pp->Update();
+      c1_aa->cd(1); lPr->Draw(); lpt->Draw(); lyinter->Draw(); leg2a->Draw(); c1_aa->Update();
+    }
+    if(ih==4)
+    {
+      c1_pp->cd(1); lPr->Draw(); lpt->Draw(); lyfwd->Draw(); leg2a->Draw(); c1_pp->Update();
+      c1_aa->cd(1); lPr->Draw(); lpt->Draw(); lyfwd->Draw(); leg2a->Draw(); c1_aa->Update();
+    }
 
     c1_pp->cd(2); leg2b->Draw(); c1_pp->Update();
     c1_aa->cd(2); leg2b->Draw(); c1_aa->Update();
 
     c1_pp->cd(3); lNpr->Draw(); c1_pp->Update();
     c1_aa->cd(3); lNpr->Draw(); c1_aa->Update();
-  
 
     //-------------------------------- save all canvases for each ih kinematic case
     if(bSavePlots)
     {
       c1_pp->SaveAs(Form("%s/pdf/pp_relSystVar_%s.pdf",outputDir,yieldHistNames[ih]));
       c1_pp->SaveAs(Form("%s/png/pp_relSystVar_%s.png",outputDir,yieldHistNames[ih]));
-
+      
       c1_aa->SaveAs(Form("%s/pdf/aa_relSystVar_%s.pdf",outputDir,yieldHistNames[ih]));
       c1_aa->SaveAs(Form("%s/png/aa_relSystVar_%s.png",outputDir,yieldHistNames[ih]));
+      
     }
-
   }//loop end: for(int ih=0; ih<nInHist;ih++) for each kinematic range (high-pt, low=pt, mb, etC)
-  
 }
