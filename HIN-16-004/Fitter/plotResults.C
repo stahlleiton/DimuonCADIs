@@ -356,6 +356,9 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       if (xaxis=="cent") {
          if (thebin.centbin().low()<=0 && thebin.centbin().high()<=0) padr->cd();
          else padl->cd();
+
+         // do not plot wide centrality bins
+         prune(tg, tg_syst);
       }
       tg_syst->Draw("2");      
       tg->Draw("P");      

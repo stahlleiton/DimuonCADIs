@@ -287,6 +287,10 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
    TString gname = "gr_" + name;
    TGraphErrors *ans = new TGraphErrors(n, x.data(), y.data(), ex.data(), ey.data());
    ans->SetName(gname);
+   
+   // if plotting vs. centrality, do not plot wide bins
+   prune(ans);
+
    TH1F *haxes=NULL;
    if (xaxis=="pt") {
       haxes = new TH1F(hname,Form(";p_{T} (GeV/c);%s",varname),1,0,30);
