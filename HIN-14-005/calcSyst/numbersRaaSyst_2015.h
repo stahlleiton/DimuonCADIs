@@ -44,6 +44,19 @@ const char* yieldHistFile_aa_systTnP[nEffTnPVariation] = {
   "histEff_effSyst_201602_pbpb_sta.root"
 };
 
+//------------------
+// legend or systm variation
+const char* legendSyst[] = {
+  "signal_CB3WN",
+  "bkg_polFunct",
+  "signal_resOpt2", 
+  "bFrac_MLAR", 
+  "constrained", 
+  "4DEff_profile", 
+  "3DEff_toy",
+  "TnP_trgMuID", 
+  "TnP_sta" 
+};
 
 // ######################################
 // global uncertainties
