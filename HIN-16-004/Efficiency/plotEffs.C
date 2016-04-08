@@ -30,7 +30,8 @@ void plotEffs() {
    ofstream file_ctaucut("files/syst_PbPb_eff_MCstat_ctaucut.csv");
    ofstream file_ctauptdepcut("files/syst_PbPb_eff_MCstat_ctauptdepcut.csv");
    file_nocut << "MC statistics in efficiency (no ctau cut)" << endl;
-   file_ctauptdepcut << "MC statistics in efficiency (with ctau ptdepcut)" << endl;
+   file_ctaucut << "MC statistics in efficiency (with ctau pt-independent cut)" << endl;
+   file_ctauptdepcut << "MC statistics in efficiency (with ctau pt-dependent cut)" << endl;
 
    // first, let's draw simple efficiencies
    // we'll draw on the same plot the efficiencies for prompt and non-prompt J/psi, and psi(2S)
