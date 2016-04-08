@@ -6,6 +6,7 @@
 #include "TString.h"
 #include "RooRealVar.h"
 #include "TMath.h"
+#include "TSystem.h"
 
 #include <map>
 #include <vector>
@@ -14,7 +15,10 @@
 
 using namespace std;
 
+#ifndef poiname_check
+#define poiname_check
 const char* poiname = "RFrac2Svs1S";
+#endif
 
 //////////////////
 // DECLARATIONS //
@@ -30,7 +34,7 @@ double maxdiff(vector<double> v);
 
 void results2syst(const char* workDirNames, const char* systFileName, const char* systHeader, int method, const char* collTag="") {
 // workDirNames: of the form "dir1,dir2,dir3,..."
-// systFileName: "someDir/syst_blabla.csv"
+// systFileName: "syst_blabla.csv" (do NOT specify the full path, it will be assigned automatically to Systematics/csv/)
 // systHeader: this will be the header of the systematics file. A few words describing what this systematic is.
 // method: 0 -> RMS, 1 -> max difference to the first work dir (= nominal)
 // collTag: can be "PP", "PbPb" or "" (for the ratio PbPb/PP)
@@ -44,7 +48,7 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
    int cnt=0;
    while (workDirNamesStr.Tokenize(workDirName, from , ",")) {
       TFile *f = new TFile(treeFileName(workDirName));
-      if (!f) {
+      if (!f || !f->IsOpen()) {
          results2tree(workDirName);
          f = new TFile(treeFileName(workDirName));
          if (!f) continue;
@@ -103,7 +107,8 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
 
    map<anabin,double> mapsyst;
 
-   ofstream file(systFileName);
+   string fullSystFileName = string("Systematics/csv/") + systFileName;
+   ofstream file(fullSystFileName.c_str());
    file << systHeader << endl;
    map<anabin, vector<double> >::const_iterator it;
    for (it=mapvals.begin(); it!=mapvals.end(); it++) {
@@ -120,11 +125,12 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
       mapsyst[thebin] = value;
    }
    file.close();
-   cout << "Closed " << systFileName << endl << endl;
+   cout << "Closed " << fullSystFileName << endl << endl;
 
    cout << "At last, let's summarize the differences in a TeX table." << endl;
-   string texName(systFileName);
-   myReplace(texName,".csv",".tex");
+   string texName(fullSystFileName);
+   myReplace(texName,"csv","tex");
+   gSystem->mkdir("Systematics/tex", kTRUE); 
    ofstream texfile(texName.c_str());
    texfile << "\\begin{tabular}{|ccc|"; 
    for (unsigned int i=0; i<vnames.size()+1; i++) {

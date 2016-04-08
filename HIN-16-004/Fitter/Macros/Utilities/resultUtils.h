@@ -31,7 +31,7 @@ bool binok(anabin thecat, string xaxis, anabin &tocheck);
 TString treeFileName(const char* workDirName, bool isMC=false);
 
 RooRealVar* poiFromFile(const char* filename, const char* token, const char* thepoiname) {
-   TFile *f = new TFile(filename);
+   TFile *f = TFile::Open(filename);
    if (!f) {
       cout << "Error, file " << filename << " does not exist." << endl;
       return NULL;
@@ -45,7 +45,8 @@ RooRealVar* poiFromFile(const char* filename, const char* token, const char* the
    if (!ans) return NULL;
    TString poiname_and_token = TString(thepoiname) + TString(token);
    RooRealVar* ansc = new RooRealVar(*ans,poiname_and_token + Form("_from_%s",filename));
-   f->Close(); delete f;
+   delete ws;
+   delete f;
    return ansc;
 }
 
@@ -109,7 +110,7 @@ RooRealVar* ratioVar(RooRealVar *num, RooRealVar *den, bool usedenerror) {
 }
 
 anabin binFromFile(const char* filename) {
-   TFile *f = new TFile(filename);
+   TFile *f = TFile::Open(filename);
    if (!f) {
       cout << "Error, file " << filename << " does not exist." << endl;
       return anabin(0,0,0,0,0,0);
@@ -127,7 +128,8 @@ anabin binFromFile(const char* filename) {
       return anabin(0,0,0,0,0,0);
    }
    anabin ans(rap->getMin(),rap->getMax(),pt->getMin(),pt->getMax(),cent->getMin(),cent->getMax());
-   f->Close(); delete f;
+   delete ws;
+   delete f;
    return ans;
 }
 
