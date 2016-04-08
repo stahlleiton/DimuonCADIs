@@ -25,12 +25,12 @@ RooRealVar* poiFromFile(const char* filename, const char* token, const char* the
 RooRealVar* poiFromWS(RooWorkspace* ws, const char* token, const char* thepoiname);
 RooAbsPdf* pdfFromWS(RooWorkspace* ws, const char* token, const char* thepdfname);
 RooAbsData* dataFromWS(RooWorkspace* ws, const char* token, const char* thedataname);
-vector<TString> fileList(const char* input, const char* token="", bool isMC=false);
+vector<TString> fileList(const char* input, const char* token="", const char* DSTag="DATA");
 RooRealVar* ratioVar(RooRealVar *num, RooRealVar *den, bool usedenerror=true);
 anabin binFromFile(const char* filename);
 bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck);
 bool binok(anabin thecat, string xaxis, anabin &tocheck);
-TString treeFileName(const char* workDirName, bool isMC=false);
+TString treeFileName(const char* workDirName, const char* DSTag="DATA");
 void prune(vector<anabin> &v, bool keppshortest=true);
 void prune(TGraphAsymmErrors *g, TGraphAsymmErrors *gsyst=NULL, bool keppshortest=true);
 void prune(TGraphErrors *g, bool keppshortest=true);
@@ -73,11 +73,10 @@ RooAbsData* dataFromWS(RooWorkspace* ws, const char* token, const char* thedatan
    return ans;
 }
 
-vector<TString> fileList(const char* input, const char* token, bool isMC) {
+vector<TString> fileList(const char* input, const char* token, const char* DSTag) {
    vector<TString> ans;
 
-   TString basedir(Form("Output/%s/result/DATA/",input));
-   if (isMC) basedir = TString(Form("Output/%s/result/MC/",input));
+   TString basedir(Form("Output/%s/result/%s/",input, DSTag));
    TSystemDirectory dir(input,basedir);
 
    TList *files = dir.GetListOfFiles();
@@ -168,9 +167,8 @@ bool binok(anabin thecat, string xaxis, anabin &tocheck) {
    return binok(thecats, xaxis, tocheck);
 }
 
-TString treeFileName(const char* workDirName, bool isMC) {
-   TString outputFileName = Form("Output/%s/result/DATA/tree_allvars.root",workDirName);
-   if (isMC) outputFileName = Form("Output/%s/result/MC/tree_allvars.root",workDirName);
+TString treeFileName(const char* workDirName, const char* DSTag) {
+   TString outputFileName = Form("Output/%s/result/%s/tree_allvars.root",workDirName,DSTag);
    return outputFileName;
 }
 

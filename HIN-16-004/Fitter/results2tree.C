@@ -30,13 +30,14 @@ const int nBins = 46;
 
 void results2tree(
       const char* workDirName, 
-      bool isMC=false,
-      const char* thePoiNames="RFrac2Svs1S,N_Jpsi,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5__Bkg,N_Bkg"
+      const char* DSTag="DATA", // Data Set tag can be: "DATA","MCPSI2SP", "MCJPSIP" ...
+      const char* thePoiNames="RFrac2Svs1S,N_Jpsi,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5__Bkg,N_Bkg",
+      bool wantPureSMC=true
       ) {
    // workDirName: usual tag where to look for files in Output
    // thePoiNames: comma-separated list of parameters to store ("par1,par2,par3"). Default: all
 
-   TFile *f = new TFile(treeFileName(workDirName,isMC),"RECREATE");
+   TFile *f = new TFile(treeFileName(workDirName,DSTag),"RECREATE");
    TTree *tr = new TTree("fitresults","fit results");
 
 
@@ -82,7 +83,7 @@ void results2tree(
    }
 
    // list of files
-   vector<TString> theFiles = fileList(workDirName,"",isMC);
+   vector<TString> theFiles = fileList(workDirName,"",DSTag);
 
    int cnt=0;
    for (vector<TString>::const_iterator it=theFiles.begin(); it!=theFiles.end(); it++) {
@@ -124,8 +125,10 @@ void results2tree(
       if (f && ws) {
          // get the model for nll and npar
          RooAbsPdf *model = pdfFromWS(ws, Form("_%s",collSystem), "pdfMASS_Tot");
+
          RooAbsPdf *model_bkg = pdfFromWS(ws, Form("_%s",collSystem), "pdfMASS_Bkg");
-         RooAbsData *dat = dataFromWS(ws, Form("_%s",collSystem), "dOS_DATA");
+          const char* token = (strcmp(DSTag,"DATA") && wantPureSMC) ? Form("_%s_NoBkg",collSystem) : Form("_%s",collSystem);
+         RooAbsData *dat = dataFromWS(ws, token, Form("dOS_%s", DSTag));
          if (dat) {
             if (model) {
                RooAbsReal *NLL = model->createNLL(*dat);
