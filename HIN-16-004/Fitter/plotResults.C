@@ -34,6 +34,7 @@ const char* poiname = "RFrac2Svs1S";
 #endif
 const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
 const bool  doratio = true; // true -> look for separate PP and PbPb files, false -> input files are with simultaneous pp-PbPb fits
+const bool  plot12007 = false;
 
 
 ///////////////
@@ -295,11 +296,13 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       haxesr->GetXaxis()->SetTickLength(0);
       haxesr->GetYaxis()->SetTickLength(gStyle->GetTickLength("Y")/(1.-xfrac));
       haxesr->GetYaxis()->SetRangeUser(0,1.5);
+      if (plot12007) haxesr->GetYaxis()->SetRangeUser(0,3.2);
       haxesr->GetXaxis()->SetTitleSize(0);
       haxesr->GetXaxis()->SetLabelSize(0);
       liner = TLine(0,1,420,1);
    }
    haxes->GetYaxis()->SetRangeUser(0,1.5);
+   if (plot12007) haxes->GetYaxis()->SetRangeUser(0,3.2);
    haxes->GetYaxis()->SetTitle(ylabel);
    const char* xlabel = (xaxis=="pt") ? "p_{T} (GeV/c)" : "N_{part}";
    haxes->GetXaxis()->SetTitle(xlabel);
@@ -409,6 +412,53 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
 
       cnt++;
       it_syst++;
+   }
+
+   // now plot the 12007 if we need to
+   if (plot12007 && xaxis == "cent") {
+      padl->cd();
+      TGraphAsymmErrors *g_12007_mid_cent = result12007_mid_cent();
+      TGraphAsymmErrors *g_12007_mid_cent_syst = result12007_mid_cent_syst();
+      g_12007_mid_cent->SetMarkerStyle(kFullTriangleUp);
+      g_12007_mid_cent->SetMarkerSize(1.5);
+      g_12007_mid_cent->SetMarkerColor(kMagenta);
+      g_12007_mid_cent->SetLineColor(kMagenta);
+      g_12007_mid_cent_syst->SetFillColorAlpha(kMagenta, 0.5);
+      g_12007_mid_cent_syst->Draw("2");
+      g_12007_mid_cent->Draw("P");
+      tleg->AddEntry(g_12007_mid_cent,"0 < |y| < 1.6, 6.5 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
+      TGraphAsymmErrors *g_12007_fwd_cent = result12007_fwd_cent();
+      TGraphAsymmErrors *g_12007_fwd_cent_syst = result12007_fwd_cent_syst();
+      g_12007_fwd_cent->SetMarkerStyle(kFullTriangleDown);
+      g_12007_fwd_cent->SetMarkerSize(1.5);
+      g_12007_fwd_cent->SetMarkerColor(kCyan);
+      g_12007_fwd_cent->SetLineColor(kCyan);
+      g_12007_fwd_cent_syst->SetFillColorAlpha(kCyan, 0.5);
+      g_12007_fwd_cent_syst->Draw("2");
+      g_12007_fwd_cent->Draw("P");
+      tleg->AddEntry(g_12007_fwd_cent,"1.6 < |y| < 2.4, 3 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
+
+      padr->cd();
+      TGraphAsymmErrors *g_12007_mid = result12007_mid();
+      TGraphAsymmErrors *g_12007_mid_syst = result12007_mid_syst();
+      g_12007_mid->SetMarkerStyle(kFullTriangleUp);
+      g_12007_mid->SetMarkerSize(1.5);
+      g_12007_mid->SetMarkerColor(kMagenta);
+      g_12007_mid->SetLineColor(kMagenta);
+      g_12007_mid_syst->SetFillColorAlpha(kMagenta, 0.5);
+      g_12007_mid_syst->Draw("2");
+      g_12007_mid->Draw("P");
+      TGraphAsymmErrors *g_12007_fwd = result12007_fwd();
+      TGraphAsymmErrors *g_12007_fwd_syst = result12007_fwd_syst();
+      g_12007_fwd->SetMarkerStyle(kFullTriangleDown);
+      g_12007_fwd->SetMarkerSize(1.5);
+      g_12007_fwd->SetMarkerColor(kCyan);
+      g_12007_fwd->SetLineColor(kCyan);
+      g_12007_fwd_syst->SetFillColorAlpha(kCyan, 0.5);
+      g_12007_fwd_syst->Draw("2");
+      g_12007_fwd->Draw("P");
+
+      padl->cd();
    }
 
    if (xaxis=="cent") padl->cd();
