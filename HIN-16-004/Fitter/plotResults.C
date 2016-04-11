@@ -322,7 +322,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    const char* xname = (xaxis=="cent") ? "Centrality" : "\\pt";
    gSystem->mkdir(Form("Output/%s/tex/", outputDir.c_str()), kTRUE); 
    char texname[2048]; sprintf(texname, "Output/%s/tex/result_%s.tex",outputDir.c_str(),xaxis.c_str());
-   string yname("\\doubleratio");
+   string yname("\\doubleRatio");
    inittex(texname, xname, yname);
 
    int cnt=0;

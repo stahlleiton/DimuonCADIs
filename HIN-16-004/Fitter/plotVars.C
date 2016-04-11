@@ -28,13 +28,13 @@ using namespace std;
 
 // will plot the dependence of varname in workDirName, as a function of pt, centrality or rapidity. 
 // collTag should be PP or PbPb. If collTag="", then both PP and PbPb are plotted.
-void plotPt(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, bool isMC=false);
-void plotCent(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, bool isMC=false);
-void plotRap(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, bool isMC=false);
+void plotPt(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, const char* DSTag="DATA");
+void plotCent(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, const char* DSTag="DATA");
+void plotRap(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, const char* DSTag="DATA");
 
 // will plot the dependence of varname as a function to xaxis (=pt, cent or rap) for the file in workDirNames (of the form "dir1,dir2,dir3,...")
 void plotFiles(const char* workDirNames, const char* varname, const char* xaxis, float rapmin, float rapmax, float ptmin, float ptmax, int centmin, int centmax, 
-      const char* collTag="PP", bool plotErr=true, bool isMC=false);
+      const char* collTag="PP", bool plotErr=true, const char* DSTag="DATA");
 
 ////////////////////////
 // OTHER DECLARATIONS //
@@ -51,16 +51,16 @@ void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* w
 // IMPLEMENTATION //
 ////////////////////
 
-void plotPt(const char* workDirName, const char* varname, const char* collTag, bool plotErr, bool isMC) {
+void plotPt(const char* workDirName, const char* varname, const char* collTag, bool plotErr, const char* DSTag) {
    string xaxis = "pt";
    vector<anabin> theCats;
    theCats.push_back(anabin(0,1.6,6.5,30,0,200));
    theCats.push_back(anabin(1.6,2.4,3,30,0,200));
 
-   TFile *f = new TFile(treeFileName(workDirName,isMC));
+   TFile *f = new TFile(treeFileName(workDirName,DSTag));
    if (!f || !f->IsOpen()) {
-      results2tree(workDirName,isMC);
-      f = new TFile(treeFileName(workDirName,isMC));
+      results2tree(workDirName,DSTag);
+      f = new TFile(treeFileName(workDirName,DSTag));
       if (!f) return;
    }
    TTree *tr = (TTree*) f->Get("fitresults");
@@ -98,7 +98,7 @@ void plotPt(const char* workDirName, const char* varname, const char* collTag, b
    plotGraphs(tg, tags, workDirName, collTag);
 }
 
-void plotCent(const char* workDirName, const char* varname, const char* collTag, bool plotErr, bool isMC) {
+void plotCent(const char* workDirName, const char* varname, const char* collTag, bool plotErr, const char* DSTag) {
    string xaxis = "cent";
    vector<anabin> theCats;
 
@@ -106,10 +106,10 @@ void plotCent(const char* workDirName, const char* varname, const char* collTag,
    theCats.push_back(anabin(0,1.6,6.5,30,0,200));
    theCats.push_back(anabin(1.6,2.4,3,30,0,200));
 
-   TFile *f = new TFile(treeFileName(workDirName,isMC));
+   TFile *f = new TFile(treeFileName(workDirName,DSTag));
    if (!f || !f->IsOpen()) {
-      results2tree(workDirName,isMC);
-      f = new TFile(treeFileName(workDirName,isMC));
+      results2tree(workDirName,DSTag);
+      f = new TFile(treeFileName(workDirName,DSTag));
       if (!f) return;
    }
    TTree *tr = (TTree*) f->Get("fitresults");
@@ -147,16 +147,16 @@ void plotCent(const char* workDirName, const char* varname, const char* collTag,
    plotGraphs(tg, tags, workDirName, collTag);
 }
 
-void plotRap(const char* workDirName, const char* varname, const char* collTag, bool plotErr, bool isMC) {
+void plotRap(const char* workDirName, const char* varname, const char* collTag, bool plotErr, const char* DSTag) {
    string xaxis = "rap";
    vector<anabin> theCats;
    theCats.push_back(anabin(0,1.6,6.5,30,0,-200));
    theCats.push_back(anabin(1.6,2.4,3,30,0,-200));
 
-   TFile *f = new TFile(treeFileName(workDirName,isMC));
+   TFile *f = new TFile(treeFileName(workDirName,DSTag));
    if (!f || !f->IsOpen()) {
-      results2tree(workDirName,isMC);
-      f = new TFile(treeFileName(workDirName,isMC));
+      results2tree(workDirName,DSTag);
+      f = new TFile(treeFileName(workDirName,DSTag));
       if (!f) return;
    }
    TTree *tr = (TTree*) f->Get("fitresults");
@@ -195,7 +195,7 @@ void plotRap(const char* workDirName, const char* varname, const char* collTag, 
 }
 
 void plotFiles(const char* workDirNames, const char* varname, const char* xaxis, float rapmin, float rapmax, float ptmin, float ptmax, int centmin, int centmax, 
-      const char* collTag, bool plotErr, bool isMC) {
+      const char* collTag, bool plotErr, const char* DSTag) {
 
    vector<TGraphErrors*> tg;
    vector<string> tags;
@@ -204,10 +204,10 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
    TString workDirNamesStr(workDirNames);
    TString workDirName; Int_t from = 0;
    while (workDirNamesStr.Tokenize(workDirName, from , ",")) {
-      TGraphErrors *tgg = plotVar(treeFileName(workDirName,isMC), varname, theBin, xaxis, collTag, plotErr);
+      TGraphErrors *tgg = plotVar(treeFileName(workDirName,DSTag), varname, theBin, xaxis, collTag, plotErr);
       if (!tgg) {
-         results2tree(workDirName,isMC);
-         tgg = plotVar(treeFileName(workDirName,isMC), varname, theBin, xaxis, collTag, plotErr);
+         results2tree(workDirName,DSTag);
+         tgg = plotVar(treeFileName(workDirName,DSTag), varname, theBin, xaxis, collTag, plotErr);
       }
       if (tgg) {
          tg.push_back(tgg);
@@ -346,8 +346,8 @@ void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* w
    double ymin=0, ymax=0;
 
    for (unsigned int i=0; i<graphs.size(); i++) {
-      graphs[i]->SetLineColor(1+i);
-      graphs[i]->SetMarkerColor(1+i);
+      graphs[i]->SetLineColor((i<4) ? 1+i : 2+i); // skip yellow
+      graphs[i]->SetMarkerColor((i<4) ? 1+i : 2+i);
       graphs[i]->SetMarkerStyle(20+i);
       graphs[i]->SetMarkerSize(1.5);
       if (i==0) {

@@ -183,6 +183,7 @@ void printTex(vector< map<anabin, syst> > theSysts, const char* texName, bool is
       oldbin = thebin;
    }
 
+   file << "\\hline" << endl;
    file << "\\end{tabular}" << endl;
    file.close();
    cout << "Closed " << texName << endl;
