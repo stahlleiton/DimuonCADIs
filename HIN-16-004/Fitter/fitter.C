@@ -29,10 +29,10 @@ void fitter(
             bool incPsi2S    = true,         // Includes Psi(2S) model
             bool incBkg      = true,         // Includes Background model
             // Select the fitting options
-            bool cutCtau     = false,        // Apply prompt ctau cuts
+            bool cutCtau     = true,        // Apply prompt ctau cuts
             bool doSimulFit  = false,        // Do simultaneous fit
             bool wantPureSMC = false,        // Flag to indicate if we want to fit pure signal MC
-            int  numCores    = 2,            // Number of cores used for fitting
+            int  numCores    = 32,            // Number of cores used for fitting
             // Select the drawing options
             bool setLogScale = true,         // Draw plot with log scale
             bool incSS       = false,        // Include Same Sign data
