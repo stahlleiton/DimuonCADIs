@@ -100,7 +100,7 @@ void plotEffs() {
                tg_npjpsi->SetMarkerColor(kBlue);
                tg_npjpsi->SetLineColor(kBlue);
 
-               TH1F *haxes = new TH1F("haxes","haxes",1,0,(idep==1) ? 200 : 30);
+               TH1F *haxes = new TH1F("haxes","haxes",1,0,(idep==1) ? 100 : 30);
                haxes->GetYaxis()->SetTitle("Efficiency");
                haxes->GetXaxis()->SetTitle((idep==1) ? "Centrality bin" : "p_{T}");
                TLatex tl; TString cname;
@@ -283,7 +283,7 @@ void plotEffs() {
                rapmax = (irap==0) ? 1.6 : 2.4;
                if (idep==0) {
                   centmin = 0;
-                  centmax = 200;
+                  centmax = 100;
                   for (int ibin=1; ibin<hpsi2spbpb->GetNbinsX()+1; ibin++) {
                      ptmin = hpsi2spbpb->GetXaxis()->GetBinLowEdge(ibin);
                      ptmax = hpsi2spbpb->GetXaxis()->GetBinUpEdge(ibin);
@@ -305,7 +305,7 @@ void plotEffs() {
                   ptmin = (irap==0) ? 6.5 : 3;
                   ptmax = 30;
                   centmin = 0;
-                  centmax = 200;
+                  centmax = 100;
                   value = hpsi2spbpb->GetBinError(1);
                   *file << rapmin << ", " << rapmax << ", " << ptmin << ", " << ptmax << ", " << centmin << ", " << centmax << ", " << value << endl;
                }
