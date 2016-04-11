@@ -69,7 +69,6 @@ void makeSyst_all(
 				      "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",//8
 				      "histsV2Yields_20160304_v2W_signalCB3WN_dPhiBins4"//9
   };
-  //const char* legend[4]       = {"","Prompt J/#psi","Non-prompt J/#psi","Background"}; // This is already defined in the "../macro_v2/v2_dataNumbers_2015.h"
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
  
   // Reminder for TGraphAssymError: gr = new TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);// n,x,y,err_x, err_y
@@ -91,13 +90,24 @@ void makeSyst_all(
   for(int iCateg=categStart; iCateg<categEnd; iCateg++)
   {
     cout<<"====================== Doing "<< signal[iCateg] << "==========================="<<endl;
-    int nBins           =  nYBins_pr; 
-    if(iCateg==2) nBins =  nYBins_np;
-    if(iCateg==0) nBins = 1;
-    cout<<" !!!!! Number of bins: "<< nBins<<endl;
-
     for ( int iVar=varStart; iVar<varEnd; iVar++)
     {  
+      int nBins           =  1; // mb, 1 bin, is the default
+      if(iCateg==1 || iCateg==3)
+	{
+	  if (iVar == 1)  nBins =  nPtBins_pr;
+	  if (iVar == 2)  nBins =  nYBins_pr;
+	  if (iVar == 3)  nBins =  nCentBins_pr;
+	}
+      if(iCateg ==2)
+	{
+	  if (iVar == 1)  nBins =  nPtBins_np; // for non-prompt Jpsi, take as default 2 pt bin
+	  if (iVar == 2)  nBins =  nYBins_np;
+	  if (iVar == 3)  nBins =  nCentBins_np;
+	}
+    cout<<" !!!!! Number of bins: "<< nBins<<endl;
+
+
       cout<<"######## Variable: "<< outFilePlot[iVar] << "  ########" << endl;
       double adV2[nFiles][nBins]; // v2 values
     
@@ -182,13 +192,17 @@ void makeSyst_all(
         {
           double iFitContrib = (v2-adV2[iFit][ib])/v2;
           contrib_fit[ib]+=TMath::Power(iFitContrib,2);
+	  if(bDoDebug)
+	    {
+	      cout<<"Fit contribution "<<iFit<<"\t = "<< iFitContrib<<endl;
+	    }
         }
         // calculate total contribution: 
         v2Syst[ib] = v2 * TMath::Sqrt( contrib_tnp[ib] + contrib_4d[ib] + contrib_3d[ib] + contrib_fit[ib]/(nFiles-iVar_fit) );
         if(bDoDebug)
         {
           cout<<"Bin "<<ib <<" v2 = "<< v2<<"\t Total_systm= " << v2Syst[ib] <<endl;
-          cout<<"TnP: "<<contrib_tnp[ib]<<"\t 4D= "<<contrib_4d[ib]<<"\t 3D= "<< contrib_3d[ib] <<"\t fit= "<<contrib_fit[ib]<<endl;
+          cout<<"Relative contributions: \t TnP: "<<relContrib_tnp<<"\t 4D= "<<relContrib_4d<<"\t 3D_max= "<< relContrib_3d_max <<"\t 3D_min "<<relContrib_3d_min<<endl;
         }
       }//for each bin
         
