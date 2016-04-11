@@ -43,12 +43,12 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
   if (cut.dMuon.M.Max==5 && cut.dMuon.M.Min==2) { 
     // Default mass values, means that the user did not specify a mass range
     if ( incJpsi && !incPsi2S) {
-      cut.dMuon.M.Min = 2.6;
-      cut.dMuon.M.Max = 3.5;
+      cut.dMuon.M.Min = 2.2;
+      cut.dMuon.M.Max = 4.0;
     }
     else if ( !incJpsi && incPsi2S) {
-      cut.dMuon.M.Min = 3.0;
-      cut.dMuon.M.Max = 4.1;
+      cut.dMuon.M.Min = 2.8;
+      cut.dMuon.M.Max = 4.6;
     }
     else {
       cut.dMuon.M.Min = 2.2;

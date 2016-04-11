@@ -1,3 +1,6 @@
+#ifndef results2tree_C
+#define results2tree_C
+
 #include "TFile.h"
 #include "TTree.h"
 #include "TString.h"
@@ -27,13 +30,14 @@ const int nBins = 54;
 
 void results2tree(
       const char* workDirName, 
-      bool isMC=false,
-      const char* thePoiNames="RFrac2Svs1S,N_Jpsi,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5__Bkg,N_Bkg"
+      const char* DSTag="DATA", // Data Set tag can be: "DATA","MCPSI2SP", "MCJPSIP" ...
+      const char* thePoiNames="RFrac2Svs1S,N_Jpsi,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5__Bkg,N_Bkg",
+      bool wantPureSMC=true
       ) {
    // workDirName: usual tag where to look for files in Output
    // thePoiNames: comma-separated list of parameters to store ("par1,par2,par3"). Default: all
 
-   TFile *f = new TFile(treeFileName(workDirName,isMC),"RECREATE");
+   TFile *f = new TFile(treeFileName(workDirName,DSTag),"RECREATE");
    TTree *tr = new TTree("fitresults","fit results");
 
 
@@ -44,7 +48,7 @@ void results2tree(
    // collision system
    Char_t collSystem[8];
    // goodness of fit
-   float nll, chi2, normchi2; int npar, ndof;
+   float nll, chi2, normchi2; int npar, nparbkg, ndof;
    // parameters to store: make it a vector
    vector<poi> thePois;
    TString thePoiNamesStr(thePoiNames);
@@ -70,6 +74,7 @@ void results2tree(
    tr->Branch("chi2",&chi2,"chi2/F");
    tr->Branch("normchi2",&normchi2,"normchi2/F");
    tr->Branch("npar",&npar,"npar/I");
+   tr->Branch("nparbkg",&nparbkg,"nparbkg/I");
    tr->Branch("ndof",&ndof,"ndof/I");
 
    for (vector<poi>::iterator it=thePois.begin(); it!=thePois.end(); it++) {
@@ -78,7 +83,7 @@ void results2tree(
    }
 
    // list of files
-   vector<TString> theFiles = fileList(workDirName,"",isMC);
+   vector<TString> theFiles = fileList(workDirName,"",DSTag);
 
    int cnt=0;
    for (vector<TString>::const_iterator it=theFiles.begin(); it!=theFiles.end(); it++) {
@@ -106,7 +111,7 @@ void results2tree(
          if (t=="Bkg") catchbkg=true;
       }
 
-      TFile *f = new TFile(*it); RooWorkspace *ws = NULL;
+      TFile *f = TFile::Open(*it); RooWorkspace *ws = NULL;
       if (!f) {
          cout << "Error, file " << *it << " does not exist." << endl;
       } else {
@@ -120,9 +125,12 @@ void results2tree(
       if (f && ws) {
          // get the model for nll and npar
          RooAbsPdf *model = pdfFromWS(ws, Form("_%s",collSystem), "pdfMASS_Tot");
-         if (model) {
-            RooAbsData *dat = dataFromWS(ws, Form("_%s",collSystem), "dOS_DATA");
-            if (dat) {
+
+         RooAbsPdf *model_bkg = pdfFromWS(ws, Form("_%s",collSystem), "pdfMASS_Bkg");
+          const char* token = (strcmp(DSTag,"DATA") && wantPureSMC) ? Form("_%s_NoBkg",collSystem) : Form("_%s",collSystem);
+         RooAbsData *dat = dataFromWS(ws, token, Form("dOS_%s", DSTag));
+         if (dat) {
+            if (model) {
                RooAbsReal *NLL = model->createNLL(*dat);
                if (NLL) nll = NLL->getVal();
                npar = model->getParameters(dat)->selectByAttrib("Constant",kFALSE)->getSize();
@@ -144,6 +152,9 @@ void results2tree(
                ndof = nFullBins - npar;
                normchi2 = chi2/ndof;
             }
+            if (model_bkg) {
+               nparbkg = model_bkg->getParameters(dat)->selectByAttrib("Constant",kFALSE)->getSize();
+            }
          }
 
          // get the POIs
@@ -153,7 +164,7 @@ void results2tree(
             itpoi->err = thevar ? thevar->getError() : 0;
          }
 
-         f->Close();
+         delete ws;
          delete f;
       } else {
          for (vector<poi>::iterator itpoi=thePois.begin(); itpoi!=thePois.end(); itpoi++) {
@@ -170,3 +181,5 @@ void results2tree(
    f->Write();
    f->Close();
 }
+
+#endif // #ifndef results2tree_C

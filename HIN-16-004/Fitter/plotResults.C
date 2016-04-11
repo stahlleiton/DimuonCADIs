@@ -28,8 +28,11 @@ using namespace std;
 // PARAMETERS //
 ////////////////
 
-const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
+#ifndef poiname_check
+#define poiname_check
 const char* poiname = "RFrac2Svs1S";
+#endif
+const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
 const bool  doratio = true; // true -> look for separate PP and PbPb files, false -> input files are with simultaneous pp-PbPb fits
 
 
@@ -136,6 +139,8 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
          thestat_PP.name = "stat_PP";
          thestat_PP.value = den->getVal() != 0 ? den->getError()/den->getVal() : 0;
          stat_PP[thebinpp] = thestat_PP;
+
+         delete num; delete den;
       }
    }
 
@@ -231,6 +236,9 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
 
    // plot
    plotGraph(theGraphs, theGraphs_syst, xaxis, outputDir, syst_PP);
+
+   map<anabin, RooRealVar*>::iterator itv;
+   for (itv=theVars.begin(); itv!=theVars.end(); itv++) delete itv->second;
 }
 
 RooRealVar* poiFromFile(const char* filename, const char* token) {
@@ -348,6 +356,9 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       if (xaxis=="cent") {
          if (thebin.centbin().low()<=0 && thebin.centbin().high()<=0) padr->cd();
          else padl->cd();
+
+         // do not plot wide centrality bins
+         prune(tg, tg_syst);
       }
       tg_syst->Draw("2");      
       tg->Draw("P");      
@@ -416,6 +427,9 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    gSystem->mkdir(Form("Output/%s/plot/RESULT/pdf/", outputDir.c_str()), kTRUE);
    c1->SaveAs(Form("Output/%s/plot/RESULT/pdf/result_%s.pdf",outputDir.c_str(), xaxis.c_str()));
 
+   delete tleg;
+   delete haxes; delete haxesr;
+   delete padl; delete padr;
    delete c1;
 
    // close tex

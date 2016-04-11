@@ -12,6 +12,8 @@
 #include "TSystemFile.h"
 #include "TSystemDirectory.h"
 #include "TCanvas.h"
+#include "TGraphErrors.h"
+#include "TGraphAsymmErrors.h"
 
 #include <string>
 #include <vector>
@@ -23,15 +25,18 @@ RooRealVar* poiFromFile(const char* filename, const char* token, const char* the
 RooRealVar* poiFromWS(RooWorkspace* ws, const char* token, const char* thepoiname);
 RooAbsPdf* pdfFromWS(RooWorkspace* ws, const char* token, const char* thepdfname);
 RooAbsData* dataFromWS(RooWorkspace* ws, const char* token, const char* thedataname);
-vector<TString> fileList(const char* input, const char* token="", bool isMC=false);
+vector<TString> fileList(const char* input, const char* token="", const char* DSTag="DATA");
 RooRealVar* ratioVar(RooRealVar *num, RooRealVar *den, bool usedenerror=true);
 anabin binFromFile(const char* filename);
 bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck);
 bool binok(anabin thecat, string xaxis, anabin &tocheck);
-TString treeFileName(const char* workDirName, bool isMC=false);
+TString treeFileName(const char* workDirName, const char* DSTag="DATA");
+void prune(vector<anabin> &v, bool keppshortest=true);
+void prune(TGraphAsymmErrors *g, TGraphAsymmErrors *gsyst=NULL, bool keppshortest=true);
+void prune(TGraphErrors *g, bool keppshortest=true);
 
 RooRealVar* poiFromFile(const char* filename, const char* token, const char* thepoiname) {
-   TFile *f = new TFile(filename);
+   TFile *f = TFile::Open(filename);
    if (!f) {
       cout << "Error, file " << filename << " does not exist." << endl;
       return NULL;
@@ -45,7 +50,8 @@ RooRealVar* poiFromFile(const char* filename, const char* token, const char* the
    if (!ans) return NULL;
    TString poiname_and_token = TString(thepoiname) + TString(token);
    RooRealVar* ansc = new RooRealVar(*ans,poiname_and_token + Form("_from_%s",filename));
-   f->Close(); delete f;
+   delete ws;
+   delete f;
    return ansc;
 }
 
@@ -67,11 +73,10 @@ RooAbsData* dataFromWS(RooWorkspace* ws, const char* token, const char* thedatan
    return ans;
 }
 
-vector<TString> fileList(const char* input, const char* token, bool isMC) {
+vector<TString> fileList(const char* input, const char* token, const char* DSTag) {
    vector<TString> ans;
 
-   TString basedir(Form("Output/%s/result/DATA/",input));
-   if (isMC) basedir = TString(Form("Output/%s/result/MC/",input));
+   TString basedir(Form("Output/%s/result/%s/",input, DSTag));
    TSystemDirectory dir(input,basedir);
 
    TList *files = dir.GetListOfFiles();
@@ -109,7 +114,7 @@ RooRealVar* ratioVar(RooRealVar *num, RooRealVar *den, bool usedenerror) {
 }
 
 anabin binFromFile(const char* filename) {
-   TFile *f = new TFile(filename);
+   TFile *f = TFile::Open(filename);
    if (!f) {
       cout << "Error, file " << filename << " does not exist." << endl;
       return anabin(0,0,0,0,0,0);
@@ -127,7 +132,8 @@ anabin binFromFile(const char* filename) {
       return anabin(0,0,0,0,0,0);
    }
    anabin ans(rap->getMin(),rap->getMax(),pt->getMin(),pt->getMax(),cent->getMin(),cent->getMax());
-   f->Close(); delete f;
+   delete ws;
+   delete f;
    return ans;
 }
 
@@ -161,9 +167,69 @@ bool binok(anabin thecat, string xaxis, anabin &tocheck) {
    return binok(thecats, xaxis, tocheck);
 }
 
-TString treeFileName(const char* workDirName, bool isMC) {
-   TString outputFileName = Form("Output/%s/result/DATA/tree_allvars.root",workDirName);
-   if (isMC) outputFileName = Form("Output/%s/result/MC/tree_allvars.root",workDirName);
+TString treeFileName(const char* workDirName, const char* DSTag) {
+   TString outputFileName = Form("Output/%s/result/%s/tree_allvars.root",workDirName,DSTag);
    return outputFileName;
 }
+
+void prune(vector<anabin> &v, bool keepshort) {
+   vector<anabin> ans;
+
+   vector<anabin>::const_iterator it1, it2;
+   for (it1=v.begin(); it1!=v.end(); it1++) {
+      bool binok=true;
+      for (it2=v.begin(); it2!=v.end(); it2++) {
+         if (*it1==*it2) continue;
+         if (it1->rapbin()==it2->rapbin() && it1->ptbin()==it2->ptbin()) {
+            binI cb1 = it1->centbin();
+            binI cb2 = it2->centbin();
+            if (!(cb1==binI(0,200)) && cb1.low()==cb2.low()) { // the bin is not MB and there is another bin with the same lower edge
+               if (keepshort && cb1.high()>cb2.high()) binok=false;
+               if (!keepshort && cb1.high()<cb2.high()) binok=false;
+            }
+         } // same pt and rap bins
+      } // for it2
+      if (binok) ans.push_back(*it1);
+   } // for it1
+
+   v = ans;
+}
+
+void prune(TGraphAsymmErrors *g, TGraphAsymmErrors *gsyst, bool keepshort) {
+   int n = g->GetN();
+   for (int i1=0; i1<n; i1++) {
+      double xl1 = g->GetX()[i1]-g->GetErrorXlow(i1);
+      double xh1 = g->GetX()[i1]+g->GetErrorXhigh(i1);
+      bool binok=true;
+      for (int i2=0; i2<n; i2++) {
+         if (i2==i1) continue;
+         double xl2 = g->GetX()[i2]-g->GetErrorXlow(i2);
+         double xh2 = g->GetX()[i2]+g->GetErrorXhigh(i2);
+         if (fabs(xl1-xl2)<1e-3 && keepshort && xh1>xh2) binok=false;
+         if (fabs(xl1-xl2)<1e-3 && !keepshort && xh1<xh2) binok=false;
+      } // for i2
+      if (!binok) {
+         g->SetPoint(i1,-g->GetX()[i1],g->GetY()[i1]);
+         if (gsyst) gsyst->SetPoint(i1,-gsyst->GetX()[i1],gsyst->GetY()[i1]);
+      }
+   } // for i1
+}
+
+void prune(TGraphErrors *g, bool keepshort) {
+   int n = g->GetN();
+   for (int i1=0; i1<n; i1++) {
+      double xl1 = g->GetX()[i1]-g->GetErrorX(i1);
+      double xh1 = g->GetX()[i1]+g->GetErrorX(i1);
+      bool binok=true;
+      for (int i2=0; i2<n; i2++) {
+         if (i2==i1) continue;
+         double xl2 = g->GetX()[i2]-g->GetErrorX(i2);
+         double xh2 = g->GetX()[i2]+g->GetErrorX(i2);
+         if (fabs(xl1-xl2)<1e-3 && keepshort && xh1>xh2) binok=false;
+         if (fabs(xl1-xl2)<1e-3 && !keepshort && xh1<xh2) binok=false;
+      } // for i2
+      if (!binok) g->SetPoint(i1,-g->GetX()[i1],g->GetY()[i1]);
+   } // for i1
+}
+
 #endif // ifndef resultUtils_h

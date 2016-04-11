@@ -54,8 +54,8 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
     }
     else if (!incJpsi && incPsi2S)
     {
-//      if (cut.dMuon.AbsRap.Min >= 1.6) norm = myws.data(dsOSName.c_str())->reduce("invMass<3.32")->sumEntries();
-//      else norm = myws.data(dsOSName.c_str())->reduce("invMass<3.26")->sumEntries();
+      if (cut.dMuon.AbsRap.Min >= 1.6) norm = myws.data(dsOSName.c_str())->reduce("invMass<3.95")->sumEntries();
+      else norm = myws.data(dsOSName.c_str())->reduce("invMass<3.85")->sumEntries();
     }
   }
     
