@@ -171,10 +171,22 @@ map< string , MassModel > MassModelDictionary = {
 
 
 enum class CtauModel 
-  {     
-    DoubleGaussianResolution, SingleGaussianResolution,
-    TripleDecay, SingleSidedDecay, Delta
-  };
+{     
+    InvalidModel=0,
+    DoubleGaussianResolution=1, 
+    SingleGaussianResolution=2,
+    TripleDecay=3,
+    SingleSidedDecay=4, 
+    Delta=5
+};
+map< string , CtauModel > CtauModelDictionary = {
+  {"InvalidModel",             CtauModel::InvalidModel},
+  {"DoubleGaussianResolution", CtauModel::DoubleGaussianResolution},
+  {"SingleGaussianResolution", CtauModel::SingleGaussianResolution},
+  {"TripleDecay",              CtauModel::TripleDecay},
+  {"SingleSidedDecay",         CtauModel::SingleSidedDecay},
+  {"Delta",                    CtauModel::Delta}
+};
 
 typedef struct CtauPNP {
   CtauModel    Prompt, NonPrompt;

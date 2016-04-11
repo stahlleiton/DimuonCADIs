@@ -3,8 +3,8 @@
 #include "Macros/fitCharmonia.C"
 
 
-bool checkSettings(bool fitData, bool fitPbPb, bool fitPP, bool incJpsi, bool incPsi2S, bool incBkg, bool cutCtau,  
-                   bool doSimulFit, bool wantPureSMC, bool setLogScale, bool zoomPsi, bool incSS, int numCores, int nBins);
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtua, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, 
+                   bool cutCtau, bool doSimulFit, bool wantPureSMC, bool setLogScale, bool zoomPsi, bool incSS, int numCores, float binWidth);
 
 
 bool parseFile(string FileName, vector< map<string, string> >& data);
@@ -21,23 +21,28 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 void fitter(
             const string workDirName="Test", // Working directory
             // Select the type of datasets to fit
-            bool fitData     = true,         // Fits Data if true, otherwise fits MC
-            bool fitPbPb     = true,         // Fits PbPb datasets
-            bool fitPP       = true,         // Fits PP datasets
+            bool fitData      = true,         // Fits Data datasets
+            bool fitMC        = true,         // Fits MC datasets
+            bool fitPbPb      = true,         // Fits PbPb datasets
+            bool fitPP        = true,         // Fits PP datasets
+            bool fitMass      = true,         // Fits invariant mass distribution
+            bool fitCtau      = false,        // Fits ctau distribution
             // Select the type of object to fit
-            bool incJpsi     = true,         // Includes Jpsi model
-            bool incPsi2S    = true,         // Includes Psi(2S) model
-            bool incBkg      = true,         // Includes Background model
+            bool incJpsi      = true,         // Includes Jpsi model
+            bool incPsi2S     = true,         // Includes Psi(2S) model
+            bool incBkg       = true,         // Includes Background model
+            bool incPrompt    = true,         // Includes Prompt ctau model
+            bool incNonPrompt = false,        // Includes Non Prompt ctau model 
             // Select the fitting options
-            bool cutCtau     = false,        // Apply prompt ctau cuts
-            bool doSimulFit  = false,        // Do simultaneous fit
-            bool wantPureSMC = false,        // Flag to indicate if we want to fit pure signal MC
-            int  numCores    = 2,            // Number of cores used for fitting
+            bool cutCtau      = true,        // Apply prompt ctau cuts
+            bool doSimulFit   = false,        // Do simultaneous fit
+            bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
+            int  numCores     = 32,            // Number of cores used for fitting
             // Select the drawing options
-            bool setLogScale = true,         // Draw plot with log scale
-            bool incSS       = false,        // Include Same Sign data
-            bool zoomPsi     = false,        // Zoom Psi(2S) peak on extra pad
-            int  nBins       = 46            // Number of bins used for plotting
+            bool  setLogScale  = true,         // Draw plot with log scale
+            bool  incSS        = false,        // Include Same Sign data
+            bool  zoomPsi      = false,        // Zoom Psi(2S) peak on extra pad
+            float binWidth     = 0.05          // Bin width used for plotting
             ) 
 {
   // -------------------------------------------------------------------------------
@@ -50,7 +55,7 @@ void fitter(
 	 |-> DataSet : Contain all the datasets (MC and Data)
   */
 
-  if (!checkSettings(fitData, fitPbPb, fitPP, incJpsi, incPsi2S, incBkg, cutCtau, doSimulFit, wantPureSMC, setLogScale, zoomPsi, incSS, numCores, nBins)) { return; }
+  if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, setLogScale, zoomPsi, incSS, numCores, binWidth)) { return; }
 
   map<string,string> DIR;
   if(!iniWorkEnv(DIR, workDirName)){ return; }
@@ -91,11 +96,13 @@ void fitter(
       if (!aDSTAG->FindObject(DSTAG.c_str())) aDSTAG->Add(new TObjString(DSTAG.c_str()));
     }
     // If we find MC, check if the user wants to fit MC
-    if ( (FILETAG.find("MC")!=std::string::npos) && fitData==false ) {
-      if ( (FILETAG.find("PP")!=std::string::npos)    && !fitPP    ) continue; // If we find PP, check if the user wants PP
-      if ( (FILETAG.find("PbPb")!=std::string::npos)  && !fitPbPb  ) continue; // If we find PbPb, check if the user wants PbPb
-      if ( (FILETAG.find("JPSI")!=std::string::npos)  && !incJpsi  ) continue; // If we find Jpsi MC, check if the user wants to include Jpsi
-      if ( (FILETAG.find("PSI2S")!=std::string::npos) && !incPsi2S ) continue; // If we find Psi2S MC, check if the user wants to include Psi2S
+    if ( (FILETAG.find("MC")!=std::string::npos) && fitMC==true  ) {
+      if ( (FILETAG.find("PP")!=std::string::npos)    && !fitPP     ) continue; // If we find PP, check if the user wants PP
+      if ( (FILETAG.find("PbPb")!=std::string::npos)  && !fitPbPb   ) continue; // If we find PbPb, check if the user wants PbPb
+      if ( (FILETAG.find("JPSI")!=std::string::npos)  && !incJpsi   ) continue; // If we find Jpsi MC, check if the user wants to include Jpsi
+      if ( (FILETAG.find("PSI2S")!=std::string::npos) && !incPsi2S  ) continue; // If we find Psi2S MC, check if the user wants to include Psi2S
+      if ( (FILETAG.find("PR")!=std::string::npos)    && !incPrompt ) continue; // If we find Prompt MC, check if the user wants to include Prompt
+      if ( (FILETAG.find("NOPR")!=std::string::npos)  && !incNonPrompt ) continue; // If we find Non-Prompt MC, check if the user wants to include Non-Prompt
       OutputFileName = DIR["dataset"] + "DATASET_" + FILETAG + ".root";
       if(!tree2DataSet(Workspace[DSTAG], InputFileNames, FILETAG, OutputFileName)){ return; }
       if (!aDSTAG->FindObject(DSTAG.c_str())) aDSTAG->Add(new TObjString(DSTAG.c_str()));
@@ -121,36 +128,71 @@ void fitter(
   vector< struct KinCuts >       cutVector;
   vector< map<string, string> >  parIniVector;
  
-  if (fitPbPb && incBkg) {
-    // Add initial parameters for PbPb background models
-    InputFile = (DIR["input"] + "InitialParam_MASS_BKG_PbPb.csv");
+  if (fitMass) {
+    if (fitPbPb && incBkg) {
+      // Add initial parameters for PbPb background models
+      InputFile = (DIR["input"] + "InitialParam_MASS_BKG_PbPb.csv");
+      if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
+    } 
+    if (fitPbPb && incJpsi) {
+      // Add initial parameters for PbPb jpsi models
+      InputFile = (DIR["input"] + "InitialParam_MASS_JPSI_PbPb.csv");
     if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
-  } 
-  if (fitPbPb && incJpsi) {
-    // Add initial parameters for PbPb jpsi models
-    InputFile = (DIR["input"] + "InitialParam_MASS_JPSI_PbPb.csv");
-    if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
-  } 
-  if (fitPbPb && incPsi2S) {
-    // Add initial parameters for PbPb psi(2S) models
-    InputFile = (DIR["input"] + "InitialParam_MASS_PSI2S_PbPb.csv");
-    if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
-  } 
-  if (fitPP && incBkg) {
-    // Add initial parameters for PP background models
-    InputFile = (DIR["input"] + "InitialParam_MASS_BKG_PP.csv");
-    if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
-  } 
-  if (fitPP && incJpsi) {
-    // Add initial parameters for PP jpsi models
-    InputFile = (DIR["input"] + "InitialParam_MASS_JPSI_PP.csv");
-    if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
-  } 
-  if (fitPP && incPsi2S) {
-    // Add initial parameters for PP psi(2S) models
-    InputFile = (DIR["input"] + "InitialParam_MASS_PSI2S_PP.csv");
-    if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
+    } 
+    if (fitPbPb && incPsi2S) {
+      // Add initial parameters for PbPb psi(2S) models
+      InputFile = (DIR["input"] + "InitialParam_MASS_PSI2S_PbPb.csv");
+      if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
+    } 
+    if (fitPP && incBkg) {
+      // Add initial parameters for PP background models
+      InputFile = (DIR["input"] + "InitialParam_MASS_BKG_PP.csv");
+      if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
+    } 
+    if (fitPP && incJpsi) {
+      // Add initial parameters for PP jpsi models
+      InputFile = (DIR["input"] + "InitialParam_MASS_JPSI_PP.csv");
+      if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
+    } 
+    if (fitPP && incPsi2S) {
+      // Add initial parameters for PP psi(2S) models
+      InputFile = (DIR["input"] + "InitialParam_MASS_PSI2S_PP.csv");
+      if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
+    }
   }
+  if (fitCtau) {
+    if (fitPbPb && incBkg) {
+      // Add initial parameters for PbPb background models
+      InputFile = (DIR["input"] + "InitialParam_CTAU_BKG_PbPb.csv");
+      if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
+    } 
+    if (fitPbPb && incJpsi) {
+      // Add initial parameters for PbPb jpsi models
+      InputFile = (DIR["input"] + "InitialParam_CTAU_JPSI_PbPb.csv");
+    if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
+    } 
+    if (fitPbPb && incPsi2S) {
+      // Add initial parameters for PbPb psi(2S) models
+      InputFile = (DIR["input"] + "InitialParam_CTAU_PSI2S_PbPb.csv");
+      if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
+    } 
+    if (fitPP && incBkg) {
+      // Add initial parameters for PP background models
+      InputFile = (DIR["input"] + "InitialParam_CTAU_BKG_PP.csv");
+      if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
+    } 
+    if (fitPP && incJpsi) {
+      // Add initial parameters for PP jpsi models
+      InputFile = (DIR["input"] + "InitialParam_CTAU_JPSI_PP.csv");
+      if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
+    } 
+    if (fitPP && incPsi2S) {
+      // Add initial parameters for PP psi(2S) models
+      InputFile = (DIR["input"] + "InitialParam_CTAU_PSI2S_PP.csv");
+      if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
+    }
+  }
+    
 
   // -------------------------------------------------------------------------------  
   // STEP 3: FIT THE DATASETS
@@ -172,6 +214,8 @@ void fitter(
     while ( (soDSTAG = static_cast<TObjString*>(nextDSTAG.Next())) )
     {
       TString DSTAG   = static_cast<TString>(soDSTAG->GetString());
+
+      if ( fitMass && fitCtau && !DSTAG.Contains("DATA") ) continue;
       
       if (Workspace.count(DSTAG.Data())>0) {
         // DATA/MC datasets were loaded
@@ -182,9 +226,13 @@ void fitter(
                              DSTAG.Data(),
                              false,           // dummy flag when fitting simultaneously since both PP and PbPb are used
                              // Select the type of object to fit
+                             fitMass,         // Fit mass distribution
+                             fitCtau,         // Fit ctau distribution
                              incJpsi,         // Includes Jpsi model
                              incPsi2S,        // Includes Psi(2S) model
                              incBkg,          // Includes Background model
+                             incPrompt,       // Includes Prompt ctau model
+                             incNonPrompt,    // Includes NonPrompt ctau model
                              // Select the fitting options
                              cutCtau,         // Apply prompt ctau cuts
                              true,            // Do simultaneous fit
@@ -194,14 +242,16 @@ void fitter(
                              setLogScale,     // Draw plot with log scale
                              incSS,           // Include Same Sign data
                              zoomPsi,         // Zoom Psi(2S) peak on extra pad
-                             nBins,           // Number of bins used for plotting
+                             binWidth,        // Number of bins used for plotting
                              false            // Compute the mean PT (NEED TO FIX)
                              )
               ) { return; }
         } else {
           // If don't want simultaneous fits, then fit PbPb or PP separately
-          if ( DSTAG.Contains("MCJPSI")  ) { incJpsi = true;  incPsi2S = false; }
-          if ( DSTAG.Contains("MCPSI2S") ) { incJpsi = false; incPsi2S = true;  }
+          if ( DSTAG.Contains("MCJPSIPR")    ) { incJpsi = true;  incPsi2S = false; incPrompt = true;  incNonPrompt = false; }
+          if ( DSTAG.Contains("MCJPSINOPR")  ) { incJpsi = true;  incPsi2S = false; incPrompt = false; incNonPrompt = true;  }
+          if ( DSTAG.Contains("MCPSI2SPR")   ) { incJpsi = false; incPsi2S = true;  incPrompt = true;  incNonPrompt = false;  }
+          if ( DSTAG.Contains("MCPSI2SNOPR") ) { incJpsi = false; incPsi2S = true;  incPrompt = false; incNonPrompt = true;  }
             
           if (fitPbPb) {
             if (!fitCharmonia( Workspace[DSTAG.Data()], cutVector.at(i), parIniVector.at(i), outputDir,
@@ -209,9 +259,13 @@ void fitter(
                                DSTAG.Data(),
                                true,            // In this case we are fitting PbPb
                                // Select the type of object to fit
+                               fitMass,         // Fit mass distribution
+                               fitCtau,         // Fit ctau distribution
                                incJpsi,         // Includes Jpsi model
                                incPsi2S,        // Includes Psi(2S) model
                                incBkg,          // Includes Background model
+                               incPrompt,       // Includes Prompt ctau model
+                               incNonPrompt,    // Includes NonPrompt ctau model
                                // Select the fitting options
                                cutCtau,         // Apply prompt ctau cuts
                                false,           // Do simultaneous fit
@@ -221,32 +275,36 @@ void fitter(
                                setLogScale,     // Draw plot with log scale
                                incSS,           // Include Same Sign data
                                zoomPsi,         // Zoom Psi(2S) peak on extra pad
-                               nBins,           // Number of bins used for plotting
+                               binWidth,        // Number of bins used for plotting
                                false            // Compute the mean PT (NEED TO FIX)
                                )
                 ) { return; }
             if (DSTAG.Contains("MC") && wantPureSMC)
             {
               if (!fitCharmonia( Workspace[Form("%s_PureS",DSTAG.Data())], cutVector.at(i), parIniVector.at(i), outputDir,
-                                // Select the type of datasets to fit
-                                DSTAG.Data(),
-                                true,            // In this case we are fitting PbPb
-                                // Select the type of object to fit
-                                incJpsi,         // Includes Jpsi model
-                                incPsi2S,        // Includes Psi(2S) model
-                                incBkg,          // Includes Background model
-                                // Select the fitting options
-                                cutCtau,         // Apply prompt ctau cuts
-                                false,           // Do simultaneous fit
-                                true,            // Flag to indicate if we want to fit pure signal MC
-                                numCores,        // Number of cores used for fitting
-                                // Select the drawing options
-                                setLogScale,     // Draw plot with log scale
-                                incSS,           // Include Same Sign data
-                                zoomPsi,         // Zoom Psi(2S) peak on extra pad
-                                nBins,           // Number of bins used for plotting
-                                false            // Compute the mean PT (NEED TO FIX)
-                                )
+                                 // Select the type of datasets to fit
+                                 DSTAG.Data(),
+                                 true,            // In this case we are fitting PbPb
+                                 // Select the type of object to fit                                 
+                                 fitMass,         // Fit mass distribution
+                                 fitCtau,         // Fit ctau distribution
+                                 incJpsi,         // Includes Jpsi model
+                                 incPsi2S,        // Includes Psi(2S) model
+                                 incBkg,          // Includes Background model
+                                 incPrompt,       // Includes Prompt ctau model
+                                 incNonPrompt,    // Includes NonPrompt ctau model
+                                 // Select the fitting options
+                                 cutCtau,         // Apply prompt ctau cuts
+                                 false,           // Do simultaneous fit
+                                 true,            // Flag to indicate if we want to fit pure signal MC
+                                 numCores,        // Number of cores used for fitting
+                                 // Select the drawing options
+                                 setLogScale,     // Draw plot with log scale
+                                 incSS,           // Include Same Sign data
+                                 zoomPsi,         // Zoom Psi(2S) peak on extra pad
+                                 binWidth,        // Number of bins used for plotting
+                                 false            // Compute the mean PT (NEED TO FIX)
+                                 )
                   ) { return; }
             }
           }
@@ -256,9 +314,13 @@ void fitter(
                                DSTAG.Data(),
                                false,           // In this case we are fitting PP
                                // Select the type of object to fit
+                               fitMass,         // Fit mass distribution
+                               fitCtau,         // Fit ctau distribution
                                incJpsi,         // Includes Jpsi model
                                incPsi2S,        // Includes Psi(2S) model
                                incBkg,          // Includes Background model
+                               incPrompt,       // Includes Prompt ctau model
+                               incNonPrompt,    // Includes NonPrompt ctau model
                                // Select the fitting options
                                cutCtau,         // Apply prompt ctau cuts
                                false,           // Do simultaneous fit
@@ -268,32 +330,36 @@ void fitter(
                                setLogScale,     // Draw plot with log scale
                                incSS,           // Include Same Sign data
                                zoomPsi,         // Zoom Psi(2S) peak on extra pad
-                               nBins,           // Number of bins used for plotting
+                               binWidth,        // Number of bins used for plotting
                                false            // Compute the mean PT (NEED TO FIX)
                                )
                 ) { return; }
             if (DSTAG.Contains("MC") && wantPureSMC)
             {
               if (!fitCharmonia( Workspace[Form("%s_PureS",DSTAG.Data())], cutVector.at(i), parIniVector.at(i), outputDir,
-                                // Select the type of datasets to fit
-                                DSTAG.Data(),
-                                false,           // In this case we are fitting PP
-                                // Select the type of object to fit
-                                incJpsi,         // Includes Jpsi model
-                                incPsi2S,        // Includes Psi(2S) model
-                                incBkg,          // Includes Background model
-                                // Select the fitting options
-                                cutCtau,         // Apply prompt ctau cuts
-                                false,           // Do simultaneous fit
-                                true,            // Flag to indicate if we want to fit pure signal MC
-                                numCores,        // Number of cores used for fitting
-                                // Select the drawing options
-                                setLogScale,     // Draw plot with log scale
-                                incSS,           // Include Same Sign data
-                                zoomPsi,         // Zoom Psi(2S) peak on extra pad
-                                nBins,           // Number of bins used for plotting
-                                false            // Compute the mean PT (NEED TO FIX)
-                                )
+                                 // Select the type of datasets to fit
+                                 DSTAG.Data(),
+                                 false,           // In this case we are fitting PP
+                                 // Select the type of object to fit                                 
+                                 fitMass,         // Fit mass distribution
+                                 fitCtau,         // Fit ctau distribution
+                                 incJpsi,         // Includes Jpsi model
+                                 incPsi2S,        // Includes Psi(2S) model
+                                 incBkg,          // Includes Background model
+                                 incPrompt,       // Includes Prompt ctau model
+                                 incNonPrompt,    // Includes NonPrompt ctau model
+                                 // Select the fitting options
+                                 cutCtau,         // Apply prompt ctau cuts
+                                 false,           // Do simultaneous fit
+                                 true,            // Flag to indicate if we want to fit pure signal MC
+                                 numCores,        // Number of cores used for fitting
+                                 // Select the drawing options
+                                 setLogScale,     // Draw plot with log scale
+                                 incSS,           // Include Same Sign data
+                                 zoomPsi,         // Zoom Psi(2S) peak on extra pad
+                                 binWidth,        // Number of bins used for plotting
+                                 false            // Compute the mean PT (NEED TO FIX)
+                                 )
                   ) { return; }
             }
           }
@@ -597,18 +663,36 @@ bool existDir(string dir)
 };
 
 
-bool checkSettings(bool fitData, bool fitPbPb, bool fitPP, bool incJpsi, bool incPsi2S, bool incBkg, bool cutCtau, 
-                   bool doSimulFit, bool wantPureSMC, bool setLogScale, bool zoomPsi, bool incSS, int numCores, int nBins)
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool incJpsi, bool incPsi2S, bool incBkg, bool cutCtau, 
+                   bool doSimulFit, bool wantPureSMC, bool setLogScale, bool zoomPsi, bool incSS, int numCores, float binWidth)
 { 
   cout << "[INFO] Checking user settings " << endl;
 
+  if (!fitMass && !fitCtau) {
+    cout << "[ERROR] At least one distribution has to be selected for fitting, please select either Mass or Ctau!" << endl; return false;
+  }
+  if (fitMass && fitCtau && (!fitData || !fitMC) ) {
+    cout << "[ERROR] We need both MC and Data to fit both ctau and mass, please enable both Data and MC!" << endl; return false;
+  }
+  if (!fitMass && doSimulFit) {
+    cout << "[ERROR] Can't perform simultanoeus fit without fitting the mass spectrum, please fix your fitter settings!" << endl; return false;
+  }
+  if (fitCtau && (!incPrompt && !incNonPrompt)) {
+    cout << "[ERROR] No ctau models were included, please include either Prompt or NonPrompt when fitting ctau!" << endl; return false;
+  }
+  if (fitMC && (!incPrompt && !incNonPrompt)) {
+    cout << "[ERROR] No MC datasets were included, please include either Prompt or Non-Prompt MC!" << endl; return false;
+  }
+  if (!incJpsi && !incPsi2S && !incBkg) {
+    cout << "[ERROR] No models were included, please include either Jpsi, Psi2S or Bkg!" << endl; return false;
+  }
   if (!fitPbPb && !fitPP) {
     cout << "[ERROR] No datasets were selected, please select either PbPb or PP!" << endl; return false;
   }
   if (!incJpsi && !incPsi2S && !incBkg) {
     cout << "[ERROR] No models were included for fitting, please include either Jpsi, Psi2S or Bkg" << endl; return false;
   }
-  if (!fitData && (!incJpsi && !incPsi2S)) {
+  if (fitMC && (!incJpsi && !incPsi2S)) {
     cout << "[ERROR] We can't fit only background on MC, please include also either Jpsi or Psi2S!" << endl; return false;
   }
   if (fitData && wantPureSMC) {
@@ -620,8 +704,8 @@ bool checkSettings(bool fitData, bool fitPbPb, bool fitPP, bool incJpsi, bool in
   if (numCores<=0 || numCores>32) {
     cout << "[ERROR] Invalid number of cores: " << numCores << " , please select an interger number between 1 and 32." << endl; return false;
   }
-  if (nBins<=0) {
-    cout << "[ERROR] Invalid number of bins: " << nBins << " , please select an interger number > 0 ." << endl; return false;
+  if (binWidth<=0) {
+    cout << "[ERROR] Invalid bin width: " << binWidth << " , please select a float number > 0. ." << endl; return false;
   }
   if (doSimulFit && (!fitPbPb || !fitPP)) {
     cout << "[ERROR] Can't perform simultaneous fit without both PP and PbPb, please fix your fitter settings!" << endl; return false;
@@ -629,7 +713,7 @@ bool checkSettings(bool fitData, bool fitPbPb, bool fitPP, bool incJpsi, bool in
   if (doSimulFit && (!incPsi2S || !incJpsi)) {
     cout << "[ERROR] Simultaneous fits require both Psi2S and Jpsi, please fix your fitter settings!" << endl; return false;
   }
-  if (doSimulFit && !fitData) {
+  if (doSimulFit && fitMC) {
     cout << "[ERROR] Can't perform simultaneous fits on MC, please fix your fitter settings!" << endl; return false;
   }
   if (setLogScale && zoomPsi) {
