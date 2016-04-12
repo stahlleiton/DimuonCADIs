@@ -53,9 +53,9 @@ void plotEffs() {
          for (int irap=0; irap<2; irap++) {
             raptag = (irap==0) ? "mid" : "fwd";
 
-            for (int icut=0; icut<3; icut++) {
+            for (int icut=0; icut<5; icut++) { // icut=3 -> pt-integrated cut efficiency, icut=4 -> pt-dep cut efficiency
                if(icut==0) cuttag = "_";
-               else if (icut==1) cuttag = "cut_";
+               else if (icut==1 || icut==3) cuttag = "cut_";
                else cuttag = "ptdepcut_";
 
                setTDRStyle();
@@ -67,7 +67,7 @@ void plotEffs() {
                TH1F *hjpsinum = (TH1F*) fjpsi->Get(hname);
                TH1F *hpsi2snum = (TH1F*) fpsi2s->Get(hname);
                TH1F *hnpjpsinum = (TH1F*) fnpjpsi->Get(hname);
-               hname = "hden_" + deptag + raptag;
+               hname = (icut<3) ? "hden_" + deptag + raptag : "hnum_" + deptag + raptag;
                TH1F *hjpsiden = (TH1F*) fjpsi->Get(hname);
                TH1F *hpsi2sden = (TH1F*) fpsi2s->Get(hname);
                TH1F *hnpjpsiden = (TH1F*) fnpjpsi->Get(hname);
@@ -102,9 +102,11 @@ void plotEffs() {
 
                TH1F *haxes = new TH1F("haxes","haxes",1,0,(idep==1) ? 100 : 30);
                haxes->GetYaxis()->SetTitle("Efficiency");
+               if (icut>=3) haxes->GetYaxis()->SetTitle("l_{J/#psi}^{3D} cut efficiency");
                haxes->GetXaxis()->SetTitle((idep==1) ? "Centrality bin" : "p_{T}");
                TLatex tl; TString cname;
-               cname = "files/singleff_" + colltag + "_" + deptag + "_" + raptag + "_" + cuttag;
+               TString effname = (icut<3) ? "singlefff_" : "ctaucuteff_";
+               cname = "files/" + effname + colltag + "_" + deptag + "_" + raptag + "_" + cuttag;
                TString texname = cname + ".tex";
 
                if (idep<2) {
@@ -122,9 +124,9 @@ void plotEffs() {
                   tleg->AddEntry(tg_npjpsi,"J/#psi (non-prompt)","lp");
                   tleg->Draw();
 
-                  tl.DrawLatex((idep==0) ? 1.5 : 10, 0.9, colltag + TString(", ") 
+                  tl.DrawLatex((idep==0) ? 1.5 : 10, (icut<3) ? 0.9 : 0.7, colltag + TString(", ") 
                         + ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
-                        + ((icut==0) ? "no ctau3D cut" : ((icut==1) ? "cst ctau3D cut" : "pt-dep ctau3D cut")));
+                        + ((icut==0) ? "no l_{J/#psi}^{3D} cut" : ((icut==1 || icut==3) ? "cst l_{J/#psi}^{3D} cut" : "pt-dep l_{J/#psi}^{3D} cut")));
 
 
                   c1->SaveAs(cname + ".root");
@@ -151,7 +153,13 @@ void plotEffs() {
 
                // now, let's draw simple ratios of efficiencies: psi(2S)/J/psi
                // but do it only once
-               if (icoll>0) continue;
+               if (icoll>0 || icut>=3) {
+                  delete haxes;
+                  delete c1;
+                  delete tg_jpsi; delete tg_psi2s; delete tg_npjpsi;
+                  continue;
+               }
+
                hname = "hnum" + cuttag + deptag + raptag;
                TH1F *hjpsipp = (TH1F*) fjpsi_pp->Get(hname); hjpsipp->SetName(TString(hjpsipp->GetName()) + "_jpsipp");
                TH1F *hpsi2spp = (TH1F*) fpsi2s_pp->Get(hname); hpsi2spp->SetName(TString(hpsi2spp->GetName()) + "_psi2spp");
@@ -215,7 +223,7 @@ void plotEffs() {
                   tleg2->Draw();
 
                   tl.DrawLatex((idep==0) ? 1.5 : 10, 1.4, ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
-                        + ((icut==0) ? "no ctau3D cut" : ((icut==1) ? "cst ctau3D cut" : "pt-dep ctau3D cut")));
+                        + ((icut==0) ? "no l_{J/#psi}^{3D} cut" : ((icut==1) ? "cst l_{J/#psi}^{3D} cut" : "pt-dep l_{J/#psi}^{3D} cut")));
 
                   c1->SaveAs(cname + ".root");
                   c1->SaveAs(cname + ".png");
@@ -253,7 +261,7 @@ void plotEffs() {
                   haxes->Draw();
                   hpsi2spbpb->Draw("E1 same");
                   tl.DrawLatex((idep==0) ? 1.5 : 10, 1.4, ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
-                        + ((icut==0) ? "no ctau3D cut" : ((icut==1) ? "cst ctau3D cut" : "pt-dep ctau3D cut")));
+                        + ((icut==0) ? "no l_{J/#psi}^{3D} cut" : ((icut==1) ? "cst l_{J/#psi}^{3D} cut" : "pt-dep l_{J/#psi}^{3D} cut")));
                   c1->SaveAs(cname + ".root");
                   c1->SaveAs(cname + ".png");
                   c1->SaveAs(cname + ".pdf");
