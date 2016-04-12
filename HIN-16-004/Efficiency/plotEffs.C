@@ -105,7 +105,7 @@ void plotEffs() {
                if (icut>=3) haxes->GetYaxis()->SetTitle("l_{J/#psi}^{3D} cut efficiency");
                haxes->GetXaxis()->SetTitle((idep==1) ? "Centrality bin" : "p_{T}");
                TLatex tl; TString cname;
-               TString effname = (icut<3) ? "singlefff_" : "ctaucuteff_";
+               TString effname = (icut<3) ? "singleff_" : "ctaucuteff_";
                cname = "files/" + effname + colltag + "_" + deptag + "_" + raptag + "_" + cuttag;
                TString texname = cname + ".tex";
 
@@ -117,6 +117,7 @@ void plotEffs() {
                   tg_npjpsi->Draw("P");
 
                   double yshift =0; if (icoll==1 && irap==1) yshift=0.3;
+                  if (icut>=3) yshift=0;
                   TLegend *tleg = new TLegend(0.5,0.26+yshift,0.88,0.46+yshift);
                   tleg->SetBorderSize(0);
                   tleg->AddEntry(tg_jpsi,"J/#psi (prompt)","lp");
