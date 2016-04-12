@@ -26,7 +26,7 @@ struct poi {
    float err;
 };
 
-const int nBins = 54;
+const int nBins = 46;
 
 void results2tree(
       const char* workDirName, 
@@ -137,8 +137,8 @@ void results2tree(
 
                // compute the chi2 and the ndof
                RooPlot* frame = ws->var("invMass")->frame(Bins(nBins));
-               dat->plotOn(frame);
-               model->plotOn(frame);
+               dat->plotOn(frame, DataError(RooAbsData::SumW2), XErrorSize(0));
+               model->plotOn(frame, Precision(1e-4), Range("invMass"));
                TH1 *hdatact = dat->createHistogram("hdatact", *(ws->var("invMass")), Binning(nBins));
                RooHist *hpull = frame->pullHist(0,0, true);
                double* ypulls = hpull->GetY();
@@ -164,6 +164,9 @@ void results2tree(
             itpoi->err = thevar ? thevar->getError() : 0;
          }
 
+         // delete model;
+         // delete model_bkg;
+         // delete dat;
          delete ws;
          delete f;
       } else {

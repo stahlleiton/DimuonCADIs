@@ -9,9 +9,9 @@
 
 // define bins
 const int nbins_centmid = 6;
-const float bins_centmid[nbins_centmid+1] = {0, 20, 40, 60, 80, 100, 200};
+const float bins_centmid[nbins_centmid+1] = {0, 10, 20, 30, 40, 50, 100};
 const int nbins_centfwd = 3;
-const float bins_centfwd[nbins_centfwd+1] = {0, 40, 80, 200};
+const float bins_centfwd[nbins_centfwd+1] = {0, 20, 40, 100};
 const int nbins_ptmid = 5;
 const float bins_ptmid[nbins_ptmid+1] = {6.5, 9, 12, 15, 20, 30};
 const int nbins_ptfwd = 3;
@@ -151,10 +151,10 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
       hden2d->Fill(fabs(tlvgenqq->Rapidity()),genpt,weight);
 
       if (fabs(tlvgenqq->Rapidity()) < 1.6) {
-         hden_centmid->Fill(Centrality,weight);
+         hden_centmid->Fill(Centrality/2,weight);
          hden_ptmid->Fill(genpt,weight);
       } else if (fabs(tlvgenqq->Rapidity()) < 2.4) {
-         hden_centfwd->Fill(Centrality,weight);
+         hden_centfwd->Fill(Centrality/2,weight);
          hden_ptfwd->Fill(genpt,weight);
       } else continue;
 
@@ -202,10 +202,10 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
 
       // fill the numerators
       if (fabs(tlvgenqq->Rapidity()) < 1.6) {
-         hnum_centmid->Fill(Centrality,weight);
+         hnum_centmid->Fill(Centrality/2,weight);
          hnum_ptmid->Fill(genpt,weight);
       } else {
-         hnum_centfwd->Fill(Centrality,weight);
+         hnum_centfwd->Fill(Centrality/2,weight);
          hnum_ptfwd->Fill(genpt,weight);
       }
 
@@ -228,10 +228,10 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
 
       if (ctaucutok) {
          if (fabs(tlvgenqq->Rapidity()) < 1.6) {
-            hnumcut_centmid->Fill(Centrality,weight);
+            hnumcut_centmid->Fill(Centrality/2,weight);
             hnumcut_ptmid->Fill(genpt,weight);
          } else {
-            hnumcut_centfwd->Fill(Centrality,weight);
+            hnumcut_centfwd->Fill(Centrality/2,weight);
             hnumcut_ptfwd->Fill(genpt,weight);
          }
       }
@@ -240,10 +240,10 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
 
       if (ctauptdepcutok) {
          if (fabs(tlvgenqq->Rapidity()) < 1.6) {
-            hnumptdepcut_centmid->Fill(Centrality,weight);
+            hnumptdepcut_centmid->Fill(Centrality/2,weight);
             hnumptdepcut_ptmid->Fill(genpt,weight);
          } else {
-            hnumptdepcut_centfwd->Fill(Centrality,weight);
+            hnumptdepcut_centfwd->Fill(Centrality/2,weight);
             hnumptdepcut_ptfwd->Fill(genpt,weight);
          }
       }

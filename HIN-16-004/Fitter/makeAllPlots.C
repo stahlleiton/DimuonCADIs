@@ -4,7 +4,7 @@
 #include "Systematics/syst.h"
 
 // flags
-const bool doSysts = true;        // compute the systematics
+const bool doSysts = false;        // compute the systematics
 const bool printSysts = true;     // print the systematics summary table
 const bool plotMassPlots = false; // not implemented yet
 const bool plotAllVars = true;     // plot the dependance of all vars with pt, centrality, y
@@ -45,9 +45,9 @@ void makeAllPlots(const char* nominalDir, const char* systDirs="") {
       plotPt(nominalDir,"rSigma21_Jpsi",""); 
       plotCent(nominalDir,"rSigma21_Jpsi",""); 
       plotRap(nominalDir,"rSigma21_Jpsi",""); 
-      plotPt(nominalDir,"nparbkg_Jpsi","",false); 
-      plotCent(nominalDir,"nparbkg_Jpsi","",false); 
-      plotRap(nominalDir,"nparbkg_Jpsi","",false); 
+      plotPt(nominalDir,"nparbkg","",false); 
+      plotCent(nominalDir,"nparbkg","",false); 
+      plotRap(nominalDir,"nparbkg","",false); 
 
       if (printSysts) {
          plotFiles(allDirs.c_str(), "RFrac2Svs1S", "pt", 0, 1.6, 6.5, 30, 0, 200, "PP");

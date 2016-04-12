@@ -34,6 +34,14 @@ TString treeFileName(const char* workDirName, const char* DSTag="DATA");
 void prune(vector<anabin> &v, bool keppshortest=true);
 void prune(TGraphAsymmErrors *g, TGraphAsymmErrors *gsyst=NULL, bool keppshortest=true);
 void prune(TGraphErrors *g, bool keppshortest=true);
+TGraphAsymmErrors* result12007_mid_cent();
+TGraphAsymmErrors* result12007_fwd_cent();
+TGraphAsymmErrors* result12007_mid_cent_syst();
+TGraphAsymmErrors* result12007_fwd_cent_syst();
+TGraphAsymmErrors* result12007_mid();
+TGraphAsymmErrors* result12007_fwd();
+TGraphAsymmErrors* result12007_mid_syst();
+TGraphAsymmErrors* result12007_fwd_syst();
 
 RooRealVar* poiFromFile(const char* filename, const char* token, const char* thepoiname) {
    TFile *f = TFile::Open(filename);
@@ -209,8 +217,8 @@ void prune(TGraphAsymmErrors *g, TGraphAsymmErrors *gsyst, bool keepshort) {
          if (fabs(xl1-xl2)<1e-3 && !keepshort && xh1<xh2) binok=false;
       } // for i2
       if (!binok) {
-         g->SetPoint(i1,-g->GetX()[i1],g->GetY()[i1]);
-         if (gsyst) gsyst->SetPoint(i1,-gsyst->GetX()[i1],gsyst->GetY()[i1]);
+         g->SetPoint(i1,g->GetX()[i1],-g->GetY()[i1]);
+         if (gsyst) gsyst->SetPoint(i1,gsyst->GetX()[i1],-gsyst->GetY()[i1]);
       }
    } // for i1
 }
@@ -228,8 +236,80 @@ void prune(TGraphErrors *g, bool keepshort) {
          if (fabs(xl1-xl2)<1e-3 && keepshort && xh1>xh2) binok=false;
          if (fabs(xl1-xl2)<1e-3 && !keepshort && xh1<xh2) binok=false;
       } // for i2
-      if (!binok) g->SetPoint(i1,-g->GetX()[i1],g->GetY()[i1]);
+      if (!binok) g->SetPoint(i1,g->GetX()[i1],-g->GetY()[i1]);
    } // for i1
 }
 
+TGraphAsymmErrors* result12007_mid_cent() {
+   double x[3] = {308.4-5, 158.6-5, 32.8-5};
+   double y[3] = {0.43, 0.67, 0.};
+   double ex[3] = {0, 0, 0};
+   double ey[3] = {0.2, 0.2, 0.47};
+   TGraphAsymmErrors *ans = new TGraphAsymmErrors(3,x,y,ex,ex,ey,ey);
+   ans->SetName("graph_12007_mid_cent");
+   return ans;
+}
+TGraphAsymmErrors* result12007_fwd_cent() {
+   double x[3] = {308.4+5, 158.6+5, 32.8+5};
+   double y[3] = {2.31, 0.93, 0.89};
+   double ex[3] = {0, 0, 0};
+   double ey[3] = {0.53, 0.47, 0.39};
+   TGraphAsymmErrors *ans = new TGraphAsymmErrors(3,x,y,ex,ex,ey,ey);
+   ans->SetName("graph_12007_fwd_cent");
+   return ans;
+}
+TGraphAsymmErrors* result12007_mid_cent_syst() {
+   double x[3] = {308.4-5, 158.6-5, 32.8-5};
+   double y[3] = {0.43, 0.67, 0.};
+   double ex[3] = {5, 5, 5};
+   double ey[3] = {0.07, 0.09, 0.47};
+   TGraphAsymmErrors *ans = new TGraphAsymmErrors(3,x,y,ex,ex,ey,ey);
+   ans->SetName("graph_12007_mid_cent_syst");
+   return ans;
+}
+TGraphAsymmErrors* result12007_fwd_cent_syst() {
+   double x[3] = {308.4+5, 158.6+5, 32.8+5};
+   double y[3] = {2.31, 0.93, 0.89};
+   double ex[3] = {5, 5, 5};
+   double ey[3] = {0.37, 0.27, 0.17};
+   TGraphAsymmErrors *ans = new TGraphAsymmErrors(3,x,y,ex,ex,ey,ey);
+   ans->SetName("graph_12007_fwd_cent_syst");
+   return ans;
+}
+TGraphAsymmErrors* result12007_mid() {
+   double x[1] = {200};
+   double y[1] = {0.45};
+   double ex[1] = {0};
+   double ey[1] = {0.13};
+   TGraphAsymmErrors *ans = new TGraphAsymmErrors(1,x,y,ex,ex,ey,ey);
+   ans->SetName("graph_12007_mid");
+   return ans;
+}
+TGraphAsymmErrors* result12007_fwd() {
+   double x[1] = {200};
+   double y[1] = {1.67};
+   double ex[1] = {0};
+   double ey[1] = {0.34};
+   TGraphAsymmErrors *ans = new TGraphAsymmErrors(1,x,y,ex,ex,ey,ey);
+   ans->SetName("graph_12007_fwd");
+   return ans;
+}
+TGraphAsymmErrors* result12007_mid_syst() {
+   double x[1] = {200};
+   double y[1] = {0.45};
+   double ex[1] = {25};
+   double ey[1] = {0.07};
+   TGraphAsymmErrors *ans = new TGraphAsymmErrors(1,x,y,ex,ex,ey,ey);
+   ans->SetName("graph_12007_mid_syst");
+   return ans;
+}
+TGraphAsymmErrors* result12007_fwd_syst() {
+   double x[1] = {200};
+   double y[1] = {1.67};
+   double ex[1] = {25};
+   double ey[1] = {0.27};
+   TGraphAsymmErrors *ans = new TGraphAsymmErrors(1,x,y,ex,ex,ey,ey);
+   ans->SetName("graph_12007_fwd_syst");
+   return ans;
+}
 #endif // ifndef resultUtils_h
