@@ -171,7 +171,14 @@ bool defineCtauResolModel(RooWorkspace& ws, CtauModel model, map<string,string> 
       // create the variables for this model  
       if (!ws.var("One")) { ws.factory("One[1.0]"); }
       ws.factory( parIni[Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );
-      ws.factory( parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );      
+      ws.factory( parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );
+
+      ws.factory( parIni[Form("sigmaMC_bCtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );
+      ws.factory( Form("RooFormulaVar::%s(sqrt('(@0*@1)**2+(@2)**2)',{%s,%s,%s})", Form("sigma1_bCtauRes_%s", (isPbPb?"PbPb":"PP")), 
+                       Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                       "ctauErr", 
+                       Form("sigmaMC_bCtauRes_%s", (isPbPb?"PbPb":"PP"))
+                       ) );
 
       // create the two PDFs
       ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("pdfCTAU_CtauRes_%s", (isPbPb?"PbPb":"PP")), "ctau", 
@@ -200,6 +207,19 @@ bool defineCtauResolModel(RooWorkspace& ws, CtauModel model, map<string,string> 
       ws.factory( parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );
       ws.factory( parIni[Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str()  );
       ws.factory( parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );
+
+      
+      ws.factory( parIni[Form("sigmaMC_bCtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );
+      ws.factory( Form("RooFormulaVar::%s(sqrt('(@0*@1)**2+(@2)**2)',{%s,%s,%s})", Form("sigma1_bCtauRes_%s", (isPbPb?"PbPb":"PP")), 
+                       Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP")), 
+                       "ctauErr", 
+                       Form("sigmaMC_bCtauRes_%s", (isPbPb?"PbPb":"PP"))
+                       ) );
+      ws.factory( Form("RooFormulaVar::%s(sqrt('(@0*@1)**2+(@2)**2)',{%s,%s,%s})", Form("sigma2_bCtauRes_%s", (isPbPb?"PbPb":"PP")), 
+                       Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 
+                       "ctauErr", 
+                       Form("sigmaMC_bCtauRes_%s", (isPbPb?"PbPb":"PP"))
+                       ) );
 
       // create the two PDFs
       ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("pdfCTAU1_CtauRes_%s", (isPbPb?"PbPb":"PP")), "ctau", 
@@ -428,10 +448,10 @@ void setCtauDefaultParameters(map<string, string> &parIni, bool isPbPb, double n
 
  // Resolution Ctau Model
   if (parIni.count(Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.0, -0.01, 0.01);
+    parIni[Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.0, -1.0, 1.0);
   }
   if (parIni.count(Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.0, -0.01, 0.01);
+    parIni[Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.0, -1.0, 1.0);
   }
   if (parIni.count(Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
     parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.8, 0.001, 2.0);

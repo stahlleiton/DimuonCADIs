@@ -54,26 +54,35 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     initOniaTree(theTree);                                       // Initialize the Onia Tree
     iniBranch(theTree,isMC);                                     // Initialize the Branches
 
-    RooRealVar* mass    = new RooRealVar("invMass","#mu#mu mass", 2.0, 5.0, "GeV/c^{2}");
-    RooRealVar* ctau    = new RooRealVar("ctau","c_{#tau}", -10.0, 10.0, "cm");
-    RooRealVar* ctauErr = new RooRealVar("ctauErr","#sigma_{c#tau}", -10.0, 10.0, "cm");	
-    RooRealVar* ptQQ    = new RooRealVar("pt","#mu#mu p_{T}", 0.0, 50.0, "GeV/c");
-    RooRealVar* rapQQ   = new RooRealVar("rap","#mu#mu y", -2.4, 2.4, "");
-    RooRealVar* cent    = new RooRealVar("cent","centrality", 0.0, 200.0, "");
-    RooRealVar* weight  = new RooRealVar("weight","MC weight", 0.0, 1.0, "");
-    RooArgSet*  cols    = NULL;
+    RooRealVar* mass     = new RooRealVar("invMass","#mu#mu mass", 2.0, 5.0, "GeV/c^{2}");
+    RooRealVar* ctau     = new RooRealVar("ctau","c_{#tau}", -10.0, 10.0, "cm");
+    RooRealVar* ctauTrue = new RooRealVar("ctauTrue","c_{#tau}", -10.0, 10.0, "cm");
+    RooRealVar* ctauErr  = new RooRealVar("ctauErr","#sigma_{c#tau}", -10.0, 10.0, "cm");	
+    RooRealVar* ptQQ     = new RooRealVar("pt","#mu#mu p_{T}", 0.0, 50.0, "GeV/c");
+    RooRealVar* rapQQ    = new RooRealVar("rap","#mu#mu y", -2.4, 2.4, "");
+    RooRealVar* cent     = new RooRealVar("cent","centrality", 0.0, 200.0, "");
+    RooRealVar* weight   = new RooRealVar("weight","MC weight", 0.0, 1.0, "");
+    RooArgSet*  cols     = NULL;
     
     if (applyWeight)
     {
       setCentralityMap(Form("%s/Input/CentralityMap_PbPb2015.txt",gSystem->ExpandPathName(gSystem->pwd())));
-      cols   = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent, *weight);
+      if (isMC) {
+        cols = new RooArgSet(*mass, *ctau, *ctauErr, *ctauTrue *ptQQ, *rapQQ, *cent, *weight);
+      } else {
+        cols = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent, *weight);
+      }
       dataOS = new RooDataSet(Form("dOS_%s", DSName.c_str()), "dOS", *cols, WeightVar(*weight), StoreAsymError(*mass));
       dataSS = new RooDataSet(Form("dSS_%s", DSName.c_str()), "dSS", *cols, WeightVar(*weight), StoreAsymError(*mass));
       if (isPureSDataset) dataOSNoBkg = new RooDataSet(Form("dOS_%s_NoBkg", DSName.c_str()), "dOSNoBkg", *cols, WeightVar(*weight), StoreAsymError(*mass));
     }
     else
     {
-      cols = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent);                   
+      if (isMC) {
+        cols = new RooArgSet(*mass, *ctau, *ctauErr, *ctauTrue *ptQQ, *rapQQ, *cent);
+      } else {
+        cols = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent);
+      }                 
       dataOS = new RooDataSet(Form("dOS_%s", DSName.c_str()), "dOS", *cols, StoreAsymError(*mass));
       dataSS = new RooDataSet(Form("dSS_%s", DSName.c_str()), "dSS", *cols, StoreAsymError(*mass));
       if (isMC && isPureSDataset) dataOSNoBkg = new RooDataSet(Form("dOS_%s_NoBkg", DSName.c_str()), "dOSNoBkg", *cols, StoreAsymError(*mass));
