@@ -70,8 +70,8 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
   if (fitCtau) {
     if (cut.dMuon.ctau.Min==-10. && cut.dMuon.ctau.Max==10.) { 
       // Default ctau values, means that the user did not specify a ctau range
-      cut.dMuon.ctau.Min = -3.0;
-      cut.dMuon.ctau.Max = 3.0;
+      cut.dMuon.ctau.Min = -2.0;
+      cut.dMuon.ctau.Max = 10.0;
     }
     parIni["Model_CtauRes_PbPb"] = "DoubleGaussianResolution";
     parIni["Model_CtauRes_PP"]   = "DoubleGaussianResolution";
@@ -199,7 +199,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
       myws.saveSnapshot("simPdf_parIni", *newpars, kTRUE) ;
 
       // Do the simultaneous fit
-      RooFitResult* fitResult = simPdf->fitTo(*combData, Offset(kTRUE), Extended(kTRUE), NumCPU(numCores), Range("MassWindow,CtauWindow"), Save(), Minimizer("Minuit2","Migrad"));
+      RooFitResult* fitResult = simPdf->fitTo(*combData, Offset(kTRUE), Extended(kTRUE), NumCPU(numCores), ConditionalObservables(*myws.var("ctauErr")), Range("MassWindow,CtauWindow"), Save(), Minimizer("Minuit2","Migrad"));
       fitResult->Print();
 
       // Create the output files
@@ -245,14 +245,14 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
         // Fit the Datasets
         if (incJpsi || incPsi2S) {
           if (isWeighted) {
-            RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(kTRUE), Range("CtauWindow"), NumCPU(numCores), Save());
+            RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(kTRUE), Range("CtauWindow"), ConditionalObservables(*myws.var("ctauErr")), NumCPU(numCores), Save());
             fitResult->Print();
           } else {
             RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("CtauWindow&&MassWindow"), ConditionalObservables(*myws.var("ctauErr")), NumCPU(numCores), Save());
             fitResult->Print();
           }  
         } else {
-          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("(SideBand1||SideBand2)&&CtauWindow"), NumCPU(numCores), Save());
+          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("(SideBand1||SideBand2)&&CtauWindow"), ConditionalObservables(*myws.var("ctauErr")), NumCPU(numCores), Save());
           fitResult->Print();
         }
         
@@ -311,6 +311,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
           drawCtauPlot(myws, outputDir, opt, cut, (wantPureSMC ? (plotCtauLabelPP+"_NoBkg") : plotCtauLabelPP), DSTAG, false, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins); 
         }
         saveWorkSpace(myws, outputDir, plotLabel, DSTAG, cut, fitMass, fitCtau, false, false);
+        return false;
       }
     }
   }

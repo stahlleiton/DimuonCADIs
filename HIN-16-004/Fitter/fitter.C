@@ -31,8 +31,8 @@ void fitter(
             bool incJpsi      = true,         // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
             bool incBkg       = false,         // Includes Background model
-            bool incPrompt    = true,         // Includes Prompt ctau model
-            bool incNonPrompt = false,        // Includes Non Prompt ctau model 
+            bool incPrompt    = false,         // Includes Prompt ctau model
+            bool incNonPrompt = true,        // Includes Non Prompt ctau model 
             // Select the fitting options
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
@@ -101,8 +101,8 @@ void fitter(
       if ( (FILETAG.find("PbPb")!=std::string::npos)  && !fitPbPb   ) continue; // If we find PbPb, check if the user wants PbPb
       if ( (FILETAG.find("JPSI")!=std::string::npos)  && !incJpsi   ) continue; // If we find Jpsi MC, check if the user wants to include Jpsi
       if ( (FILETAG.find("PSI2S")!=std::string::npos) && !incPsi2S  ) continue; // If we find Psi2S MC, check if the user wants to include Psi2S
-      if ( (FILETAG.find("PR")!=std::string::npos)    && !incPrompt ) continue; // If we find Prompt MC, check if the user wants to include Prompt
-      if ( (FILETAG.find("NOPR")!=std::string::npos)  && !incNonPrompt ) continue; // If we find Non-Prompt MC, check if the user wants to include Non-Prompt
+      if ( (FILETAG.find("NOPR")!=std::string::npos) ) { if (!incNonPrompt) continue; } // If we find Non-Prompt MC, check if the user wants to include Non-Prompt
+      else if ( (FILETAG.find("PR")!=std::string::npos) && !incPrompt ) continue; // If we find Prompt MC, check if the user wants to include Prompt
       OutputFileName = DIR["dataset"] + "DATASET_" + FILETAG + ".root";
       if(!tree2DataSet(Workspace[DSTAG], InputFileNames, FILETAG, OutputFileName)){ return; }
       if (!aDSTAG->FindObject(DSTAG.c_str())) aDSTAG->Add(new TObjString(DSTAG.c_str()));
