@@ -102,7 +102,7 @@ void plotEffs() {
 
                TH1F *haxes = new TH1F("haxes","haxes",1,0,(idep==1) ? 100 : 30);
                haxes->GetYaxis()->SetTitle("Efficiency");
-               if (icut>=3) haxes->GetYaxis()->SetTitle("l_{J/#psi}^{3D} cut efficiency");
+               if (icut>=3) haxes->GetYaxis()->SetTitle("#font[12]{l}_{J/#psi}^{3D} cut efficiency");
                haxes->GetXaxis()->SetTitle((idep==1) ? "Centrality bin" : "p_{T}");
                TLatex tl; TString cname;
                TString effname = (icut<3) ? "singleff_" : "ctaucuteff_";
@@ -127,7 +127,7 @@ void plotEffs() {
 
                   tl.DrawLatex((idep==0) ? 1.5 : 10, (icut<3) ? 0.9 : 0.7, colltag + TString(", ") 
                         + ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
-                        + ((icut==0) ? "no l_{J/#psi}^{3D} cut" : ((icut==1 || icut==3) ? "cst l_{J/#psi}^{3D} cut" : "pt-dep l_{J/#psi}^{3D} cut")));
+                        + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1 || icut==3) ? "cst #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
 
 
                   c1->SaveAs(cname + ".root");
@@ -224,7 +224,7 @@ void plotEffs() {
                   tleg2->Draw();
 
                   tl.DrawLatex((idep==0) ? 1.5 : 10, 1.4, ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
-                        + ((icut==0) ? "no l_{J/#psi}^{3D} cut" : ((icut==1) ? "cst l_{J/#psi}^{3D} cut" : "pt-dep l_{J/#psi}^{3D} cut")));
+                        + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1) ? "cst #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
 
                   c1->SaveAs(cname + ".root");
                   c1->SaveAs(cname + ".png");
@@ -262,7 +262,7 @@ void plotEffs() {
                   haxes->Draw();
                   hpsi2spbpb->Draw("E1 same");
                   tl.DrawLatex((idep==0) ? 1.5 : 10, 1.4, ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
-                        + ((icut==0) ? "no l_{J/#psi}^{3D} cut" : ((icut==1) ? "cst l_{J/#psi}^{3D} cut" : "pt-dep l_{J/#psi}^{3D} cut")));
+                        + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1) ? "cst #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
                   c1->SaveAs(cname + ".root");
                   c1->SaveAs(cname + ".png");
                   c1->SaveAs(cname + ".pdf");
