@@ -56,7 +56,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
 
     RooRealVar* mass    = new RooRealVar("invMass","#mu#mu mass", 2.0, 5.0, "GeV/c^{2}");
     RooRealVar* ctau    = new RooRealVar("ctau","c_{#tau}", -10.0, 10.0, "cm");
-    RooRealVar* ctauErr = new RooRealVar("ctauErr","#sigma_{c#tau}", -1.0, 1.0, "cm");	
+    RooRealVar* ctauErr = new RooRealVar("ctauErr","#sigma_{c#tau}", -10.0, 10.0, "cm");	
     RooRealVar* ptQQ    = new RooRealVar("pt","#mu#mu p_{T}", 0.0, 50.0, "GeV/c");
     RooRealVar* rapQQ   = new RooRealVar("rap","#mu#mu y", -2.4, 2.4, "");
     RooRealVar* cent    = new RooRealVar("cent","centrality", 0.0, 200.0, "");

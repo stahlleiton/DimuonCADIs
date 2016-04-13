@@ -3,7 +3,7 @@
 #include "Macros/fitCharmonia.C"
 
 
-bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtua, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, 
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, 
                    bool cutCtau, bool doSimulFit, bool wantPureSMC, bool setLogScale, bool zoomPsi, bool incSS, int numCores, float binWidth);
 
 
@@ -21,20 +21,20 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 void fitter(
             const string workDirName="Test", // Working directory
             // Select the type of datasets to fit
-            bool fitData      = true,         // Fits Data datasets
-            bool fitMC        = true,         // Fits MC datasets
-            bool fitPbPb      = true,         // Fits PbPb datasets
+            bool fitData      = false,         // Fits Data datasets
+            bool fitMC        = true,        // Fits MC datasets
+            bool fitPbPb      = false,         // Fits PbPb datasets
             bool fitPP        = true,         // Fits PP datasets
-            bool fitMass      = true,         // Fits invariant mass distribution
-            bool fitCtau      = false,        // Fits ctau distribution
+            bool fitMass      = false,         // Fits invariant mass distribution
+            bool fitCtau      = true,        // Fits ctau distribution
             // Select the type of object to fit
             bool incJpsi      = true,         // Includes Jpsi model
-            bool incPsi2S     = true,         // Includes Psi(2S) model
-            bool incBkg       = true,         // Includes Background model
+            bool incPsi2S     = false,         // Includes Psi(2S) model
+            bool incBkg       = false,         // Includes Background model
             bool incPrompt    = true,         // Includes Prompt ctau model
             bool incNonPrompt = false,        // Includes Non Prompt ctau model 
             // Select the fitting options
-            bool cutCtau      = true,        // Apply prompt ctau cuts
+            bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
             bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
             int  numCores     = 32,            // Number of cores used for fitting
@@ -56,7 +56,7 @@ void fitter(
   */
 
   if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, setLogScale, zoomPsi, incSS, numCores, binWidth)) { return; }
-
+  
   map<string,string> DIR;
   if(!iniWorkEnv(DIR, workDirName)){ return; }
  
@@ -116,7 +116,7 @@ void fitter(
   if (Workspace.size()==0) {
     cout << "[ERROR] No onia tree files were found matching the user's input settings!" << endl; return;
   }
-
+  
   // -------------------------------------------------------------------------------
   // STEP 2: LOAD THE INITIAL PARAMETERS
   /*
@@ -192,7 +192,6 @@ void fitter(
       if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
     }
   }
-    
 
   // -------------------------------------------------------------------------------  
   // STEP 3: FIT THE DATASETS
@@ -407,10 +406,10 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
   cut.sMuon.Pt.Max  = 100000.0;
   cut.sMuon.Eta.Min = -2.4;   
   cut.sMuon.Eta.Max = 2.4;
-  cut.dMuon.ctauErr.Min = -100.0; 
-  cut.dMuon.ctauErr.Max = 100.0;
-  cut.dMuon.ctau.Min = -100.0;   
-  cut.dMuon.ctau.Max = 100.0;    
+  cut.dMuon.ctauErr.Min = 0.00000001; 
+  cut.dMuon.ctauErr.Max = 0.1;
+  cut.dMuon.ctau.Min = -10.0;   
+  cut.dMuon.ctau.Max = 10.0;    
   cut.dMuon.ctauCut = "";   
   cut.dMuon.M.Min = 2.0; 
   cut.dMuon.M.Max = 5.0;  
@@ -662,9 +661,8 @@ bool existDir(string dir)
   return exist;
 };
 
-
-bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool incJpsi, bool incPsi2S, bool incBkg, bool cutCtau, 
-                   bool doSimulFit, bool wantPureSMC, bool setLogScale, bool zoomPsi, bool incSS, int numCores, float binWidth)
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, 
+                   bool cutCtau, bool doSimulFit, bool wantPureSMC, bool setLogScale, bool zoomPsi, bool incSS, int numCores, float binWidth)
 { 
   cout << "[INFO] Checking user settings " << endl;
 

@@ -2,7 +2,7 @@
 
 void fixPsi2StoJpsi(map<string, string>& parIni, bool isPbPb);
 void fixPbPbtoPP(map<string, string>& parIni);
-void setDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries);
+void setMassDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries);
 bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<string,string> parIni, bool isPbPb); 
 bool addBackgroundMassModel(RooWorkspace& ws, string object, MassModel model, map<string,string> parIni, bool isPbPb);
 
@@ -18,7 +18,7 @@ bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<stri
 {
 
   // If the initial parameters are empty, set defaul parameter values
-  setDefaultParameters(parIni, isPbPb, numEntries);
+  setMassDefaultParameters(parIni, isPbPb, numEntries);
 
   // Fix all psi2S parameters to jpsi
   if (incJpsi && incPsi2S) {
@@ -848,7 +848,7 @@ void fixPsi2StoJpsi(map<string, string>& parIni, bool isPbPb)
   parIni[Form("f_Psi2S_%s", (isPbPb?"PbPb":"PP"))]      = Form("RooFormulaVar::%s('@0',{%s})", Form("f_Psi2S_%s", (isPbPb?"PbPb":"PP")), Form("f_Jpsi_%s", (isPbPb?"PbPb":"PP")));
 };
 
-void setDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries)
+void setMassDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries)
 {
 
   cout << "[INFO] Setting user undefined initial parameters to their default values" << endl;
@@ -912,7 +912,7 @@ void setDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEn
     parIni[Form("alpha_Jpsi_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("alpha_Jpsi_%s", (isPbPb?"PbPb":"PP")), 2.0, 0.5, 30.0);
   }
   if (parIni.count(Form("alpha2_Jpsi_%s", (isPbPb?"PbPb":"PP")))==0) {
-    parIni[Form("alpha2_Jpsi_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0',{%s})", Form("alpha2_Jpsi_%s", (isPbPb?"PbPb":"PP")), parIni[Form("alpha_Jpsi_%s", (isPbPb?"PbPb":"PP"))].c_str());
+    parIni[Form("alpha2_Jpsi_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0',{%s})", Form("alpha2_Jpsi_%s", (isPbPb?"PbPb":"PP")), Form("alpha_Jpsi_%s", (isPbPb?"PbPb":"PP")));
   }
   else if (parIni[Form("alpha2_Jpsi_%s", (isPbPb?"PbPb":"PP"))]=="")
   {
@@ -922,7 +922,7 @@ void setDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEn
     parIni[Form("alpha_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("alpha_Psi2S_%s", (isPbPb?"PbPb":"PP")), 2.0, 0.5, 30.0);
   }
   if (parIni.count(Form("alpha2_Psi2S_%s", (isPbPb?"PbPb":"PP")))==0) {
-    parIni[Form("alpha2_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0',{%s})", Form("alpha2_Psi2S_%s", (isPbPb?"PbPb":"PP")), parIni[Form("alpha_Psi2S_%s", (isPbPb?"PbPb":"PP"))].c_str());
+    parIni[Form("alpha2_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0',{%s})", Form("alpha2_Psi2S_%s", (isPbPb?"PbPb":"PP")), Form("alpha_Psi2S_%s", (isPbPb?"PbPb":"PP")));
   }
   else if (parIni[Form("alpha2_Psi2S_%s", (isPbPb?"PbPb":"PP"))]=="")
   {
@@ -932,7 +932,7 @@ void setDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEn
     parIni[Form("n_Jpsi_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("n_Jpsi_%s", (isPbPb?"PbPb":"PP")), 1.8, 0.5, 10.0);
   }
   if (parIni.count(Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP")))==0) {
-    parIni[Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0',{%s})", Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP")), parIni[Form("n_Jpsi_%s", (isPbPb?"PbPb":"PP"))].c_str());
+    parIni[Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0',{%s})", Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP")), Form("n_Jpsi_%s", (isPbPb?"PbPb":"PP")));
   }
   else if (parIni[Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP"))]=="")
   {
@@ -942,7 +942,7 @@ void setDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEn
     parIni[Form("n_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("n_Psi2S_%s", (isPbPb?"PbPb":"PP")), 1.8, 0.5, 10.0);
   }
   if (parIni.count(Form("n2_Psi2S_%s", (isPbPb?"PbPb":"PP")))==0) {
-    parIni[Form("n2_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0',{%s})", Form("n2_Psi2S_%s", (isPbPb?"PbPb":"PP")), parIni[Form("n_Psi2S_%s", (isPbPb?"PbPb":"PP"))].c_str());
+    parIni[Form("n2_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0',{%s})", Form("n2_Psi2S_%s", (isPbPb?"PbPb":"PP")), Form("n_Psi2S_%s", (isPbPb?"PbPb":"PP")));
   }
   else if (parIni[Form("n2_Psi2S_%s", (isPbPb?"PbPb":"PP"))]=="")
   {

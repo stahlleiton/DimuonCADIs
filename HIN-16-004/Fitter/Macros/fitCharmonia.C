@@ -1,4 +1,3 @@
-
 #include "Utilities/initClasses.h"
 #include "buildCharmoniaMassModel.C"
 #include "buildCharmoniaCtauModel.C"
@@ -10,12 +9,13 @@
 void setCtauCuts(struct KinCuts& cut, bool isPbPb);
 int  importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut, string label);
 bool setMassModel( struct OniaModel& model, map<string, string>  parIni, bool isPbPb, bool incJpsi, bool incPsi2S, bool incBkg);
-bool setCtauModel( struct OniaModel& model, map<string, string>  parIni, bool isPbPb, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, boo incNonPrompt);
+bool setCtauModel( struct OniaModel& model, map<string, string>  parIni, bool isPbPb, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt);
 
 void setOptions(struct InputOpt* opt);
+void setFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut, bool fitMass, bool fitCtau, bool doSimulFit, bool isPbPb=true);
+bool saveWorkSpace(RooWorkspace& myws, string outputDir, string plotLabel, string DSTAG, struct KinCuts cut, bool fitMass, bool fitCtau, bool doSimulFit, bool isPbPb=true);
 
-bool isMassFitAlreadyFound(RooArgSet *newpars, string outputDir, string plotLabel, string TAG, struct KinCuts cut, bool isPbPb, bool doSimulFit);
-bool isCtauFitAlreadyFound(RooArgSet *newpars, string outputDir, string plotLabel, string TAG, struct KinCuts cut, bool isPbPb);
+bool isFitAlreadyFound(RooArgSet *newpars, string outputDir, string plotLabel, string DSTAG, struct KinCuts cut, bool fitMass, bool fitCtau, bool doSimulFit, bool isPbPb=true);
 bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2);
 
 bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the input RooDatasets
@@ -37,7 +37,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
                    bool cutCtau      = false,     // Apply prompt ctau cuts
                    bool doSimulFit   = false,     // Do simultaneous fit
                    bool wantPureSMC  = false,     // Flag to indicate if we want to fit pure signal MC
-                   int  numCores     = 2,         // Number of cores used for fitting
+                   int  numCores     = 32,         // Number of cores used for fitting
                    // Select the drawing options
                    bool  setLogScale  = true,      // Draw plot with log scale
                    bool  incSS        = false,     // Include Same Sign data
@@ -48,31 +48,36 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
 {
 
   // Define the mass range
-  if (cut.dMuon.M.Max==5 && cut.dMuon.M.Min==2) { 
-    // Default mass values, means that the user did not specify a mass range
-    if ( incJpsi && !incPsi2S) {
-      cut.dMuon.M.Min = 2.6;
-      cut.dMuon.M.Max = 3.5;
+  if (fitMass) {
+    if (cut.dMuon.M.Max==5 && cut.dMuon.M.Min==2) { 
+      // Default mass values, means that the user did not specify a mass range
+      if ( incJpsi && !incPsi2S) {
+        cut.dMuon.M.Min = 2.6;
+        cut.dMuon.M.Max = 3.5;
+      }
+      else if ( !incJpsi && incPsi2S) {
+        cut.dMuon.M.Min = 3.0;
+        cut.dMuon.M.Max = 4.1;
+      }
+      else {
+        cut.dMuon.M.Min = 2.2;
+        cut.dMuon.M.Max = 4.5;
+      }
     }
-    else if ( !incJpsi && incPsi2S) {
-      cut.dMuon.M.Min = 3.0;
-      cut.dMuon.M.Max = 4.1;
-    }
-    else {
-      cut.dMuon.M.Min = 2.2;
-      cut.dMuon.M.Max = 4.5;
-    }
+    parIni["invMassNorm"] = Form("RooFormulaVar::%s('( -1.0 + 2.0*( @0 - @1 )/( @2 - @1) )', {%s, mMin[%.6f], mMax[%.6f]})", "invMassNorm", "invMass", cut.dMuon.M.Min, cut.dMuon.M.Max );
   }
   // Define the mass range
-  if (cut.dMuon.ctau.Max==-100 && cut.dMuon.ctau.Min==100) { 
-    // Default ctau values, means that the user did not specify a ctau range
-    cut.dMuon.ctau.Min = -10.0;
-    cut.dMuon.ctau.Max = 10.0;
+  if (fitCtau) {
+    if (cut.dMuon.ctau.Min==-10. && cut.dMuon.ctau.Max==10.) { 
+      // Default ctau values, means that the user did not specify a ctau range
+      cut.dMuon.ctau.Min = -3.0;
+      cut.dMuon.ctau.Max = 3.0;
+    }
+    parIni["Model_CtauRes_PbPb"] = "DoubleGaussianResolution";
+    parIni["Model_CtauRes_PP"]   = "DoubleGaussianResolution";
   }
-  parIni["invMassNorm"] = Form("RooFormulaVar::%s('( -1.0 + 2.0*( @0 - @1 )/( @2 - @1) )', {%s, mMin[%.6f], mMax[%.6f]})", "invMassNorm", "invMass", cut.dMuon.M.Min, cut.dMuon.M.Max );
   // Apply the ctau cuts to reject non-prompt charmonia
   if (cutCtau) { setCtauCuts(cut, isPbPb); }  
-
 
   // Check if input dataset is MC
   bool isMC = false;
@@ -113,7 +118,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
     // Build the Fit Model    
     double numEntries = myws.data(dsName.c_str())->sumEntries();
     if (fitMass) { if (!buildCharmoniaMassModel(myws, model.PP, parIni, false, doSimulFit, incBkg, incJpsi, incPsi2S, numEntries))  { return false; } }
-    if (fitCtau) { if (!buildCharmoniaCtauModel(myws, model.PP, parIni, false, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt))  { return false; } }
+    if (fitCtau) { if (!buildCharmoniaCtauModel(myws, model.PP, parIni, false, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt, numEntries))  { return false; } }
 
     if (fitMass) {
       if (incJpsi)  { plotMassLabelPP = plotMassLabelPP + Form("_Jpsi_%s", parIni["Model_Jpsi_PP"].c_str());   } 
@@ -121,12 +126,12 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
       if (incBkg)   { plotMassLabelPP = plotMassLabelPP + Form("_Bkg_%s", parIni["Model_Bkg_PP"].c_str());     }
     }
     if (fitCtau) {
-      if (incJpsi  && incPrompt)    { plotCtauLabelPP = plotCtauLabelPP + Form("_JpsiPR_%s", parIni["ModelPR_Jpsi_PP"].c_str());      } 
-      if (incJpsi  && incNonPrompt) { plotCtauLabelPP = plotCtauLabelPP + Form("_JpsiNoPR_%s", parIni["ModelNoPR_Jpsi_PP"].c_str());  }
-      if (incPsi2S && incPrompt)    { plotCtauLabelPP = plotCtauLabelPP + Form("_Psi2SPR_%s", parIni["ModelPR_Psi2S_PP"].c_str());    } 
-      if (incPsi2S && incNonPrompt) { plotCtauLabelPP = plotCtauLabelPP + Form("_Psi2SNoPR_%s", parIni["ModelNoPR_Psi2S_PP"].c_str());}
-      if (incBkg && incPrompt)      { plotCtauLabelPP = plotCtauLabelPP + Form("_BkgPR_%s", parIni["ModelPR_Bkg_PP"].c_str());        } 
-      if (incBkg && incNonPrompt)   { plotCtauLabelPP = plotCtauLabelPP + Form("_BkgNoPR_%s", parIni["ModelNoPR_Bkg_PP"].c_str());    }
+      if (incJpsi  && incPrompt)    { plotCtauLabelPP = plotCtauLabelPP + Form("_JpsiPR_%s", parIni["Model_JpsiPR_PP"].c_str());      } 
+      if (incJpsi  && incNonPrompt) { plotCtauLabelPP = plotCtauLabelPP + Form("_JpsiNoPR_%s", parIni["Model_JpsiNoPR_PP"].c_str());  }
+      if (incPsi2S && incPrompt)    { plotCtauLabelPP = plotCtauLabelPP + Form("_Psi2SPR_%s", parIni["Model_Psi2SPR_PP"].c_str());    } 
+      if (incPsi2S && incNonPrompt) { plotCtauLabelPP = plotCtauLabelPP + Form("_Psi2SNoPR_%s", parIni["Model_Psi2SNoPR_PP"].c_str());}
+      if (incBkg && incPrompt)      { plotCtauLabelPP = plotCtauLabelPP + Form("_BkgPR_%s", parIni["Model_BkgPR_PP"].c_str());        } 
+      if (incBkg && incNonPrompt)   { plotCtauLabelPP = plotCtauLabelPP + Form("_BkgNoPR_%s", parIni["Model_BkgNoPR_PP"].c_str());    }
     }
   }
   if (doSimulFit || isPbPb) {
@@ -146,133 +151,139 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
     // Build the Fit Model
     double    numEntries = myws.data(dsName.c_str())->sumEntries();
     if (fitMass) { if (!buildCharmoniaMassModel(myws, model.PbPb, parIni, true, doSimulFit, incBkg, incJpsi, incPsi2S, numEntries)) { return false; } }
-    if (fitCtau) { if (!buildCharmoniaCtauModel(myws, model.PbPb, parIni, true, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt)) { return false; } }
+    if (fitCtau) { if (!buildCharmoniaCtauModel(myws, model.PbPb, parIni, true, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt, numEntries)) { return false; } }
 
     if (fitMass) {
-      if (incJpsi)  { plotLabelPbPb = plotLabelPbPb + Form("_Jpsi_%s", parIni["Model_Jpsi_PbPb"].c_str());   } 
-      if (incPsi2S) { plotLabelPbPb = plotLabelPbPb + Form("_Psi2S_%s", parIni["Model_Psi2S_PbPb"].c_str()); }
-      if (incBkg)   { plotLabelPbPb = plotLabelPbPb + Form("_Bkg_%s", parIni["Model_Bkg_PbPb"].c_str());     }
+      if (incJpsi)  { plotMassLabelPbPb = plotMassLabelPbPb + Form("_Jpsi_%s", parIni["Model_Jpsi_PbPb"].c_str());   } 
+      if (incPsi2S) { plotMassLabelPbPb = plotMassLabelPbPb + Form("_Psi2S_%s", parIni["Model_Psi2S_PbPb"].c_str()); }
+      if (incBkg)   { plotMassLabelPbPb = plotMassLabelPbPb + Form("_Bkg_%s", parIni["Model_Bkg_PbPb"].c_str());     }
     }
     if (fitCtau) {
-      if (incJpsi  && incPrompt)    { plotCtauLabelPbPb = plotCtauLabelPbPb + Form("_JpsiPR_%s", parIni["ModelPR_Jpsi_PbPb"].c_str());      } 
-      if (incJpsi  && incNonPrompt) { plotCtauLabelPbPb = plotCtauLabelPbPb + Form("_JpsiNoPR_%s", parIni["ModelNoPR_Jpsi_PbPb"].c_str());  }
-      if (incPsi2S && incPrompt)    { plotCtauLabelPbPb = plotCtauLabelPbPb + Form("_Psi2SPR_%s", parIni["ModelPR_Psi2S_PbPb"].c_str());    } 
-      if (incPsi2S && incNonPrompt) { plotCtauLabelPbPb = plotCtauLabelPbPb + Form("_Psi2SNoPR_%s", parIni["ModelNoPR_Psi2S_PbPb"].c_str());}
-      if (incBkg && incPrompt)      { plotCtauLabelPbPb = plotCtauLabelPbPb + Form("_BkgPR_%s", parIni["ModelPR_Bkg_PbPb"].c_str());        } 
-      if (incBkg && incNonPrompt)   { plotCtauLabelPbPb = plotCtauLabelPbPb + Form("_BkgNoPR_%s", parIni["ModelNoPR_Bkg_PbPb"].c_str());    }
+      if (incJpsi  && incPrompt)    { plotCtauLabelPbPb = plotCtauLabelPbPb + Form("_JpsiPR_%s", parIni["Model_JpsiPR_PbPb"].c_str());      } 
+      if (incJpsi  && incNonPrompt) { plotCtauLabelPbPb = plotCtauLabelPbPb + Form("_JpsiNoPR_%s", parIni["Model_JpsiNoPR_PbPb"].c_str());  }
+      if (incPsi2S && incPrompt)    { plotCtauLabelPbPb = plotCtauLabelPbPb + Form("_Psi2SPR_%s", parIni["Model_Psi2SPR_PbPb"].c_str());    } 
+      if (incPsi2S && incNonPrompt) { plotCtauLabelPbPb = plotCtauLabelPbPb + Form("_Psi2SNoPR_%s", parIni["Model_Psi2SNoPR_PbPb"].c_str());}
+      if (incBkg && incPrompt)      { plotCtauLabelPbPb = plotCtauLabelPbPb + Form("_BkgPR_%s", parIni["Model_BkgPR_PbPb"].c_str());        } 
+      if (incBkg && incNonPrompt)   { plotCtauLabelPbPb = plotCtauLabelPbPb + Form("_BkgNoPR_%s", parIni["Model_BkgNoPR_PbPb"].c_str());    }
     }
   }
-  
+
   if (doFit)
   {
     if (doSimulFit) {
-      // check if we have already done this fit. If yes, do nothing and return true.
-      bool found = true;
-      if (!fitCtau) {
-        RooArgSet *newpars = myws.pdf("pdfMASS_Tot_PbPb")->getParameters(*(myws.var("invMass")));
-        found = found && isMassFitAlreadyFound(newpars, outputDir, plotMassLabelPbPb, DSTAG, cut, true, true);
-      } else {
-        RooArgSet *newpars = myws.pdf("pdfCTAUMASS_Tot_PbPb")->getParameters(RooArgSet(*(myws.var("invMass")), *(myws.var("ctau"))));
-        found = found && isMassFitAlreadyFound(newpars, outputDir, plotMassLabelPbPb, DSTAG, cut, true, true);
-        found = found && isCtauFitAlreadyFound(newpars, outputDir, plotCtauLabelPbPb, DSTAG, cut, true);
-      }
-      if (found) {
-        cout << "[INFO] This fit was already done, so I'll just go to the next one." << endl;
-        return true;
-      }
+
+      string plotLabel = ""; string pdfName = "";
+      if (fitMass && !fitCtau) { pdfName = "pdfMASS";     plotLabel = plotMassLabelPbPb+plotCtauLabelPbPb; }
+      if (!fitMass && fitCtau) { pdfName = "pdfCTAU";     plotLabel = plotMassLabelPbPb;                   }
+      if (fitMass &&  fitCtau) { pdfName = "pdfCTAUMASS"; plotLabel = plotCtauLabelPbPb;                   }
       
       // Create the combided datasets and models
       RooCategory* sample = new RooCategory("sample","sample"); sample->defineType("PbPb"); sample->defineType("PP");
-      RooDataSet*  combData = new RooDataSet("combData","combined data", *myws.var("invMass"), Index(*sample),
+      RooDataSet*  combData = new RooDataSet("combData","combined data", RooArgSet(*myws.var("invMass"), *myws.var("ctau")), Index(*sample),
                                              Import("PbPb", *((RooDataSet*)myws.data("dOS_DATA_PbPb"))),
                                              Import("PP",   *((RooDataSet*)myws.data("dOS_DATA_PP")))
                                              );
       RooSimultaneous* simPdf = new RooSimultaneous("simPdf", "simultaneous pdf", *sample);
-      if (!fitCtau) {
-        simPdf->addPdf(*myws.pdf("pdfMASS_Tot_PbPb"), "PbPb"); simPdf->addPdf(*myws.pdf("pdfMASS_Tot_PP"), "PP");
-      } else {
-        simPdf->addPdf(*myws.pdf("pdfCTAUMASS_Tot_PbPb"), "PbPb"); simPdf->addPdf(*myws.pdf("pdfCTAUMASS_Tot_PP"), "PP");
+      simPdf->addPdf(*myws.pdf(Form("%s_Tot_PbPb", pdfName.c_str())), "PbPb"); simPdf->addPdf(*myws.pdf(Form("%s_Tot_PP", pdfName.c_str())), "PP");
+      myws.import(*simPdf);
+
+      // check if we have already done this fit. If yes, do nothing and return true.
+        
+      bool found = true;
+      RooArgSet *newpars = myws.pdf("simPdf")->getParameters(RooArgSet(*myws.var("invMass"),*myws.var("ctau")));
+      found = found && isFitAlreadyFound(newpars, outputDir, plotLabel, DSTAG, cut, fitMass, fitCtau, true);
+      if (found) {
+        cout << "[INFO] This fit was already done, so I'll just go to the next one." << endl;
+        return true;
       }
+      myws.saveSnapshot("simPdf_parIni", *newpars, kTRUE) ;
+
       // Do the simultaneous fit
       RooFitResult* fitResult = simPdf->fitTo(*combData, Offset(kTRUE), Extended(kTRUE), NumCPU(numCores), Range("MassWindow,CtauWindow"), Save(), Minimizer("Minuit2","Migrad"));
       fitResult->Print();
 
       // Create the output files
-      int nBins = min(int( round((cut.dMuons.M.Max - cut.dMuons.M.Min)/binWidth) ), 100);
-      drawMassPlot(myws, outputDir, opt, cut, plotMassLabelPbPb, DSTAG, true, incJpsi, incPsi2S, incBkg, cutCtau, doSimulFit, false, setLogScale, incSS, zoomPsi, nBins, getMeanPT);
-      drawMassPlot(myws, outputDir, opt, cut, plotMassLabelPP, DSTAG, false, incJpsi, incPsi2S, incBkg, cutCtau, doSimulFit, false, setLogScale, incSS, zoomPsi, nBins, getMeanPT);
-      if (fitCtau) {
-        nBins = min(int( round((cut.dMuons.ctau.Max - cut.dMuons.ctau.Min)/binWidth) ), 100);
-        drawCtauPlot(myws, outputDir, opt, cut, plotCtauLabelPbPb, DSTAG, true, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, false, setLogScale, incSS, nBins, getMeanPT);
-        drawCtauPlot(myws, outputDir, opt, cut, plotCtauLabelPP, DSTAG, false, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, false, setLogScale, incSS, nBins, getMeanPT);
+      int nBins = 0;
+      if (fitMass) {
+        nBins = min(int( round((cut.dMuon.M.Max - cut.dMuon.M.Min)/binWidth) ), 100);
+        drawMassPlot(myws, outputDir, opt, cut, plotMassLabelPbPb, DSTAG, true, incJpsi, incPsi2S, incBkg, cutCtau, false, setLogScale, incSS, zoomPsi, nBins, getMeanPT);
+        drawMassPlot(myws, outputDir, opt, cut, plotMassLabelPP, DSTAG, false, incJpsi, incPsi2S, incBkg, cutCtau, false, setLogScale, incSS, zoomPsi, nBins, getMeanPT);
       }
+      if (fitCtau) {
+        nBins = min(int( round((cut.dMuon.ctau.Max - cut.dMuon.ctau.Min)/binWidth) ), 100);
+        drawCtauPlot(myws, outputDir, opt, cut, plotCtauLabelPbPb, DSTAG, true, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, false, setLogScale, incSS, nBins);
+        drawCtauPlot(myws, outputDir, opt, cut, plotCtauLabelPP, DSTAG, false, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, false, setLogScale, incSS, nBins);
+      }
+      saveWorkSpace(myws, outputDir, plotLabel, DSTAG, cut, fitMass, fitCtau, true);
+ 
       // Delete the objects used during the simultaneous fit
       delete sample; delete combData; delete simPdf;
       
     }
     else {
       if (isPbPb) {
+
+        string plotLabel = ""; string pdfName = "";
+        if (fitMass && !fitCtau) { pdfName = "pdfMASS_Tot_PbPb";     plotLabel = plotMassLabelPbPb+plotCtauLabelPbPb; }
+        if (!fitMass && fitCtau) { pdfName = "pdfCTAU_Tot_PbPb";     plotLabel = plotMassLabelPbPb;                   }
+        if (fitMass &&  fitCtau) { pdfName = "pdfCTAUMASS_Tot_PbPb"; plotLabel = plotCtauLabelPbPb;                   }
         
-        string pdfName = "";
-        if (fitMass && !fitCtau) { pdfName = "pdfMASS_Tot_PbPb"; }
-        if (!fitMass && fitCtau) { pdfName = "pdfCTAU_Tot_PbPb"; }
-        if (fitMass &&  fitCtau) { pdfName = "pdfCTAUMASS_Tot_PbPb"; }
         string dsName = Form("dOS_%s_PbPb", DSTAG.c_str());
         if (wantPureSMC) dsName = Form("dOS_%s_PbPb_NoBkg", DSTAG.c_str());
 
         // check if we have already done this fit. If yes, do nothing and return true.
-        RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*(myws.var("invMass")), *(myws.var("ctau"))));
+        RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*myws.var("invMass"), *myws.var("ctau"), *myws.var("ctauErr")));
         bool found =  true;
-        if (fitMass) { found = found & isMassFitAlreadyFound(newpars, outputDir, wantPureSMC ? (plotMassLabelPbPb+"_NoBkg") : plotMassLabelPbPb, DSTAG, cut, true, false); }
-        if (fitCtau) { found = found & isCtauFitAlreadyFound(newpars, outputDir, wantPureSMC ? (plotCtauLabelPbPb+"_NoBkg") : plotCtauLabelPbPb, DSTAG, cut, true); }
+        found = found && isFitAlreadyFound(newpars, outputDir, (wantPureSMC ? (plotLabel+"_NoBkg") : plotLabel), DSTAG, cut, fitMass, fitCtau, false, true);
         if (found) {
           cout << "[INFO] This fit was already done, so I'll just go to the next one." << endl;
           return true;
         }
 
         bool isWeighted = myws.data(dsName.c_str())->isWeighted();
-        
+        myws.Print();
         // Fit the Datasets
         if (incJpsi || incPsi2S) {
           if (isWeighted) {
-            RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(kTRUE), Range("MassWindow,CtauWindow"), NumCPU(numCores), Save());
+            RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(kTRUE), Range("CtauWindow"), NumCPU(numCores), Save());
             fitResult->Print();
           } else {
-            RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("MassWindow,CtauWindow"), NumCPU(numCores), Save());
+            RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("CtauWindow&&MassWindow"), ConditionalObservables(*myws.var("ctauErr")), NumCPU(numCores), Save());
             fitResult->Print();
           }  
         } else {
-          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBand1,SideBand2,CtauWindow"), NumCPU(numCores), Save());
+          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("(SideBand1||SideBand2)&&CtauWindow"), NumCPU(numCores), Save());
           fitResult->Print();
         }
         
         // Create the output files
+        int nBins = 0;
         if (fitMass) { 
-          int nBins = min(int( round((cut.dMuons.M.Max - cut.dMuons.M.Min)/binWidth) ), 100);
-          drawMassPlot(myws, outputDir, opt, cut, wantPureSMC ? (plotMassLabelPbPb+"_NoBkg") : plotMassLabelPbPb, DSTAG, true, incJpsi, incPsi2S, incBkg, cutCtau, doSimulFit, wantPureSMC, setLogScale, incSS, zoomPsi, nBins, getMeanPT); 
+          nBins = min(int( round((cut.dMuon.M.Max - cut.dMuon.M.Min)/binWidth) ), 100);
+          drawMassPlot(myws, outputDir, opt, cut, (wantPureSMC ? (plotMassLabelPbPb+"_NoBkg") : plotMassLabelPbPb), DSTAG, true, incJpsi, incPsi2S, incBkg, cutCtau, wantPureSMC, setLogScale, incSS, zoomPsi, nBins, getMeanPT); 
         }
         if (fitCtau) { 
-          int nBins = min(int( round((cut.dMuons.ctau.Max - cut.dMuons.ctau.Min)/binWidth) ), 100);
-          drawCtauPlot(myws, outputDir, opt, cut, wantPureSMC ? (plotCtauLabelPbPb+"_NoBkg") : plotCtauLabelPbPb, DSTAG, true, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins, getMeanPT); 
+          nBins = min(int( round((cut.dMuon.ctau.Max - cut.dMuon.ctau.Min)/binWidth) ), 100);
+          drawCtauPlot(myws, outputDir, opt, cut, (wantPureSMC ? (plotCtauLabelPbPb+"_NoBkg") : plotCtauLabelPbPb), DSTAG, true, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins); 
         }
+        saveWorkSpace(myws, outputDir, plotLabel, DSTAG, cut, fitMass, fitCtau, false, true);
+        return false;
       }
       else {
         cut.Centrality.Start = 0;
         cut.Centrality.End = 200;
-        
-        string pdfName = "";
-        if (fitMass && !fitCtau) { pdfName = "pdfMASS_Tot_PP"; }
-        if (!fitMass && fitCtau) { pdfName = "pdfCTAU_Tot_PP"; }
-        if (fitMass &&  fitCtau) { pdfName = "pdfCTAUMASS_Tot_PP"; }
+
+        string plotLabel = ""; string pdfName = "";
+        if (fitMass && !fitCtau) { pdfName = "pdfMASS_Tot_PP";     plotLabel = plotMassLabelPP+plotCtauLabelPP; }
+        if (!fitMass && fitCtau) { pdfName = "pdfCTAU_Tot_PP";     plotLabel = plotMassLabelPP;                 }
+        if (fitMass &&  fitCtau) { pdfName = "pdfCTAUMASS_Tot_PP"; plotLabel = plotCtauLabelPP;                 }
         string dsName = Form("dOS_%s_PP", DSTAG.c_str());
         if (wantPureSMC) dsName = Form("dOS_%s_PP_NoBkg", DSTAG.c_str());
         
         // check if we have already done this fit. If yes, do nothing and return true.
-        RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(*(myws.var("invMass")));
+        RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*myws.var("invMass"), *myws.var("ctau"), *myws.var("ctau")));
         bool found =  true;
-        if (fitMass) { found = found & isMassFitAlreadyFound(newpars, outputDir, wantPureSMC ? (plotMassLabelPP+"_NoBkg") : plotMassLabelPP, DSTAG, cut, true, false); }
-        if (fitCtau) { found = found & isCtauFitAlreadyFound(newpars, outputDir, wantPureSMC ? (plotCtauLabelPP+"_NoBkg") : plotCtauLabelPP, DSTAG, cut, true); }
-
+        found = found && isFitAlreadyFound(newpars, outputDir, (wantPureSMC ? (plotLabel+"_NoBkg") : plotLabel), DSTAG, cut, fitMass, fitCtau, false, false);
         if (found) {
           cout << "[INFO] This fit was already done, so I'll just go to the next one." << endl;
           return true;
@@ -282,22 +293,24 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
         
         // Fit the Datasets
         if (incJpsi || incPsi2S) {
-          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("MassWindow,CtauWindow"), NumCPU(numCores), Save());
+          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), ConditionalObservables(*myws.var("ctauErr")), NumCPU(numCores), Save());
           fitResult->Print(); 
         } else {
-          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBand1,SideBand2,CtauWindow"), NumCPU(numCores), Save());
+          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("(SideBand1||SideBand2)&&CtauWindow"), ConditionalObservables(*myws.var("ctauErr")), NumCPU(numCores), Save());
           fitResult->Print();
         }
         
         // Draw the mass plot
+        int nBins = 0;
         if (fitMass) { 
-          int nBins = min(int( round((cut.dMuons.M.Max - cut.dMuons.M.Min)/binWidth) ), 100);
-          drawMassPlot(myws, outputDir, opt, cut, wantPureSMC ? (plotMassLabelPP+"_NoBkg") : plotMassLabelPP, DSTAG, true, incJpsi, incPsi2S, incBkg, cutCtau, doSimulFit, wantPureSMC, setLogScale, incSS, zoomPsi, nBins, getMeanPT); 
+          nBins = min(int( round((cut.dMuon.M.Max - cut.dMuon.M.Min)/binWidth) ), 100);
+          drawMassPlot(myws, outputDir, opt, cut, (wantPureSMC ? (plotMassLabelPP+"_NoBkg") : plotMassLabelPP), DSTAG, false, incJpsi, incPsi2S, incBkg, cutCtau, wantPureSMC, setLogScale, incSS, zoomPsi, nBins, getMeanPT); 
         }
         if (fitCtau) { 
-          int nBins = min(int( round((cut.dMuons.ctau.Max - cut.dMuons.ctau.Min)/binWidth) ), 100);
-          drawCtauPlot(myws, outputDir, opt, cut, wantPureSMC ? (plotCtauLabelPP+"_NoBkg") : plotCtauLabelPP, DSTAG, true, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins, getMeanPT); 
+          nBins = min(int( round((cut.dMuon.ctau.Max - cut.dMuon.ctau.Min)/binWidth) ), 100);
+          drawCtauPlot(myws, outputDir, opt, cut, (wantPureSMC ? (plotCtauLabelPP+"_NoBkg") : plotCtauLabelPP), DSTAG, false, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins); 
         }
+        saveWorkSpace(myws, outputDir, plotLabel, DSTAG, cut, fitMass, fitCtau, false, false);
       }
     }
   }
@@ -392,61 +405,80 @@ bool setMassModel( struct OniaModel& model, map<string, string>  parIni, bool is
 
 bool setCtauModel( struct OniaModel& model, map<string, string>  parIni, bool isPbPb, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt )
 {
+  if (isPbPb) {
+    if (parIni.count("Model_CtauRes_PbPb")>0) {
+      model.PbPb.CtauRes = CtauModelDictionary[parIni["Model_CtauRes_PbPb"]];
+      if (model.PbPb.CtauRes==CtauModel(0)) {
+        cout << "[ERROR] The ctau resolution model: " << parIni["Model_CtauRes_PbPb"] << " is invalid" << endl; return false;
+      }
+    } else { 
+      cout << "[ERROR] Ctau Resolution model for PbPb was not found in the initial parameters!" << endl; return false;
+    }
+  } else {
+    if (parIni.count("Model_CtauRes_PP")>0) {
+      model.PP.CtauRes = CtauModelDictionary[parIni["Model_CtauRes_PP"]];
+      if (model.PP.CtauRes==CtauModel(0)) {
+        cout << "[ERROR] The ctau resolution model: " << parIni["Model_CtauRes_PP"] << " is invalid" << endl; return false;
+      }
+    } else { 
+      cout << "[ERROR] Ctau Resolution model for PP was not found in the initial parameters!" << endl; return false;
+    }
+  }
   if (isPbPb && incBkg && incNonPrompt) {
-    if (parIni.count("ModelNoPR_Bkg_PbPb")>0) {
-      model.PbPb.Bkg.Ctau.NoPR = CtauModelDictionary[parIni["ModelNoPR_Bkg_PbPb"]];
-      if (model.PbPb.Bkg.Ctau.NoPR==CtauModel(0)) {
-        cout << "[ERROR] The background non-prompt ctau model: " << parIni["ModelNoPR_Bkg_PbPb"] << " is invalid" << endl; return false;
+    if (parIni.count("Model_BkgNoPR_PbPb")>0) {
+      model.PbPb.Bkg.Ctau.NonPrompt = CtauModelDictionary[parIni["Model_BkgNoPR_PbPb"]];
+      if (model.PbPb.Bkg.Ctau.NonPrompt==CtauModel(0)) {
+        cout << "[ERROR] The background non-prompt ctau model: " << parIni["Model_BkgNoPR_PbPb"] << " is invalid" << endl; return false;
       }
     } else { 
       cout << "[ERROR] Background non-prompt ctau model for PbPb was not found in the initial parameters!" << endl; return false;
     }
   }
   if (isPbPb && incBkg && incPrompt) {
-    if (parIni.count("ModelPR_Bkg_PbPb")>0) {
-      model.PbPb.Bkg.Ctau.PR = CtauModelDictionary[parIni["ModelPR_Bkg_PbPb"]];
-      if (model.PbPb.Bkg.Ctau.PR==CtauModel(0)) {
-        cout << "[ERROR] The background prompt ctau model: " << parIni["ModelPR_Bkg_PbPb"] << " is invalid" << endl; return false;
+    if (parIni.count("Model_BkgPR_PbPb")>0) {
+      model.PbPb.Bkg.Ctau.Prompt = CtauModelDictionary[parIni["Model_BkgPR_PbPb"]];
+      if (model.PbPb.Bkg.Ctau.Prompt==CtauModel(0)) {
+        cout << "[ERROR] The background prompt ctau model: " << parIni["Model_BkgPR_PbPb"] << " is invalid" << endl; return false;
       }
     } else { 
       cout << "[ERROR] Background prompt ctau model for PbPb was not found in the initial parameters!" << endl; return false;
     }
   }
   if (isPbPb && incJpsi && incNonPrompt) {
-    if (parIni.count("ModelNoPR_Jpsi_PbPb")>0) {
-      model.PbPb.Jpsi.Ctau.NoPR = CtauModelDictionary[parIni["ModelNoPR_Jpsi_PbPb"]];
-      if (model.PbPb.Jpsi.Ctau.NoPR==CtauModel(0)) {
-        cout << "[ERROR] The Jpsi non-prompt ctau model: " << parIni["ModelNoPR_Jpsi_PbPb"] << " is invalid" << endl; return false;
+    if (parIni.count("Model_JpsiNoPR_PbPb")>0) {
+      model.PbPb.Jpsi.Ctau.NonPrompt = CtauModelDictionary[parIni["Model_JpsiNoPR_PbPb"]];
+      if (model.PbPb.Jpsi.Ctau.NonPrompt==CtauModel(0)) {
+        cout << "[ERROR] The Jpsi non-prompt ctau model: " << parIni["Model_JpsiNoPR_PbPb"] << " is invalid" << endl; return false;
       }
     } else { 
       cout << "[ERROR] Jpsi non-prompt ctau model for PbPb was not found in the initial parameters!" << endl; return false;
     }
   }
   if (isPbPb && incJpsi && incPrompt) {
-    if (parIni.count("ModelPR_Jpsi_PbPb")>0) {
-      model.PbPb.Jpsi.Ctau.PR = CtauModelDictionary[parIni["ModelPR_Jpsi_PbPb"]];
-      if (model.PbPb.Jpsi.Ctau.PR==CtauModel(0)) {
-        cout << "[ERROR] The Jpsi prompt ctau model: " << parIni["ModelPR_Jpsi_PbPb"] << " is invalid" << endl; return false;
+    if (parIni.count("Model_JpsiPR_PbPb")>0) {
+      model.PbPb.Jpsi.Ctau.Prompt = CtauModelDictionary[parIni["Model_JpsiPR_PbPb"]];
+      if (model.PbPb.Jpsi.Ctau.Prompt==CtauModel(0)) {
+        cout << "[ERROR] The Jpsi prompt ctau model: " << parIni["Model_JpsiPR_PbPb"] << " is invalid" << endl; return false;
       }
     } else { 
       cout << "[ERROR] Jpsi prompt ctau model for PbPb was not found in the initial parameters!" << endl; return false;
     }
   }
   if (isPbPb && incPsi2S && incNonPrompt) {
-    if (parIni.count("ModelNoPR_Psi2S_PbPb")>0) {
-      model.PbPb.Psi2S.Ctau.NoPR = CtauModelDictionary[parIni["ModelNoPR_Psi2S_PbPb"]];
-      if (model.PbPb.Psi2S.Ctau.NoPR==CtauModel(0)) {
-        cout << "[ERROR] The psi(2S) non-prompt ctau model: " << parIni["ModelNoPR_Psi2S_PbPb"] << " is invalid" << endl; return false;
+    if (parIni.count("Model_Psi2SNoPR_PbPb")>0) {
+      model.PbPb.Psi2S.Ctau.NonPrompt = CtauModelDictionary[parIni["Model_Psi2SNoPR_PbPb"]];
+      if (model.PbPb.Psi2S.Ctau.NonPrompt==CtauModel(0)) {
+        cout << "[ERROR] The psi(2S) non-prompt ctau model: " << parIni["Model_Psi2SNoPR_PbPb"] << " is invalid" << endl; return false;
       }
     } else { 
       cout << "[ERROR] psi(2S) non-prompt ctau model for PbPb was not found in the initial parameters!" << endl; return false;
     }
   }
   if (isPbPb && incPsi2S && incPrompt) {
-    if (parIni.count("ModelPR_Psi2S_PbPb")>0) {
-      model.PbPb.Psi2S.Ctau.PR = CtauModelDictionary[parIni["ModelPR_Psi2S_PbPb"]];
-      if (model.PbPb.Psi2S.Ctau.PR==CtauModel(0)) {
-        cout << "[ERROR] The psi(2S) prompt ctau model: " << parIni["ModelPR_Psi2S_PbPb"] << " is invalid" << endl; return false;
+    if (parIni.count("Model_Psi2SPR_PbPb")>0) {
+      model.PbPb.Psi2S.Ctau.Prompt = CtauModelDictionary[parIni["Model_Psi2SPR_PbPb"]];
+      if (model.PbPb.Psi2S.Ctau.Prompt==CtauModel(0)) {
+        cout << "[ERROR] The psi(2S) prompt ctau model: " << parIni["Model_Psi2SPR_PbPb"] << " is invalid" << endl; return false;
       }
     } else { 
       cout << "[ERROR] psi(2S) prompt ctau model for PbPb was not found in the initial parameters!" << endl; return false;
@@ -454,60 +486,60 @@ bool setCtauModel( struct OniaModel& model, map<string, string>  parIni, bool is
   }
 
   if (!isPbPb && incBkg && incNonPrompt) {
-    if (parIni.count("ModelNoPR_Bkg_PP")>0) {
-      model.PP.Bkg.Ctau.NoPR = CtauModelDictionary[parIni["ModelNoPR_Bkg_PP"]];
-      if (model.PbPb.Bkg.Ctau.NoPR==CtauModel(0)) {
-        cout << "[ERROR] The background non-prompt ctau model: " << parIni["ModelNoPR_Bkg_PP"] << " is invalid" << endl; return false;
+    if (parIni.count("Model_BkgNoPR_PP")>0) {
+      model.PP.Bkg.Ctau.NonPrompt = CtauModelDictionary[parIni["Model_BkgNoPR_PP"]];
+      if (model.PbPb.Bkg.Ctau.NonPrompt==CtauModel(0)) {
+        cout << "[ERROR] The background non-prompt ctau model: " << parIni["Model_BkgNoPR_PP"] << " is invalid" << endl; return false;
       }
     } else { 
       cout << "[ERROR] Background non-prompt ctau model for PP was not found in the initial parameters!" << endl; return false;
     }
   }
   if (!isPbPb && incBkg && incPrompt) {
-    if (parIni.count("ModelPR_Bkg_PP")>0) {
-      model.PP.Bkg.Ctau.PR = CtauModelDictionary[parIni["ModelPR_Bkg_PP"]];
-      if (model.PP.Bkg.Ctau.PR==CtauModel(0)) {
-        cout << "[ERROR] The background prompt ctau model: " << parIni["ModelPR_Bkg_PP"] << " is invalid" << endl; return false;
+    if (parIni.count("Model_BkgPR_PP")>0) {
+      model.PP.Bkg.Ctau.Prompt = CtauModelDictionary[parIni["Model_BkgPR_PP"]];
+      if (model.PP.Bkg.Ctau.Prompt==CtauModel(0)) {
+        cout << "[ERROR] The background prompt ctau model: " << parIni["Model_BkgPR_PP"] << " is invalid" << endl; return false;
       }
     } else { 
       cout << "[ERROR] Background prompt ctau model for PP was not found in the initial parameters!" << endl; return false;
     }
   }
   if (!isPbPb && incJpsi && incNonPrompt) {
-    if (parIni.count("ModelNoPR_Jpsi_PP")>0) {
-      model.PP.Jpsi.Ctau.NoPR = CtauModelDictionary[parIni["ModelNoPR_Jpsi_PP"]];
-      if (model.PP.Jpsi.Ctau.NoPR==CtauModel(0)) {
-        cout << "[ERROR] The Jpsi non-prompt ctau model: " << parIni["ModelNoPR_Jpsi_PP"] << " is invalid" << endl; return false;
+    if (parIni.count("Model_JpsiNoPR_PP")>0) {
+      model.PP.Jpsi.Ctau.NonPrompt = CtauModelDictionary[parIni["Model_JpsiNoPR_PP"]];
+      if (model.PP.Jpsi.Ctau.NonPrompt==CtauModel(0)) {
+        cout << "[ERROR] The Jpsi non-prompt ctau model: " << parIni["Model_JpsiNoPR_PP"] << " is invalid" << endl; return false;
       }
     } else { 
       cout << "[ERROR] Jpsi non-prompt ctau model for PP was not found in the initial parameters!" << endl; return false;
     }
   }
   if (!isPbPb && incJpsi && incPrompt) {
-    if (parIni.count("ModelPR_Jpsi_PP")>0) {
-      model.PP.Jpsi.Ctau.PR = CtauModelDictionary[parIni["ModelPR_Jpsi_PP"]];
-      if (model.PP.Jpsi.Ctau.PR==CtauModel(0)) {
-        cout << "[ERROR] The Jpsi prompt ctau model: " << parIni["ModelPR_Jpsi_PP"] << " is invalid" << endl; return false;
+    if (parIni.count("Model_JpsiPR_PP")>0) {
+      model.PP.Jpsi.Ctau.Prompt = CtauModelDictionary[parIni["Model_JpsiPR_PP"]];
+      if (model.PP.Jpsi.Ctau.Prompt==CtauModel(0)) {
+        cout << "[ERROR] The Jpsi prompt ctau model: " << parIni["Model_JpsiPR_PP"] << " is invalid" << endl; return false;
       }
     } else { 
       cout << "[ERROR] Jpsi prompt ctau model for PP was not found in the initial parameters!" << endl; return false;
     }
   }
   if (!isPbPb && incPsi2S && incNonPrompt) {
-    if (parIni.count("ModelNoPR_Psi2S_PP")>0) {
-      model.PP.Psi2S.Ctau.NoPR = CtauModelDictionary[parIni["ModelNoPR_Psi2S_PP"]];
-      if (model.PP.Psi2S.Ctau.NoPR==CtauModel(0)) {
-        cout << "[ERROR] The psi(2S) non-prompt ctau model: " << parIni["ModelNoPR_Psi2S_PP"] << " is invalid" << endl; return false;
+    if (parIni.count("Model_Psi2SNoPR_PP")>0) {
+      model.PP.Psi2S.Ctau.NonPrompt = CtauModelDictionary[parIni["Model_Psi2SNoPR_PP"]];
+      if (model.PP.Psi2S.Ctau.NonPrompt==CtauModel(0)) {
+        cout << "[ERROR] The psi(2S) non-prompt ctau model: " << parIni["Model_Psi2SNoPR_PP"] << " is invalid" << endl; return false;
       }
     } else { 
       cout << "[ERROR] psi(2S) non-prompt ctau model for PP was not found in the initial parameters!" << endl; return false;
     }
   }
   if (!isPbPb && incPsi2S && incPrompt) {
-    if (parIni.count("ModelPR_Psi2S_PP")>0) {
-      model.PP.Psi2S.Ctau.PR = CtauModelDictionary[parIni["ModelPR_Psi2S_PP"]];
-      if (model.PP.Psi2S.Ctau.PR==CtauModel(0)) {
-        cout << "[ERROR] The psi(2S) prompt ctau model: " << parIni["ModelPR_Psi2S_PP"] << " is invalid" << endl; return false;
+    if (parIni.count("Model_Psi2SPR_PP")>0) {
+      model.PP.Psi2S.Ctau.Prompt = CtauModelDictionary[parIni["Model_Psi2SPR_PP"]];
+      if (model.PP.Psi2S.Ctau.Prompt==CtauModel(0)) {
+        cout << "[ERROR] The psi(2S) prompt ctau model: " << parIni["Model_Psi2SPR_PP"] << " is invalid" << endl; return false;
       }
     } else { 
       cout << "[ERROR] psi(2S) prompt ctau model for PP was not found in the initial parameters!" << endl; return false;
@@ -575,6 +607,7 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut,
   }
 
   myws.var("ctau")->setRange("CtauWindow", cut.dMuon.ctau.Min, cut.dMuon.ctau.Max);
+  myws.var("ctauErr")->setRange("CtauErrWindow", cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max);
   if (label.find("MC")!=std::string::npos)
   {
     if (label.find("PSI2S")!=std::string::npos)
@@ -606,14 +639,49 @@ void setOptions(struct InputOpt* opt)
   return;
 };
 
-bool isMassFitAlreadyFound(RooArgSet *newpars, string outputDir, string plotLabel, string TAG, struct KinCuts cut, bool isPbPb, bool doSimulFit) {
-  string FileName = "";
+void setFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut,bool fitMass, bool fitCtau, bool doSimulFit, bool isPbPb) 
+{
   if (doSimulFit) {
-   FileName = Form("%sresult/%s/mass/FIT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), TAG.c_str(), TAG.c_str(), "Psi2SJpsi", "COMB", plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
+    if (fitMass && fitCtau) {
+      FileName = Form("%sresult/%s/FIT_%s_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), TAG.c_str(), "CTAUMASS", TAG.c_str(), "Psi2SJpsi", "COMB", plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
+    } else if (fitMass) {
+      FileName = Form("%sresult/%s/FIT_%s_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), TAG.c_str(), "MASS", TAG.c_str(), "Psi2SJpsi", "COMB", plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
+    } else if (fitCtau) {
+      FileName = Form("%sresult/%s/FIT_%s_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), TAG.c_str(), "CTAU", TAG.c_str(), "Psi2SJpsi", "COMB", plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
+    }
   } else {
-    FileName = Form("%sresult/%s/mass/FIT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), TAG.c_str(), TAG.c_str(), "Psi2SJpsi", (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
+    if (fitMass && fitCtau) {
+      FileName = Form("%sresult/%s/FIT_%s_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), TAG.c_str(), "CTAUMASS", TAG.c_str(), "Psi2SJpsi", (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
+    } else if (fitMass) {
+      FileName = Form("%sresult/%s/FIT_%s_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), TAG.c_str(), "MASS", TAG.c_str(), "Psi2SJpsi", (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
+    } else if (fitCtau) {
+      FileName = Form("%sresult/%s/FIT_%s_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), TAG.c_str(), "CTAU", TAG.c_str(), "Psi2SJpsi", (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
+    } 
   }
+};
 
+bool saveWorkSpace(RooWorkspace& myws, string outputDir, string plotLabel, string DSTAG, struct KinCuts cut, bool fitMass, bool fitCtau, bool doSimulFit, bool isPbPb) 
+{
+  // Save the workspace
+  gSystem->mkdir(Form("%sresult/%s/", outputDir.c_str(), DSTAG.c_str()), kTRUE); 
+  string FileName = "";
+  setFileName(FileName, outputDir, DSTAG, plotLabel, cut, fitMass, fitCtau, doSimulFit, isPbPb);
+  cout << FileName << endl;
+  TFile *file =  new TFile(FileName.c_str(), "RECREATE");
+  if (!file) { 
+    cout << "[ERROR] Output root file with fit results could not be created!" << endl; return false; 
+  } else {
+    file->cd();    
+    myws.Write("workspace"); 
+    file->Write(); file->Close(); delete file;
+  }
+  return true;
+};
+
+bool isFitAlreadyFound(RooArgSet *newpars, string outputDir, string plotLabel, string DSTAG, struct KinCuts cut, bool fitMass, bool fitCtau, bool doSimulFit, bool isPbPb) 
+{
+  string FileName = "";
+  setFileName(FileName, outputDir, DSTAG, plotLabel, cut, fitMass, fitCtau, doSimulFit, isPbPb);
   if (gSystem->AccessPathName(FileName.c_str())) return false; // File was not found
 
   TFile *file = new TFile(FileName.c_str());
@@ -626,42 +694,19 @@ bool isMassFitAlreadyFound(RooArgSet *newpars, string outputDir, string plotLabe
     return false;
   }
 
-  const RooArgSet *params = ws->getSnapshot(Form("pdfMASS_Tot_%s_parIni", (isPbPb?"PbPb":"PP")));
-  if (!params) {
-    delete ws;
-    file->Close(); delete file;
-    return false;
-  }
-
-  bool result = compareSnapshots(newpars, params);
-
-  delete ws;
-  file->Close(); delete file; 
-
-  return result;
-}
-
-bool isCtauFitAlreadyFound(RooArgSet *newpars, string outputDir, string plotLabel, string TAG, struct KinCuts cut, bool isPbPb) {
-  string FileName = "";
+  string snapShotName = "";
   if (doSimulFit) {
-   FileName = Form("%sresult/%s/ctau/FIT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), TAG.c_str(), TAG.c_str(), "Psi2SJpsi", "COMB", plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
+    string snapShotName = "simPdf_parIni";
   } else {
-    FileName = Form("%sresult/%s/ctau/FIT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), TAG.c_str(), TAG.c_str(), "Psi2SJpsi", (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
+    if (fitMass && fitCtau) {
+      snapShotName = Form("pdfCTAUMASS_Tot_%s_parIni", (isPbPb?"PbPb":"PP"));
+    } else if (fitMass) {
+      snapShotName = Form("pdfMASS_Tot_%s_parIni", (isPbPb?"PbPb":"PP"));
+    } else if (fitCtau) {
+      snapShotName = Form("pdfCTAU_Tot_%s_parIni", (isPbPb?"PbPb":"PP"));
+    }    
   }
-
-  if (gSystem->AccessPathName(FileName.c_str())) return false; // File was not found
-
-  TFile *file = new TFile(FileName.c_str());
-
-  if (!file) return false;
-
-  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
-  if (!ws) {
-    file->Close(); delete file;
-    return false;
-  }
-
-  const RooArgSet *params = ws->getSnapshot(Form("pdfCTAU_Tot_%s_parIni", (isPbPb?"PbPb":"PP")));
+  const RooArgSet *params = ws->getSnapshot(snapShotName.c_str());
   if (!params) {
     delete ws;
     file->Close(); delete file;
