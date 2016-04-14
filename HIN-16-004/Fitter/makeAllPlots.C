@@ -4,20 +4,25 @@
 #include "Systematics/syst.h"
 
 // flags
-const bool doSysts = false;        // compute the systematics
+const bool doSysts = true;        // compute the systematics
 const bool printSysts = true;     // print the systematics summary table
 const bool plotMassPlots = false; // not implemented yet
 const bool plotAllVars = true;     // plot the dependance of all vars with pt, centrality, y
 const bool plotAllResults = true; // and plot the results!
 const bool plotSystResults = true;// plot results taking syst fits as nominal too
 
-void makeAllPlots(const char* nominalDir, const char* systDirs="") {
-   string allDirs = string(nominalDir) + "," + string(systDirs);
+void makeAllPlots(const char* nominalDir, const char* systDirsSig, const char* systDirsBkg) {
+   string allDirs = string(nominalDir) + "," + string(systDirsSig) + "," + string(systDirsBkg);
+   string allDirsSig = string(nominalDir) + "," + string(systDirsSig);
+   string allDirsBkg = string(nominalDir) + "," + string(systDirsBkg);
+   string systDirs = string(systDirsSig) + "," + string(systDirsBkg);
 
    // first, systematics
    if (doSysts) {
-      results2syst(allDirs.c_str(), "syst_PP_fit.csv", "Systematic uncertainty from fitting (PP)", 1, "PP");
-      results2syst(allDirs.c_str(), "syst_PbPb_fit.csv", "Systematic uncertainty from fitting (PbPb)", 1, "PbPb");
+      results2syst(allDirsSig.c_str(), "syst_PP_fit_sig.csv", "signal shape (PP)", 1, "PP");
+      results2syst(allDirsSig.c_str(), "syst_PbPb_fit_sig.csv", "signal shape (PbPb)", 1, "PbPb");
+      results2syst(allDirsBkg.c_str(), "syst_PP_fit_bkg.csv", "background shape (PP)", 1, "PP");
+      results2syst(allDirsBkg.c_str(), "syst_PbPb_fit_bkg.csv", "background shape (PbPb)", 1, "PbPb");
    }
 
    // print the systematics table
@@ -103,7 +108,7 @@ void makeAllPlots(const char* nominalDir, const char* systDirs="") {
    cout << "echo \"Done copying files. Now do:\"" << endl;
    cout << "echo \"cd  $notedir\"" << endl;
    cout << "echo \"cd ../../..\"" << endl;
-   cout << "echo \"eval `notes/tdr runtime -sh`\"" << endl;
+   cout << "echo \"eval \\`notes/tdr runtime -sh\\`\"" << endl;
    cout << "echo \"cd -\"" << endl;
    cout << "echo \"tdr --style=an b AN-16-067\"" << endl;
    cout << "echo \"cp ../../tmp/AN-16-067_temp.pdf AN-16-067.pdf\"" << endl;
