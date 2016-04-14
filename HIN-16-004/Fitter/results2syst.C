@@ -189,6 +189,7 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
       oldbin = thebin;
    }
 
+   texfile << "\\hline" << endl;
    texfile << "\\end{tabular}" << endl;
    texfile.close();
    cout << "Closed " << texName << endl;
