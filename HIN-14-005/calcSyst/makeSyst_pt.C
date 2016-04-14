@@ -742,12 +742,12 @@ void makeSyst_pt( bool bSavePlots       = 1,
       }// fit variation ivar (fit, 4dEff, tnp)
       
       // normalization for rms of the fit variations
-      double rms_fitContribNorm = 1./nFitVariations;
+      double rms_fitContribNorm = nFitVariations;
       if(method==1) rms_fitContribNorm = 1;
       switch(ih){
       case 0:
         prJpsiErrSyst_pt[ibin-1] = yieldRatio_pr * TMath::Sqrt((fitContribution_pr_aa/rms_fitContribNorm+eff4dContribution_pr_aa+efftnpContribution_pr_aa)+
-                                                               (fitContribution_pr_pp/rms_fitContribNorm+eff4dContribution_pr_pp+efftnpContribution_pr_pp) );
+                                                               (fitContribution_pr_pp/rms_fitContribNorm+eff4dContribution_pr_pp+efftnpContribution_pr_pp));
         nonPrJpsiErrSyst_pt[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_npr_aa/rms_fitContribNorm+eff4dContribution_npr_aa+efftnpContribution_npr_aa)+
                                                                    (fitContribution_npr_pp/rms_fitContribNorm+eff4dContribution_npr_pp+efftnpContribution_npr_pp));  
           

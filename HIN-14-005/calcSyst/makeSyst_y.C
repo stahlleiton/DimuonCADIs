@@ -40,7 +40,7 @@ Output: root file with the systm. histograms for Raa vs pT.
 
 void makeSyst_y( bool bSavePlots        = 1,
                  bool bDoDebug         = 1, // prints numbers, numerator, denominator, to help figure out if things are read properly
-                 int method            = 1, // 0: nominal (rms of same category variations)&&added in quadrature with non-correlated sourcesvariations; 1: max of each variation type, added in quadrature
+                 int method            = 0, // 0: nominal (rms of same category variations)&&added in quadrature with non-correlated sourcesvariations; 1: max of each variation type, added in quadrature
                  const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are
                  const char* outputDir = "histSyst")// where the output figures will be
 {
@@ -471,7 +471,7 @@ void makeSyst_y( bool bSavePlots        = 1,
       }// fit variation ivar (fit, 4dEff, tnp)
         
       // normalization for rms of the fit variations
-      double rms_fitContribNorm = 1./nFitVariations;
+      double rms_fitContribNorm = nFitVariations;
       if(method==1) rms_fitContribNorm = 1;
       switch(ih) {
         case 0:

@@ -33,9 +33,9 @@ The output root files of this macro, wich contains the histograms with the yield
 #include <TGraphAsymmErrors.h>
 #include <TGraphErrors.h>
 #include "Riostream.h"
-#include "../macro_raa/dataBinning_2015.h"
+#include "dataBinning_2015.h"
 
-void makeHistos_raa_syst(int sample   = 0,// 0=PbPb,     1= pp
+void makeHistos_raa_syst(int sample   = 1,// 0=PbPb,     1= pp
                          int varStart = 0,// the variations to read; all listed in 'whichVariation' array
                          const char* inputFitDataFileLocation = "../data/raa"
                         ) 
