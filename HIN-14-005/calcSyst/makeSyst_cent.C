@@ -40,7 +40,7 @@ Output: root file with the systm. histograms for Raa vs pT.
 
 void makeSyst_cent( bool bSavePlots     = 1,
                     bool bDoDebug         = 1, // prints numbers, numerator, denominator, to help figure out if things are read properly
-                    int method            = 1, // 0: nominal (rms of same category variations)&&added in quadrature with non-correlated sourcesvariations; 1: max of each variation type, added in quadrature
+                    int method            = 0, // 0: nominal (rms of same category variations)&&added in quadrature with non-correlated sourcesvariations; 1: max of each variation type, added in quadrature
                     const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are
                     const char* outputDir = "histSyst")// where the output figures will be
 {
@@ -306,7 +306,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
       // taa relative uncertainty
       double taa6_relerr   = TMath::Power(adTaa6Err[ibin-1] / adTaa6[ibin-1],2);
       const double taa12_relerr  = TMath::Power(adTaa12Err[ibin-1] / adTaa12[ibin-1],2); 
-      if (ibin>=6) taa6_relerr = 0;
+      if (ibin>=nBinsNpart6) taa6_relerr = 0;
 
       if(bDoDebug) cout << "###### Taa uncert: bin6= " << taa6_relerr << "\tbin12= " << taa12_relerr << endl;
 
@@ -369,7 +369,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
         double yieldVar_aa_pr  = phCorrVar_pr_aa->GetBinContent(ibin);
         double yieldVar_aa_npr = phCorrVar_npr_aa->GetBinContent(ibin);
         
-        // pp values ar ethe same for each centrality, for a given centrality region
+        // pp values are the same for each centrality, for a given centrality region
         double yieldVar_pp_pr  = phCorrVar_pr_pp->GetBinContent(1);
         double yieldVar_pp_npr = phCorrVar_npr_pp->GetBinContent(1);
         
@@ -934,7 +934,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
       }
     
       // normalization for rms of the fit variations
-      double rms_fitContribNorm = 1./nFitVariations;
+      double rms_fitContribNorm = nFitVariations;
       if(method==1) rms_fitContribNorm = 1;
       switch(ih){
         case 0:// high-pt , |y|<2.4
@@ -991,9 +991,13 @@ void makeSyst_cent( bool bSavePlots     = 1,
             cout <<"fitContribution: "<<fitContribution_pt365y1624_pr_aa<<"\t"<<fitContribution_pt365y1624_pr_pp<<endl;
             cout <<"eff4dContribution: "<<eff4dContribution_pt365y1624_pr_aa<<"\t"<<eff4dContribution_pt365y1624_pr_pp<<endl;
             cout <<"efftnpContribution: "<<efftnpContribution_pt365y1624_pr_aa<<"\t"<<efftnpContribution_pt365y1624_pr_pp<<endl;
-            cout <<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
-            cout <<"yield ratio: "<<yieldRatio_pr<<endl;
-            cout <<"Total: "<<prJpsiErrSyst_pt365y1624_cent[ibin-1]<<endl;
+            cout <<"fitContribution: (np) "<<fitContribution_pt365y1624_npr_aa<<"\t"<<fitContribution_pt365y1624_npr_pp<<endl;
+            cout <<"eff4dContribution: (np) "<<eff4dContribution_pt365y1624_npr_aa<<"\t"<<eff4dContribution_pt365y1624_npr_pp<<endl;
+            cout <<"efftnpContribution: (np) "<<efftnpContribution_pt365y1624_npr_aa<<"\t"<<efftnpContribution_pt365y1624_npr_pp<<endl;
+            cout <<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<"\t"<<yield_aa_npr<<"\t"<<yield_pp_npr<<endl;
+            cout <<"yield ratio: "<<yieldRatio_pr<<"\t"<<yieldRatio_npr<<endl;
+            cout <<"taa6_relerr: "<<taa6_relerr<<endl;
+            cout <<"Total: (pr) "<<prJpsiErrSyst_pt365y1624_cent[ibin-1]<<"\t and (nonPr) "<<nonPrJpsiErrSyst_pt365y1624_cent[ibin-1]<<endl;
           }
           break;
         
@@ -1097,6 +1101,14 @@ void makeSyst_cent( bool bSavePlots     = 1,
   
   // ***** //Drawing
   // pr
+  cout << " nBinsNpart12 : " << nBinsNpart12 << " prJpsiErrSyst_cent[0] "<< prJpsiErrSyst_cent[0]<< endl;
+  for (unsigned int ibin=0; ibin<nBinsNpart12; ibin++) {
+    cout << "prJpsiErrSyst_cent[" << ibin << "] " << prJpsiErrSyst_cent[ibin] << endl ;
+  }
+  cout << " nBinsNpart6 : " << nBinsNpart6 << " nonPrJpsiErrSyst_pt365y1624_cent[0] "<< nonPrJpsiErrSyst_pt365y1624_cent[0]<< endl;
+  for (unsigned int ibin=0; ibin<nBinsNpart6; ibin++) {
+    cout << "nonPrJpsiErrSyst_pt365y1624_cent[" << ibin << "] " << nonPrJpsiErrSyst_pt365y1624_cent[ibin] << endl ;
+  }
   TGraphErrors *gPrJpsiSyst             = new TGraphErrors(nBinsNpart12, binsNpart12, prJpsi_cent, binsNpart12X, prJpsiErrSyst_cent);
   TGraphErrors *gPrJpsiSyst_pt6530y012  = new TGraphErrors(nBinsNpart6, binsNpart6_shiftMinus, prJpsi_pt6530y012_cent, binsNpart6X, prJpsiErrSyst_pt6530y012_cent);
   TGraphErrors *gPrJpsiSyst_pt6530y1216 = new TGraphErrors(nBinsNpart6, binsNpart6, prJpsi_pt6530y1216_cent, binsNpart6X, prJpsiErrSyst_pt6530y1216_cent);
