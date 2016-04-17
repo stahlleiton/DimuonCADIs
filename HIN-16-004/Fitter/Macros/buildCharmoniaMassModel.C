@@ -154,6 +154,18 @@ bool addBackgroundMassModel(RooWorkspace& ws, string object, MassModel model, ma
   
   switch(model) 
     {  
+    case (MassModel::Uniform): 
+
+      // create the PDF           
+      ws.factory(Form("Uniform::%s(%s)", Form("pdfMASS_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), "invMass"));
+
+      ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("pdfMASSTot_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),
+                      Form("pdfMASS_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),
+                      parIni[Form("N_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str()
+                      ));
+
+      cout << Form("[INFO] %s Background Uniform PDF in %s included", object.c_str(), (isPbPb?"PbPb":"PP")) << endl; break;
+ 
     case (MassModel::Chebychev1): 
 
       // check that all input parameters are defined 

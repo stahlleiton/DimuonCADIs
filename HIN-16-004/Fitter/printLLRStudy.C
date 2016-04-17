@@ -83,13 +83,19 @@ void printLLRStudy(
      cout << *it << endl;
  
      string bestModelFile = *it;
-     bestModelFile.erase(bestModelFile.find(".root"), bestModelFile.size());
+     bestModelFile.erase(bestModelFile.find(".root"), bestModelFile.size());    
 
      gSystem->CopyFile((dirPath+bestModelFile+".root").c_str(), (outputDir+"root/"+bestModelFile+".root").c_str());
- 
+
      bestModelFile.erase(0, bestModelFile.find("FIT_")+ string("FIT_").length());
-     gSystem->CopyFile((plotDir+"pdf/"+bestModelFile+".pdf").c_str(), (outputDir+"pdf/"+bestModelFile+".pdf").c_str());
-     gSystem->CopyFile((plotDir+"png/"+bestModelFile+".png").c_str(), (outputDir+"png/"+bestModelFile+".png").c_str());
+
+     string outputFileName = bestModelFile;
+     string tmp = bestModelFile; tmp.erase(0, tmp.find("Bkg_")+string("Bkg_").length()); tmp.erase(0, tmp.find("_"));
+     outputFileName = outputFileName.erase(outputFileName.find("Bkg_")-1, outputFileName.size())+tmp;
+     
+ 
+     gSystem->CopyFile((plotDir+"pdf/"+bestModelFile+".pdf").c_str(), (outputDir+"pdf/"+outputFileName+".pdf").c_str());
+     gSystem->CopyFile((plotDir+"png/"+bestModelFile+".png").c_str(), (outputDir+"png/"+outputFileName+".png").c_str());
   }
 
 };
@@ -196,8 +202,8 @@ vector<string> printNLL(map< string, setModels_t > content, string outputDir, st
     TexTable.push_back("\\centering");
     string iniLinLatex = "\\begin{tabular}{ c  c";
     string header = "N & NLL ";
-    for (unsigned int iM=1; iM<=binCont.size(); iM++) { 
-      if ((binCont.size()-iM)>=2) {
+    for (unsigned int iM=0; iM<binCont.size(); iM++) { 
+      if ((binCont.size()-1-iM)>=2) {
         iniLinLatex = iniLinLatex + " c ";
         header = header + "& " + Form("p(H0: N = %d)",iM) + " ";
       }
@@ -217,7 +223,7 @@ vector<string> printNLL(map< string, setModels_t > content, string outputDir, st
     }
     for (modelRow = binCont.begin(); modelRow != binCont.end(); modelRow++) {  
 
-      unsigned int iA=0;
+      unsigned int iA=-1;
 
       setModels_t::iterator modelCol;
       for (modelCol = binCont.begin(); modelCol != binCont.end(); modelCol++) {
@@ -263,7 +269,7 @@ vector<string> printNLL(map< string, setModels_t > content, string outputDir, st
     string rapStr, centStr, ptStr, modelStr, colStr;
     if (bestModelFile.find("ExpChebychev")!=std::string::npos){ modelStr = "exponential chebychev polynomials"; }
     else if (bestModelFile.find("Chebychev")!=std::string::npos){ modelStr = "chebychev polynomials"; }
-    else { modelStr = "I DON'T KNOW"; }
+    else { modelStr = "chebychev polynomials"; }
     if (binName.find("rap016")!=std::string::npos){ rapStr = "$\\abs{y} <$ 1.6"; }
     else if (binName.find("rap1624")!=std::string::npos){ rapStr = "1.6 $\\leq \\abs{y} <$ 2.4"; }
     if (binName.find("pt30300")!=std::string::npos){ ptStr = "3.0 $\\leq \\PT <$ 30.0 $\\GeVc$"; }
@@ -288,7 +294,7 @@ vector<string> printNLL(map< string, setModels_t > content, string outputDir, st
     else if (binName.find("cent0200")!=std::string::npos){ centStr = "centratility bin 0-100$\\%$"; }
     if (binName.find("PP")!=std::string::npos){ colStr = "pp"; }
     else if (binName.find("PbPb")!=std::string::npos){ colStr = "PbPb"; }
-    TexTable.push_back(Form("\\caption{Negative loglikelihoods for fits with %s of orders 1-5 of %s data in %s %s. In addition the p-values of the LLR-test for the null-hypothesis are listed. Tests of which the null-hypothesis cannot be rejected for two consecutive orders are highlighted in bold, together with the corresponding order.}", modelStr.c_str(), colStr.c_str(), rapStr.c_str(), (colStr=="pp" ? Form("and %s", ptStr.c_str()) : Form(", %s and %s", ptStr.c_str(), centStr.c_str()))));
+    TexTable.push_back(Form("\\caption{Negative loglikelihoods for fits with %s of orders 0-6 of %s data in %s %s. In addition the p-values of the LLR-test for the null-hypothesis are listed. Tests of which the null-hypothesis cannot be rejected for two consecutive orders are highlighted in bold, together with the corresponding order.}", modelStr.c_str(), colStr.c_str(), rapStr.c_str(), (colStr=="pp" ? Form("and %s", ptStr.c_str()) : Form(", %s and %s", ptStr.c_str(), centStr.c_str()))));
     TexTable.push_back("\\end{table}");
     printLines(TexTable, foutTexTable);
     foutTexTable << endl; foutTexTable << endl;
@@ -328,6 +334,9 @@ void printLines(vector<string> strLin, ofstream& fout)
 
 bool extractNLL(string fileName, model_t& value) 
 {
+  string binName = fileName;
+  binName.erase(0, binName.find("FIT_")+ string("FIT_").length());
+
   value.npar = -1;
   value.nll = 1e99;
   TFile *f = new TFile( fileName.c_str() );
@@ -342,15 +351,15 @@ bool extractNLL(string fileName, model_t& value)
   RooAbsReal *nll = NULL;
   double NLL = 0;
   int npar = 0;
-  if (fileName.find("PP")!=std::string::npos) {
+  if (binName.find("PP")!=std::string::npos) {
     nll = ws->pdf("pdfMASS_Tot_PP")->createNLL(*ws->data("dOS_DATA_PP"));
     npar = ws->pdf("pdfMASS_Bkg_PP")->getParameters(*ws->data("dOS_DATA_PP"))->getSize();
   }
-  if (fileName.find("PbPb")!=std::string::npos) {
+  if (binName.find("PbPb")!=std::string::npos) {
     nll = ws->pdf("pdfMASS_Tot_PbPb")->createNLL(*ws->data("dOS_DATA_PbPb"));
     npar = ws->pdf("pdfMASS_Bkg_PbPb")->getParameters(*ws->data("dOS_DATA_PbPb"))->getSize();
   }
-  
+ 
   if (!nll) {
     delete ws;
     f->Close(); delete f;
