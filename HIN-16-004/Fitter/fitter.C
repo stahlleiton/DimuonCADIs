@@ -32,7 +32,7 @@ void fitter(
             bool cutCtau     = true,        // Apply prompt ctau cuts
             bool doSimulFit  = false,        // Do simultaneous fit
             bool wantPureSMC = false,        // Flag to indicate if we want to fit pure signal MC
-            int  numCores    = 32,            // Number of cores used for fitting
+            int  numCores    = 2,            // Number of cores used for fitting
             // Select the drawing options
             bool setLogScale = true,         // Draw plot with log scale
             bool incSS       = false,        // Include Same Sign data

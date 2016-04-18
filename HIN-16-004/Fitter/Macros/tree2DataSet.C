@@ -38,6 +38,8 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
   
   bool isPP = false;
   if (DSName.find("PP")!=std::string::npos) isPP =true;
+  int triggerIndex_PP   = 0;
+  int triggerIndex_PbPb = 0;
 
   bool applyWeight = false;
   if (isMC && !isPP) applyWeight = true;
@@ -116,7 +118,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
 	if ( 
 	    ( RecoQQ::areMuonsInAcceptance2015(iQQ) ) &&  // 2015 Global Muon Acceptance Cuts
 	    ( RecoQQ::passQualityCuts2015(iQQ)      ) &&  // 2015 Soft Global Muon Quality Cuts
-	    ( RecoQQ::isTriggerMatch(iQQ, 0)        )     // HLT_HIL1DoubleMu0_v1
+	    ( RecoQQ::isTriggerMatch(iQQ, (isPP ? triggerIndex_PP : triggerIndex_PbPb))        )     // HLT_HIL1DoubleMu0_v1
 	    )
 	  {
 	    if (Reco_QQ_sign[iQQ]==0) { // Opposite-Sign dimuons
