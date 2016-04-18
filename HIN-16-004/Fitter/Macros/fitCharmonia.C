@@ -148,6 +148,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
       // Do the simultaneous fit
       RooFitResult* fitResult = simPdf->fitTo(*combData, Offset(kTRUE), Extended(kTRUE), NumCPU(numCores), Range("MassWindow"), Save(), Minimizer("Minuit2","Migrad"));
       fitResult->Print();
+      myws.import(*fitResult, Form("fitResult_%s", "simPdf")); 
 
       // Create the output files
       drawMassPlot(myws, outputDir, opt, cut, plotLabelPbPb, DSTAG, true, incJpsi, incPsi2S, incBkg, cutCtau, doSimulFit, false, setLogScale, incSS, zoomPsi, nBins, getMeanPT);
@@ -178,14 +179,17 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
         if (incJpsi || incPsi2S) {
           if (isWeighted) {
             RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(kTRUE), Range("MassWindow"), NumCPU(numCores), Save());
-            fitResult->Print();
+            fitResult->Print(); 
+            myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
           } else {
             RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(numCores), Save());
             fitResult->Print();
+            myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
           }  
         } else {
           RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBand1,SideBand2"), NumCPU(numCores), Save());
           fitResult->Print();
+          myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
         }
         
         // Create the output files
@@ -213,9 +217,11 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
         if (incJpsi || incPsi2S) {
           RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(numCores), Save());
           fitResult->Print(); 
+          myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
         } else {
           RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBand1,SideBand2"), NumCPU(numCores), Save());
           fitResult->Print();
+          myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
         }
         
         // Draw the mass plot
