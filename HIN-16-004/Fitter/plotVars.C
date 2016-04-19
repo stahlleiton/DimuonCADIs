@@ -235,7 +235,7 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
    tr->SetBranchAddress("ymax",&ymax);
    tr->SetBranchAddress("centmin",&centmin);
    tr->SetBranchAddress("centmax",&centmax);
-   if (string(varname)=="nll" || string(varname)=="chi2" || string(varname)=="normchi2") {
+   if (string(varname)=="nll" || string(varname)=="chi2" || string(varname)=="normchi2" || string(varname) == "chi2prob") {
       tr->SetBranchAddress(varname,&val);
    } else if (string(varname).find("npar") != string::npos) {
       tr->SetBranchAddress(varname,&ival);

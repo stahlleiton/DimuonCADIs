@@ -9,7 +9,7 @@ const bool printSysts = true;     // print the systematics summary table
 const bool plotMassPlots = false; // not implemented yet
 const bool plotAllVars = true;     // plot the dependance of all vars with pt, centrality, y
 const bool plotAllResults = true; // and plot the results!
-const bool plotSystResults = true;// plot results taking syst fits as nominal too
+const bool plotSystResults = false;// plot results taking syst fits as nominal too
 
 void makeAllPlots(const char* nominalDir, const char* systDirsSig, const char* systDirsBkg) {
    string allDirs = string(nominalDir) + "," + string(systDirsSig) + "," + string(systDirsBkg);
@@ -19,10 +19,10 @@ void makeAllPlots(const char* nominalDir, const char* systDirsSig, const char* s
 
    // first, systematics
    if (doSysts) {
-      results2syst(allDirsSig.c_str(), "syst_PP_fit_sig.csv", "signal shape (PP)", 1, "PP");
-      results2syst(allDirsSig.c_str(), "syst_PbPb_fit_sig.csv", "signal shape (PbPb)", 1, "PbPb");
-      results2syst(allDirsBkg.c_str(), "syst_PP_fit_bkg.csv", "background shape (PP)", 1, "PP");
-      results2syst(allDirsBkg.c_str(), "syst_PbPb_fit_bkg.csv", "background shape (PbPb)", 1, "PbPb");
+      results2syst(allDirsSig.c_str(), "syst_PP_fit_sig.csv", "Sig. shape (PP)", 1, "PP");
+      results2syst(allDirsSig.c_str(), "syst_PbPb_fit_sig.csv", "Sig. shape (PbPb)", 1, "PbPb");
+      results2syst(allDirsBkg.c_str(), "syst_PP_fit_bkg.csv", "Bkg. shape (PP)", 1, "PP");
+      results2syst(allDirsBkg.c_str(), "syst_PbPb_fit_bkg.csv", "Bkg. shape (PbPb)", 1, "PbPb");
    }
 
    // print the systematics table
@@ -67,6 +67,12 @@ void makeAllPlots(const char* nominalDir, const char* systDirsSig, const char* s
          plotFiles(allDirs.c_str(), "normchi2", "pt", 1.6, 2.4, 3, 30, 0, 200, "PbPb",false);
          plotFiles(allDirs.c_str(), "normchi2", "cent", 0, 1.6, 6.5, 30, 0, 200, "PbPb",false);
          plotFiles(allDirs.c_str(), "normchi2", "cent", 1.6, 2.4, 3, 30, 0, 200, "PbPb",false);
+         plotFiles(allDirs.c_str(), "chi2prob", "pt", 0, 1.6, 6.5, 30, 0, 200, "PP",false);
+         plotFiles(allDirs.c_str(), "chi2prob", "pt", 1.6, 2.4, 3, 30, 0, 200, "PP",false);
+         plotFiles(allDirs.c_str(), "chi2prob", "pt", 0, 1.6, 6.5, 30, 0, 200, "PbPb",false);
+         plotFiles(allDirs.c_str(), "chi2prob", "pt", 1.6, 2.4, 3, 30, 0, 200, "PbPb",false);
+         plotFiles(allDirs.c_str(), "chi2prob", "cent", 0, 1.6, 6.5, 30, 0, 200, "PbPb",false);
+         plotFiles(allDirs.c_str(), "chi2prob", "cent", 1.6, 2.4, 3, 30, 0, 200, "PbPb",false);
       }
    }
 
