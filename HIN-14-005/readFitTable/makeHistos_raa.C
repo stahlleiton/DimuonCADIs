@@ -36,16 +36,16 @@ The output root files of this macro, wich contains the histograms with the yield
 #include "dataBinning_2015.h"
 
 void makeHistos_raa(int sample   = 1,// 0=PbPb,     1= pp
-                   int weight    = 1,// 0=noWeight, 1=weight
-                   int isEffFile = 0,// 0=no, 1=making efficiency histograms, 2=3Deff uncertainties, 3=TnP uncertainties, 4=TnP_STA uncertainties
-                   const char* inputFitDataFileLocation = "../data/raa"
+		    int weight    = 0,// 0=noWeight, 1=weight
+		    int isEffFile = 1,// 0=no, 1=making efficiency histograms, 2=3Deff uncertainties, 3=TnP uncertainties, 4=TnP_STA uncertainties
+		    const char* inputFitDataFileLocation = "../data/raa"
                    ) 
 {
 
   const char* whichSample[2]    = {"20160304_PbPb",      "20160304_pp"};
   const char* whichWeight[2]    = {"noWeight", "weighted"};
   
-  const char* effFileName[2]     = {"20160411_PbPb_newTnP.dat","20160411_pp_newTnP.dat"};
+  const char* effFileName[2]     = {"20160411_PbPb_newTnP","20160411_pp_newTnP"};
   const char* effFileName_3d[2]  = {"effSyst_201602_pbpb_3dEff","effSyst_201602_pp_3dEff"};
   const char* effFileName_tnp[2] = {"effSyst_201602_pbpb_tnp","effSyst_201602_pp_tnp"};
   const char* effFileName_sta[2] = {"effSyst_201602_pbpb_sta","effSyst_201602_pp_sta"};
@@ -105,6 +105,7 @@ void makeHistos_raa(int sample   = 1,// 0=PbPb,     1= pp
   string tmpstring;
   getline(in,tmpstring);
   getline(in,tmpstring);
+  if( !in.good() ) cout<< "!!!!! You have a problem, the input file is not good" <<endl;
   while (in.good()) {
     if(!isEffFile) // yield files
     {
@@ -121,26 +122,33 @@ void makeHistos_raa(int sample   = 1,// 0=PbPb,     1= pp
 
       cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[12] <<endl;
     }
-    else if (isEffFile==1) // these are the traditional efficiency files
-    {
-      in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7];
-      rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
-      pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
-      cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
-      prpt[nline]  = x[6]; // prompt correction
-      nprpt[nline] = x[7]; // non-prompt correction
-    }
-    else if (isEffFile>1) // these are the efficiency uncertainty files
-    {
-      in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7] >> x[8] >> x[9] >> x[10] >> x[11];
-      rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
-      pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
-      cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
-      prpt[nline]  = x[8]; // prompt correction
-      nprpt[nline] = x[11]; // non-prompt correction
-    }
+    else 
+      {
+	if (isEffFile==1) // these are the traditional efficiency files
+	  {
+	    in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7];
+	    rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
+	    pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
+	    cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
+	    prpt[nline]  = x[6]; // prompt correction
+	    nprpt[nline] = x[7]; // non-prompt correction
+	    
+	    cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[12] <<endl;
+	  }
+	if (isEffFile>1) // these are the efficiency uncertainty files
+	  {
+	    in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7] >> x[8] >> x[9] >> x[10] >> x[11];
+	    rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
+	    pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
+	    cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
+	    prpt[nline]  = x[8]; // prompt correction
+	    nprpt[nline] = x[11]; // non-prompt correction
+	    
+	    cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[12] <<endl;
+	  }
+      }
     nline++;
-  }
+  }// while
   printf(" found %d points\n",nline);
   cout<<"#######  Done reading the input dat file!"<<endl;
   pfOutput->cd();
