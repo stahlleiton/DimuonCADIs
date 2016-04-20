@@ -406,13 +406,13 @@ void setRange(RooWorkspace& myws, RooPlot* frame, string dsName, int nBins, bool
   if(setLogScale)
   {
     if (isMC) Ydown = YMin*0.3;
-    else Ydown = max(1.0, YMin/(TMath::Power((YMax/YMin), 0.1)));
-    Yup = YMax*TMath::Power((YMax/YMin), 0.5);
+    else Ydown = YMin/(TMath::Power((YMax/YMin), (0.1/(1.0-0.1-0.4))));
+    Yup = YMax*TMath::Power((YMax/YMin), (0.4/(1.0-0.1-0.4)));
   }
   else
   {
-    Ydown = max(YMin-(YMax-YMin)*0.2,0.0);
-    Yup = YMax+(YMax-YMin)*0.5;
+    Ydown = max(YMin-(YMax-YMin)*(0.1/(1.0-0.1-0.4)),0.0);
+    Yup = YMax+(YMax-YMin)*(0.4/(1.0-0.1-0.4));
   }
   frame->GetYaxis()->SetRangeUser(Ydown,Yup);
   delete h;
