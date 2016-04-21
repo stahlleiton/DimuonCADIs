@@ -37,11 +37,11 @@ Output: yields and raa (traditional vs ev-by-ev)
 #include "../tdrstyle.C"
 #endif
 
-void compare_pt( bool bSavePlots    = true,
-              bool bDoDebug         = 1, // adds some numbers, numerator, denominator, to help figure out if things are read properly
-              int whichCompare      = 1,//0: no TnP corrections; 1: w/ TnP corr on Data; 2: w/ TnP corr on MC; 3: lxy w/ TnP on MC
-              const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are
-              const char* outputDir = "figs/compare")// where the output figures will be
+void compare_pt( bool bSavePlots       = true,
+		 bool bDoDebug         = 0, // adds some numbers, numerator, denominator, to help figure out if things are read properly
+		 int whichCompare      = 0,//0: EbyE vs trad; 1: yes vs no TnP_correction (EbyE)
+		 const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are
+		 const char* outputDir = "figs/compare")// where the output figures will be
 {
  
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
@@ -51,7 +51,7 @@ void compare_pt( bool bSavePlots    = true,
   setTDRStyle();
 
   // type of available comparisons:
-  const char* compWhat[4] = {"noTnP","dataTnP","mcTnP","lxyTnP"};
+  const char* compWhat[4]             = {"EbyEvsTrad","yesNoTnP"};
 
   const int nInHist = 4;
   const char* yieldHistNames[nInHist] = {"pt", "ptLow", "ptLow_mb", "mb"};
@@ -69,39 +69,14 @@ void compare_pt( bool bSavePlots    = true,
   TFile *fEffFile_pp = new TFile(Form("%s/%s",inputDir,effHistFile[1]));
 
  switch(whichCompare){
-  case 0:
-    cout << "You are making Raa, with NOT TnP corrections whatsoever!"<<endl;
-    fYesWeighFile_aa   = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_0[0]));
-    fYesWeighFile_pp   = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_0[1]));
-  
-    fNoWeighFile_aa = new TFile(Form("%s/%s",inputDir,yieldHistFile_noWeight_0[0]));
-    fNoWeighFile_pp = new TFile(Form("%s/%s",inputDir,yieldHistFile_noWeight_0[1]));
-
-    fEffFile_aa = new TFile(Form("%s/%s",inputDir,effHistFile_noTnP[0]));
-    fEffFile_pp = new TFile(Form("%s/%s",inputDir,effHistFile_noTnP[1]));
-    break;
-
-  case 2:
-    cout << "You are making Raa, with TnP corrections applied on MC!"<<endl;
-    fYesWeighFile_aa   = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_2[0]));
-    fYesWeighFile_pp   = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_2[1]));
-  
-    fNoWeighFile_aa = new TFile(Form("%s/%s",inputDir,yieldHistFile_noWeight_2[0]));
-    fNoWeighFile_pp = new TFile(Form("%s/%s",inputDir,yieldHistFile_noWeight_2[1]));
-    break;
-
-  case 3: 
-    cout << "You are making Raa, with Lxy and TnP corrections applie on MC!"<<endl;
-    fYesWeighFile_aa   = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_3[0]));
-    fYesWeighFile_pp   = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_3[1]));
-  
-    fNoWeighFile_aa = new TFile(Form("%s/%s",inputDir,yieldHistFile_noWeight_3[0]));
-    fNoWeighFile_pp = new TFile(Form("%s/%s",inputDir,yieldHistFile_noWeight_3[1]));
-    break;
-
   case 1:
+    cout << "You are comparing Raa with and without TnP corrections!"<<endl;
+    fNoWeighFile_aa = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_0[0]));
+    fNoWeighFile_pp = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_0[1]));
+    break;
+
   default:
-    cout<<" You are doing Raa Nominal: TnP on data!"<<endl;
+    cout<<" You are doing comparison of Raa E-bye vs trad!!!!"<<endl;
     break;
   }
 
@@ -139,10 +114,10 @@ void compare_pt( bool bSavePlots    = true,
     cout<<"histogram input name: "<< hist_pr<<"\t"<<hist_npr<<endl; 
 
     // prompt histos
-    phRaw_pr_pp  = (TH1F*)fNoWeighFile_pp->Get(hist_pr);
-    phCorr_pr_pp = (TH1F*)fYesWeighFile_pp->Get(hist_pr);
-    phRaw_pr_aa  = (TH1F*)fNoWeighFile_aa->Get(hist_pr);
-    phCorr_pr_aa = (TH1F*)fYesWeighFile_aa->Get(hist_pr);
+    phRaw_pr_pp   = (TH1F*)fNoWeighFile_pp->Get(hist_pr);
+    phCorr_pr_pp  = (TH1F*)fYesWeighFile_pp->Get(hist_pr);
+    phRaw_pr_aa   = (TH1F*)fNoWeighFile_aa->Get(hist_pr);
+    phCorr_pr_aa  = (TH1F*)fYesWeighFile_aa->Get(hist_pr);
     
     // non-prompt histos
     phRaw_npr_pp  = (TH1F*)fNoWeighFile_pp->Get(hist_npr);
@@ -151,40 +126,42 @@ void compare_pt( bool bSavePlots    = true,
     phCorr_npr_aa = (TH1F*)fYesWeighFile_aa->Get(hist_npr);
 
     // efficiency histos
-    phEff_pr_pp  = (TH1F*)fEffFile_pp->Get(hist_pr);
-    phEff_npr_pp = (TH1F*)fEffFile_pp->Get(hist_npr);
-    phEff_pr_aa  = (TH1F*)fEffFile_aa->Get(hist_pr);
-    phEff_npr_aa = (TH1F*)fEffFile_aa->Get(hist_npr);
+    phEff_pr_pp   = (TH1F*)fEffFile_pp->Get(hist_pr);
+    phEff_npr_pp  = (TH1F*)fEffFile_pp->Get(hist_npr);
+    phEff_pr_aa   = (TH1F*)fEffFile_aa->Get(hist_pr);
+    phEff_npr_aa  = (TH1F*)fEffFile_aa->Get(hist_npr);
 
     double scaleFactor = ppLumi/nMbEvents;
-    double scale_cent = 1/(adTaaMB[0]*adDeltaCentMB[0]);
+    double scale_cent  = 1/(adTaaMB[0]*adDeltaCentMB[0]);
 
     //---------------  corrected yields in the traditional way (simple division for the moment)
     // store the yield_Ratio histos:  ev_by_ev/(raw*eff), 
     ahRatio_pr_pp[ih]  = (TH1F *)phCorr_pr_pp->Clone();
     ahRatio_pr_pp[ih]->SetDirectory(0);
     ahRatio_pr_pp[ih]->Divide(phRaw_pr_pp);
-    ahRatio_pr_pp[ih]->Multiply(phEff_pr_pp);// correct the raw with it's efficiency
+    if(whichCompare==0) ahRatio_pr_pp[ih]->Multiply(phEff_pr_pp);// correct the raw with it's efficiency
 
     ahRatio_npr_pp[ih]  = (TH1F *)phCorr_npr_pp->Clone();
     ahRatio_npr_pp[ih]->SetDirectory(0);
     ahRatio_npr_pp[ih]->Divide(phRaw_npr_pp);
-    ahRatio_npr_pp[ih]->Multiply(phEff_npr_pp);
+    if(whichCompare==0) ahRatio_npr_pp[ih]->Multiply(phEff_npr_pp);
 
     ahRatio_pr_aa[ih]  = (TH1F *)phCorr_pr_aa->Clone();
     ahRatio_pr_aa[ih]->SetDirectory(0);
     ahRatio_pr_aa[ih]->Divide(phRaw_pr_aa);
-    ahRatio_pr_aa[ih]->Multiply(phEff_pr_aa);
+    if(whichCompare==0) ahRatio_pr_aa[ih]->Multiply(phEff_pr_aa);
 
     ahRatio_npr_aa[ih]  = (TH1F *)phCorr_npr_aa->Clone();
     ahRatio_npr_aa[ih]->SetDirectory(0);
     ahRatio_npr_aa[ih]->Divide(phRaw_npr_aa);
-    ahRatio_npr_aa[ih]->Multiply(phEff_npr_aa);
+    if(whichCompare==0) ahRatio_npr_aa[ih]->Multiply(phEff_npr_aa);
 
     int numBins = 0;
     if(ih==0) numBins = nBinsPt;// pT
     if(ih==1 || ih==2) numBins = nBinsPt3; // pt low // ptlow_mb
     if(ih==3) numBins = nBinsMB; // mb
+
+    cout<<" Bin number is " << ih << " ... and we have #bins= " << numBins << endl;
 
     for(int ibin=1; ibin<=numBins; ibin++)
     {
@@ -199,12 +176,14 @@ void compare_pt( bool bSavePlots    = true,
       
       double yieldRatioTrad_pr = (phRaw_pr_aa->GetBinContent(ibin)/phRaw_pr_pp->GetBinContent(ibin))
         * (phEff_pr_pp->GetBinContent(ibin)/phEff_pr_aa->GetBinContent(ibin));
+      if(whichCompare==1) yieldRatioTrad_pr = (phRaw_pr_aa->GetBinContent(ibin)/phRaw_pr_pp->GetBinContent(ibin));
+
 
       raa_pr      =  yieldRatio_pr * scaleFactor * scale_cent;
-      raaErr_pr   = TMath::Sqrt(TMath::Power(dRelErrRaw_pr_pp,2)+TMath::Power(dRelErrRaw_pr_aa,2))*raa_pr;
+      if(whichCompare==0) raaErr_pr   = TMath::Sqrt(TMath::Power(dRelErrRaw_pr_pp,2)+TMath::Power(dRelErrRaw_pr_aa,2))*raa_pr;
 
       raaTrad_pr      =  yieldRatioTrad_pr * scaleFactor * scale_cent;
-      raaTradErr_pr   = TMath::Sqrt(TMath::Power(dRelErrRaw_pr_pp,2)+TMath::Power(dRelErrRaw_pr_aa,2))*raaTrad_pr;
+      if(whichCompare==0) raaTradErr_pr   = TMath::Sqrt(TMath::Power(dRelErrRaw_pr_pp,2)+TMath::Power(dRelErrRaw_pr_aa,2))*raaTrad_pr;
 
       //non-prompt
       // get the rel uncert from the raw sample
@@ -213,12 +192,13 @@ void compare_pt( bool bSavePlots    = true,
       double yieldRatio_npr     = phCorr_npr_aa->GetBinContent(ibin)/phCorr_npr_pp->GetBinContent(ibin);
       double yieldRatioTrad_npr = phRaw_npr_aa->GetBinContent(ibin)/phRaw_npr_pp->GetBinContent(ibin)
           * (phEff_npr_pp->GetBinContent(ibin)/phEff_npr_aa->GetBinContent(ibin));
+      if(whichCompare==1)yieldRatioTrad_npr = phRaw_npr_aa->GetBinContent(ibin)/phRaw_npr_pp->GetBinContent(ibin);
 
       raa_npr    = yieldRatio_npr * scaleFactor * scale_cent;
-      raaErr_npr = TMath::Sqrt(TMath::Power(dRelErrRaw_npr_pp,2)+TMath::Power(dRelErrRaw_npr_aa,2))*raa_npr;
+      if(whichCompare==0) raaErr_npr = TMath::Sqrt(TMath::Power(dRelErrRaw_npr_pp,2)+TMath::Power(dRelErrRaw_npr_aa,2))*raa_npr;
 
       raaTrad_npr= yieldRatioTrad_npr * scaleFactor * scale_cent;
-      raaTradErr_npr = TMath::Sqrt(TMath::Power(dRelErrRaw_npr_pp,2)+TMath::Power(dRelErrRaw_npr_aa,2))*raaTrad_npr;
+      if(whichCompare==0) raaTradErr_npr = TMath::Sqrt(TMath::Power(dRelErrRaw_npr_pp,2)+TMath::Power(dRelErrRaw_npr_aa,2))*raaTrad_npr;
      
       // fill the corresponding array
       switch(ih){
@@ -303,18 +283,18 @@ void compare_pt( bool bSavePlots    = true,
 
   // ***** //Drawing
   // pr
-  TGraphErrors *gPrJpsi     = new TGraphErrors(nBinsPt, binsPt, prJpsi_pt, binsPtErr, prJpsiErr_pt);
-  TGraphErrors *gPrJpsi_mb     = new TGraphErrors(nBinsMB, binsPtMB, prJpsi_pt, binsPtMBErr, prJpsiErr_pt);
+  TGraphErrors *gPrJpsi           = new TGraphErrors(nBinsPt, binsPt, prJpsi_pt, binsPtErr, prJpsiErr_pt);
+  TGraphErrors *gPrJpsi_mb        = new TGraphErrors(nBinsMB, binsPtMB, prJpsi_pt, binsPtMBErr, prJpsiErr_pt);
    
-  TGraphErrors *gPrJpsi_y1624_mb     = new TGraphErrors(nBinsPt3, binsPt3_mb, prJpsi_y1624MB_pt, binsPt3Err_mb, prJpsiErr_y1624MB_pt);
-  TGraphErrors *gPrJpsi_pt365y1624     = new TGraphErrors(nBinsPt3, binsPt3, prJpsi_pt365y1624_pt, binsPt3Err, prJpsiErr_pt365y1624_pt);
+  TGraphErrors *gPrJpsi_y1624_mb      = new TGraphErrors(nBinsPt3, binsPt3_mb, prJpsi_y1624MB_pt, binsPt3Err_mb, prJpsiErr_y1624MB_pt);
+  TGraphErrors *gPrJpsi_pt365y1624    = new TGraphErrors(nBinsPt3, binsPt3, prJpsi_pt365y1624_pt, binsPt3Err, prJpsiErr_pt365y1624_pt);
    
   // nonPr   
-  TGraphErrors *gNonPrJpsi     = new TGraphErrors(nBinsPt, binsPt, nonPrJpsi_pt, binsPtErr, nonPrJpsiErr_pt);
-  TGraphErrors *gNonPrJpsi_mb     = new TGraphErrors(nBinsMB, binsPtMB, nonPrJpsi_pt, binsPtMBErr, nonPrJpsiErr_pt);
+  TGraphErrors *gNonPrJpsi            = new TGraphErrors(nBinsPt, binsPt, nonPrJpsi_pt, binsPtErr, nonPrJpsiErr_pt);
+  TGraphErrors *gNonPrJpsi_mb         = new TGraphErrors(nBinsMB, binsPtMB, nonPrJpsi_pt, binsPtMBErr, nonPrJpsiErr_pt);
   
-  TGraphErrors *gNonPrJpsi_y1624_mb     = new TGraphErrors(nBinsPt3, binsPt3_mb, nonPrJpsi_y1624MB_pt, binsPt3Err_mb, nonPrJpsiErr_y1624MB_pt);
-  TGraphErrors *gNonPrJpsi_pt365y1624     = new TGraphErrors(nBinsPt3, binsPt3, nonPrJpsi_pt365y1624_pt, binsPt3Err, nonPrJpsiErr_pt365y1624_pt);
+  TGraphErrors *gNonPrJpsi_y1624_mb   = new TGraphErrors(nBinsPt3, binsPt3_mb, nonPrJpsi_y1624MB_pt, binsPt3Err_mb, nonPrJpsiErr_y1624MB_pt);
+  TGraphErrors *gNonPrJpsi_pt365y1624 = new TGraphErrors(nBinsPt3, binsPt3, nonPrJpsi_pt365y1624_pt, binsPt3Err, nonPrJpsiErr_pt365y1624_pt);
   
   //------------------- traditional results
  // pr
@@ -488,6 +468,7 @@ void compare_pt( bool bSavePlots    = true,
   fBin->GetXaxis()->CenterTitle(kTRUE);
 
   TLatex *lRatio = new TLatex(0.5,1.7,"Yield: Ev-by-Ev/Trad. correction");
+  if(whichCompare==1) lRatio = new TLatex(0.5,1.7,"Yield: Yes/No TnP correction");
   lRatio->SetTextFont(42);
   lRatio->SetTextSize(0.05);
 
