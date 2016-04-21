@@ -16,13 +16,19 @@
 #include "RooPlot.h"
 #include "TFile.h"
 #include "TH1.h"
+#include "TString.h"
+#include "TSystem.h"
 #include <iostream>
 #include <fstream>
+#include <vector>
+#include "Utilities/resultUtils.h"
+
 using namespace std;
 using namespace RooFit;
 
+void DiagnosisMacro_all(const char* workDirName, const char* DSTag="DATA", int Nbins = 10, int Nsigma = 10, int CPUused = 1);
 
-int DiagnosisMacro(int Nbins = 10, int Nsigma = 10, int CPUused = 1, TString Filename = "FIT_DATA_Psi2SJpsi_PPPrompt_Bkg_SecondOrderChebychev_pt65300_rap016_cent0200_262620_263757.root") 
+int DiagnosisMacro(int Nbins = 10, int Nsigma = 10, int CPUused = 1, TString Filename = "FIT_DATA_Psi2SJpsi_PPPrompt_Bkg_SecondOrderChebychev_pt65300_rap016_cent0200_262620_263757.root", TString Outputdir = "./") 
 //Nbins: Number of points for which to calculate profile likelihood. Time required is about (1/CPU) minutes per point per parameter. 0 means do plain likelihood only
 //Nsigma: The range in which the scan is performed (value-Nsigma*sigma, value+Nsigma*sigma)
 //CPUused: anything larger than 1 causes weird fit results on my laptop, runs fine on lxplus with more (16)
@@ -136,7 +142,7 @@ int DiagnosisMacro(int Nbins = 10, int Nsigma = 10, int CPUused = 1, TString Fil
 		// P l o t    p l a i n   l i k e l i h o o d   a n d   C o n s t r u c t   p r o f i l e   l i k e l i h o o d
 		// ---------------------------------------------------
 		RooPlot* frame1;
-		RooAbsReal* pll;
+		RooAbsReal* pll=NULL;
 
 		if (Nbins != 0){
 			frame1 = vParam->frame(Bins(Nbins), Range(FitRangeLow, FitRangeHigh), Title(TString::Format("LL and profileLL in %s", ParamName.Data())));
@@ -174,13 +180,22 @@ int DiagnosisMacro(int Nbins = 10, int Nsigma = 10, int CPUused = 1, TString Fil
 		le2->SetLineColor(kRed);
 		le2->SetLineWidth(3);
 		leg->Draw("same");
-		//Save plot
-		c->SaveAs(TString::Format("Likelihood_scan_%s.png", ParamName.Data()), "");
+
+      //Save plot
+      TString StrippedName = TString(Filename(Filename.Last('/')+1,Filename.Length()));
+      StrippedName = StrippedName.ReplaceAll(".root","");
+      cout << StrippedName << endl;
+      gSystem->mkdir(Form("%s/root/%s", Outputdir.Data(), StrippedName.Data()), kTRUE); 
+      c->SaveAs(Form("%s/root/%s/Likelihood_scan_%s.root", Outputdir.Data(), StrippedName.Data(), ParamName.Data()));
+      gSystem->mkdir(Form("%s/pdf/%s", Outputdir.Data(), StrippedName.Data()), kTRUE); 
+      c->SaveAs(Form("%s/pdf/%s/Likelihood_scan_%s.pdf", Outputdir.Data(), StrippedName.Data(), ParamName.Data()));
+      gSystem->mkdir(Form("%s/png/%s", Outputdir.Data(), StrippedName.Data()), kTRUE); 
+      c->SaveAs(Form("%s/png/%s/Likelihood_scan_%s.png", Outputdir.Data(), StrippedName.Data(), ParamName.Data()));
 
 
 		delete c;
 		delete frame1;
-		delete pll;
+		if (pll) delete pll;
 
 		cout << endl << "DONE WITH " << counter << " PARAMETER OUT OF " << Nparams << endl << endl;
 		//if (counter == 2){ break; } //Exit - for testing
@@ -190,4 +205,12 @@ int DiagnosisMacro(int Nbins = 10, int Nsigma = 10, int CPUused = 1, TString Fil
 	return true;
 }
 
+void DiagnosisMacro_all(const char* workDirName, const char* DSTag, int Nbins, int Nsigma, int CPUused) {
+   vector<TString> theFiles = fileList(workDirName,"",DSTag);
+   TString Outputdir = Form("Output/%s/plot/RESULT/", workDirName); 
+
+   for (vector<TString>::const_iterator it=theFiles.begin(); it!=theFiles.end(); it++) {
+      DiagnosisMacro(Nbins, Nsigma, CPUused, *it, Outputdir);
+   }
+}
 
