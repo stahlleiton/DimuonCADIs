@@ -5,6 +5,7 @@
 #include "TTree.h"
 #include "TString.h"
 #include "TH1.h"
+#include "TMath.h"
 #include "RooRealVar.h"
 #include "RooAbsPdf.h"
 #include "RooAbsData.h"
@@ -48,7 +49,7 @@ void results2tree(
    // collision system
    Char_t collSystem[8];
    // goodness of fit
-   float nll, chi2, normchi2; int npar, nparbkg, ndof;
+   float nll, chi2, chi2prob, normchi2; int npar, nparbkg, ndof;
    // parameters to store: make it a vector
    vector<poi> thePois;
    TString thePoiNamesStr(thePoiNames);
@@ -72,6 +73,7 @@ void results2tree(
    tr->Branch("collSystem",collSystem,"collSystem/C");
    tr->Branch("nll",&nll,"nll/F");
    tr->Branch("chi2",&chi2,"chi2/F");
+   tr->Branch("chi2prob",&chi2prob,"chi2prob/F");
    tr->Branch("normchi2",&normchi2,"normchi2/F");
    tr->Branch("npar",&npar,"npar/I");
    tr->Branch("nparbkg",&nparbkg,"nparbkg/I");
@@ -136,21 +138,30 @@ void results2tree(
                npar = model->getParameters(dat)->selectByAttrib("Constant",kFALSE)->getSize();
 
                // compute the chi2 and the ndof
-               RooPlot* frame = ws->var("invMass")->frame(Bins(nBins));
-               dat->plotOn(frame, DataError(RooAbsData::SumW2), XErrorSize(0));
-               model->plotOn(frame, Precision(1e-4), Range("invMass"));
-               TH1 *hdatact = dat->createHistogram("hdatact", *(ws->var("invMass")), Binning(nBins));
-               RooHist *hpull = frame->pullHist(0,0, true);
-               double* ypulls = hpull->GetY();
-               unsigned int nFullBins = 0;
-               for (int i = 0; i < nBins; i++) {
-                  if (hdatact->GetBinContent(i+1) > 0.0) {
-                     chi2 += ypulls[i]*ypulls[i];
-                     nFullBins++;
+               RooRealVar *chi2var = ws->var("chi2");
+               RooRealVar *ndofvar = ws->var("ndof");
+               if (chi2var && ndofvar) {
+                  chi2 = chi2var->getVal();
+                  ndof = ndofvar->getVal();
+               } else {
+                  RooPlot* frame = ws->var("invMass")->frame(Bins(nBins));
+                  dat->plotOn(frame, DataError(RooAbsData::SumW2), XErrorSize(0));
+                  model->plotOn(frame, Precision(1e-4), Range("invMass"));
+                  TH1 *hdatact = dat->createHistogram("hdatact", *(ws->var("invMass")), Binning(nBins));
+                  RooHist *hpull = frame->pullHist(0,0, true);
+                  double* ypulls = hpull->GetY();
+                  unsigned int nFullBins = 0;
+                  for (int i = 0; i < nBins; i++) {
+                     if (hdatact->GetBinContent(i+1) > 0.0) {
+                        chi2 += ypulls[i]*ypulls[i];
+                        nFullBins++;
+                     }
                   }
+                  ndof = nFullBins - npar;
                }
-               ndof = nFullBins - npar;
+
                normchi2 = chi2/ndof;
+               chi2prob = TMath::Prob(chi2,ndof);
             }
             if (model_bkg) {
                nparbkg = model_bkg->getParameters(dat)->selectByAttrib("Constant",kFALSE)->getSize();

@@ -16,7 +16,8 @@ const char* yieldHistFile_pp_systSgnBkg[nFitVariations] = {
   "histsRaaYields_20160304_pp_const.root" 
 };
 const char* yieldHistFile_pp_syst4DCorr[nEff4DVariations] = {
-  "histsRaaYields_20160304_pp_weighted_prof.root"
+//  "histsRaaYields_20160304_pp_weighted_prof.root"
+  "histsRaaYields_20160304_pp_ctau1mm.root"
 };
 
 const char* yieldHistFile_pp_systTnP[nEffTnPVariation] = {
@@ -35,7 +36,8 @@ const char* yieldHistFile_aa_systSgnBkg[nFitVariations]   = {
   "histsRaaYields_20160304_PbPb_const.root"
 };
 const char* yieldHistFile_aa_syst4DCorr[nEff4DVariations] = {
-  "histsRaaYields_20160304_PbPb_weighted_prof.root"
+//  "histsRaaYields_20160304_PbPb_weighted_prof.root"
+  "histsRaaYields_20160304_PbPb_ctau1mm.root"
 };
 
 const char* yieldHistFile_aa_systTnP[nEffTnPVariation] = {
@@ -52,7 +54,8 @@ const char* legendSyst[] = {
   "signal_resOpt2", 
   "bFrac_MLAR", 
   "constrained", 
-  "4DEff_profile", 
+//  "4DEff_profile", 
+  "4DEff_ctau1mm", 
   "3DEff_toy",
   "TnP_trgMuID", 
   "TnP_sta" 
