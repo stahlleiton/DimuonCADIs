@@ -71,7 +71,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
     if (cut.dMuon.ctau.Min==-10. && cut.dMuon.ctau.Max==10.) { 
       // Default ctau values, means that the user did not specify a ctau range
       cut.dMuon.ctau.Min = -2.0;
-      cut.dMuon.ctau.Max = 10.0;
+      cut.dMuon.ctau.Max = 2.0;
     }
     parIni["Model_CtauRes_PbPb"] = "DoubleGaussianResolution";
     parIni["Model_CtauRes_PP"]   = "DoubleGaussianResolution";
@@ -205,12 +205,12 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
       // Create the output files
       int nBins = 0;
       if (fitMass) {
-        nBins = min(int( round((cut.dMuon.M.Max - cut.dMuon.M.Min)/binWidth) ), 100);
+        nBins = min(int( round((cut.dMuon.M.Max - cut.dMuon.M.Min)/binWidth) ), 1000);
         drawMassPlot(myws, outputDir, opt, cut, plotMassLabelPbPb, DSTAG, true, incJpsi, incPsi2S, incBkg, cutCtau, false, setLogScale, incSS, zoomPsi, nBins, getMeanPT);
         drawMassPlot(myws, outputDir, opt, cut, plotMassLabelPP, DSTAG, false, incJpsi, incPsi2S, incBkg, cutCtau, false, setLogScale, incSS, zoomPsi, nBins, getMeanPT);
       }
       if (fitCtau) {
-        nBins = min(int( round((cut.dMuon.ctau.Max - cut.dMuon.ctau.Min)/binWidth) ), 100);
+        nBins = min(int( round((cut.dMuon.ctau.Max - cut.dMuon.ctau.Min)/binWidth) ), 1000);
         drawCtauPlot(myws, outputDir, opt, cut, plotCtauLabelPbPb, DSTAG, true, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, false, setLogScale, incSS, nBins);
         drawCtauPlot(myws, outputDir, opt, cut, plotCtauLabelPP, DSTAG, false, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, false, setLogScale, incSS, nBins);
       }
@@ -259,11 +259,11 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
         // Create the output files
         int nBins = 0;
         if (fitMass) { 
-          nBins = min(int( round((cut.dMuon.M.Max - cut.dMuon.M.Min)/binWidth) ), 100);
+          nBins = min(int( round((cut.dMuon.M.Max - cut.dMuon.M.Min)/binWidth) ), 1000);
           drawMassPlot(myws, outputDir, opt, cut, (wantPureSMC ? (plotMassLabelPbPb+"_NoBkg") : plotMassLabelPbPb), DSTAG, true, incJpsi, incPsi2S, incBkg, cutCtau, wantPureSMC, setLogScale, incSS, zoomPsi, nBins, getMeanPT); 
         }
         if (fitCtau) { 
-          nBins = min(int( round((cut.dMuon.ctau.Max - cut.dMuon.ctau.Min)/binWidth) ), 100);
+          nBins = min(int( round((cut.dMuon.ctau.Max - cut.dMuon.ctau.Min)/binWidth) ), 1000);
           drawCtauPlot(myws, outputDir, opt, cut, (wantPureSMC ? (plotCtauLabelPbPb+"_NoBkg") : plotCtauLabelPbPb), DSTAG, true, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins); 
         }
         saveWorkSpace(myws, outputDir, plotLabel, DSTAG, cut, fitMass, fitCtau, false, true);
@@ -303,11 +303,11 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
         // Draw the mass plot
         int nBins = 0;
         if (fitMass) { 
-          nBins = min(int( round((cut.dMuon.M.Max - cut.dMuon.M.Min)/binWidth) ), 100);
+          nBins = min(int( round((cut.dMuon.M.Max - cut.dMuon.M.Min)/binWidth) ), 1000);
           drawMassPlot(myws, outputDir, opt, cut, (wantPureSMC ? (plotMassLabelPP+"_NoBkg") : plotMassLabelPP), DSTAG, false, incJpsi, incPsi2S, incBkg, cutCtau, wantPureSMC, setLogScale, incSS, zoomPsi, nBins, getMeanPT); 
         }
         if (fitCtau) { 
-          nBins = min(int( round((cut.dMuon.ctau.Max - cut.dMuon.ctau.Min)/binWidth) ), 100);
+          nBins = min(int( round((cut.dMuon.ctau.Max - cut.dMuon.ctau.Min)/binWidth) ), 1000);
           drawCtauPlot(myws, outputDir, opt, cut, (wantPureSMC ? (plotCtauLabelPP+"_NoBkg") : plotCtauLabelPP), DSTAG, false, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins); 
         }
         saveWorkSpace(myws, outputDir, plotLabel, DSTAG, cut, fitMass, fitCtau, false, false);

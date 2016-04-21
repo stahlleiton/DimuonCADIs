@@ -31,18 +31,18 @@ void fitter(
             bool incJpsi      = true,         // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
             bool incBkg       = false,         // Includes Background model
-            bool incPrompt    = false,         // Includes Prompt ctau model
-            bool incNonPrompt = true,        // Includes Non Prompt ctau model 
+            bool incPrompt    = true,         // Includes Prompt ctau model
+            bool incNonPrompt = false,        // Includes Non Prompt ctau model 
             // Select the fitting options
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
             bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
-            int  numCores     = 32,            // Number of cores used for fitting
+            int  numCores     = 2,            // Number of cores used for fitting
             // Select the drawing options
             bool  setLogScale  = true,         // Draw plot with log scale
             bool  incSS        = false,        // Include Same Sign data
             bool  zoomPsi      = false,        // Zoom Psi(2S) peak on extra pad
-            float binWidth     = 0.05          // Bin width used for plotting
+            float binWidth     = 0.01          // Bin width used for plotting
             ) 
 {
   // -------------------------------------------------------------------------------

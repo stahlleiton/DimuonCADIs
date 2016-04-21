@@ -235,7 +235,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   leg->AddEntry(frame->findObject("dOS"), (incSS?"Opposite Charge":"Data"),"pe");
   if (incSS) { leg->AddEntry(frame->findObject("dSS"),"Same Charge","pe"); }
   if(frame->findObject("PDF")) { leg->AddEntry(frame->findObject("PDF"),"Total fit","l"); }
-  if(frame->findObject("BKG")) { leg->AddEntry(frame->findObject("BKG"),"Background","fl"); }
+  if(incBkg && frame->findObject("BKG")) { leg->AddEntry(frame->findObject("BKG"),"Background","fl"); }
   leg->Draw("same");
 
   //Drawing the title
@@ -315,8 +315,8 @@ void setCtauRange(RooWorkspace& myws, RooPlot* frame, string dsName, int nBins, 
   if(setLogScale)
   {
     if (isMC) Ydown = YMin*0.3;
-    else Ydown = max(1.0, YMin/(TMath::Power((YMax/YMin), 0.1)));
-    Yup = YMax*TMath::Power((YMax/YMin), 0.5);
+    else Ydown = YMin/(TMath::Power((YMax/YMin), (0.1/0.5)));
+    Yup = YMax*TMath::Power((YMax/YMin), (0.4/0.5));
   }
   else
   {

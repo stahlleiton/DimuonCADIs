@@ -68,7 +68,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     {
       setCentralityMap(Form("%s/Input/CentralityMap_PbPb2015.txt",gSystem->ExpandPathName(gSystem->pwd())));
       if (isMC) {
-        cols = new RooArgSet(*mass, *ctau, *ctauErr, *ctauTrue *ptQQ, *rapQQ, *cent, *weight);
+        cols = new RooArgSet(*mass, *ctau, *ctauErr, *ctauTrue, *ptQQ, *rapQQ, *cent, *weight);
       } else {
         cols = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent, *weight);
       }
@@ -79,7 +79,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     else
     {
       if (isMC) {
-        cols = new RooArgSet(*mass, *ctau, *ctauErr, *ctauTrue *ptQQ, *rapQQ, *cent);
+        cols = new RooArgSet(*mass, *ctau, *ctauErr, *ctauTrue, *ptQQ, *rapQQ, *cent);
       } else {
         cols = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent);
       }                 
@@ -116,6 +116,9 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         ptQQ->setVal(RecoQQ4mom->Pt());
         rapQQ->setVal(RecoQQ4mom->Rapidity());
         cent->setVal(Centrality);
+        if (isMC) {
+          ctauTrue->setVal(Reco_QQ_ctauTrue[iQQ]);
+        } 
         
         if (applyWeight){
           double w = theTree->GetWeight();//*getNColl(Centrality,isPP);
@@ -233,6 +236,7 @@ void iniBranch(TChain* fChain, bool isMC)
     fChain->SetBranchStatus("Gen_QQ_size",1);
     fChain->SetBranchStatus("Gen_QQ_mupl_4mom",1);
     fChain->SetBranchStatus("Gen_QQ_mumi_4mom",1);
+    fChain->SetBranchStatus("Reco_QQ_ctauTrue",1);
   }
 };
 
