@@ -57,7 +57,7 @@ void v2_fitter(int jpsiCategory      = 1, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
     "histsV2Yields_20160304_v2W_muIDTrig_dPhiBins4",
     "histsV2Yields_20160304_v2W_noTnPSF_dPhiBins4",
     "histsV2Yields_20160304_v2W_polFunct_dPhiBins4",
-    "histsV2Yields_20160304_v2W_prof_dPhiBins4",
+    "histsV2Yields_20160304_v2W_ctau1mm_dPhiBins4",
     "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",
     "histsV2Yields_20160304_v2W_signalCB3WN_dPhiBins4",
   };
