@@ -177,7 +177,7 @@ bool defineCtauResolModel(RooWorkspace& ws, CtauModel model, map<string,string> 
       ws.factory( Form("RooFormulaVar::%s('sqrt((@0*@1)**2+(@2)**2)',{%s,%s,%s})", Form("sigma1_bCtauRes_%s", (isPbPb?"PbPb":"PP")), 
                        Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP")),
                        "ctauErr", 
-                       Form("sigmaMC_bCtauRes_%s", (isPbPb?"PbPb":"PP"))
+                       Form("sigmaB_bCtauRes_%s", (isPbPb?"PbPb":"PP"))
                        ) );
 
       // create the two PDFs
