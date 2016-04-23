@@ -35,15 +35,15 @@ The output root files of this macro, wich contains the histograms with the yield
 #include "Riostream.h"
 #include "dataBinning_2015.h"
 
-void makeHistos_raa(int sample   = 1,// 0=PbPb,     1= pp
+void makeHistos_raa(int sample    = 0,// 0=PbPb,     1= pp
 		    int weight    = 0,// 0=noWeight, 1=weight
 		    int isEffFile = 1,// 0=no, 1=making efficiency histograms, 2=3Deff uncertainties, 3=TnP uncertainties, 4=TnP_STA uncertainties
 		    const char* inputFitDataFileLocation = "../data/raa"
                    ) 
 {
 
-  const char* whichSample[2]    = {"20160304_PbPb",      "20160304_pp"};
-  const char* whichWeight[2]    = {"noWeight", "weighted"};
+  const char* whichSample[2]     = {"20160304_PbPb",      "20160304_pp"};
+  const char* whichWeight[2]     = {"noWeight", "weighted"};
   
   const char* effFileName[2]     = {"20160411_PbPb_newTnP","20160411_pp_newTnP"};
   const char* effFileName_3d[2]  = {"effSyst_201602_pbpb_3dEff","effSyst_201602_pp_3dEff"};
@@ -108,45 +108,43 @@ void makeHistos_raa(int sample   = 1,// 0=PbPb,     1= pp
   if( !in.good() ) cout<< "!!!!! You have a problem, the input file is not good" <<endl;
   while (in.good()) {
     if(!isEffFile) // yield files
-    {
-      in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7] >> x[8] >> x[9] >> x[10] >> x[11] >> x[12] >> x[13] >> x[14] >> x[15] >> x[16] >> x[17];
-      rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
-      pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
-      cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
-      // [6]&[7] is the phi interval
-      inc[nline]   = x[8];  incErr[nline]   = fabs(x[9]); // inclusive yield and error
-      //[10]&[11] is the bkg and bkg error
-      prpt[nline]  = x[12]; prptErr[nline]  = fabs(x[13]);// prompt yield and error
-      nprpt[nline] = x[14]; nprptErr[nline] = fabs(x[15]);// non-prompt yield and error
-      //[16]&[17] is the b-fraction
-
-      cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[12] <<endl;
-    }
-    else 
       {
-	if (isEffFile==1) // these are the traditional efficiency files
-	  {
-	    in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7];
-	    rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
-	    pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
-	    cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
-	    prpt[nline]  = x[6]; // prompt correction
-	    nprpt[nline] = x[7]; // non-prompt correction
-	    
-	    cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[12] <<endl;
-	  }
-	if (isEffFile>1) // these are the efficiency uncertainty files
-	  {
-	    in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7] >> x[8] >> x[9] >> x[10] >> x[11];
-	    rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
-	    pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
-	    cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
-	    prpt[nline]  = x[8]; // prompt correction
-	    nprpt[nline] = x[11]; // non-prompt correction
-	    
-	    cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[12] <<endl;
-	  }
+	in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7] >> x[8] >> x[9] >> x[10] >> x[11] >> x[12] >> x[13] >> x[14] >> x[15] >> x[16] >> x[17];
+	rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
+	pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
+	cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
+	// [6]&[7] is the phi interval
+	inc[nline]   = x[8];  incErr[nline]   = fabs(x[9]); // inclusive yield and error
+	//[10]&[11] is the bkg and bkg error
+	prpt[nline]  = x[12]; prptErr[nline]  = fabs(x[13]);// prompt yield and error
+	nprpt[nline] = x[14]; nprptErr[nline] = fabs(x[15]);// non-prompt yield and error
+	//[16]&[17] is the b-fraction
+
+	cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[12] <<endl;
       }
+    else if (isEffFile==1) // these are the traditional efficiency files
+      {
+	in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7];
+	rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
+	pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
+	cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
+	prpt[nline]  = x[6]; // prompt correction
+	nprpt[nline] = x[7]; // non-prompt correction
+	
+	cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[6] <<"\t NonPrompt: " << x[7] << endl;
+      }
+    else if (isEffFile>1) // these are the efficiency uncertainty files
+      {
+	in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7] >> x[8] >> x[9] >> x[10] >> x[11];
+	rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
+	pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
+	cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
+	prpt[nline]  = x[8]; // prompt correction
+	nprpt[nline] = x[11]; // non-prompt correction
+	
+	cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[12] <<endl;
+      }
+      
     nline++;
   }// while
   printf(" found %d points\n",nline);

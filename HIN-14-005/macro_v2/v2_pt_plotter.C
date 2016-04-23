@@ -20,11 +20,10 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #include <TGraph.h>
 #include <TNtuple.h>
 #include <TString.h>
-#include <TH1D.h>
 #include <TFile.h>
-#include <TH1D.h>
 #include <TF1.h>
 #include <TMath.h>
+#include <TH1D.h>
 #include <TH2D.h>
 #include <TCanvas.h>
 #include <TLegend.h>
@@ -39,7 +38,7 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #endif
 
 void v2_pt_plotter(
-       int jpsiCategory         = 2, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+       int jpsiCategory         = 1, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
        int npNumBinsHighPt      = 1, // possible number of bins for non-prompt high-pt: 1 or 2
        string nDphiBins         = "4",
        const char* outputDir    = "output", 
@@ -48,6 +47,8 @@ void v2_pt_plotter(
        bool bDoDebug            = true,
        bool bSavePlots          = true
         ) {
+  using namespace std;
+
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
 
@@ -173,8 +174,8 @@ void v2_pt_plotter(
   
   if (!in.good()) {cout << "######### Fail to open syst_input.txt file.##################" << endl;}
 
-  double y[6]={0};
-  iline=0;
+  double y[6] = {0};
+  iline       = 0;
   getline(in,tmpstring);
   while ( in.good() && iline<nBins+1) {
     in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> y[0] >> y[1] >> y[2] >> y[3] >> y[4] >> y[5];

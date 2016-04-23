@@ -40,7 +40,7 @@ using namespace std;
 
 void compare_cent(bool bSavePlots       = true,
                   bool bDoDebug         = 1, // adds some numbers, numerator, denominator, to help figure out if things are read properly
-                  int whichCompare      = 1,//0: no TnP corrections; 1: w/ TnP corr on Data; 2: w/ TnP corr on MC; 3: lxy w/ TnP on MC
+                  int whichCompare      = 1,//0: EbyE vs trad; 1: yes vs no TnP_correction (EbyE)
                   const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are
                   const char* outputDir = "figs/compare")// where the output figures will be
 {
@@ -52,7 +52,7 @@ void compare_cent(bool bSavePlots       = true,
  
 
  // type of available comparisons:
-  const char* compWhat[4] = {"noTnP","dataTnP","mcTnP","lxyTnP"};
+  const char* compWhat[4]             = {"EbyEvsTrad","yesNoTnP"};
 
   const int nInHist = 5;
   const char* yieldHistNames[nInHist] = {"cent","y012Cent", "y1216Cent", "y1624Cent", "y1624LowPtCent"};
@@ -71,40 +71,15 @@ void compare_cent(bool bSavePlots       = true,
   TFile *fEffFile_aa = new TFile(Form("%s/%s",inputDir,effHistFile[0]));
   TFile *fEffFile_pp = new TFile(Form("%s/%s",inputDir,effHistFile[1]));
 
-   switch(whichCompare){
-  case 0:
-    cout << "You are making Raa, with NOT TnP corrections whatsoever!"<<endl;
-    fYesWeighFile_aa   = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_0[0]));
-    fYesWeighFile_pp   = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_0[1]));
-  
-    fNoWeighFile_aa = new TFile(Form("%s/%s",inputDir,yieldHistFile_noWeight_0[0]));
-    fNoWeighFile_pp = new TFile(Form("%s/%s",inputDir,yieldHistFile_noWeight_0[1]));
-
-    fEffFile_aa = new TFile(Form("%s/%s",inputDir,effHistFile_noTnP[0]));
-    fEffFile_pp = new TFile(Form("%s/%s",inputDir,effHistFile_noTnP[1]));
-    break;
-
-  case 2:
-    cout << "You are making Raa, with TnP corrections applied on MC!"<<endl;
-    fYesWeighFile_aa   = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_2[0]));
-    fYesWeighFile_pp   = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_2[1]));
-  
-    fNoWeighFile_aa = new TFile(Form("%s/%s",inputDir,yieldHistFile_noWeight_2[0]));
-    fNoWeighFile_pp = new TFile(Form("%s/%s",inputDir,yieldHistFile_noWeight_2[1]));
-    break;
-
-  case 3: 
-    cout << "You are making Raa, with Lxy and TnP corrections applie on MC!"<<endl;
-    fYesWeighFile_aa   = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_3[0]));
-    fYesWeighFile_pp   = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_3[1]));
-  
-    fNoWeighFile_aa = new TFile(Form("%s/%s",inputDir,yieldHistFile_noWeight_3[0]));
-    fNoWeighFile_pp = new TFile(Form("%s/%s",inputDir,yieldHistFile_noWeight_3[1]));
-    break;
-
+  switch(whichCompare){
   case 1:
+    cout << "You are comparing Raa with and without TnP corrections!"<<endl;
+    fNoWeighFile_aa = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_0[0]));
+    fNoWeighFile_pp = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_0[1]));
+    break;
+
   default:
-    cout<<" You are doing Raa Nominal: TnP on data!"<<endl;
+    cout<<" You are doing comparison of Raa E-bye vs trad!!!!"<<endl;
     break;
   }
 
@@ -164,22 +139,22 @@ void compare_cent(bool bSavePlots       = true,
     ahRatio_pr_pp[ih]  = (TH1F *)phCorr_pr_pp->Clone();
     ahRatio_pr_pp[ih]->SetDirectory(0);
     ahRatio_pr_pp[ih]->Divide(phRaw_pr_pp);
-    ahRatio_pr_pp[ih]->Multiply(phEff_pr_pp);// correct the raw with it's efficiency
+    if(whichCompare==0) ahRatio_pr_pp[ih]->Multiply(phEff_pr_pp);// correct the raw with it's efficiency
 
     ahRatio_npr_pp[ih]  = (TH1F *)phCorr_npr_pp->Clone();
     ahRatio_npr_pp[ih]->SetDirectory(0);
     ahRatio_npr_pp[ih]->Divide(phRaw_npr_pp);
-    ahRatio_npr_pp[ih]->Multiply(phEff_npr_pp);
+    if(whichCompare==0) ahRatio_npr_pp[ih]->Multiply(phEff_npr_pp);
 
     ahRatio_pr_aa[ih]  = (TH1F *)phCorr_pr_aa->Clone();
     ahRatio_pr_aa[ih]->SetDirectory(0);
     ahRatio_pr_aa[ih]->Divide(phRaw_pr_aa);
-    ahRatio_pr_aa[ih]->Multiply(phEff_pr_aa);
+    if(whichCompare==0) ahRatio_pr_aa[ih]->Multiply(phEff_pr_aa);
 
     ahRatio_npr_aa[ih]  = (TH1F *)phCorr_npr_aa->Clone();
     ahRatio_npr_aa[ih]->SetDirectory(0);
     ahRatio_npr_aa[ih]->Divide(phRaw_npr_aa);
-    ahRatio_npr_aa[ih]->Multiply(phEff_npr_aa);
+    if(whichCompare==0) ahRatio_npr_aa[ih]->Multiply(phEff_npr_aa);
 
     double scaleFactor = ppLumi/nMbEvents;
 
@@ -210,6 +185,8 @@ void compare_cent(bool bSavePlots       = true,
         (phRaw_pr_aa->GetBinContent(ibin)/phRaw_pr_pp->GetBinContent(ibin)) *
         (phEff_pr_pp->GetBinContent(ibin)/phEff_pr_aa->GetBinContent(ibin));
 
+      if(whichCompare==1)yieldRatioTrad_pr = phRaw_pr_aa->GetBinContent(ibin)/phRaw_pr_pp->GetBinContent(ibin);
+
       raa_pr      =  yieldRatio_pr * scaleFactor * scale_cent;
       raaErr_pr   = TMath::Sqrt(TMath::Power(dRelErrRaw_pr_pp,2)+TMath::Power(dRelErrRaw_pr_aa,2))*raa_pr;
 
@@ -224,6 +201,8 @@ void compare_cent(bool bSavePlots       = true,
       double yieldRatioTrad_npr =
         (phRaw_npr_aa->GetBinContent(ibin)/phRaw_npr_pp->GetBinContent(ibin)) *
         (phEff_npr_pp->GetBinContent(ibin)/phEff_npr_aa->GetBinContent(ibin));
+
+      if(whichCompare==1) phRaw_npr_aa->GetBinContent(ibin)/phRaw_npr_pp->GetBinContent(ibin);
 
       if(ih==0)
       {
@@ -557,6 +536,7 @@ void compare_cent(bool bSavePlots       = true,
   fBin->GetXaxis()->CenterTitle(kTRUE);
 
   TLatex *lRatio = new TLatex(0.5,1.7,"Yield: Ev-by-Ev/Trad. correction");
+  if(whichCompare==1) lRatio = new TLatex(0.5,1.7,"Yield: Yes/No TnP correction");
   lRatio->SetTextFont(42);
   lRatio->SetTextSize(0.05);
 
