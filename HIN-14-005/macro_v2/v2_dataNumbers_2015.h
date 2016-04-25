@@ -95,7 +95,6 @@ double adXaxisCent_np[]   = {90,224,355}; // Npart (60-30, 30-10, 10-0)
 double flip_adXaxisCent_pr[]   = {355, 261, 187, 90}; // Npart (10-0, 20-10, 30-20, 60-30)
 double flip_adXaxisCent_np[]   = {355, 224, 90}; // Npart (10-0, 30-10, 60-30)
 
-double adWidth_systBox[] = {0.5}; // width of the systm. uncert.
-// ------------------------------------------------------- systematic uncert (these are bogus for the moment)
+double adWidth_systBox[] = {0.5, 0.5, 0.5}; // width of the systm. uncert.
 
 #endif
