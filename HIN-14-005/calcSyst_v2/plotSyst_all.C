@@ -39,14 +39,14 @@ Output:
 #endif
 
 void plotSyst_all(
-		int jpsiCategory      = -1, // -1: all, 1 : Prompt, 2 : Non-Prompt, 3: Bkg
-		int nChoseVariable    = -1, // -1 = all; 0 integrated; 1 pt; 2: rapidity; 3: centrality;
-		string nDphiBins      = "4",
-		const char* inputDir  = "../macro_v2/outputNumbers", // the place where the input root files, with the histograms are
-		const char* outputDir = "histSyst",// where the output figures will be
-		bool bDoDebug         = false,
-		bool bSavePlots       = true
-		) {
+    int jpsiCategory      = -1, // -1: all, 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+    int nChoseVariable    = -1, // -1 = all; 0 integrated; 1 pt; 2: rapidity; 3: centrality;
+    string nDphiBins      = "4",
+    const char* inputDir  = "../macro_v2/outputNumbers", // the place where the input root files, with the histograms are
+    const char* outputDir = "histSyst",// where the output figures will be
+    bool bDoDebug         = false,
+    bool bSavePlots       = true
+    ) {
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
   // set the style
@@ -60,27 +60,27 @@ void plotSyst_all(
   int iVar_tnp = 4;
   int iVar_fit = 5;
   const char* v2InFileDirs[nFiles] = {"histsV2Yields_20160304_v2W_dPhiBins4",  //0
-				      "histsV2Yields_20160304_v2W_prof_dPhiBins4",//1
-				      "histsV2Yields_20160304_v2W_minVar_dPhiBins4",//2
-				      "histsV2Yields_20160304_v2W_maxVar_dPhiBins4", //3
-				      "histsV2Yields_20160304_v2W_noTnPSF_dPhiBins4",//4
-				      "histsV2Yields_20160304_v2W_signalCB3WN_dPhiBins4",//5
-				      "histsV2Yields_20160304_v2W_polFunct_dPhiBins4",//6
-				      "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",//7
-				      "histsV2Yields_20160304_v2W_MLAR_dPhiBins4",//8
-				      "histsV2Yields_20160304_v2W_const_dPhiBins4"//9
+              "histsV2Yields_20160304_v2W_ctau1mm_dPhiBins4",//1
+              "histsV2Yields_20160304_v2W_minVar_dPhiBins4",//2
+              "histsV2Yields_20160304_v2W_maxVar_dPhiBins4", //3
+              "histsV2Yields_20160304_v2W_noTnPSF_dPhiBins4",//4
+              "histsV2Yields_20160304_v2W_signalCB3WN_dPhiBins4",//5
+              "histsV2Yields_20160304_v2W_polFunct_dPhiBins4",//6
+              "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",//7
+              "histsV2Yields_20160304_v2W_MLAR_dPhiBins4",//8
+              "histsV2Yields_20160304_v2W_const_dPhiBins4"//9
   };
 // legend or systm variation
 const char* legendSyst[] = {"",
-			    "4DEff_profile", 
-			    "3DEff_min",
-			    "3DEff_max",
-			    "no_TnP", 
-			    "signal_CB3WN",
-			    "bkg_polFunct",
-			    "signal_resOpt2", 
-			    "bFrac_MLAR",
-			    "constrained"};
+          "4DEff", 
+          "3DEff_min",
+          "3DEff_max",
+          "no_TnP", 
+          "signal_CB3WN",
+          "bkg_polFunct",
+          "signal_resOpt2", 
+          "bFrac_MLAR",
+          "constrained"};
 
  const char* variable[4] = {"0-100\%", "p_{T} (GeV/c)", "|y|", "N_{part}"};
  const char* signal[4]   = {"", "Prp","NPrp","Bkg"};
@@ -109,24 +109,24 @@ const char* legendSyst[] = {"",
 
       int nBins           =  1; // mb, 1 bin, is the default
       if(iCateg==1 || iCateg==3)
-	{
-	  if (iVar == 1)  nBins =  nPtBins_pr;
-	  if (iVar == 2)  nBins =  nYBins_pr;
-	  if (iVar == 3)  nBins =  nCentBins_pr;
-	}
+      {
+        if (iVar == 1)  nBins =  nPtBins_pr;
+        if (iVar == 2)  nBins =  nYBins_pr;
+        if (iVar == 3)  nBins =  nCentBins_pr;
+      }
       if(iCateg ==2)
-	{
-	  if (iVar == 1)  nBins =  nPtBins_np; // for non-prompt Jpsi, take as default 2 pt bin
-	  if (iVar == 2)  nBins =  nYBins_np;
-	  if (iVar == 3)  nBins =  nCentBins_np;
-	}
-    cout<<" !!!!! Number of bins: "<< nBins<<endl;
+      {
+        if (iVar == 1)  nBins =  nPtBins_np; // for non-prompt Jpsi, take as default 2 pt bin
+        if (iVar == 2)  nBins =  nYBins_np;
+        if (iVar == 3)  nBins =  nCentBins_np;
+      }
+      cout<<" !!!!! Number of bins: "<< nBins<<endl;
 
 
       cout<<"######## Variable: "<< outFilePlot[iVar] << "  ########" << endl;
       double adV2[nFiles][nBins]; // v2 values
     
-      std::vector<std::vector<std::string>> str_kin;// pt, rapidity, centrlaity, to store for output dat files
+      std::vector< std::vector<std::string> > str_kin;// pt, rapidity, centrlaity, to store for output dat files
       str_kin.resize( nBins );
       for( auto &i : str_kin )
         i.resize( 3 );
@@ -206,20 +206,20 @@ const char* legendSyst[] = {"",
         double relContrib_3d_min = (v2-adV2[iVar_3d+1][ib])/v2;
         contrib_3d_min[ib]       = 100 * relContrib_3d_min;
         contrib_3d_max[ib]       = 100 * relContrib_3d_max;
-	
+  
         for (int iFit=iVar_fit; iFit<nFiles; iFit++)
         {
           double iFitContrib = (v2-adV2[iFit][ib])/v2;
           if(iFit==iVar_fit) contrib_fit_0[ib]   = 100 * iFitContrib;
-	  if(iFit==iVar_fit+1) contrib_fit_1[ib] = 100 * iFitContrib;
-	  if(iFit==iVar_fit+2) contrib_fit_2[ib] = 100 * iFitContrib;
-	  if(iFit==iVar_fit+3) contrib_fit_3[ib] = 100 * iFitContrib;
-	  if(iFit==iVar_fit+4) contrib_fit_4[ib] = 100 * iFitContrib;
-	  
-	  if(bDoDebug)
-	    {
-	      cout<<"Fit contribution "<<iFit<<"\t = "<< iFitContrib<<endl;
-	    }
+          if(iFit==iVar_fit+1) contrib_fit_1[ib] = 100 * iFitContrib;
+          if(iFit==iVar_fit+2) contrib_fit_2[ib] = 100 * iFitContrib;
+          if(iFit==iVar_fit+3) contrib_fit_3[ib] = 100 * iFitContrib;
+          if(iFit==iVar_fit+4) contrib_fit_4[ib] = 100 * iFitContrib;
+          
+          if(bDoDebug)
+          {
+            cout<<"Fit contribution "<<iFit<<"\t = "<< iFitContrib<<endl;
+          }
         }
 
       }//for each bin
@@ -239,104 +239,104 @@ const char* legendSyst[] = {"",
       TGraph *gSyst_tnp   = new TGraph(nBins, adXaxis_mb, contrib_tnp);
 
       if(iVar==1) //pt
-	{
-	  if(iCateg!=2)
-	    {
-	      gSyst_fit0  = new TGraph(nBins, ptBins_pr, contrib_fit_0);
-	      gSyst_fit1  = new TGraph(nBins, ptBins_pr, contrib_fit_1);
-	      gSyst_fit2  = new TGraph(nBins, ptBins_pr, contrib_fit_2);
-	      gSyst_fit3  = new TGraph(nBins, ptBins_pr, contrib_fit_3);
-	      gSyst_fit4  = new TGraph(nBins, ptBins_pr, contrib_fit_4);
- 
-	      gSyst_4d    = new TGraph(nBins, ptBins_pr, contrib_4d);
-	      gSyst_3dmin = new TGraph(nBins, ptBins_pr, contrib_3d_min);
-	      gSyst_3dmax = new TGraph(nBins, ptBins_pr, contrib_3d_max);
-	      gSyst_tnp   = new TGraph(nBins, ptBins_pr, contrib_tnp);
-	    }
-	  if(iCateg==2)
-	    {
-	      gSyst_fit0  = new TGraph(nBins, ptBins_np, contrib_fit_0);
-	      gSyst_fit1  = new TGraph(nBins, ptBins_np, contrib_fit_1);
-	      gSyst_fit2  = new TGraph(nBins, ptBins_np, contrib_fit_2);
-	      gSyst_fit3  = new TGraph(nBins, ptBins_np, contrib_fit_3);
-	      gSyst_fit4  = new TGraph(nBins, ptBins_np, contrib_fit_4);
- 
-	      gSyst_4d    = new TGraph(nBins, ptBins_np, contrib_4d);
-	      gSyst_3dmin = new TGraph(nBins, ptBins_np, contrib_3d_min);
-	      gSyst_3dmax = new TGraph(nBins, ptBins_np, contrib_3d_max);
-	      gSyst_tnp   = new TGraph(nBins, ptBins_np, contrib_tnp);
-	    }
-	}
+      {
+        if(iCateg!=2)
+        {
+          gSyst_fit0  = new TGraph(nBins, ptBins_pr, contrib_fit_0);
+          gSyst_fit1  = new TGraph(nBins, ptBins_pr, contrib_fit_1);
+          gSyst_fit2  = new TGraph(nBins, ptBins_pr, contrib_fit_2);
+          gSyst_fit3  = new TGraph(nBins, ptBins_pr, contrib_fit_3);
+          gSyst_fit4  = new TGraph(nBins, ptBins_pr, contrib_fit_4);
+   
+          gSyst_4d    = new TGraph(nBins, ptBins_pr, contrib_4d);
+          gSyst_3dmin = new TGraph(nBins, ptBins_pr, contrib_3d_min);
+          gSyst_3dmax = new TGraph(nBins, ptBins_pr, contrib_3d_max);
+          gSyst_tnp   = new TGraph(nBins, ptBins_pr, contrib_tnp);
+        }
+        if(iCateg==2)
+        {
+          gSyst_fit0  = new TGraph(nBins, ptBins_np, contrib_fit_0);
+          gSyst_fit1  = new TGraph(nBins, ptBins_np, contrib_fit_1);
+          gSyst_fit2  = new TGraph(nBins, ptBins_np, contrib_fit_2);
+          gSyst_fit3  = new TGraph(nBins, ptBins_np, contrib_fit_3);
+          gSyst_fit4  = new TGraph(nBins, ptBins_np, contrib_fit_4);
+   
+          gSyst_4d    = new TGraph(nBins, ptBins_np, contrib_4d);
+          gSyst_3dmin = new TGraph(nBins, ptBins_np, contrib_3d_min);
+          gSyst_3dmax = new TGraph(nBins, ptBins_np, contrib_3d_max);
+          gSyst_tnp   = new TGraph(nBins, ptBins_np, contrib_tnp);
+        }
+      }
 
       if(iVar==2) //rapidiy
-	{
-	  if(iCateg!=2)
-	    {
-	      gSyst_fit0  = new TGraph(nBins, adXaxisY_pr, contrib_fit_0);
-	      gSyst_fit1  = new TGraph(nBins, adXaxisY_pr, contrib_fit_1);
-	      gSyst_fit2  = new TGraph(nBins, adXaxisY_pr, contrib_fit_2);
-	      gSyst_fit3  = new TGraph(nBins, adXaxisY_pr, contrib_fit_3);
-	      gSyst_fit4  = new TGraph(nBins, adXaxisY_pr, contrib_fit_4);
- 
-	      gSyst_4d    = new TGraph(nBins, adXaxisY_pr, contrib_4d);
-	      gSyst_3dmin = new TGraph(nBins, adXaxisY_pr, contrib_3d_min);
-	      gSyst_3dmax = new TGraph(nBins, adXaxisY_pr, contrib_3d_max);
-	      gSyst_tnp   = new TGraph(nBins, adXaxisY_pr, contrib_tnp);
-	    }
-	  if(iCateg==2)
-	    {
-	      gSyst_fit0  = new TGraph(nBins, adXaxisY_np, contrib_fit_0);
-	      gSyst_fit1  = new TGraph(nBins, adXaxisY_np, contrib_fit_1);
-	      gSyst_fit2  = new TGraph(nBins, adXaxisY_np, contrib_fit_2);
-	      gSyst_fit3  = new TGraph(nBins, adXaxisY_np, contrib_fit_3);
-	      gSyst_fit4  = new TGraph(nBins, adXaxisY_np, contrib_fit_4);
- 
-	      gSyst_4d    = new TGraph(nBins, adXaxisY_np, contrib_4d);
-	      gSyst_3dmin = new TGraph(nBins, adXaxisY_np, contrib_3d_min);
-	      gSyst_3dmax = new TGraph(nBins, adXaxisY_np, contrib_3d_max);
-	      gSyst_tnp   = new TGraph(nBins, adXaxisY_np, contrib_tnp);
-	    }
-	}
+      {
+        if(iCateg!=2)
+        {
+          gSyst_fit0  = new TGraph(nBins, adXaxisY_pr, contrib_fit_0);
+          gSyst_fit1  = new TGraph(nBins, adXaxisY_pr, contrib_fit_1);
+          gSyst_fit2  = new TGraph(nBins, adXaxisY_pr, contrib_fit_2);
+          gSyst_fit3  = new TGraph(nBins, adXaxisY_pr, contrib_fit_3);
+          gSyst_fit4  = new TGraph(nBins, adXaxisY_pr, contrib_fit_4);
+   
+          gSyst_4d    = new TGraph(nBins, adXaxisY_pr, contrib_4d);
+          gSyst_3dmin = new TGraph(nBins, adXaxisY_pr, contrib_3d_min);
+          gSyst_3dmax = new TGraph(nBins, adXaxisY_pr, contrib_3d_max);
+          gSyst_tnp   = new TGraph(nBins, adXaxisY_pr, contrib_tnp);
+        }
+        if(iCateg==2)
+        {
+          gSyst_fit0  = new TGraph(nBins, adXaxisY_np, contrib_fit_0);
+          gSyst_fit1  = new TGraph(nBins, adXaxisY_np, contrib_fit_1);
+          gSyst_fit2  = new TGraph(nBins, adXaxisY_np, contrib_fit_2);
+          gSyst_fit3  = new TGraph(nBins, adXaxisY_np, contrib_fit_3);
+          gSyst_fit4  = new TGraph(nBins, adXaxisY_np, contrib_fit_4);
+   
+          gSyst_4d    = new TGraph(nBins, adXaxisY_np, contrib_4d);
+          gSyst_3dmin = new TGraph(nBins, adXaxisY_np, contrib_3d_min);
+          gSyst_3dmax = new TGraph(nBins, adXaxisY_np, contrib_3d_max);
+          gSyst_tnp   = new TGraph(nBins, adXaxisY_np, contrib_tnp);
+        }
+      }
       if(iVar==3) //centrality
-	{
-	  if(iCateg!=2)
-	    {
-	      gSyst_fit0  = new TGraph(nBins, flip_adXaxisCent_pr, contrib_fit_0);
-	      gSyst_fit1  = new TGraph(nBins, flip_adXaxisCent_pr, contrib_fit_1);
-	      gSyst_fit2  = new TGraph(nBins, flip_adXaxisCent_pr, contrib_fit_2);
-	      gSyst_fit3  = new TGraph(nBins, flip_adXaxisCent_pr, contrib_fit_3);
-	      gSyst_fit4  = new TGraph(nBins, flip_adXaxisCent_pr, contrib_fit_4);
- 
-	      gSyst_4d    = new TGraph(nBins, flip_adXaxisCent_pr, contrib_4d);
-	      gSyst_3dmin = new TGraph(nBins, flip_adXaxisCent_pr, contrib_3d_min);
-	      gSyst_3dmax = new TGraph(nBins, flip_adXaxisCent_pr, contrib_3d_max);
-	      gSyst_tnp   = new TGraph(nBins, flip_adXaxisCent_pr, contrib_tnp);
-	    }
-	  if(iCateg==2)
-	    {
-	      gSyst_fit0  = new TGraph(nBins, flip_adXaxisCent_np, contrib_fit_0);
-	      gSyst_fit1  = new TGraph(nBins, flip_adXaxisCent_np, contrib_fit_1);
-	      gSyst_fit2  = new TGraph(nBins, flip_adXaxisCent_np, contrib_fit_2);
-	      gSyst_fit3  = new TGraph(nBins, flip_adXaxisCent_np, contrib_fit_3);
-	      gSyst_fit4  = new TGraph(nBins, flip_adXaxisCent_np, contrib_fit_4);
- 
-	      gSyst_4d    = new TGraph(nBins, flip_adXaxisCent_np, contrib_4d);
-	      gSyst_3dmin = new TGraph(nBins, flip_adXaxisCent_np, contrib_3d_min);
-	      gSyst_3dmax = new TGraph(nBins, flip_adXaxisCent_np, contrib_3d_max);
-	      gSyst_tnp   = new TGraph(nBins, flip_adXaxisCent_np, contrib_tnp);
-	    }
-	  // remove 1st point which is 0-10%
-	  gSyst_fit0->RemovePoint(0); 
-	  gSyst_fit1->RemovePoint(0); 
-	  gSyst_fit2->RemovePoint(0); 
-	  gSyst_fit3->RemovePoint(0); 
-	  gSyst_fit4->RemovePoint(0); 
- 
-	  gSyst_4d->RemovePoint(0); 
-	  gSyst_3dmin->RemovePoint(0); 
-	  gSyst_3dmax->RemovePoint(0); 
-	  gSyst_tnp->RemovePoint(0); 
-	}
+      {
+        if(iCateg!=2)
+        {
+          gSyst_fit0  = new TGraph(nBins, flip_adXaxisCent_pr, contrib_fit_0);
+          gSyst_fit1  = new TGraph(nBins, flip_adXaxisCent_pr, contrib_fit_1);
+          gSyst_fit2  = new TGraph(nBins, flip_adXaxisCent_pr, contrib_fit_2);
+          gSyst_fit3  = new TGraph(nBins, flip_adXaxisCent_pr, contrib_fit_3);
+          gSyst_fit4  = new TGraph(nBins, flip_adXaxisCent_pr, contrib_fit_4);
+   
+          gSyst_4d    = new TGraph(nBins, flip_adXaxisCent_pr, contrib_4d);
+          gSyst_3dmin = new TGraph(nBins, flip_adXaxisCent_pr, contrib_3d_min);
+          gSyst_3dmax = new TGraph(nBins, flip_adXaxisCent_pr, contrib_3d_max);
+          gSyst_tnp   = new TGraph(nBins, flip_adXaxisCent_pr, contrib_tnp);
+        }
+        if(iCateg==2)
+        {
+          gSyst_fit0  = new TGraph(nBins, flip_adXaxisCent_np, contrib_fit_0);
+          gSyst_fit1  = new TGraph(nBins, flip_adXaxisCent_np, contrib_fit_1);
+          gSyst_fit2  = new TGraph(nBins, flip_adXaxisCent_np, contrib_fit_2);
+          gSyst_fit3  = new TGraph(nBins, flip_adXaxisCent_np, contrib_fit_3);
+          gSyst_fit4  = new TGraph(nBins, flip_adXaxisCent_np, contrib_fit_4);
+   
+          gSyst_4d    = new TGraph(nBins, flip_adXaxisCent_np, contrib_4d);
+          gSyst_3dmin = new TGraph(nBins, flip_adXaxisCent_np, contrib_3d_min);
+          gSyst_3dmax = new TGraph(nBins, flip_adXaxisCent_np, contrib_3d_max);
+          gSyst_tnp   = new TGraph(nBins, flip_adXaxisCent_np, contrib_tnp);
+        }
+        // remove 1st point which is 0-10%
+        gSyst_fit0->RemovePoint(0); 
+        gSyst_fit1->RemovePoint(0); 
+        gSyst_fit2->RemovePoint(0); 
+        gSyst_fit3->RemovePoint(0); 
+        gSyst_fit4->RemovePoint(0); 
+     
+        gSyst_4d->RemovePoint(0); 
+        gSyst_3dmin->RemovePoint(0); 
+        gSyst_3dmax->RemovePoint(0); 
+        gSyst_tnp->RemovePoint(0); 
+      }
 
       // marker styles
       gSyst_fit0->SetMarkerStyle(20);
@@ -364,7 +364,7 @@ const char* legendSyst[] = {"",
       gSyst_tnp->SetMarkerSize(1.2);
 
       // --------- draw in each canvas
-   //----------------------- DRAWING settings ---------------------------------------
+      //----------------------- DRAWING settings ---------------------------------------
       //---axes
       TF1 *f4 = new TF1("f4","0",0,400);
       if(iVar==1)f4 = new TF1("f4","0",0,30);
@@ -375,114 +375,113 @@ const char* legendSyst[] = {"",
       f4->SetLineWidth(1); 
       f4->GetYaxis()->SetTitle("(nominal-variation)/nominal [%]");
       f4->GetXaxis()->SetTitle(Form("%s",variable[iVar]));
-
    
-  //---- canvas
-  // legend for fit variation  
-  TLegend *leg1 = new TLegend(0.65,0.7,0.8,0.9);
-  leg1->SetFillStyle(0);
-  leg1->SetFillColor(0);
-  leg1->SetBorderSize(0);
-  leg1->SetMargin(0.2);
-  leg1->SetTextSize(0.04);
-  leg1->AddEntry(gSyst_fit0,Form("%s",legendSyst[5]),"P");
-  leg1->AddEntry(gSyst_fit1,Form("%s",legendSyst[6]),"P");
-  leg1->AddEntry(gSyst_fit2,Form("%s",legendSyst[7]),"P");
-  leg1->AddEntry(gSyst_fit3,Form("%s",legendSyst[8]),"P");
-  leg1->AddEntry(gSyst_fit4,Form("%s",legendSyst[9]),"P");
-  
-  // legend for rest of variations
-  TLegend *leg2 = new TLegend(0.65,0.15,0.8,0.35);
-  leg2->SetFillStyle(0);
-  leg2->SetFillColor(0);
-  leg2->SetBorderSize(0);
-  leg2->SetMargin(0.2);
-  leg2->SetTextSize(0.04);
-  leg2->AddEntry(gSyst_4d,Form("%s",legendSyst[4]),"P");
-  leg2->AddEntry(gSyst_3dmin,Form("%s",legendSyst[3]),"P");
-  leg2->AddEntry(gSyst_3dmax,Form("%s",legendSyst[2]),"P");
-  leg2->AddEntry(gSyst_tnp,Form("%s",legendSyst[1]),"P");
+      //---- canvas
+      // legend for fit variation  
+      TLegend *leg1 = new TLegend(0.65,0.7,0.8,0.9);
+      leg1->SetFillStyle(0);
+      leg1->SetFillColor(0);
+      leg1->SetBorderSize(0);
+      leg1->SetMargin(0.2);
+      leg1->SetTextSize(0.04);
+      leg1->AddEntry(gSyst_fit0,Form("%s",legendSyst[5]),"P");
+      leg1->AddEntry(gSyst_fit1,Form("%s",legendSyst[6]),"P");
+      leg1->AddEntry(gSyst_fit2,Form("%s",legendSyst[7]),"P");
+      leg1->AddEntry(gSyst_fit3,Form("%s",legendSyst[8]),"P");
+      leg1->AddEntry(gSyst_fit4,Form("%s",legendSyst[9]),"P");
+      
+      // legend for rest of variations
+      TLegend *leg2 = new TLegend(0.65,0.15,0.8,0.35);
+      leg2->SetFillStyle(0);
+      leg2->SetFillColor(0);
+      leg2->SetBorderSize(0);
+      leg2->SetMargin(0.2);
+      leg2->SetTextSize(0.04);
+      leg2->AddEntry(gSyst_4d,Form("%s",legendSyst[4]),"P");
+      leg2->AddEntry(gSyst_3dmin,Form("%s",legendSyst[3]),"P");
+      leg2->AddEntry(gSyst_3dmax,Form("%s",legendSyst[2]),"P");
+      leg2->AddEntry(gSyst_tnp,Form("%s",legendSyst[1]),"P");
 
 
 
-  //----------------------------------------
-  TLatex *lcent = new TLatex(20,-80,"Cent. 10-60%");
-  lcent->SetTextFont(42);
-  lcent->SetTextSize(0.05);
+      //----------------------------------------
+      TLatex *lcent = new TLatex(20,-80,"Cent. 10-60%");
+      lcent->SetTextFont(42);
+      lcent->SetTextSize(0.05);
 
-  TLatex *ly = new TLatex(20.0,-70,"|y| < 2.4");
-  ly->SetTextFont(42);
-  ly->SetTextSize(0.05);
+      TLatex *ly = new TLatex(20.0,-70,"|y| < 2.4");
+      ly->SetTextFont(42);
+      ly->SetTextSize(0.05);
 
-  TLatex *lpt = new TLatex(20.0,-60,"6.5 < p_{T} < 30 GeV/c");
-  lpt->SetTextFont(42);
-  lpt->SetTextSize(0.05);
-  //---------------------------------------
-  TCanvas *pc = new TCanvas("pc","pc", 1000,500);
-  pc->Divide(2,1);
-  pc->cd(1); f4->Draw();gPad->SetGridy();
-  pc->cd(2); f4->Draw();gPad->SetGridy();
-  
-  pc->cd(1);
-  gSyst_fit0->Draw("P");
-  gSyst_fit1->Draw("P");
-  gSyst_fit2->Draw("P");
-  gSyst_fit3->Draw("P");
-  gSyst_fit4->Draw("P");
- 
-  pc->cd(2);
-  gSyst_4d->Draw("P");
-  gSyst_3dmin->Draw("P");
-  gSyst_3dmax->Draw("P");
-  gSyst_tnp->Draw("P");
+      TLatex *lpt = new TLatex(20.0,-60,"6.5 < p_{T} < 30 GeV/c");
+      lpt->SetTextFont(42);
+      lpt->SetTextSize(0.05);
+      //---------------------------------------
+      TCanvas *pc = new TCanvas("pc","pc", 1000,1000);
+      pc->Divide(2,1);
+      pc->cd(1); f4->Draw();gPad->SetGridy();
+      pc->cd(2); f4->Draw();gPad->SetGridy();
+      
+      pc->cd(1);
+      gSyst_fit0->Draw("P");
+      gSyst_fit1->Draw("P");
+      gSyst_fit2->Draw("P");
+      gSyst_fit3->Draw("P");
+      gSyst_fit4->Draw("P");
+     
+      pc->cd(2);
+      gSyst_4d->Draw("P");
+      gSyst_3dmin->Draw("P");
+      gSyst_3dmax->Draw("P");
+      gSyst_tnp->Draw("P");
 
-  // //---------------------------------- legends and labels
-  TLatex *lCateg = new TLatex(20,85,Form("%s",legend[iCateg]));
-  pc->cd(1);
-  leg1->Draw();
+      // //---------------------------------- legends and labels
+      TLatex *lCateg = new TLatex(20,85,Form("%s",legend[iCateg]));
+      pc->cd(1);
+      leg1->Draw();
 
-  if(iVar==0) //mb
-    {
-      pc->cd(1); lpt->Draw(); ly->Draw(); lcent->Draw(); pc->Update();
-    }
-  if(iVar==1) //pt
-    {
-      lCateg = new TLatex(2,85,Form("%s",legend[iCateg]));
-      pc->cd(1); ly->Draw(); lcent->Draw(); pc->Update();
-    }
-  if(iVar==2) //rapidty
-    {
-      lCateg = new TLatex(0.15,85,Form("%s",legend[iCateg]));
-      pc->cd(1); lpt->Draw(); lcent->Draw(); pc->Update();
-    }
-  if(iVar==3) //centrality
-    {
-      pc->cd(1); lpt->Draw(); ly->Draw(); pc->Update();
-    }
+      if(iVar==0) //mb
+      {
+        pc->cd(1); lpt->Draw(); ly->Draw(); lcent->Draw(); pc->Update();
+      }
+      if(iVar==1) //pt
+      {
+        lCateg = new TLatex(2,85,Form("%s",legend[iCateg]));
+        pc->cd(1); ly->Draw(); lcent->Draw(); pc->Update();
+      }
+      if(iVar==2) //rapidty
+      {
+        lCateg = new TLatex(0.15,85,Form("%s",legend[iCateg]));
+        pc->cd(1); lpt->Draw(); lcent->Draw(); pc->Update();
+      }
+      if(iVar==3) //centrality
+      {
+        pc->cd(1); lpt->Draw(); ly->Draw(); pc->Update();
+      }
 
-  lCateg->SetTextFont(42);
-  lCateg->SetTextSize(0.05);
-  lCateg->Draw();
+      lCateg->SetTextFont(42);
+      lCateg->SetTextSize(0.05);
+      lCateg->Draw();
 
-  pc->cd(2);
-  leg2->Draw();
-  pc->Update();
+      pc->cd(2);
+      leg2->Draw();
+      pc->Update();
 
 
 
-  //-------------- 
+      //-------------- 
 
-  // -----------------------------------------------------------------------------
-  // write out the output
-  std::string nameVar   = outFilePlot[iVar]; //pt
-  std::string nameSig   = signal[iCateg];// pr, npr, bkg
-  string outputFileName     = "syst_"+nameVar + "_"+ nameSig;
-        
-  if(bSavePlots)
-    {
-      pc->SaveAs(Form("%s/png/v2_%s.png",outputDir,outputFileName.c_str()));
-      pc->SaveAs(Form("%s/pdf/v2_%s.pdf",outputDir,outputFileName.c_str()));
-    }
+      // -----------------------------------------------------------------------------
+      // write out the output
+      std::string nameVar   = outFilePlot[iVar]; //pt
+      std::string nameSig   = signal[iCateg];// pr, npr, bkg
+      string outputFileName     = "syst_"+nameVar + "_"+ nameSig;
+            
+      if(bSavePlots)
+      {
+        pc->SaveAs(Form("%s/png/v2_%s.png",outputDir,outputFileName.c_str()));
+        pc->SaveAs(Form("%s/pdf/v2_%s.pdf",outputDir,outputFileName.c_str()));
+      }
     }// for iVar= ... each variable, pt, y, cent
   }// for iCateg.. each category, pr, non-pr, bkg
 }
