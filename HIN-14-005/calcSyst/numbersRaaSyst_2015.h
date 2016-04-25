@@ -55,7 +55,7 @@ const char* legendSyst[] = {
   "bFrac_MLAR", 
   "constrained", 
 //  "4DEff_profile", 
-  "4DEff_ctau1mm", 
+  "4DEff", 
   "3DEff_toy",
   "TnP_trgMuID", 
   "TnP_sta" 

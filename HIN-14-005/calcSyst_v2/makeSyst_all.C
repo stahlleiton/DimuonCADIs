@@ -39,14 +39,14 @@ Output:
 #endif
 
 void makeSyst_all(
-		int jpsiCategory      = -1, // -1: all, 1 : Prompt, 2 : Non-Prompt, 3: Bkg
-		int nChoseVariable    = -1, // -1 = all; 0 integrated; 1 pt; 2: rapidity; 3: centrality;
-		string nDphiBins      = "4",
-		const char* inputDir  = "../macro_v2/outputNumbers", // the place where the input root files, with the histograms are
-		const char* outputDir = "histSyst",// where the output figures will be
-		bool bDoDebug         = false,
-		bool bSavePlots       = true
-		) {
+    int jpsiCategory      = -1, // -1: all, 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+    int nChoseVariable    = -1, // -1 = all; 0 integrated; 1 pt; 2: rapidity; 3: centrality;
+    string nDphiBins      = "4",
+    const char* inputDir  = "../macro_v2/outputNumbers", // the place where the input root files, with the histograms are
+    const char* outputDir = "histSyst",// where the output figures will be
+    bool bDoDebug         = false,
+    bool bSavePlots       = true
+    ) {
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
   
@@ -59,15 +59,15 @@ void makeSyst_all(
   int iVar_fit = 5;
   const char* v2InFileDirs[nFiles] = {
               "histsV2Yields_20160304_v2W_dPhiBins4",  //0
-				      "histsV2Yields_20160304_v2W_noTnPSF_dPhiBins4",//1
-				      "histsV2Yields_20160304_v2W_prof_dPhiBins4",//2
-				      "histsV2Yields_20160304_v2W_maxVar_dPhiBins4", //3
-				      "histsV2Yields_20160304_v2W_minVar_dPhiBins4",//4
-				      "histsV2Yields_20160304_v2W_const_dPhiBins4",//5
-				      "histsV2Yields_20160304_v2W_MLAR_dPhiBins4",//6
-				      "histsV2Yields_20160304_v2W_polFunct_dPhiBins4",//7
-				      "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",//8
-				      "histsV2Yields_20160304_v2W_signalCB3WN_dPhiBins4"//9
+              "histsV2Yields_20160304_v2W_noTnPSF_dPhiBins4",//1
+              "histsV2Yields_20160304_v2W_ctau1mm_dPhiBins4",//2
+              "histsV2Yields_20160304_v2W_maxVar_dPhiBins4", //3
+              "histsV2Yields_20160304_v2W_minVar_dPhiBins4",//4
+              "histsV2Yields_20160304_v2W_const_dPhiBins4",//5
+              "histsV2Yields_20160304_v2W_MLAR_dPhiBins4",//6
+              "histsV2Yields_20160304_v2W_polFunct_dPhiBins4",//7
+              "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",//8
+              "histsV2Yields_20160304_v2W_signalCB3WN_dPhiBins4"//9
   };
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
  
@@ -94,18 +94,18 @@ void makeSyst_all(
     {  
       int nBins           =  1; // mb, 1 bin, is the default
       if(iCateg==1 || iCateg==3)
-	{
-	  if (iVar == 1)  nBins =  nPtBins_pr;
-	  if (iVar == 2)  nBins =  nYBins_pr;
-	  if (iVar == 3)  nBins =  nCentBins_pr;
-	}
+      {
+        if (iVar == 1)  nBins =  nPtBins_pr;
+        if (iVar == 2)  nBins =  nYBins_pr;
+        if (iVar == 3)  nBins =  nCentBins_pr;
+      }
       if(iCateg ==2)
-	{
-	  if (iVar == 1)  nBins =  nPtBins_np; // for non-prompt Jpsi, take as default 2 pt bin
-	  if (iVar == 2)  nBins =  nYBins_np;
-	  if (iVar == 3)  nBins =  nCentBins_np;
-	}
-    cout<<" !!!!! Number of bins: "<< nBins<<endl;
+      {
+        if (iVar == 1)  nBins =  nPtBins_np; // for non-prompt Jpsi, take as default 2 pt bin
+        if (iVar == 2)  nBins =  nYBins_np;
+        if (iVar == 3)  nBins =  nCentBins_np;
+      }
+      cout<<" !!!!! Number of bins: "<< nBins<<endl;
 
 
       cout<<"######## Variable: "<< outFilePlot[iVar] << "  ########" << endl;
@@ -192,10 +192,10 @@ void makeSyst_all(
         {
           double iFitContrib = (v2-adV2[iFit][ib])/v2;
           contrib_fit[ib]+=TMath::Power(iFitContrib,2);
-	  if(bDoDebug)
-	    {
-	      cout<<"Fit contribution "<<iFit<<"\t = "<< iFitContrib<<endl;
-	    }
+          if(bDoDebug)
+            {
+              cout<<"Fit contribution "<<iFit<<"\t = "<< iFitContrib<<endl;
+            }
         }
         // calculate total contribution: 
         v2Syst[ib] = v2 * TMath::Sqrt( contrib_tnp[ib] + contrib_4d[ib] + contrib_3d[ib] + contrib_fit[ib]/(nFiles-iVar_fit) );

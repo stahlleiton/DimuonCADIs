@@ -37,6 +37,7 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #include "v2_dataNumbers_2015.h"
 #endif
 
+
 void v2_cent_plotter(
 		     int jpsiCategory      = 1, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
 		     string nDphiBins      = "4",
@@ -47,6 +48,8 @@ void v2_cent_plotter(
 		     bool bAddCent010      = false, 
 		     bool bSavePlots       = true
 		     ) {
+  using namespace std;
+
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
   
@@ -57,38 +60,36 @@ void v2_cent_plotter(
   gStyle->SetOptTitle(kFALSE);
 
   // input files: prompt and non-prompt ones
-  const char* v2InFileDirs[1] = {
-    "histsV2Yields_20160304_v2W_dPhiBins4"
-  };
-//  const char* legend[4]       = {"","Prompt J/#psi","Non-prompt J/#psi","Background"}; // This is already defined in v2_dataNumbers_2015.h file
+  const char* v2InFileDirs[1] = {"histsV2Yields_20160304_v2W_dPhiBins4"};
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
  
   // Reminder for TGraphAssymError: gr = new TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);// n,x,y,err_x, err_y
   int nBins                   =  nCentBins_pr; 
   if(jpsiCategory==2) nBins   =  nCentBins_np;
   
-  cout<<" !!!!! Number of Y bins: "<< nBins<<endl;
+  cout<<" !!!!! Number of cent bins: "<< nBins<<endl;
   
-  double adXaxis[nBins];//   location on x-axis  
+  double *adXaxis = new double[nBins];//   location on x-axis  
 
-  double adV2[nBins]      ; // v2 values
-  double adV2_stat[nBins] ;// stat uncert
-  double adV2_syst[nBins] ;// stat uncert
-  double adV2_err0[nBins] ;// error  0
+  double *adV2 = new double[nBins]      ; // v2 values
+  double *adV2_stat = new double[nBins] ;// stat uncert
+  double *adV2_syst = new double[nBins] ;// stat uncert
+  double *adV2_err0 = new double[nBins] ;// error  0
  
-  for(int ib=0; ib<nBins; ib++)
+  for (int ib=0; ib<nBins; ib++)
   {
     adWidth_systBox[ib] = 10;
-    adXaxis[ib]         = adXaxisCent_pr[ib];
 
-    if(jpsiCategory==2)
-      adXaxis[ib]      = adXaxisCent_np[ib];
+    if(jpsiCategory==2) adXaxis[ib] = adXaxisCent_np[ib];
+    else adXaxis[ib] = adXaxisCent_pr[ib];
     
-    if(bDoDebug) cout<<"Bin "<<ib<<"\t adAxis= "<<adXaxis[ib]<<endl;
+    if(bDoDebug) cout<<"Bin "<<ib<<"\t adAxis= "<<adXaxis[ib]<<" " << nBins<<endl;
   }
+  cout << "test0 nBins " << nBins << " " << sizeof(adXaxis)/sizeof(double*) << endl;
   
   //--------------------------------------------------------
   // read from input file
+  
   ifstream in;
   std::string nameVar   = outFilePlot[3]; // cent
   std::string nameSig   = signal[jpsiCategory]; // prompt, non-pro or bkg
@@ -97,22 +98,24 @@ void v2_cent_plotter(
   
   cout << "!!!!!! Input file name: "<< inputFile <<endl;
   in.open(Form("%s/%s/data/%s",inputDir,nameDir.c_str(),inputFile.c_str()));
+  cout << "test1 nBins " << nBins << " " << sizeof(adXaxis)/sizeof(double*) << endl;
   
   // *************** read the v2 and v2_stat 
   string whatBin[3];
-  double x[4]={0};
-  int iline=0;
+  double x[4] = {0};
+  int iline   = 0;
   string tmpstring;
   getline(in,tmpstring);
   while ( in.good() && iline<nBins)
   {
+    cout << "test2 nBins " << nBins << " " << nBins-iline-1 << endl;
     in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> x[0] >> x[1] >> x[2] >> x[3];
 
     adV2[nBins-iline-1]      = x[2];
     adV2_stat[nBins-iline-1] = x[3];
 
     cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
-    cout <<"v2= "<< x[2] << "\t error= "<< x[3]<<endl;
+    cout <<"v2= "<< x[2] << "\t stat_error= "<< x[3]<<endl;
     iline++;
   }
   in.close();
@@ -129,7 +132,7 @@ void v2_cent_plotter(
   getline(in,tmpstring);
   while ( in.good() && iline<nBins) {
     in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> y[0] >> y[1] >> y[2] >> y[3] >> y[4] >> y[5];
-    adV2_syst[iline]      = y[1];
+    adV2_syst[nBins-iline-1]      = y[1];
 
     cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
     cout <<"v2= "<< y[0] << "\t syst_error= "<< y[1] <<endl;
@@ -237,6 +240,11 @@ void v2_cent_plotter(
     pc->SaveAs(Form("%s/pdf/v2_%s_%s_nphi%s.pdf",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));
   }
 
+  delete[] adXaxis;
+  delete[] adV2;
+  delete[] adV2_stat;
+  delete[] adV2_syst;
+  delete[] adV2_err0;
 }
 
 
