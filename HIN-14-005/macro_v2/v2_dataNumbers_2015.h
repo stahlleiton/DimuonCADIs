@@ -40,7 +40,7 @@ double yBins_pr[]     = {0.0, 1.2, 1.6, 2.4};
 double centBins_pr[]  = {0.0, 10.0, 20.0, 30.0, 60.0};
 
 // non-prompt bins
-double ptBins_np[]   = {3.0, 6.5, 30.0};
+double ptBins_np[]   = {3.0, 6.5, 10.0, 30.0};
 double yBins_np[]    = {0.0, 1.2, 2.4};
 double centBins_np[] = {0.0, 10.0, 30.0, 60.0};
 // integrated bin
