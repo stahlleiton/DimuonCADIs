@@ -417,7 +417,7 @@ const char* legendSyst[] = {"",
       lpt->SetTextFont(42);
       lpt->SetTextSize(0.05);
       //---------------------------------------
-      TCanvas *pc = new TCanvas("pc","pc", 1000,1000);
+      TCanvas *pc = new TCanvas("pc","pc", 1000,500);
       pc->Divide(2,1);
       pc->cd(1); f4->Draw();gPad->SetGridy();
       pc->cd(2); f4->Draw();gPad->SetGridy();
