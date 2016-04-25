@@ -123,14 +123,14 @@ void plotSyst_pt( bool bSavePlots       = 1,
       ly     = new TLatex(5.,-9,"1.6 < |y| < 2.4");
     }
     // -------- drawing setting, for each kinematic region
-    TCanvas *c1_pp = new TCanvas("c1_pp","c1_pp", 800,1000);
+    TCanvas *c1_pp = new TCanvas("c1_pp","c1_pp", 800,800);
     c1_pp->Divide(2,2);
     c1_pp->cd(1); f4->Draw();
     c1_pp->cd(2); f4->Draw();
     c1_pp->cd(3); f4->Draw();
     c1_pp->cd(4); f4->Draw();
 
-    TCanvas *c1_aa = new TCanvas("c1_aa","c1_aa", 800,1200);
+    TCanvas *c1_aa = new TCanvas("c1_aa","c1_aa", 800,800);
     c1_aa->Divide(2,2);
     c1_aa->cd(1); f4->Draw();
     c1_aa->cd(2); f4->Draw();
