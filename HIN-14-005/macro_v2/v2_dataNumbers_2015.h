@@ -55,7 +55,8 @@ const int nCentBins_np = sizeof(centBins_np)/sizeof(double) -1;
 
 
 //--------------------------------------- plotting location
-
+// bogus bin for minbias value
+double adXaxis_mb[] = {200};
 // pt axis
 // 2 <pt> bins for high-pt non-prompt
 double adXaxisPt_np[]   = {7.8,13.1};
@@ -90,6 +91,9 @@ double adXaxisY_pr_h[]  = {0.5, 0.2, 0.5};// bin width to the right
 // cent axis
 double adXaxisCent_pr[]   = {90,187,261,355}; // Npart (60-30, 30-20, 20-10, 10-0)
 double adXaxisCent_np[]   = {90,224,355}; // Npart (60-30, 30-10, 10-0)
+
+double flip_adXaxisCent_pr[]   = {355, 261, 187, 90}; // Npart (10-0, 20-10, 30-20, 60-30)
+double flip_adXaxisCent_np[]   = {355, 224, 90}; // Npart (10-0, 30-10, 60-30)
 
 double adWidth_systBox[] = {0.5}; // width of the systm. uncert.
 // ------------------------------------------------------- systematic uncert (these are bogus for the moment)
