@@ -356,9 +356,7 @@ void makeRaa_pt( bool bSavePlots=1,
   f4->GetXaxis()->CenterTitle(kTRUE);
 
  // sqrt(sig_lumi(6%)*sig_lumi(6%)+sig_taa(5.7%)*sig_taa(5.7%)) = 0.083
-  TBox *lumi = new TBox(0.0,0.917,1.,1.083);
-  lumi->SetFillColor(kGray+1);
-
+  TBox *lumi = (TBox*)systFile->Get("lumi");
 
   //---------------- general stuff
   TLatex *ly     = new TLatex(20.0,0.05,"|y| < 2.4");

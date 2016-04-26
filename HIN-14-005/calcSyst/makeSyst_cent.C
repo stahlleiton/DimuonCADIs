@@ -11,6 +11,7 @@ Output: root file with the systm. histograms for Raa vs pT.
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <iomanip>
@@ -45,6 +46,8 @@ void makeSyst_cent( bool bSavePlots     = 1,
                     const char* outputDir = "histSyst")// where the output figures will be
 {
   gSystem->mkdir(Form("./%s/",outputDir), kTRUE);
+  gSystem->mkdir(Form("./%s/data",outputDir), kTRUE);// numbers into txt files
+    
   // set the style
   setTDRStyle();
  
@@ -91,7 +94,19 @@ void makeSyst_cent( bool bSavePlots     = 1,
   TBox *lumi_npr_y1624_pt6530(0);
   TBox *lumi_npr_y1624_pt6530_pty(0);
   TBox *lumi_npr_y1624_pt365(0);
-
+  
+  // Write systematics into a txt file
+  string centbins_str[] = {"60100","5060","4550","4045","3540","3035","2530","2025","1520","1015","510","05"};
+  string centbins_6bins_str[] = {"50100","4050","3040","2030","1020","010"};
+  ofstream outputData_pr(Form("%s/data/raaSystUncert_cent_pr.dat",outputDir));
+  if (!outputData_pr.good()) {cout << "######### Fail to open data/*.dat file.##################" << endl;}
+  outputData_pr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Syst_tot\t" << "contrib_muID_trig\t" 
+             << "contrib_4d\t" << "contrib_3d\t" << "contrib_fit\t" << "global_uncertainty\n";
+  ofstream outputData_npr(Form("%s/data/raaSystUncert_cent_npr.dat",outputDir));
+  if (!outputData_npr.good()) {cout << "######### Fail to open data/*.dat file.##################" << endl;}
+  outputData_npr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Syst_tot\t" << "contrib_muID_trig\t" 
+             << "contrib_4d\t" << "contrib_3d\t" << "contrib_fit\t" << "global_uncertainty\n";
+    
   for(int ih=0; ih<nInHist;ih++)// for each kinematic range
   { 
     TString hist_pr(Form("phPrp_%s",yieldHistNames[ih]));
@@ -290,7 +305,10 @@ void makeSyst_cent( bool bSavePlots     = 1,
 
       //nominal prompt and non-prompt yield ratios
       const double yield_aa_pr  = phCorr_pr_aa->GetBinContent(ibin);
-      const double yield_aa_npr = phCorr_npr_aa->GetBinContent(ibin);
+      double yield_aa_npr=0;
+      if(ibin <= nBinsNpart6) { // out-of-range bins will be discarded for np
+        yield_aa_npr = phCorr_npr_aa->GetBinContent(ibin);
+      }
       
       // the pp yields are the same for all centrality bins
       const double yield_pp_pr  = phCorr_pr_pp->GetBinContent(1);
@@ -367,7 +385,10 @@ void makeSyst_cent( bool bSavePlots     = 1,
         fVar_pp->Close();
 
         double yieldVar_aa_pr  = phCorrVar_pr_aa->GetBinContent(ibin);
-        double yieldVar_aa_npr = phCorrVar_npr_aa->GetBinContent(ibin);
+        double yieldVar_aa_npr = 0;
+        if(ibin <= nBinsNpart6) { // out-of-range bins will be discarded for np
+          yieldVar_aa_npr = phCorrVar_npr_aa->GetBinContent(ibin);
+        }
         
         // pp values are the same for each centrality, for a given centrality region
         double yieldVar_pp_pr  = phCorrVar_pr_pp->GetBinContent(1);
@@ -415,7 +436,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
             {
               fitContribution_pr_aa += syst_fit_pr_aa[ibin-1][ivar];
               fitContribution_pr_pp += syst_fit_pr_pp[ibin-1][ivar];
-              if(ibin< nBinsNpart6) 
+              if(ibin<= nBinsNpart6) 
               {
                 fitContribution_npr_aa += syst_fit_npr_aa[ibin-1][ivar]; 
                 fitContribution_npr_pp += syst_fit_npr_pp[ibin-1][ivar];
@@ -945,14 +966,32 @@ void makeSyst_cent( bool bSavePlots     = 1,
           yieldSyst_npr_pp = (fitContribution_npr_pp/rms_fitContribNorm + eff4dContribution_npr_pp + efftnpContribution_npr_pp);
 
           prJpsiErrSyst_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa  + taa12_relerr);
-          nonPrJpsiErrSyst_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa + taa6_relerr); 
+          if(ibin <= nBinsNpart6) { // out-of-range bins will be discarded for np
+            nonPrJpsiErrSyst_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa + taa6_relerr); 
+          }
         
-          globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection);
-          globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection);
+          if(ibin == 1) { // global syst is same for all bins, don't need to repeat
+            globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection);
+            globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection);
 
-          lumi_pr_y024_pt6530  = new TBox(390,1-globalSyst_pr,400.0,1+globalSyst_pr);
-          lumi_npr_y024_pt6530 = new TBox(390,1-globalSyst_npr,400.0,1+globalSyst_npr);
-
+            lumi_pr_y024_pt6530  = new TBox(390,1-globalSyst_pr,400.0,1+globalSyst_pr);
+            lumi_npr_y024_pt6530 = new TBox(390,1-globalSyst_npr,400.0,1+globalSyst_npr);
+          }
+          
+          outputData_pr << "65300\t" << "0024\t" << centbins_str[ibin-1] << "\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_cent[ibin-1] << "\t"
+                     << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][1]+syst_effTnP_pr_aa[ibin-1][1]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][2]+syst_effTnP_pr_aa[ibin-1][2]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][0]+syst_effTnP_pr_aa[ibin-1][0]) << "\t"
+                     << TMath::Sqrt(fitContribution_pr_pp/rms_fitContribNorm + fitContribution_pr_aa/rms_fitContribNorm) << "\t"
+                     << TMath::Sqrt(taa12_relerr+systLumi+systSelection) << endl;
+          if(ibin <= nBinsNpart6) { // out-of-range bins will be discarded for np
+            outputData_npr << "65300\t" << "0024\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_cent[ibin-1] << "\t"
+                       << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][1]+syst_effTnP_npr_aa[ibin-1][1]) << "\t"
+                       << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][2]+syst_effTnP_npr_aa[ibin-1][2]) << "\t"
+                       << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][0]+syst_effTnP_npr_aa[ibin-1][0]) << "\t"
+                       << TMath::Sqrt(fitContribution_npr_pp/rms_fitContribNorm + fitContribution_npr_aa/rms_fitContribNorm) << "\t"
+                       << TMath::Sqrt(taa6_relerr+systLumi+systSelection) << endl;
+          }
           if(bDoDebug)
           {
             cout <<"---------------------------------------------------------------"<<endl;
@@ -977,12 +1016,26 @@ void makeSyst_cent( bool bSavePlots     = 1,
           prJpsiErrSyst_pt365y1624_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa  + taa6_relerr);
           nonPrJpsiErrSyst_pt365y1624_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa + taa6_relerr); 
         
-          globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection);
-          globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection);
+          if(ibin == 1) { // global syst is same for all bins, don't need to repeat
+            globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection);
+            globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection);
 
-          lumi_pr_y1624_pt365  = new TBox(380,1-globalSyst_pr,390.0,1+globalSyst_pr);
-          lumi_npr_y1624_pt365 = new TBox(380,1-globalSyst_npr,390.0,1+globalSyst_npr);
+            lumi_pr_y1624_pt365  = new TBox(380,1-globalSyst_pr,390.0,1+globalSyst_pr);
+            lumi_npr_y1624_pt365 = new TBox(380,1-globalSyst_npr,390.0,1+globalSyst_npr);
+          }
 
+          outputData_pr << "3065\t" << "1624\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_pt365y1624_cent[ibin-1] << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][1]+syst_effTnP_pt365y1624_pr_aa[ibin-1][1]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][2]+syst_effTnP_pt365y1624_pr_aa[ibin-1][2]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][0]+syst_effTnP_pt365y1624_pr_aa[ibin-1][0]) << "\t"
+                     << TMath::Sqrt(fitContribution_pt365y1624_pr_aa/rms_fitContribNorm + fitContribution_pt365y1624_pr_pp/rms_fitContribNorm) << "\t"
+                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection) << endl;
+          outputData_npr << "3065\t" << "1624\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_pt365y1624_cent[ibin-1] << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][1]+syst_effTnP_pt365y1624_npr_aa[ibin-1][1]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][2]+syst_effTnP_pt365y1624_npr_aa[ibin-1][2]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][0]+syst_effTnP_pt365y1624_npr_aa[ibin-1][0]) << "\t"
+                     << TMath::Sqrt(fitContribution_pt365y1624_npr_aa/rms_fitContribNorm + fitContribution_pt365y1624_npr_pp/rms_fitContribNorm) << "\t"
+                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection) << endl;
           if(bDoDebug)
           {
             cout <<"---------------------------------------------------------------"<<endl;
@@ -1011,12 +1064,26 @@ void makeSyst_cent( bool bSavePlots     = 1,
           prJpsiErrSyst_pt6530y012_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa  + taa6_relerr);
           nonPrJpsiErrSyst_pt6530y012_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa + taa6_relerr); 
         
-          globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection);
-          globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection);
+          if(ibin == 1) { // global syst is same for all bins, don't need to repeat
+            globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection);
+            globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection);
 
-          lumi_pr_y012_pt6530  = new TBox(390,1-globalSyst_pr,400.0,1+globalSyst_pr);
-          lumi_npr_y012_pt6530 = new TBox(390,1-globalSyst_npr,400.0,1+globalSyst_npr);
+            lumi_pr_y012_pt6530  = new TBox(390,1-globalSyst_pr,400.0,1+globalSyst_pr);
+            lumi_npr_y012_pt6530 = new TBox(390,1-globalSyst_npr,400.0,1+globalSyst_npr);
+          }
           
+          outputData_pr << "65300\t" << "012\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_pt6530y012_cent[ibin-1] << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y012_pr_pp[ibin-1][1]+syst_effTnP_pt6530y012_pr_aa[ibin-1][1]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y012_pr_pp[ibin-1][2]+syst_effTnP_pt6530y012_pr_aa[ibin-1][2]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y012_pr_pp[ibin-1][0]+syst_effTnP_pt6530y012_pr_aa[ibin-1][0]) << "\t"
+                     << TMath::Sqrt(fitContribution_pt6530y012_pr_aa/rms_fitContribNorm + fitContribution_pt6530y012_pr_pp/rms_fitContribNorm) << "\t"
+                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection) << endl;
+          outputData_npr << "65300\t" << "012\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_pt6530y012_cent[ibin-1] << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y012_npr_pp[ibin-1][1]+syst_effTnP_pt6530y012_npr_aa[ibin-1][1]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y012_npr_pp[ibin-1][2]+syst_effTnP_pt6530y012_npr_aa[ibin-1][2]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y012_npr_pp[ibin-1][0]+syst_effTnP_pt6530y012_npr_aa[ibin-1][0]) << "\t"
+                     << TMath::Sqrt(fitContribution_pt6530y012_npr_aa/rms_fitContribNorm + fitContribution_pt6530y012_npr_pp/rms_fitContribNorm) << "\t"
+                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection) << endl;
           if(bDoDebug)
           {
             cout <<"---------------------------------------------------------------"<<endl;
@@ -1041,12 +1108,26 @@ void makeSyst_cent( bool bSavePlots     = 1,
           prJpsiErrSyst_pt6530y1216_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa  + taa6_relerr);
           nonPrJpsiErrSyst_pt6530y1216_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa + taa6_relerr); 
       
-          globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp  + systLumi + systSelection);
-          globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp + systLumi + systSelection);
+          if(ibin == 1) { // global syst is same for all bins, don't need to repeat
+            globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp  + systLumi + systSelection);
+            globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp + systLumi + systSelection);
 
-          lumi_pr_y1216_pt6530  = new TBox(380,1-globalSyst_pr,390,1+globalSyst_pr);
-          lumi_npr_y1216_pt6530 = new TBox(380,1-globalSyst_npr,390,1+globalSyst_npr);
+            lumi_pr_y1216_pt6530  = new TBox(380,1-globalSyst_pr,390,1+globalSyst_pr);
+            lumi_npr_y1216_pt6530 = new TBox(380,1-globalSyst_npr,390,1+globalSyst_npr);
+          }
 
+          outputData_pr << "65300\t" << "1216\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_pt6530y1216_cent[ibin-1] << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_pp[ibin-1][1]+syst_effTnP_pt6530y1216_pr_aa[ibin-1][1]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_pp[ibin-1][2]+syst_effTnP_pt6530y1216_pr_aa[ibin-1][2]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_pp[ibin-1][0]+syst_effTnP_pt6530y1216_pr_aa[ibin-1][0]) << "\t"
+                     << TMath::Sqrt(fitContribution_pt6530y1216_pr_aa/rms_fitContribNorm + fitContribution_pt6530y1216_pr_pp/rms_fitContribNorm) << "\t"
+                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection) << endl;
+          outputData_npr << "65300\t" << "1216\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_pt6530y1216_cent[ibin-1] << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_pp[ibin-1][1]+syst_effTnP_pt6530y1216_npr_aa[ibin-1][1]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_pp[ibin-1][2]+syst_effTnP_pt6530y1216_npr_aa[ibin-1][2]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_pp[ibin-1][0]+syst_effTnP_pt6530y1216_npr_aa[ibin-1][0]) << "\t"
+                     << TMath::Sqrt(fitContribution_pt6530y1216_npr_aa/rms_fitContribNorm + fitContribution_pt6530y1216_npr_pp/rms_fitContribNorm) << "\t"
+                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection) << endl;
           if(bDoDebug)
           {
             cout <<"---------------------------------------------------------------"<<endl;
@@ -1071,15 +1152,29 @@ void makeSyst_cent( bool bSavePlots     = 1,
           prJpsiErrSyst_pt6530y1624_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa+taa6_relerr);
           nonPrJpsiErrSyst_pt6530y1624_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa+taa6_relerr); 
          
-          globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection);
-          globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection);
+          if(ibin == 1) { // global syst is same for all bins, don't need to repeat
+            globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection);
+            globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection);
 
-          lumi_pr_y1624_pt6530  = new TBox(370,1-globalSyst_pr,380.0,1+globalSyst_pr);
-          lumi_npr_y1624_pt6530 = new TBox(370,1-globalSyst_npr,380.0,1+globalSyst_npr);
-          
-          lumi_pr_y1624_pt6530_pty  = new TBox(390,1-globalSyst_pr,400,1+globalSyst_pr);
-          lumi_npr_y1624_pt6530_pty = new TBox(390,1-globalSyst_npr,400.0,1+globalSyst_npr);
+            lumi_pr_y1624_pt6530  = new TBox(370,1-globalSyst_pr,380.0,1+globalSyst_pr);
+            lumi_npr_y1624_pt6530 = new TBox(370,1-globalSyst_npr,380.0,1+globalSyst_npr);
+            
+            lumi_pr_y1624_pt6530_pty  = new TBox(390,1-globalSyst_pr,400,1+globalSyst_pr);
+            lumi_npr_y1624_pt6530_pty = new TBox(390,1-globalSyst_npr,400.0,1+globalSyst_npr);
+          }
 
+          outputData_pr << "65300\t" << "1624\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_pt6530y1624_cent[ibin-1] << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_pp[ibin-1][1]+syst_effTnP_pt6530y1624_pr_aa[ibin-1][1]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_pp[ibin-1][2]+syst_effTnP_pt6530y1624_pr_aa[ibin-1][2]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_pp[ibin-1][0]+syst_effTnP_pt6530y1624_pr_aa[ibin-1][0]) << "\t"
+                     << TMath::Sqrt(fitContribution_pt6530y1624_pr_aa/rms_fitContribNorm + fitContribution_pt6530y1624_pr_pp/rms_fitContribNorm) << "\t"
+                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection) << endl;
+          outputData_npr << "65300\t" << "1624\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_pt6530y1624_cent[ibin-1] << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_pp[ibin-1][1]+syst_effTnP_pt6530y1624_npr_aa[ibin-1][1]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_pp[ibin-1][2]+syst_effTnP_pt6530y1624_npr_aa[ibin-1][2]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_pp[ibin-1][0]+syst_effTnP_pt6530y1624_npr_aa[ibin-1][0]) << "\t"
+                     << TMath::Sqrt(fitContribution_pt6530y1624_npr_aa/rms_fitContribNorm + fitContribution_pt6530y1624_npr_pp/rms_fitContribNorm) << "\t"
+                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection) << endl;
           if(bDoDebug)
           {
             cout <<"---------------------------------------------------------------"<<endl;
@@ -1096,8 +1191,12 @@ void makeSyst_cent( bool bSavePlots     = 1,
       }//switch end
       cout << endl;
     }//loop end: for(int ibin=1; ibin<=numBins; ibin++): 7 for highpt, 3 for low-pt, ...
+    outputData_pr << endl;
+    outputData_npr << endl;
   }//loop end: for(int ih=0; ih<nInHist;ih++) for each kinematic range (high-pt, low=pt, mb, etC)
 
+  outputData_pr.close();
+  outputData_npr.close();
   
   // ***** //Drawing
   // pr
@@ -1361,7 +1460,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
   lumi_npr_y1624_pt6530->Write("lumi_npr_y1624_pt6530");
   lumi_npr_y1624_pt6530_pty->Write("lumi_npr_y1624_pt6530_pty");
   lumi_npr_y1624_pt365->Write("lumi_npr_y1624_pt365");
-
+  
   if(bSavePlots)
   {
     c1->Write();
@@ -1373,6 +1472,4 @@ void makeSyst_cent( bool bSavePlots     = 1,
   }
 
   pfOutput->Write();                          
-
-  
 }

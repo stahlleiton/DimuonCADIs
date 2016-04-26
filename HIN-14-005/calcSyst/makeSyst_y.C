@@ -10,6 +10,7 @@ Output: root file with the systm. histograms for Raa vs pT.
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <iomanip>
@@ -45,6 +46,7 @@ void makeSyst_y( bool bSavePlots        = 1,
                  const char* outputDir = "histSyst")// where the output figures will be
 {
   gSystem->mkdir(Form("./%s/",outputDir), kTRUE);
+  gSystem->mkdir(Form("./%s/data",outputDir), kTRUE);// numbers into txt files
   // set the style
   setTDRStyle();
  
@@ -66,6 +68,26 @@ void makeSyst_y( bool bSavePlots        = 1,
 
   TH1F *phCorrVar_npr_pp;
   TH1F *phCorrVar_npr_aa;
+
+  // Write systematics into a txt file
+  string ybins_str[] = {"0004","0408","0812","1216","1620","2024"};
+  ofstream outputData_pr(Form("%s/data/raaSystUncert_y_pr.dat",outputDir));
+  if (!outputData_pr.good()) {cout << "######### Fail to open data/*.dat file.##################" << endl;}
+  outputData_pr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Syst_tot\t" << "contrib_muID_trig\t" 
+             << "contrib_4d\t" << "contrib_3d\t" << "contrib_fit\t" << "global_uncertainty\n";
+  ofstream outputData_npr(Form("%s/data/raaSystUncert_y_npr.dat",outputDir));
+  if (!outputData_npr.good()) {cout << "######### Fail to open data/*.dat file.##################" << endl;}
+  outputData_npr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Syst_tot\t" << "contrib_muID_trig\t" 
+             << "contrib_4d\t" << "contrib_3d\t" << "contrib_fit\t" << "global_uncertainty\n";
+
+  // Luminosity uncertainty calculation
+  double systLumi      = 0;
+  double systSelection = 0;
+  for (int iglb=0; iglb<2; iglb++)
+  {
+    systLumi      += TMath::Power(systLumis[iglb],2);
+    systSelection += TMath::Power(systEventSelection[iglb],2);
+  }
 
   for(int ih=0; ih<nInHist;ih++)// for each kinematic rangea
   { 
@@ -480,6 +502,19 @@ void makeSyst_y( bool bSavePlots        = 1,
           nonPrJpsiErrSyst_y[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_npr_aa/rms_fitContribNorm+eff4dContribution_npr_aa+efftnpContribution_npr_aa) +
                                                                     (fitContribution_npr_pp/rms_fitContribNorm+eff4dContribution_npr_pp+efftnpContribution_npr_pp));  
  
+          outputData_pr << ybins_str[ibin-1]<<"\t" << "0024\t" << "0100\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_y[ibin-1] << "\t"
+                     << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][1]+syst_effTnP_pr_aa[ibin-1][1]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][2]+syst_effTnP_pr_aa[ibin-1][2]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][0]+syst_effTnP_pr_aa[ibin-1][0]) << "\t"
+                     << TMath::Sqrt(fitContribution_pr_pp/rms_fitContribNorm + fitContribution_pr_aa/rms_fitContribNorm) << "\t"
+                     << TMath::Sqrt(systLumi+systSelection) << endl;
+          outputData_npr << ybins_str[ibin-1]<<"\t" << "0024\t" << "0100\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_y[ibin-1] << "\t"
+                     << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][1]+syst_effTnP_npr_aa[ibin-1][1]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][2]+syst_effTnP_npr_aa[ibin-1][2]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][0]+syst_effTnP_npr_aa[ibin-1][0]) << "\t"
+                     << TMath::Sqrt(fitContribution_npr_pp/rms_fitContribNorm + fitContribution_npr_aa/rms_fitContribNorm) << "\t"
+                     << TMath::Sqrt(systLumi+systSelection) << endl;
+
           if(bDoDebug)
           {
             cout <<"---------------------------------------------------------------"<<endl;
@@ -520,7 +555,11 @@ void makeSyst_y( bool bSavePlots        = 1,
       } //switch end
            
     }//loop end: for(int ibin=1; ibin<=numBins; ibin++):
+    outputData_pr << endl;
+    outputData_npr << endl;
   }//loop end: for(int ih=0; ih<nInHist;ih++) for each kinematic range 
+  outputData_pr.close();
+  outputData_npr.close();
 
   // ***** //Drawing
   // pr
@@ -539,13 +578,6 @@ void makeSyst_y( bool bSavePlots        = 1,
   gNonPrJpsiSyst->SetFillColor(kOrange-9);
   gNonPrJpsiSyst_y_y->SetFillColor(kViolet-9);
   //------------------------------- luminosity calcualtion
-  double systLumi      = 0;
-  double systSelection = 0;
-  for (int iglb=0; iglb<2; iglb++)
-  {
-    systLumi      += TMath::Power(systLumis[iglb],2);
-    systSelection += TMath::Power(systEventSelection[iglb],2);
-  }
   double globalSyst  = TMath::Sqrt(systLumi+systSelection);
   TBox *lumi = new TBox(2.33,1-globalSyst,2.4,1+globalSyst);
   lumi->SetFillColor(kGray+1);

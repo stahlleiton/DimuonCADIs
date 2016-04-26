@@ -64,7 +64,8 @@ void v2_cent_plotter(
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
  
   // Reminder for TGraphAssymError: gr = new TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);// n,x,y,err_x, err_y
-  int nBins                   =  nCentBins_pr; 
+  unsigned int nBins          =  nCentBins_pr;
+  if(!bAddCent010) nBins = nBins-1; // if you want to skip 0-10% bin
   if(jpsiCategory==2) nBins   =  nCentBins_np;
   
   cout<<" !!!!! Number of cent bins: "<< nBins<<endl;
@@ -76,7 +77,7 @@ void v2_cent_plotter(
   double *adV2_syst = new double[nBins] ;// stat uncert
   double *adV2_err0 = new double[nBins] ;// error  0
  
-  for (int ib=0; ib<nBins; ib++)
+  for (unsigned int ib=0; ib<nBins; ib++)
   {
     adWidth_systBox[ib] = 10;
 
@@ -85,7 +86,6 @@ void v2_cent_plotter(
     
     if(bDoDebug) cout<<"Bin "<<ib<<"\t adAxis= "<<adXaxis[ib]<<" " << nBins<<endl;
   }
-  cout << "test0 nBins " << nBins << " " << sizeof(adXaxis)/sizeof(double*) << endl;
   
   //--------------------------------------------------------
   // read from input file
@@ -98,24 +98,23 @@ void v2_cent_plotter(
   
   cout << "!!!!!! Input file name: "<< inputFile <<endl;
   in.open(Form("%s/%s/data/%s",inputDir,nameDir.c_str(),inputFile.c_str()));
-  cout << "test1 nBins " << nBins << " " << sizeof(adXaxis)/sizeof(double*) << endl;
   
   // *************** read the v2 and v2_stat 
   string whatBin[3];
   double x[4] = {0};
-  int iline   = 0;
+  unsigned int iline   = 0;
   string tmpstring;
   getline(in,tmpstring);
+  if(!bAddCent010) getline(in,tmpstring); // pr J/psi v2 doesn't include 0-10% bin
   while ( in.good() && iline<nBins)
   {
-    cout << "test2 nBins " << nBins << " " << nBins-iline-1 << endl;
     in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> x[0] >> x[1] >> x[2] >> x[3];
 
     adV2[nBins-iline-1]      = x[2];
     adV2_stat[nBins-iline-1] = x[3];
 
     cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
-    cout <<"v2= "<< x[2] << "\t stat_error= "<< x[3]<<endl;
+    cout <<"v2= "<< adV2[nBins-iline-1] << "\t stat_error= "<< adV2_stat[nBins-iline-1] <<endl;
     iline++;
   }
   in.close();
@@ -130,12 +129,13 @@ void v2_cent_plotter(
   double y[6] = {0};
   iline       = 0;
   getline(in,tmpstring);
+  if(!bAddCent010) getline(in,tmpstring); // pr J/psi v2 doesn't include 0-10% bin
   while ( in.good() && iline<nBins) {
     in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> y[0] >> y[1] >> y[2] >> y[3] >> y[4] >> y[5];
     adV2_syst[nBins-iline-1]      = y[1];
 
     cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
-    cout <<"v2= "<< y[0] << "\t syst_error= "<< y[1] <<endl;
+    cout <<"v2= "<< adV2[nBins-iline-1] << "\t syst_error= "<< adV2[nBins-iline-1] <<endl;
     iline++;
   }
   in.close();
@@ -144,7 +144,8 @@ void v2_cent_plotter(
 
   if(bDoDebug)
   {
-    for(int ib=0; ib<nBins; ib++) cout<<"Bin "<<ib<<"\t adXaxis: "<< adXaxis[ib]<<"\t v2= "<<adV2[ib]<<endl;
+    cout << "debugging " << nBins << endl;
+    for(unsigned int ib=0; ib<nBins; ib++) cout<<"Bin "<<ib<<"\t adXaxis: "<< adXaxis[ib]<<"\t v2= "<<adV2[ib]<<endl;
   }
   // high-pt
   TGraphErrors *pgV2          = new TGraphErrors(nBins, adXaxis, adV2, adV2_stat, adV2_stat);
@@ -213,16 +214,7 @@ void v2_cent_plotter(
   ly->Draw();
   lcent->Draw();
 
-  int write2 = nBins;
-  if(!bAddCent010) 
-  {
-    write2 = nBins-1;
-    pgV2_sys->RemovePoint(write2);
-    pgV2->RemovePoint(write2);
-    pgV2_cont->RemovePoint(write2);
-  }
-
-  for(int ib=0; ib<write2; ib++)
+  for(unsigned int ib=0; ib<nBins; ib++)
   {
    if(jpsiCategory==2) lcent->DrawLatex(adXaxis[ib]-30,-0.025,Form("%s",centBinsLegend[nCentBins-1-ib]));
    else lcent->DrawLatex(adXaxis[ib]-30,-0.025,Form("%s",centBinsLegend[nCentBins-nBins-ib]));
