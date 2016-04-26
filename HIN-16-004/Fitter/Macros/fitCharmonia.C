@@ -39,29 +39,6 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
 		   )  
 {
 
-  // Define the mass range
-  if (cut.dMuon.M.Max==5 && cut.dMuon.M.Min==2) { 
-    // Default mass values, means that the user did not specify a mass range
-    if ( incJpsi && !incPsi2S) {
-      cut.dMuon.M.Min = 2.2;
-      cut.dMuon.M.Max = 4.0;
-    }
-    else if ( !incJpsi && incPsi2S) {
-      cut.dMuon.M.Min = 2.8;
-      cut.dMuon.M.Max = 4.6;
-    }
-    else {
-      cut.dMuon.M.Min = 2.2;
-      cut.dMuon.M.Max = 4.5;
-    }
-  }
-  parIni["invMassNorm"] = Form("RooFormulaVar::%s('( -1.0 + 2.0*( @0 - @1 )/( @2 - @1) )', {%s, mMin[%.6f], mMax[%.6f]})", "invMassNorm", "invMass", cut.dMuon.M.Min, cut.dMuon.M.Max );
-  // Apply the ctau cuts to reject non-prompt charmonia
-  if (cutCtau) { setCtauCuts(cut, isPbPb); }  
-
-  
-
-
   // Check if input dataset is MC
   bool isMC = false;
   if (DSTAG.find("MC")!=std::string::npos) {
@@ -72,6 +49,37 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
   }
   if (isMC && wantPureSMC) wantPureSMC=true;
   else wantPureSMC=false;
+
+  // Define the mass range
+  if (cut.dMuon.M.Max==5 && cut.dMuon.M.Min==2) { 
+    // Default mass values, means that the user did not specify a mass range
+    if ( incJpsi && !incPsi2S) {
+      if (isMC){
+        cut.dMuon.M.Min = 2.2;
+        cut.dMuon.M.Max = 4.0;
+      } else {
+        cut.dMuon.M.Min = 2.2;
+        cut.dMuon.M.Max = 3.4;
+      }
+    }
+    else if ( !incJpsi && incPsi2S) {
+      if(isMC) {
+        cut.dMuon.M.Min = 2.8;
+        cut.dMuon.M.Max = 4.6;
+      } else {
+        cut.dMuon.M.Min = 3.4;
+        cut.dMuon.M.Max = 4.5;
+      }
+    }
+    else {
+      cut.dMuon.M.Min = 2.2;
+      cut.dMuon.M.Max = 4.5;
+    }
+  }
+  parIni["invMassNorm"] = Form("RooFormulaVar::%s('( -1.0 + 2.0*( @0 - @1 )/( @2 - @1) )', {%s, mMin[%.6f], mMax[%.6f]})", "invMassNorm", "invMass", cut.dMuon.M.Min, cut.dMuon.M.Max );
+  // Apply the ctau cuts to reject non-prompt charmonia
+  if (cutCtau) { setCtauCuts(cut, isPbPb); }  
+
 
   struct InputOpt opt; setOptions(&opt);
   
@@ -146,7 +154,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
       simPdf->addPdf(*myws.pdf("pdfMASS_Tot_PbPb"), "PbPb"); simPdf->addPdf(*myws.pdf("pdfMASS_Tot_PP"), "PP");
       
       // Do the simultaneous fit
-      RooFitResult* fitResult = simPdf->fitTo(*combData, Offset(kTRUE), Extended(kTRUE), NumCPU(numCores), Range("MassWindow"), Save(), Minimizer("Minuit2","Migrad"));
+      RooFitResult* fitResult = simPdf->fitTo(*combData, Offset(kTRUE), Extended(kTRUE), NumCPU(numCores), Range("MassWindow"), Save()); //, Minimizer("Minuit2","Migrad")
       fitResult->Print();
       myws.import(*fitResult, Form("fitResult_%s", "simPdf")); 
 
