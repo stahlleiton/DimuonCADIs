@@ -40,7 +40,7 @@ double yBins_pr[]     = {0.0, 1.2, 1.6, 2.4};
 double centBins_pr[]  = {0.0, 10.0, 20.0, 30.0, 60.0};
 
 // non-prompt bins
-double ptBins_np[]   = {3.0, 6.5, 30.0};
+double ptBins_np[]   = {3.0, 6.5, 10.0, 30.0};
 double yBins_np[]    = {0.0, 1.2, 2.4};
 double centBins_np[] = {0.0, 10.0, 30.0, 60.0};
 // integrated bin
@@ -55,7 +55,8 @@ const int nCentBins_np = sizeof(centBins_np)/sizeof(double) -1;
 
 
 //--------------------------------------- plotting location
-
+// bogus bin for minbias value
+double adXaxis_mb[] = {200};
 // pt axis
 // 2 <pt> bins for high-pt non-prompt
 double adXaxisPt_np[]   = {7.8,13.1};
@@ -91,7 +92,9 @@ double adXaxisY_pr_h[]  = {0.5, 0.2, 0.5};// bin width to the right
 double adXaxisCent_pr[]   = {90,187,261,355}; // Npart (60-30, 30-20, 20-10, 10-0)
 double adXaxisCent_np[]   = {90,224,355}; // Npart (60-30, 30-10, 10-0)
 
-double adWidth_systBox[] = {0.5, 0.5, 0.5}; // width of the systm. uncert.
+double flip_adXaxisCent_pr[]   = {355, 261, 187, 90}; // Npart (10-0, 20-10, 30-20, 60-30)
+double flip_adXaxisCent_np[]   = {355, 224, 90}; // Npart (10-0, 30-10, 60-30)
 
+double adWidth_systBox[] = {0.5, 0.5, 0.5}; // width of the systm. uncert.
 
 #endif

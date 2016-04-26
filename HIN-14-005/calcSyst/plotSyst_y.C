@@ -106,14 +106,14 @@ void plotSyst_y( bool bSavePlots       = 1,
     double relVar_npr_pp[numBins];
     //-------------------------------------- drawing stuff
     // -------- drawing setting, for each kinematic region
-    TCanvas *c1_pp = new TCanvas("c1_pp","c1_pp", 800,1000);
+    TCanvas *c1_pp = new TCanvas("c1_pp","c1_pp", 800,800);
     c1_pp->Divide(2,2);
     c1_pp->cd(1); f4->Draw();
     c1_pp->cd(2); f4->Draw();
     c1_pp->cd(3); f4->Draw();
     c1_pp->cd(4); f4->Draw();
 
-    TCanvas *c1_aa = new TCanvas("c1_aa","c1_aa", 800,1200);
+    TCanvas *c1_aa = new TCanvas("c1_aa","c1_aa", 800,800);
     c1_aa->Divide(2,2);
     c1_aa->cd(1); f4->Draw();
     c1_aa->cd(2); f4->Draw();
