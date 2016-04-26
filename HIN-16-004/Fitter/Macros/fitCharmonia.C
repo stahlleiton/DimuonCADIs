@@ -267,7 +267,6 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
           drawCtauPlot(myws, outputDir, opt, cut, (wantPureSMC ? (plotCtauLabelPbPb+"_NoBkg") : plotCtauLabelPbPb), DSTAG, true, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins); 
         }
         saveWorkSpace(myws, outputDir, plotLabel, DSTAG, cut, fitMass, fitCtau, false, true);
-        return false;
       }
       else {
         cut.Centrality.Start = 0;
@@ -311,7 +310,6 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
           drawCtauPlot(myws, outputDir, opt, cut, (wantPureSMC ? (plotCtauLabelPP+"_NoBkg") : plotCtauLabelPP), DSTAG, false, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins); 
         }
         saveWorkSpace(myws, outputDir, plotLabel, DSTAG, cut, fitMass, fitCtau, false, false);
-        return false;
       }
     }
   }

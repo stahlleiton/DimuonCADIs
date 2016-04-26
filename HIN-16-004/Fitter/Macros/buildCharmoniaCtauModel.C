@@ -173,13 +173,6 @@ bool defineCtauResolModel(RooWorkspace& ws, CtauModel model, map<string,string> 
       ws.factory( parIni[Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );
       ws.factory( parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );
 
-      ws.factory( parIni[Form("sigmaMC_bCtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );
-      ws.factory( Form("RooFormulaVar::%s('sqrt((@0*@1)**2+(@2)**2)',{%s,%s,%s})", Form("sigma1_bCtauRes_%s", (isPbPb?"PbPb":"PP")), 
-                       Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP")),
-                       "ctauErr", 
-                       Form("sigmaB_bCtauRes_%s", (isPbPb?"PbPb":"PP"))
-                       ) );
-
       // create the two PDFs
       ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("pdfCTAU_CtauRes_%s", (isPbPb?"PbPb":"PP")), "ctau", 
  		      Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP")), 
@@ -207,19 +200,6 @@ bool defineCtauResolModel(RooWorkspace& ws, CtauModel model, map<string,string> 
       ws.factory( parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );
       ws.factory( parIni[Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str()  );
       ws.factory( parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );
-
-      
-      ws.factory( parIni[Form("sigmaMC_bCtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );
-      ws.factory( Form("RooFormulaVar::%s('sqrt((@0*@1)**2+(@2)**2)',{%s,%s,%s})", Form("sigma1_bCtauRes_%s", (isPbPb?"PbPb":"PP")), 
-                       Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP")), 
-                       "ctauErr", 
-                       Form("sigmaMC_bCtauRes_%s", (isPbPb?"PbPb":"PP"))
-                       ) );
-      ws.factory( Form("RooFormulaVar::%s('sqrt((@0*@1)**2+(@2)**2)',{%s,%s,%s})", Form("sigma2_bCtauRes_%s", (isPbPb?"PbPb":"PP")), 
-                       Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 
-                       "ctauErr", 
-                       Form("sigmaMC_bCtauRes_%s", (isPbPb?"PbPb":"PP"))
-                       ) );
 
       // create the two PDFs
       ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("pdfCTAU1_CtauRes_%s", (isPbPb?"PbPb":"PP")), "ctau", 
