@@ -48,10 +48,10 @@ double centBins_int[] = {10.0, 60.0};
 
 const int nPtBins_pr   = sizeof(ptBins_pr)/sizeof(double) -1;
 const int nYBins_pr    = sizeof(yBins_pr)/sizeof(double) -1;
-const int nCentBins_pr = sizeof(centBins_pr)/sizeof(double) -1;
+const unsigned int nCentBins_pr = sizeof(centBins_pr)/sizeof(double) -1;
 const int nPtBins_np   = sizeof(ptBins_np)/sizeof(double) -1;
 const int nYBins_np    = sizeof(yBins_np)/sizeof(double) -1;
-const int nCentBins_np = sizeof(centBins_np)/sizeof(double) -1;
+const unsigned int nCentBins_np = sizeof(centBins_np)/sizeof(double) -1;
 
 
 //--------------------------------------- plotting location

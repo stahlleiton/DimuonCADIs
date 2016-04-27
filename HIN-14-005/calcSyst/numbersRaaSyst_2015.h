@@ -17,7 +17,7 @@ const char* yieldHistFile_pp_systSgnBkg[nFitVariations] = {
 };
 const char* yieldHistFile_pp_syst4DCorr[nEff4DVariations] = {
 //  "histsRaaYields_20160304_pp_weighted_prof.root"
-  "histsRaaYields_20160304_pp_ctau1mm.root"
+  "histsRaaYields_20160304_pp_ctau2mm.root"
 };
 
 const char* yieldHistFile_pp_systTnP[nEffTnPVariation] = {
@@ -37,7 +37,7 @@ const char* yieldHistFile_aa_systSgnBkg[nFitVariations]   = {
 };
 const char* yieldHistFile_aa_syst4DCorr[nEff4DVariations] = {
 //  "histsRaaYields_20160304_PbPb_weighted_prof.root"
-  "histsRaaYields_20160304_PbPb_ctau1mm.root"
+  "histsRaaYields_20160304_PbPb_ctau2mm.root"
 };
 
 const char* yieldHistFile_aa_systTnP[nEffTnPVariation] = {

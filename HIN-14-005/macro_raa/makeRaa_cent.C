@@ -272,61 +272,43 @@ void makeRaa_cent( bool bSavePlots=1,
   TGraphErrors *gPrJpsi     = new TGraphErrors(nBinsNpart12, binsNpart12, prJpsi_cent, binsNpart12Err, prJpsiErr_cent);
   TGraphErrors *gPrJpsiP    = new TGraphErrors(nBinsNpart12, binsNpart12, prJpsi_cent, binsNpart12Err, prJpsiErr_cent);
   TGraphErrors *gPrJpsiSyst = (TGraphErrors *)systFile->Get("gPrJpsiSyst");
-//  TGraphErrors *gPrJpsiSyst = new TGraphErrors(nBinsNpart12, binsNpart12, prJpsi_cent, binsNpart12X, prJpsiErrSyst_cent);
- 
  
   TGraphErrors *gPrJpsi_pt6530y012     = new TGraphErrors(nBinsNpart6, binsNpart6_shiftMinus, prJpsi_pt6530y012_cent, binsNpart6Err, prJpsiErr_pt6530y012_cent);
   TGraphErrors *gPrJpsiP_pt6530y012    = new TGraphErrors(nBinsNpart6, binsNpart6_shiftMinus, prJpsi_pt6530y012_cent, binsNpart6Err, prJpsiErr_pt6530y012_cent);
   TGraphErrors *gPrJpsiSyst_pt6530y012 = (TGraphErrors *)systFile->Get("gPrJpsiSyst_pt6530y012");
-//  TGraphErrors *gPrJpsiSyst_pt6530y012 = new TGraphErrors(nBinsNpart6, binsNpart6_shiftMinus, prJpsi_pt6530y012_cent, binsNpart6X, prJpsiErrSyst_pt6530y012_cent);
-
 
   TGraphErrors *gPrJpsi_pt6530y1216     = new TGraphErrors(nBinsNpart6, binsNpart6, prJpsi_pt6530y1216_cent, binsNpart6Err, prJpsiErr_pt6530y1216_cent);
   TGraphErrors *gPrJpsiP_pt6530y1216    = new TGraphErrors(nBinsNpart6, binsNpart6, prJpsi_pt6530y1216_cent, binsNpart6Err, prJpsiErr_pt6530y1216_cent);
   TGraphErrors *gPrJpsiSyst_pt6530y1216 = (TGraphErrors *)systFile->Get("gPrJpsiSyst_pt6530y1216");
-//  TGraphErrors *gPrJpsiSyst_pt6530y1216 = new TGraphErrors(nBinsNpart6, binsNpart6, prJpsi_pt6530y1216_cent, binsNpart6X, prJpsiErrSyst_pt6530y1216_cent);
- 
 
   TGraphErrors *gPrJpsi_pt6530y1624     = new TGraphErrors(nBinsNpart6, binsNpart6_shiftPlus, prJpsi_pt6530y1624_cent, binsNpart6Err, prJpsiErr_pt6530y1624_cent);
   TGraphErrors *gPrJpsiP_pt6530y1624    = new TGraphErrors(nBinsNpart6, binsNpart6_shiftPlus, prJpsi_pt6530y1624_cent, binsNpart6Err, prJpsiErr_pt6530y1624_cent);
   TGraphErrors *gPrJpsiSyst_pt6530y1624 = (TGraphErrors *)systFile->Get("gPrJpsiSyst_pt6530y1624");
-//  TGraphErrors *gPrJpsiSyst_pt6530y1624 = new TGraphErrors(nBinsNpart6, binsNpart6_shiftPlus, prJpsi_pt6530y1624_cent, binsNpart6X, prJpsiErrSyst_pt6530y1624_cent);
-
 
   TGraphErrors *gPrJpsi_pt365y1624     = new TGraphErrors(nBinsNpart6, binsNpart6, prJpsi_pt365y1624_cent, binsNpart6Err, prJpsiErr_pt365y1624_cent);
   TGraphErrors *gPrJpsiP_pt365y1624    = new TGraphErrors(nBinsNpart6, binsNpart6, prJpsi_pt365y1624_cent, binsNpart6Err, prJpsiErr_pt365y1624_cent);
   TGraphErrors *gPrJpsiSyst_pt365y1624 = (TGraphErrors *)systFile->Get("gPrJpsiSyst_pt365y1624");
-//  TGraphErrors *gPrJpsiSyst_pt365y1624 = new TGraphErrors(nBinsNpart6, binsNpart6,    prJpsi_pt365y1624_cent, binsNpart6X, prJpsiErrSyst_pt365y1624_cent);
-
  
   // nonPr
   TGraphErrors *gNonPrJpsi     = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_cent, binsNpart6Err, nonPrJpsiErr_cent);
   TGraphErrors *gNonPrJpsiP    = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_cent, binsNpart6Err, nonPrJpsiErr_cent);
   TGraphErrors *gNonPrJpsiSyst = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst");
-//  TGraphErrors *gNonPrJpsiSyst = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_cent, binsNpart6X, nonPrJpsiErrSyst_cent);
-
 
   TGraphErrors *gNonPrJpsi_pt6530y012     = new TGraphErrors(nBinsNpart6, binsNpart6_shiftMinus,nonPrJpsi_pt6530y012_cent, binsNpart6Err, nonPrJpsiErr_pt6530y012_cent);
   TGraphErrors *gNonPrJpsiP_pt6530y012    = new TGraphErrors(nBinsNpart6, binsNpart6_shiftMinus,nonPrJpsi_pt6530y012_cent, binsNpart6Err, nonPrJpsiErr_pt6530y012_cent);
   TGraphErrors *gNonPrJpsiSyst_pt6530y012 = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst_pt6530y012");
-//  TGraphErrors *gNonPrJpsiSyst_pt6530y012 = new TGraphErrors(nBinsNpart6, binsNpart6_shiftMinus, nonPrJpsi_pt6530y012_cent, binsNpart6X,   nonPrJpsiErrSyst_pt6530y012_cent);
   
   TGraphErrors *gNonPrJpsi_pt6530y1216     = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_pt6530y1216_cent, binsNpart6Err, nonPrJpsiErr_pt6530y1216_cent);
   TGraphErrors *gNonPrJpsiP_pt6530y1216    = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_pt6530y1216_cent, binsNpart6Err, nonPrJpsiErr_pt6530y1216_cent);
   TGraphErrors *gNonPrJpsiSyst_pt6530y1216 = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst_pt6530y1216");
-//  TGraphErrors *gNonPrJpsiSyst_pt6530y1216 = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_pt6530y1216_cent, binsNpart6X,    nonPrJpsiErrSyst_pt6530y1216_cent);
  
-
   TGraphErrors *gNonPrJpsi_pt6530y1624     = new TGraphErrors(nBinsNpart6, binsNpart6_shiftPlus, nonPrJpsi_pt6530y1624_cent, binsNpart6Err, nonPrJpsiErr_pt6530y1624_cent);
   TGraphErrors *gNonPrJpsiP_pt6530y1624    = new TGraphErrors(nBinsNpart6, binsNpart6_shiftPlus, nonPrJpsi_pt6530y1624_cent, binsNpart6Err, nonPrJpsiErr_pt6530y1624_cent);
   TGraphErrors *gNonPrJpsiSyst_pt6530y1624 = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst_pt6530y1624");
-//  TGraphErrors *gNonPrJpsiSyst_pt6530y1624 = new TGraphErrors(nBinsNpart6, binsNpart6_shiftPlus, nonPrJpsi_pt6530y1624_cent, binsNpart6X,    nonPrJpsiErrSyst_pt6530y1624_cent);
-
 
   TGraphErrors *gNonPrJpsi_pt365y1624     = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_pt365y1624_cent, binsNpart6Err, nonPrJpsiErr_pt365y1624_cent);
   TGraphErrors *gNonPrJpsiP_pt365y1624    = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_pt365y1624_cent, binsNpart6Err, nonPrJpsiErr_pt365y1624_cent);
   TGraphErrors *gNonPrJpsiSyst_pt365y1624 = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst_pt365y1624");
-//  TGraphErrors *gNonPrJpsiSyst_pt365y1624 = new TGraphErrors(nBinsNpart6, binsNpart6, nonPrJpsi_pt365y1624_cent, binsNpart6X, nonPrJpsiErrSyst_pt365y1624_cent);
 
 
   //-------------------------------------------------------------------
@@ -442,40 +424,21 @@ void makeRaa_cent( bool bSavePlots=1,
   f4->GetYaxis()->SetRangeUser(0.0,1.5);
   f4->GetXaxis()->CenterTitle(kTRUE);
 
-  // just pp lumi here, 6%
-  TBox *lumi = new TBox(0.0,0.94,10.0,1.06);
-  lumi->SetFillColor(kGray+1);
-
   // pp lumi + pp stat+pp syst
-  TBox *lumi_pr_y024_pt6530  = new TBox(0,0.93,10.0,1.07);
-  TBox *lumi_pr_y012_pt6530  = new TBox(390.0,0.91,400.0,1.09);
-  TBox *lumi_pr_y1216_pt6530 = new TBox(380.0,0.89,390.0,1.11);
-  TBox *lumi_pr_y1624_pt6530 = new TBox(370.0,0.91,380.0,1.09);
-  TBox *lumi_pr_y1624_pt6530_pty = new TBox(390.0,0.91,400.0,1.09);
-  TBox *lumi_pr_y1624_pt365      = new TBox(380.0,0.92,390.0,1.08);
+  TBox *lumi_pr_y024_pt6530  = (TBox*)systFile->Get("lumi_pr_y024_pt6530");
+  TBox *lumi_pr_y012_pt6530  = (TBox*)systFile->Get("lumi_pr_y012_pt6530");
+  TBox *lumi_pr_y1216_pt6530 = (TBox*)systFile->Get("lumi_pr_y1216_pt6530");
+  TBox *lumi_pr_y1624_pt6530 = (TBox*)systFile->Get("lumi_pr_y1624_pt6530");
+  TBox *lumi_pr_y1624_pt6530_pty = (TBox*)systFile->Get("lumi_pr_y1624_pt6530_pty");
+  TBox *lumi_pr_y1624_pt365      = (TBox*)systFile->Get("lumi_pr_y1624_pt365");
 
-  lumi_pr_y024_pt6530->SetFillColor(kGray+1);
-  lumi_pr_y012_pt6530->SetFillColor(kAzure-9);
-  lumi_pr_y1216_pt6530->SetFillColor(kRed-9);
-  lumi_pr_y1624_pt6530->SetFillColor(kGreen-9);
-  lumi_pr_y1624_pt6530_pty->SetFillColor(kGreen-9);
-  lumi_pr_y1624_pt365->SetFillColor(kViolet-9);
+  TBox *lumi_npr_y024_pt6530  = (TBox*)systFile->Get("lumi_npr_y024_pt6530");
+  TBox *lumi_npr_y012_pt6530  = (TBox*)systFile->Get("lumi_npr_y012_pt6530");
+  TBox *lumi_npr_y1216_pt6530 = (TBox*)systFile->Get("lumi_npr_y1216_pt6530");
+  TBox *lumi_npr_y1624_pt6530 = (TBox*)systFile->Get("lumi_npr_y1624_pt6530");
+  TBox *lumi_npr_y1624_pt6530_pty = (TBox*)systFile->Get("lumi_npr_y1624_pt6530_pty");
+  TBox *lumi_npr_y1624_pt365      = (TBox*)systFile->Get("lumi_npr_y1624_pt365");
 
-  TBox *lumi_npr_y024_pt6530  = new TBox(0,0.93,10.0,1.07);
-  TBox *lumi_npr_y012_pt6530  = new TBox(390.0,0.91,400.0,1.09);
-  TBox *lumi_npr_y1216_pt6530 = new TBox(380.0,0.89,390.0,1.11);
-  TBox *lumi_npr_y1624_pt6530 = new TBox(370.0,0.91,380.0,1.09);
-  TBox *lumi_npr_y1624_pt6530_pty = new TBox(390.0,0.91,400.0,1.09);
-  TBox *lumi_npr_y1624_pt365      = new TBox(380.0,0.92,390.0,1.08);
-
-  lumi_npr_y024_pt6530->SetFillColor(kGray+1);
-  lumi_npr_y012_pt6530->SetFillColor(kAzure-9);
-  lumi_npr_y1216_pt6530->SetFillColor(kRed-9);
-  lumi_npr_y1624_pt6530->SetFillColor(kGreen-9);
-  lumi_npr_y1624_pt6530_pty->SetFillColor(kGreen-9);
-  lumi_npr_y1624_pt365->SetFillColor(kViolet-9);
-
-  
   TLegend *leg11a = new TLegend(0.6,0.5,0.85,0.65);
   leg11a->SetFillStyle(0);
   leg11a->SetFillColor(0);
@@ -638,9 +601,13 @@ void makeRaa_cent( bool bSavePlots=1,
   //   // ############################################## non-pr
   //   // ############################################## non-pr
   TCanvas *c2 = new TCanvas("c2","c2");
-  // general stuff
   f4->Draw();
-  if(bAddLumi) lumi_npr_y024_pt6530->Draw();
+  // general stuff
+  if(bAddLumi) 
+  {
+    lumi_npr_y024_pt6530->Draw();
+    f4->Draw("same");
+  }
   lNpr->Draw();
   ly->Draw();
   lpthigh->Draw();
@@ -661,7 +628,6 @@ void makeRaa_cent( bool bSavePlots=1,
   //------------------- (pt, y) dependence
   TCanvas *c21a = new TCanvas("c21a","c21a");
   f4->Draw();
-  // lumi->Draw();
   if(bAddLumi)
   {
     lumi_npr_y012_pt6530->Draw();
@@ -697,7 +663,6 @@ void makeRaa_cent( bool bSavePlots=1,
     lumi_npr_y1624_pt365->Draw();
     f4->Draw("same");
   }
-
   lNpr->Draw();
   lyfwd->Draw(0);
   leg21b->Draw();

@@ -10,6 +10,7 @@ Output: root file with the systm. histograms for Raa vs pT.
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <iomanip>
@@ -45,6 +46,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
                   const char* outputDir = "histSyst")// where the output figures will be
 {
   gSystem->mkdir(Form("./%s/",outputDir), kTRUE);
+  gSystem->mkdir(Form("./%s/data",outputDir), kTRUE);// numbers into txt files
   // set the style
   setTDRStyle();
  
@@ -77,6 +79,27 @@ void makeSyst_pt( bool bSavePlots       = 1,
   TH1F *phCorrVar_npr_pp;
   TH1F *phCorrVar_npr_aa;
  
+  // Write systematics into a txt file
+  string ptbins_str[] = {"6585","8595","95110","110130","130160","160300"};
+  string ptbins_lowpt_str[] = {"3045","4555","5565"};
+  ofstream outputData_pr(Form("%s/data/raaSystUncert_pt_pr.dat",outputDir));
+  if (!outputData_pr.good()) {cout << "######### Fail to open data/*.dat file.##################" << endl;}
+  outputData_pr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Syst_tot\t" << "contrib_muID_trig\t" 
+             << "contrib_4d\t" << "contrib_3d\t" << "contrib_fit\t" << "global_uncertainty\n";
+  ofstream outputData_npr(Form("%s/data/raaSystUncert_pt_npr.dat",outputDir));
+  if (!outputData_npr.good()) {cout << "######### Fail to open data/*.dat file.##################" << endl;}
+  outputData_npr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Syst_tot\t" << "contrib_muID_trig\t" 
+             << "contrib_4d\t" << "contrib_3d\t" << "contrib_fit\t" << "global_uncertainty\n";
+ 
+  // Luminosity uncertainty calculation
+  double systLumi      = 0;
+  double systSelection = 0;
+  for (int iglb=0; iglb<2; iglb++)
+  {
+    systLumi      += TMath::Power(systLumis[iglb],2);
+    systSelection += TMath::Power(systEventSelection[iglb],2);
+  }
+
   for(int ih=0; ih<nInHist;ih++)// for each kinematic range
   { 
     TString hist_pr(Form("phPrp_%s",yieldHistNames[ih]));
@@ -750,19 +773,32 @@ void makeSyst_pt( bool bSavePlots       = 1,
                                                                (fitContribution_pr_pp/rms_fitContribNorm+eff4dContribution_pr_pp+efftnpContribution_pr_pp));
         nonPrJpsiErrSyst_pt[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_npr_aa/rms_fitContribNorm+eff4dContribution_npr_aa+efftnpContribution_npr_aa)+
                                                                    (fitContribution_npr_pp/rms_fitContribNorm+eff4dContribution_npr_pp+efftnpContribution_npr_pp));  
-          
-          if(bDoDebug)
-          {
-            cout <<"---------------------------------------------------------------"<<endl;
-            cout << "Ingredients to the total systm. uncertainty"<<endl;
-            cout <<"Prompt yields systematics: aa & pp"<<endl;
-            cout <<"fitContribution: "<<fitContribution_pr_aa<<"\t"<<fitContribution_pr_pp<<endl;
-            cout <<"eff4dContribution: "<<eff4dContribution_pr_aa<<"\t"<<eff4dContribution_pr_pp<<endl;
-            cout <<"efftnpContribution: "<<efftnpContribution_pr_aa<<"\t"<<efftnpContribution_pr_pp<<endl;
-            cout <<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
-            cout <<"yield ratio: "<<yieldRatio_pr<<endl;
-            cout <<"Total: "<<prJpsiErrSyst_pt[ibin-1]<<endl;
-          }
+
+        outputData_pr << ptbins_str[ibin-1]<<"\t" << "0024\t" << "0100\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_pt[ibin-1] << "\t"
+                   << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][1]+syst_effTnP_pr_aa[ibin-1][1]) << "\t"
+                   << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][2]+syst_effTnP_pr_aa[ibin-1][2]) << "\t"
+                   << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][0]+syst_effTnP_pr_aa[ibin-1][0]) << "\t"
+                   << TMath::Sqrt(fitContribution_pr_pp/rms_fitContribNorm + fitContribution_pr_aa/rms_fitContribNorm) << "\t"
+                   << TMath::Sqrt(systLumi+systSelection) << endl;
+        outputData_npr << ptbins_str[ibin-1]<<"\t" << "0024\t" << "0100\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_pt[ibin-1] << "\t"
+                   << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][1]+syst_effTnP_npr_aa[ibin-1][1]) << "\t"
+                   << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][2]+syst_effTnP_npr_aa[ibin-1][2]) << "\t"
+                   << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][0]+syst_effTnP_npr_aa[ibin-1][0]) << "\t"
+                   << TMath::Sqrt(fitContribution_npr_pp/rms_fitContribNorm + fitContribution_npr_aa/rms_fitContribNorm) << "\t"
+                   << TMath::Sqrt(systLumi+systSelection) << endl;
+
+        if(bDoDebug)
+        {
+          cout <<"---------------------------------------------------------------"<<endl;
+          cout << "Ingredients to the total systm. uncertainty"<<endl;
+          cout <<"Prompt yields systematics: aa & pp"<<endl;
+          cout <<"fitContribution: "<<fitContribution_pr_aa<<"\t"<<fitContribution_pr_pp<<endl;
+          cout <<"eff4dContribution: "<<eff4dContribution_pr_aa<<"\t"<<eff4dContribution_pr_pp<<endl;
+          cout <<"efftnpContribution: "<<efftnpContribution_pr_aa<<"\t"<<efftnpContribution_pr_pp<<endl;
+          cout <<"yields: "<<yield_aa_pr<<"\t"<<yield_pp_pr<<endl;
+          cout <<"yield ratio: "<<yieldRatio_pr<<endl;
+          cout <<"Total: "<<prJpsiErrSyst_pt[ibin-1]<<endl;
+        }
         break;
 
       case 1:
@@ -770,6 +806,19 @@ void makeSyst_pt( bool bSavePlots       = 1,
                                                                           (fitContribution_pt365y1624_pr_pp/rms_fitContribNorm+eff4dContribution_pt365y1624_pr_pp+efftnpContribution_pt365y1624_pr_pp));
         nonPrJpsiErrSyst_pt365y1624_pt[ibin-1] = yieldRatio_npr * TMath::Sqrt((fitContribution_pt365y1624_npr_aa/rms_fitContribNorm+eff4dContribution_pt365y1624_npr_aa+efftnpContribution_pt365y1624_npr_aa)+
                                                                               (fitContribution_pt365y1624_npr_pp/rms_fitContribNorm+eff4dContribution_pt365y1624_npr_pp+efftnpContribution_pt365y1624_npr_pp));  
+
+        outputData_pr << ptbins_lowpt_str[ibin-1]<<"\t" << "1624\t" << "0100\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_pt365y1624_pt[ibin-1] << "\t"
+                   << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][1]+syst_effTnP_pt365y1624_pr_aa[ibin-1][1]) << "\t"
+                   << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][2]+syst_effTnP_pt365y1624_pr_aa[ibin-1][2]) << "\t"
+                   << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][0]+syst_effTnP_pt365y1624_pr_aa[ibin-1][0]) << "\t"
+                   << TMath::Sqrt(fitContribution_pt365y1624_pr_pp/rms_fitContribNorm + fitContribution_pt365y1624_pr_aa/rms_fitContribNorm) << "\t"
+                   << TMath::Sqrt(systLumi+systSelection) << endl;
+        outputData_npr << ptbins_lowpt_str[ibin-1]<<"\t" << "1624\t" << "0100\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_pt365y1624_pt[ibin-1] << "\t"
+                   << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][1]+syst_effTnP_pt365y1624_npr_aa[ibin-1][1]) << "\t"
+                   << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][2]+syst_effTnP_pt365y1624_npr_aa[ibin-1][2]) << "\t"
+                   << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][0]+syst_effTnP_pt365y1624_npr_aa[ibin-1][0]) << "\t"
+                   << TMath::Sqrt(fitContribution_pt365y1624_npr_pp/rms_fitContribNorm + fitContribution_pt365y1624_npr_aa/rms_fitContribNorm) << "\t"
+                   << TMath::Sqrt(systLumi+systSelection) << endl;
 
         if(bDoDebug)
         {
@@ -828,10 +877,15 @@ void makeSyst_pt( bool bSavePlots       = 1,
      
       default:
         break;
-    }//switch end: 
+      }//switch end: 
 
     }//loop end: for(int ibin=1; ibin<=numBins; ibin++): 7 for highpt, 3 for low-pt, ...
+    outputData_pr << endl;
+    outputData_npr << endl;
+
   }//loop end: for(int ih=0; ih<nInHist;ih++) for each kinematic range (high-pt, low=pt, mb, etC)
+  outputData_pr.close();
+  outputData_npr.close();
 
   // ***** //Drawing
   // Note: minbias bins in the fwd region:
@@ -864,13 +918,6 @@ void makeSyst_pt( bool bSavePlots       = 1,
   gPrJpsiSyst_mb->SetFillColor(kRed-9);
   gPrJpsiSyst_y1624_mb->SetFillColor(kViolet-9);
   //------------------------------- luminosity calcualtion
-  double systLumi      = 0;
-  double systSelection = 0;
-  for (int iglb=0; iglb<2; iglb++)
-  {
-    systLumi      += TMath::Power(systLumis[iglb],2);
-    systSelection += TMath::Power(systEventSelection[iglb],2);
-  }
   double globalSyst  = TMath::Sqrt(systLumi+systSelection);
   TBox *lumi = new TBox(29,1-globalSyst,30,1+globalSyst);
   lumi->SetFillColor(kGray+1);
