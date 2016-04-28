@@ -340,14 +340,14 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
 
       if (thebin.rapbin() == binF(0.,1.6)) {
          tg->SetMarkerStyle(kFullSquare);
-         tg->SetMarkerColor(kRed);
-         tg->SetLineColor(kRed);
-         tg_syst->SetFillColorAlpha(kRed, 0.5);
-      } else if (thebin.rapbin() == binF(1.6,2.4)) {
-         tg->SetMarkerStyle(kFullCircle);
          tg->SetMarkerColor(kBlue);
          tg->SetLineColor(kBlue);
          tg_syst->SetFillColorAlpha(kBlue, 0.5);
+      } else if (thebin.rapbin() == binF(1.6,2.4)) {
+         tg->SetMarkerStyle(kFullCircle);
+         tg->SetMarkerColor(kRed);
+         tg->SetLineColor(kRed);
+         tg_syst->SetFillColorAlpha(kRed, 0.5);
       } else {
          tg->SetMarkerStyle(kFullTriangleUp);
          tg->SetMarkerColor(kGreen);
@@ -404,8 +404,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          dy = gsyst[thebin].value;
          cout << "global syst: " << dy << endl;
          TBox *tbox = new TBox(x-dx,y-dy,x+dx,y+dy);
-         if (thebin.rapbin() == binF((float) 0.,1.6)) tbox->SetFillColorAlpha(kRed, 0.5);
-         else if (thebin.rapbin() == binF(1.6,2.4)) tbox->SetFillColorAlpha(kBlue, 0.5);
+         if (thebin.rapbin() == binF((float) 0.,1.6)) tbox->SetFillColorAlpha(kBlue, 0.5);
+         else if (thebin.rapbin() == binF(1.6,2.4)) tbox->SetFillColorAlpha(kRed, 0.5);
          else tbox->SetFillColorAlpha(kGreen, 0.5);
          tbox->Draw();
       }
@@ -421,9 +421,9 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       TGraphAsymmErrors *g_12007_mid_cent_syst = result12007_mid_cent_syst();
       g_12007_mid_cent->SetMarkerStyle(kFullTriangleUp);
       g_12007_mid_cent->SetMarkerSize(1.5);
-      g_12007_mid_cent->SetMarkerColor(kMagenta);
-      g_12007_mid_cent->SetLineColor(kMagenta);
-      g_12007_mid_cent_syst->SetFillColorAlpha(kMagenta, 0.5);
+      g_12007_mid_cent->SetMarkerColor(kCyan);
+      g_12007_mid_cent->SetLineColor(kCyan);
+      g_12007_mid_cent_syst->SetFillColorAlpha(kCyan, 0.5);
       g_12007_mid_cent_syst->Draw("2");
       g_12007_mid_cent->Draw("P");
       tleg->AddEntry(g_12007_mid_cent,"0 < |y| < 1.6, 6.5 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
@@ -431,9 +431,9 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       TGraphAsymmErrors *g_12007_fwd_cent_syst = result12007_fwd_cent_syst();
       g_12007_fwd_cent->SetMarkerStyle(kFullTriangleDown);
       g_12007_fwd_cent->SetMarkerSize(1.5);
-      g_12007_fwd_cent->SetMarkerColor(kCyan);
-      g_12007_fwd_cent->SetLineColor(kCyan);
-      g_12007_fwd_cent_syst->SetFillColorAlpha(kCyan, 0.5);
+      g_12007_fwd_cent->SetMarkerColor(kMagenta);
+      g_12007_fwd_cent->SetLineColor(kMagenta);
+      g_12007_fwd_cent_syst->SetFillColorAlpha(kMagenta, 0.5);
       g_12007_fwd_cent_syst->Draw("2");
       g_12007_fwd_cent->Draw("P");
       tleg->AddEntry(g_12007_fwd_cent,"1.6 < |y| < 2.4, 3 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
@@ -443,18 +443,18 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       TGraphAsymmErrors *g_12007_mid_syst = result12007_mid_syst();
       g_12007_mid->SetMarkerStyle(kFullTriangleUp);
       g_12007_mid->SetMarkerSize(1.5);
-      g_12007_mid->SetMarkerColor(kMagenta);
-      g_12007_mid->SetLineColor(kMagenta);
-      g_12007_mid_syst->SetFillColorAlpha(kMagenta, 0.5);
+      g_12007_mid->SetMarkerColor(kCyan);
+      g_12007_mid->SetLineColor(kCyan);
+      g_12007_mid_syst->SetFillColorAlpha(kCyan, 0.5);
       g_12007_mid_syst->Draw("2");
       g_12007_mid->Draw("P");
       TGraphAsymmErrors *g_12007_fwd = result12007_fwd();
       TGraphAsymmErrors *g_12007_fwd_syst = result12007_fwd_syst();
       g_12007_fwd->SetMarkerStyle(kFullTriangleDown);
       g_12007_fwd->SetMarkerSize(1.5);
-      g_12007_fwd->SetMarkerColor(kCyan);
-      g_12007_fwd->SetLineColor(kCyan);
-      g_12007_fwd_syst->SetFillColorAlpha(kCyan, 0.5);
+      g_12007_fwd->SetMarkerColor(kMagenta);
+      g_12007_fwd->SetLineColor(kMagenta);
+      g_12007_fwd_syst->SetFillColorAlpha(kMagenta, 0.5);
       g_12007_fwd_syst->Draw("2");
       g_12007_fwd->Draw("P");
 
