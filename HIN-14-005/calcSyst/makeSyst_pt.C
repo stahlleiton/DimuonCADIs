@@ -85,11 +85,11 @@ void makeSyst_pt( bool bSavePlots       = 1,
   ofstream outputData_pr(Form("%s/data/raaSystUncert_pt_pr.dat",outputDir));
   if (!outputData_pr.good()) {cout << "######### Fail to open data/*.dat file.##################" << endl;}
   outputData_pr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Syst_tot\t" << "contrib_muID_trig\t" 
-             << "contrib_4d\t" << "contrib_3d\t" << "contrib_fit\t" << "global_uncertainty\n";
+             << "contrib_sta\t" << "contrib_3d\t" << "contrib_4d\t" << "contrib_fit\t" << "global_uncertainty\n";
   ofstream outputData_npr(Form("%s/data/raaSystUncert_pt_npr.dat",outputDir));
   if (!outputData_npr.good()) {cout << "######### Fail to open data/*.dat file.##################" << endl;}
   outputData_npr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Syst_tot\t" << "contrib_muID_trig\t" 
-             << "contrib_4d\t" << "contrib_3d\t" << "contrib_fit\t" << "global_uncertainty\n";
+             << "contrib_sta\t" << "contrib_3d\t" << "contrib_4d\t" << "contrib_fit\t" << "global_uncertainty\n";
  
   // Luminosity uncertainty calculation
   double systLumi      = 0;
@@ -778,12 +778,14 @@ void makeSyst_pt( bool bSavePlots       = 1,
                    << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][1]+syst_effTnP_pr_aa[ibin-1][1]) << "\t"
                    << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][2]+syst_effTnP_pr_aa[ibin-1][2]) << "\t"
                    << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][0]+syst_effTnP_pr_aa[ibin-1][0]) << "\t"
+                   << TMath::Sqrt(syst_eff4d_pr_pp[ibin-1][0]+syst_eff4d_pr_aa[ibin-1][0]) << "\t"
                    << TMath::Sqrt(fitContribution_pr_pp/rms_fitContribNorm + fitContribution_pr_aa/rms_fitContribNorm) << "\t"
                    << TMath::Sqrt(systLumi+systSelection) << endl;
         outputData_npr << ptbins_str[ibin-1]<<"\t" << "0024\t" << "0100\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_pt[ibin-1] << "\t"
                    << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][1]+syst_effTnP_npr_aa[ibin-1][1]) << "\t"
                    << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][2]+syst_effTnP_npr_aa[ibin-1][2]) << "\t"
                    << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][0]+syst_effTnP_npr_aa[ibin-1][0]) << "\t"
+                   << TMath::Sqrt(syst_eff4d_npr_pp[ibin-1][0]+syst_eff4d_npr_aa[ibin-1][0]) << "\t"
                    << TMath::Sqrt(fitContribution_npr_pp/rms_fitContribNorm + fitContribution_npr_aa/rms_fitContribNorm) << "\t"
                    << TMath::Sqrt(systLumi+systSelection) << endl;
 
@@ -811,12 +813,14 @@ void makeSyst_pt( bool bSavePlots       = 1,
                    << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][1]+syst_effTnP_pt365y1624_pr_aa[ibin-1][1]) << "\t"
                    << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][2]+syst_effTnP_pt365y1624_pr_aa[ibin-1][2]) << "\t"
                    << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][0]+syst_effTnP_pt365y1624_pr_aa[ibin-1][0]) << "\t"
+                   << TMath::Sqrt(syst_eff4d_pt365y1624_pr_pp[ibin-1][0]+syst_eff4d_pt365y1624_pr_aa[ibin-1][0]) << "\t"
                    << TMath::Sqrt(fitContribution_pt365y1624_pr_pp/rms_fitContribNorm + fitContribution_pt365y1624_pr_aa/rms_fitContribNorm) << "\t"
                    << TMath::Sqrt(systLumi+systSelection) << endl;
         outputData_npr << ptbins_lowpt_str[ibin-1]<<"\t" << "1624\t" << "0100\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_pt365y1624_pt[ibin-1] << "\t"
                    << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][1]+syst_effTnP_pt365y1624_npr_aa[ibin-1][1]) << "\t"
                    << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][2]+syst_effTnP_pt365y1624_npr_aa[ibin-1][2]) << "\t"
                    << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][0]+syst_effTnP_pt365y1624_npr_aa[ibin-1][0]) << "\t"
+                   << TMath::Sqrt(syst_eff4d_pt365y1624_npr_pp[ibin-1][0]+syst_eff4d_pt365y1624_npr_aa[ibin-1][0]) << "\t"
                    << TMath::Sqrt(fitContribution_pt365y1624_npr_pp/rms_fitContribNorm + fitContribution_pt365y1624_npr_aa/rms_fitContribNorm) << "\t"
                    << TMath::Sqrt(systLumi+systSelection) << endl;
 
