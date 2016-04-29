@@ -426,7 +426,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       g_12007_mid_cent_syst->SetFillColorAlpha(kCyan, 0.5);
       g_12007_mid_cent_syst->Draw("2");
       g_12007_mid_cent->Draw("P");
-      tleg->AddEntry(g_12007_mid_cent,"0 < |y| < 1.6, 6.5 < p_{T} < 30 GeV/c, HIN-12-007","lp");//#sqrt{s_{NN}} = 2.76 TeV", "lp");
+      tleg->AddEntry(g_12007_mid_cent,"0 < |y| < 1.6, 6.5 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
       TGraphAsymmErrors *g_12007_fwd_cent = result12007_fwd_cent();
       TGraphAsymmErrors *g_12007_fwd_cent_syst = result12007_fwd_cent_syst();
       g_12007_fwd_cent->SetMarkerStyle(kFullTriangleDown);
@@ -436,7 +436,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       g_12007_fwd_cent_syst->SetFillColorAlpha(kMagenta, 0.5);
       g_12007_fwd_cent_syst->Draw("2");
       g_12007_fwd_cent->Draw("P");
-      tleg->AddEntry(g_12007_fwd_cent,"1.6 < |y| < 2.4, 3 < p_{T} < 30 GeV/c, HIN-12-007","lp");// #sqrt{s_{NN}} = 2.76 TeV", "lp");
+      tleg->AddEntry(g_12007_fwd_cent,"1.6 < |y| < 2.4, 3 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
 
       padr->cd();
       TGraphAsymmErrors *g_12007_mid = result12007_mid();
@@ -465,8 +465,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    tleg->Draw();
 
    int iPos = 33;
-   // CMS_lumi( (TPad*) gPad, 106, iPos, "" );
-   CMS_lumi( (TPad*) gPad, 103, iPos, "" );
+   CMS_lumi( (TPad*) gPad, 106, iPos, "" );
+   // CMS_lumi( (TPad*) gPad, 103, iPos, "" );
 
    c1->cd();
    c1->Update();
