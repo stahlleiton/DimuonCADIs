@@ -2,14 +2,22 @@
 #include "plotVars.C"
 #include "plotResults.C"
 #include "Systematics/syst.h"
+#include "Macros/drawMassPlot.C"
+
+#include "TFile.h"
+#include "TString.h"
+#include "RooWorkspace.h"
+#include "RooRealVar.h"
 
 // flags
-const bool doSysts = true;        // compute the systematics
+const bool doSysts = false;        // compute the systematics
 const bool printSysts = true;     // print the systematics summary table
 const bool plotMassPlots = false; // not implemented yet
 const bool plotAllVars = true;     // plot the dependance of all vars with pt, centrality, y
 const bool plotAllResults = true; // and plot the results!
 const bool plotSystResults = false;// plot results taking syst fits as nominal too
+
+void makeAllMassPlots(const char* workDirName, const char* DSTag="DATA");
 
 void makeAllPlots(const char* nominalDir, const char* systDirsSig, const char* systDirsBkg) {
    string allDirs = string(nominalDir) + "," + string(systDirsSig) + "," + string(systDirsBkg);
@@ -33,7 +41,8 @@ void makeAllPlots(const char* nominalDir, const char* systDirsSig, const char* s
 
    // draw mass plots
    if (plotMassPlots) {
-      cout << "Not yet implemented!" << endl;
+      // cout << "Not yet implemented!" << endl;
+      makeAllMassPlots(nominalDir);
    }
 
    // draw plots for all variables
@@ -121,4 +130,49 @@ void makeAllPlots(const char* nominalDir, const char* systDirsSig, const char* s
    cout << "echo \"svn commit\"" << endl;
    cout << "echo \"# freeze note; get approved; publish\"" << endl << endl;
    cout << "### Copy the lines above to a script ###" << endl;
+}
+
+void makeAllMassPlots(const char* workDirName, const char* DSTag) {
+   // list of files
+   vector<TString> theFiles = fileList(workDirName,"",DSTag);
+
+   for (vector<TString>::const_iterator it=theFiles.begin(); it!=theFiles.end(); it++) {
+      TFile *f = TFile::Open(*it);
+      RooWorkspace *myws = (RooWorkspace*) f->Get("workspace");
+      string outputDir = string("Output/") + string(workDirName) + string("/");
+      struct InputOpt opt;
+      opt.pp.RunNb.Start   = 262157; opt.PbPb.RunNb.Start = 262620;
+      opt.pp.RunNb.End     = 262328; opt.PbPb.RunNb.End   = 263757;
+      opt.pp.TriggerBit    = (int) PP::HLT_HIL1DoubleMu0_v1; 
+      opt.PbPb.TriggerBit  = (int) HI::HLT_HIL1DoubleMu0_v1; 
+      struct KinCuts cut;
+      RooRealVar *invMass = myws->var("invMass");
+      cut.dMuon.M.Min = invMass->getMin();
+      cut.dMuon.M.Max = invMass->getMax();
+      anabin thebin = binFromFile(*it);
+      cut.Centrality.Start = thebin.centbin().low();
+      cut.Centrality.End = thebin.centbin().high();
+      cut.dMuon.Pt.Min = thebin.ptbin().low();
+      cut.dMuon.Pt.Max = thebin.ptbin().high();
+      cut.dMuon.AbsRap.Min = thebin.rapbin().low();
+      cut.dMuon.AbsRap.Max = thebin.rapbin().high();
+      string plotLabel = "";
+      bool incJpsi = true;
+      bool incPsi2S = true;
+      bool incBkg = true;
+      bool cutCtau = true;
+      bool doSimulFit = false;
+      bool isPbPb = (it->Index("PbPb")>0);
+      cout << *it << " " << it->Index("PbPb") << endl;
+      bool setLogScale = false;
+      bool incSS = false;
+      bool zoomPsi = true;
+      int nBins = 46;
+      bool getMeanPT = false;
+
+      drawMassPlot(*myws, outputDir, opt, cut, plotLabel, DSTag, isPbPb, incJpsi, incPsi2S, incBkg, cutCtau, doSimulFit, false, setLogScale, incSS, zoomPsi, nBins, getMeanPT, true, false);
+
+      delete myws;
+      delete f;
+   }
 }
