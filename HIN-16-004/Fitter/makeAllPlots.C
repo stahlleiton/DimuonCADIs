@@ -17,7 +17,7 @@ const bool plotAllVars = true;     // plot the dependance of all vars with pt, c
 const bool plotAllResults = true; // and plot the results!
 const bool plotSystResults = false;// plot results taking syst fits as nominal too
 
-void makeAllMassPlots(const char* workDirName, const char* DSTag="DATA");
+void makeAllMassPlots(const char* workDirName, const char* DSTag="DATA", bool paperStyle=true, bool incSS=false);
 
 void makeAllPlots(const char* nominalDir, const char* systDirsSig, const char* systDirsBkg) {
    string allDirs = string(nominalDir) + "," + string(systDirsSig) + "," + string(systDirsBkg);
@@ -132,12 +132,23 @@ void makeAllPlots(const char* nominalDir, const char* systDirsSig, const char* s
    cout << "### Copy the lines above to a script ###" << endl;
 }
 
-void makeAllMassPlots(const char* workDirName, const char* DSTag) {
+void makeAllMassPlots(const char* workDirName, const char* DSTag, bool paperStyle, bool incSS) {
    // list of files
    vector<TString> theFiles = fileList(workDirName,"",DSTag);
 
    for (vector<TString>::const_iterator it=theFiles.begin(); it!=theFiles.end(); it++) {
       TFile *f = TFile::Open(*it);
+      TString t; Int_t from = 0;
+      bool catchjpsi=false, catchpsip=false, catchbkg=false;
+      Char_t jpsiName[128], psipName[128], bkgName[128];
+      while (it->Tokenize(t, from, "_")) {
+         if (catchjpsi) {strcpy(jpsiName, t.Data()); catchjpsi=false;}
+         if (catchpsip) {strcpy(psipName, t.Data()); catchpsip=false;}
+         if (catchbkg) {strcpy(bkgName, t.Data()); catchbkg=false;}
+         if (t=="Jpsi") catchjpsi=true;
+         if (t=="Psi2S") catchpsip=true;
+         if (t=="Bkg") catchbkg=true;
+      }
       RooWorkspace *myws = (RooWorkspace*) f->Get("workspace");
       string outputDir = string("Output/") + string(workDirName) + string("/");
       struct InputOpt opt;
@@ -156,21 +167,22 @@ void makeAllMassPlots(const char* workDirName, const char* DSTag) {
       cut.dMuon.Pt.Max = thebin.ptbin().high();
       cut.dMuon.AbsRap.Min = thebin.rapbin().low();
       cut.dMuon.AbsRap.Max = thebin.rapbin().high();
+      bool isPbPb = (it->Index("PbPb")>0);
       string plotLabel = "";
-      bool incJpsi = true;
-      bool incPsi2S = true;
+      bool incJpsi = !paperStyle;
+      bool incPsi2S = !paperStyle;
+      if (incJpsi)  { plotLabel = plotLabel + Form("_Jpsi_%s", jpsiName);  } 
+      if (incPsi2S) { plotLabel = plotLabel + Form("_Psi2S_%s", psipName); }
       bool incBkg = true;
       bool cutCtau = true;
       bool doSimulFit = false;
-      bool isPbPb = (it->Index("PbPb")>0);
       cout << *it << " " << it->Index("PbPb") << endl;
-      bool setLogScale = false;
-      bool incSS = false;
-      bool zoomPsi = true;
+      bool setLogScale = !paperStyle;
+      bool zoomPsi = paperStyle;
       int nBins = 46;
       bool getMeanPT = false;
 
-      drawMassPlot(*myws, outputDir, opt, cut, plotLabel, DSTag, isPbPb, incJpsi, incPsi2S, incBkg, cutCtau, doSimulFit, false, setLogScale, incSS, zoomPsi, nBins, getMeanPT, true, false);
+      drawMassPlot(*myws, outputDir, opt, cut, plotLabel, DSTag, isPbPb, incJpsi, incPsi2S, incBkg, cutCtau, doSimulFit, false, setLogScale, incSS, zoomPsi, nBins, getMeanPT, paperStyle, false);
 
       delete myws;
       delete f;
