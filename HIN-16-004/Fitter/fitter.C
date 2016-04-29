@@ -74,7 +74,7 @@ void fitter(
   TObjArray* aDSTAG = new TObjArray(); // Array to store the different tags in the list of trees
   aDSTAG->SetOwner(true);
   map<string, RooWorkspace> Workspace;
-
+  
   for(map<string, vector<string> >::iterator FileCollection=InputFileCollection.begin(); FileCollection!=InputFileCollection.end(); ++FileCollection) {
     // Get the file tag which has the following format: DSTAG_COLL , i.e. DATA_PP 
     string FILETAG = FileCollection->first;  
@@ -161,35 +161,47 @@ void fitter(
     }
   }
   if (fitCtau) {
-    if (fitPbPb && incBkg) {
-      // Add initial parameters for PbPb background models
-      InputFile = (DIR["input"] + "InitialParam_CTAU_BKG_PbPb.csv");
+    if (fitPbPb) {
+      // Add initial parameters for PbPb Ctau resolution model
+      InputFile = (DIR["input"] + "InitialParam_CTAU_RES_PbPb.csv");
       if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
     } 
-    if (fitPbPb && incJpsi) {
-      // Add initial parameters for PbPb jpsi models
-      InputFile = (DIR["input"] + "InitialParam_CTAU_JPSI_PbPb.csv");
-    if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
-    } 
-    if (fitPbPb && incPsi2S) {
-      // Add initial parameters for PbPb psi(2S) models
-      InputFile = (DIR["input"] + "InitialParam_CTAU_PSI2S_PbPb.csv");
+    if (fitPP) {
+      // Add initial parameters for PP Ctau resolution model
+      InputFile = (DIR["input"] + "InitialParam_CTAU_RES_PP.csv");
       if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
-    } 
-    if (fitPP && incBkg) {
-      // Add initial parameters for PP background models
-      InputFile = (DIR["input"] + "InitialParam_CTAU_BKG_PP.csv");
-      if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
-    } 
-    if (fitPP && incJpsi) {
-      // Add initial parameters for PP jpsi models
-      InputFile = (DIR["input"] + "InitialParam_CTAU_JPSI_PP.csv");
-      if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
-    } 
-    if (fitPP && incPsi2S) {
-      // Add initial parameters for PP psi(2S) models
-      InputFile = (DIR["input"] + "InitialParam_CTAU_PSI2S_PP.csv");
-      if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
+    }       
+    if (incNonPrompt) {
+      if (fitPbPb && incBkg) {
+        // Add initial parameters for PbPb background models
+        InputFile = (DIR["input"] + "InitialParam_CTAU_BKG_PbPb.csv");
+        if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
+      } 
+      if (fitPbPb && incJpsi) {
+        // Add initial parameters for PbPb jpsi models
+        InputFile = (DIR["input"] + "InitialParam_CTAU_JPSI_PbPb.csv");
+        if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
+      } 
+      if (fitPbPb && incPsi2S) {
+        // Add initial parameters for PbPb psi(2S) models
+        InputFile = (DIR["input"] + "InitialParam_CTAU_PSI2S_PbPb.csv");
+        if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
+      } 
+      if (fitPP && incBkg) {
+        // Add initial parameters for PP background models
+        InputFile = (DIR["input"] + "InitialParam_CTAU_BKG_PP.csv");
+        if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
+      } 
+      if (fitPP && incJpsi) {
+        // Add initial parameters for PP jpsi models
+        InputFile = (DIR["input"] + "InitialParam_CTAU_JPSI_PP.csv");
+        if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
+      } 
+      if (fitPP && incPsi2S) {
+        // Add initial parameters for PP psi(2S) models
+        InputFile = (DIR["input"] + "InitialParam_CTAU_PSI2S_PP.csv");
+        if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
+      }
     }
   }
 
@@ -669,9 +681,9 @@ bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitM
   if (!fitMass && !fitCtau) {
     cout << "[ERROR] At least one distribution has to be selected for fitting, please select either Mass or Ctau!" << endl; return false;
   }
-  if (fitMass && fitCtau && (!fitData || !fitMC) ) {
-    cout << "[ERROR] We need both MC and Data to fit both ctau and mass, please enable both Data and MC!" << endl; return false;
-  }
+  // if (fitMass && fitCtau && (!fitData || !fitMC) ) {
+  //  cout << "[ERROR] We need both MC and Data to fit both ctau and mass, please enable both Data and MC!" << endl; return false;
+  // }
   if (!fitMass && doSimulFit) {
     cout << "[ERROR] Can't perform simultanoeus fit without fitting the mass spectrum, please fix your fitter settings!" << endl; return false;
   }

@@ -733,3 +733,30 @@ bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2) {
 
   return true;
 }
+
+
+
+bool makeCtauErrPdf(RooWorkspace& ws, vector<string> objectColl, vector<string> rangeColl, bool isPbPb) 
+{
+  if (objectColl.size()!=rangeColl.size() || objectColl.size()<1) {
+    cout << Form("[ERROR] Object and range collections are wrong, CtauErrPdf maker failed!", objectColl.at(i)) << endl; return false;
+  }
+
+  TMatrixD CoefficientMatrix = TMatrixD(objectColl.size(), rangeColl.size());
+  TMatrixD TestMatrix = TMatrixD(objectColl.size(), rangeColl.size());
+  for (int i=0; i<objectColl.size(); i++) {
+    if (!ws.pdf(Form("pdfMASS_%s_%s", objectColl.at(i), (isPbPb?"PbPb":"PP")))) {
+      cout << Form("[ERROR] Mass PDF for %s is missing!", objectColl.at(i)) << endl; return false;
+    }
+    for (int j=0; j<rangeColl.size(); j++) {
+      CoefficientMatrix(i, j) =  ws.pdf(Form("pdfMASS_&s_%s", (objectColl.at(i), (isPbPb?"PbPb":"PP")))->createIntegral(*ws.var("invMass"), NormSet(*ws.var("invMass")), Range(rangeColl.at(j))))->getValV();
+      Test(i, j) = CoefficientMatrix(i, j);
+    }
+  }
+
+  CoefficientMatrix.InvertFast();
+  TestMatrix = TestMatric * CoefficientMatrix;
+  cout << "[INFO] Cross check of matrix inversion: " TestMatrix(0,0) << endl;
+  
+}
+  
