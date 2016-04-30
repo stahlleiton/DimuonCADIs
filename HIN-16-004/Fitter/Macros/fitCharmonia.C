@@ -150,9 +150,12 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
                                              Import("PbPb", *((RooDataSet*)myws.data("dOS_DATA_PbPb"))),
                                              Import("PP",   *((RooDataSet*)myws.data("dOS_DATA_PP")))
                                              );
+      myws.import(*sample);
+
       RooSimultaneous* simPdf = new RooSimultaneous("simPdf", "simultaneous pdf", *sample);
       simPdf->addPdf(*myws.pdf("pdfMASS_Tot_PbPb"), "PbPb"); simPdf->addPdf(*myws.pdf("pdfMASS_Tot_PP"), "PP");
-      
+      myws.import(*simPdf);
+
       // Do the simultaneous fit
       RooFitResult* fitResult = simPdf->fitTo(*combData, Offset(kTRUE), Extended(kTRUE), NumCPU(numCores), Range("MassWindow"), Save()); //, Minimizer("Minuit2","Migrad")
       fitResult->Print();
