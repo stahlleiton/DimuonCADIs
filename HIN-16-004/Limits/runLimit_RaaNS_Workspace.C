@@ -1,4 +1,8 @@
 #include <algorithm>
+#include "RooStats/ProfileLikelihoodCalculator.h"
+#include "RooStats/LikelihoodInterval.h"
+#include "RooStats/LikelihoodIntervalPlot.h"
+#include "TLatex.h"
 
 void runLimit_RaaNS_Workspace(const char *filename="TRIAL.root", const char *poiname="raa3", const char *pdfname="joint", const char *wsname="wcombo");
 
@@ -19,11 +23,11 @@ void runLimit_RaaNS_Workspace(const char *filename, const char *poiname, const c
    RooWorkspace* ws = (RooWorkspace*) f->Get(wsname);
    RooStats::ModelConfig *sbHypo = (RooStats::ModelConfig*) ws->obj("SbHypo");
    RooStats::ModelConfig *bHypo = (RooStats::ModelConfig*) ws->obj("BHypo");
-   cout << "observables: " << sbHypo.GetObservables()->getSize() << endl;
+   cout << "observables: " << sbHypo->GetObservables()->getSize() << endl;
    theVar = ws->var(poiname);
    // if (!theVar) theVar = ws->function(poiname);
    pdf = ws->pdf(pdfname);
-   data =(RooDataSet *) ws->data("data");
+   data =(RooDataSet *) ws->data("dOS_DATA");
 
    // Print structure of composite p.d.f.
    pdf->Print("t") ;
@@ -34,19 +38,26 @@ void runLimit_RaaNS_Workspace(const char *filename, const char *poiname, const c
 
    // get a first estimate of where to look
 
+   cout << __LINE__ << endl;
+   // pdf->fitTo(*data, Offset(kTRUE), Extended(kTRUE), NumCPU(2), Range("MassWindow"), Save(), Minimizer("Minuit2","Migrad"));
+   pdf->fitTo(*data, Extended(kTRUE), Offset(kTRUE));
+   cout << __LINE__ << endl;
    ProfileLikelihoodCalculator pl(*data,*sbHypo,1.-CI);
+   cout << __LINE__ << endl;
    cout << data << " " << pdf << " " << theVar << endl;
    pl.SetConfidenceLevel(CI); 
    int ci = 100*CI;
+   cout << __LINE__ << endl;
    LikelihoodInterval* interval = pl.GetInterval();
+   cout << __LINE__ << endl;
    LikelihoodIntervalPlot plot(interval);
    TCanvas c4; c4.cd(); 
-   plot.SetRange(0.,0.2,0.05,3.);
+   plot.SetRange(0.,1.,0.05,3.);
    // plot.Draw();
    TLatex latexCI;
    latexCI.SetNDC();
    latexCI.SetTextSize(0.035);
-   latexCI.DrawLatex(0.5,1.-0.05*2,Form("%s %d % C.I.",poiname,ci));
+   latexCI.DrawLatex(0.5,1.-0.05*2,Form("%s %d %s C.I.",poiname,ci,"%"));
    latexCI.DrawLatex(0.5,1.-0.05*3,Form("Upper limit: %f",interval->UpperLimit(*theVar)));
    latexCI.DrawLatex(0.5,1.-0.05*4,Form("Lower limit: %f",interval->LowerLimit(*theVar)));
    TString intrvlName = theVar->GetTitle();
@@ -98,7 +109,7 @@ void runLimit_RaaNS_Workspace(const char *filename, const char *poiname, const c
    //
 
    // 0,3,true for frequentist CLs; 2,3,true for asymptotic CLs; 0,2,false for FC
-   int calculatorType = 0;
+   int calculatorType = 2;
    int testStatType = 2;
    bool useCLs = false;
    // root> StandardHypoTestInvDemo("fileName","workspace name","S+B modelconfig name","B model name","data set name",calculator type, test statistic type, use CLS, 
@@ -112,7 +123,7 @@ void runLimit_RaaNS_Workspace(const char *filename, const char *poiname, const c
          wsname,
          sbHypo,
          bHypo,
-         "data",                 
+         "dOS_DATA",                 
          calculatorType,
          testStatType, 
          useCLs,  
