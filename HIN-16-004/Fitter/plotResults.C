@@ -472,11 +472,11 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    c1->Update();
    c1->RedrawAxis();
    gSystem->mkdir(Form("Output/%s/plot/RESULT/root/", outputDir.c_str()), kTRUE); 
-   c1->SaveAs(Form("Output/%s/plot/RESULT/root/result_%s.root",outputDir.c_str(), xaxis.c_str()));
+   c1->SaveAs(Form("Output/%s/plot/RESULT/root/result_%s%s.root",outputDir.c_str(), xaxis.c_str(), plot12007 ? "_12007" : ""));
    gSystem->mkdir(Form("Output/%s/plot/RESULT/png/", outputDir.c_str()), kTRUE);
-   c1->SaveAs(Form("Output/%s/plot/RESULT/png/result_%s.png",outputDir.c_str(), xaxis.c_str()));
+   c1->SaveAs(Form("Output/%s/plot/RESULT/png/result_%s%s.png",outputDir.c_str(), xaxis.c_str(), plot12007 ? "_12007" : ""));
    gSystem->mkdir(Form("Output/%s/plot/RESULT/pdf/", outputDir.c_str()), kTRUE);
-   c1->SaveAs(Form("Output/%s/plot/RESULT/pdf/result_%s.pdf",outputDir.c_str(), xaxis.c_str()));
+   c1->SaveAs(Form("Output/%s/plot/RESULT/pdf/result_%s%s.pdf",outputDir.c_str(), xaxis.c_str(), plot12007 ? "_12007" : ""));
 
    delete tleg;
    delete haxes; delete haxesr;
