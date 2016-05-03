@@ -55,9 +55,9 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     iniBranch(theTree,isMC);                                     // Initialize the Branches
 
     RooRealVar* mass     = new RooRealVar("invMass","#mu#mu mass", 2.0, 5.0, "GeV/c^{2}");
-    RooRealVar* ctau     = new RooRealVar("ctau","c_{#tau}", -10.0, 10.0, "cm");
-    RooRealVar* ctauTrue = new RooRealVar("ctauTrue","c_{#tau}", -10.0, 10.0, "cm");
-    RooRealVar* ctauErr  = new RooRealVar("ctauErr","#sigma_{c#tau}", -10.0, 10.0, "cm");	
+    RooRealVar* ctau     = new RooRealVar("ctau","c_{#tau}", -100.0, 100.0, "mm");
+    RooRealVar* ctauTrue = new RooRealVar("ctauTrue","c_{#tau}", -100.0, 100.0, "mm");
+    RooRealVar* ctauErr  = new RooRealVar("ctauErr","#sigma_{c#tau}", -100.0, 100.0, "mm");	
     RooRealVar* ptQQ     = new RooRealVar("pt","#mu#mu p_{T}", 0.0, 50.0, "GeV/c");
     RooRealVar* rapQQ    = new RooRealVar("rap","#mu#mu y", -2.4, 2.4, "");
     RooRealVar* cent     = new RooRealVar("cent","centrality", 0.0, 200.0, "");
@@ -117,7 +117,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         rapQQ->setVal(RecoQQ4mom->Rapidity());
         cent->setVal(Centrality);
         if (isMC) {
-          ctauTrue->setVal(Reco_QQ_ctauTrue[iQQ]);
+          ctauTrue->setVal(Reco_QQ_ctauTrue3D[iQQ]);
         } 
         
         if (applyWeight){
@@ -236,7 +236,7 @@ void iniBranch(TChain* fChain, bool isMC)
     fChain->SetBranchStatus("Gen_QQ_size",1);
     fChain->SetBranchStatus("Gen_QQ_mupl_4mom",1);
     fChain->SetBranchStatus("Gen_QQ_mumi_4mom",1);
-    fChain->SetBranchStatus("Reco_QQ_ctauTrue",1);
+    fChain->SetBranchStatus("Reco_QQ_ctauTrue3D",1);
   }
 };
 

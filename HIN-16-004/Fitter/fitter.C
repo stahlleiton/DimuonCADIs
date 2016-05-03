@@ -3,7 +3,7 @@
 #include "Macros/fitCharmonia.C"
 
 
-bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, 
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, 
                    bool cutCtau, bool doSimulFit, bool wantPureSMC, bool setLogScale, bool zoomPsi, bool incSS, int numCores, float binWidth);
 
 
@@ -21,18 +21,19 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 void fitter(
             const string workDirName="Test", // Working directory
             // Select the type of datasets to fit
-            bool fitData      = false,         // Fits Data datasets
-            bool fitMC        = true,        // Fits MC datasets
-            bool fitPbPb      = false,         // Fits PbPb datasets
-            bool fitPP        = true,         // Fits PP datasets
-            bool fitMass      = false,         // Fits invariant mass distribution
-            bool fitCtau      = true,        // Fits ctau distribution
+            bool fitData      = false,        // Fits Data datasets
+            bool fitMC        = true,         // Fits MC datasets
+            bool fitPbPb      = true,         // Fits PbPb datasets
+            bool fitPP        = false,        // Fits PP datasets
+            bool fitMass      = false,        // Fits invariant mass distribution
+            bool fitCtau      = false,        // Fits ctau distribution
+            bool fitCtauTrue  = true,         // Fits ctau true MC distribution
             // Select the type of object to fit
-            bool incJpsi      = true,         // Includes Jpsi model
+            bool incJpsi      = true,          // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
             bool incBkg       = false,         // Includes Background model
-            bool incPrompt    = true,         // Includes Prompt ctau model
-            bool incNonPrompt = false,        // Includes Non Prompt ctau model 
+            bool incPrompt    = false,         // Includes Prompt ctau model
+            bool incNonPrompt = true,          // Includes Non Prompt ctau model 
             // Select the fitting options
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
@@ -42,7 +43,7 @@ void fitter(
             bool  setLogScale  = true,         // Draw plot with log scale
             bool  incSS        = false,        // Include Same Sign data
             bool  zoomPsi      = false,        // Zoom Psi(2S) peak on extra pad
-            float binWidth     = 0.01          // Bin width used for plotting
+            float binWidth     = 0.05          // Bin width used for plotting
             ) 
 {
   // -------------------------------------------------------------------------------
@@ -55,8 +56,8 @@ void fitter(
 	 |-> DataSet : Contain all the datasets (MC and Data)
   */
 
-  if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, setLogScale, zoomPsi, incSS, numCores, binWidth)) { return; }
-  
+  if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, setLogScale, zoomPsi, incSS, numCores, binWidth)) { return; }
+
   map<string,string> DIR;
   if(!iniWorkEnv(DIR, workDirName)){ return; }
  
@@ -116,7 +117,7 @@ void fitter(
   if (Workspace.size()==0) {
     cout << "[ERROR] No onia tree files were found matching the user's input settings!" << endl; return;
   }
-  
+
   // -------------------------------------------------------------------------------
   // STEP 2: LOAD THE INITIAL PARAMETERS
   /*
@@ -204,6 +205,18 @@ void fitter(
       }
     }
   }
+  if (fitCtauTrue) {
+    if (fitPbPb) {
+      // Add initial parameters for PbPb jpsi models
+      InputFile = (DIR["input"] + "InitialParam_CTAU_TRUE_PbPb.csv");
+      if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
+    } 
+    if (fitPP) {
+      // Add initial parameters for PP jpsi models
+      InputFile = (DIR["input"] + "InitialParam_CTAU_TRUE_PP.csv");
+      if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
+    }
+  }  
 
   // -------------------------------------------------------------------------------  
   // STEP 3: FIT THE DATASETS
@@ -239,6 +252,7 @@ void fitter(
                              // Select the type of object to fit
                              fitMass,         // Fit mass distribution
                              fitCtau,         // Fit ctau distribution
+                             false,           // Fits ctau true MC distribution
                              incJpsi,         // Includes Jpsi model
                              incPsi2S,        // Includes Psi(2S) model
                              incBkg,          // Includes Background model
@@ -272,6 +286,7 @@ void fitter(
                                // Select the type of object to fit
                                fitMass,         // Fit mass distribution
                                fitCtau,         // Fit ctau distribution
+                               fitCtauTrue,     // Fits ctau true MC distribution
                                incJpsi,         // Includes Jpsi model
                                incPsi2S,        // Includes Psi(2S) model
                                incBkg,          // Includes Background model
@@ -299,6 +314,7 @@ void fitter(
                                  // Select the type of object to fit                                 
                                  fitMass,         // Fit mass distribution
                                  fitCtau,         // Fit ctau distribution
+                                 fitCtauTrue,     // Fits ctau true MC distribution
                                  incJpsi,         // Includes Jpsi model
                                  incPsi2S,        // Includes Psi(2S) model
                                  incBkg,          // Includes Background model
@@ -327,6 +343,7 @@ void fitter(
                                // Select the type of object to fit
                                fitMass,         // Fit mass distribution
                                fitCtau,         // Fit ctau distribution
+                               fitCtauTrue,     // Fits ctau true MC distribution
                                incJpsi,         // Includes Jpsi model
                                incPsi2S,        // Includes Psi(2S) model
                                incBkg,          // Includes Background model
@@ -354,6 +371,7 @@ void fitter(
                                  // Select the type of object to fit                                 
                                  fitMass,         // Fit mass distribution
                                  fitCtau,         // Fit ctau distribution
+                                 fitCtauTrue,     // Fits ctau true MC distribution
                                  incJpsi,         // Includes Jpsi model
                                  incPsi2S,        // Includes Psi(2S) model
                                  incBkg,          // Includes Background model
@@ -418,10 +436,12 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
   cut.sMuon.Pt.Max  = 100000.0;
   cut.sMuon.Eta.Min = -2.4;   
   cut.sMuon.Eta.Max = 2.4;
-  cut.dMuon.ctauErr.Min = 0.00000001; 
-  cut.dMuon.ctauErr.Max = 0.1;
-  cut.dMuon.ctau.Min = -10.0;   
-  cut.dMuon.ctau.Max = 10.0;    
+  cut.dMuon.ctauErr.Min = -50.0; 
+  cut.dMuon.ctauErr.Max = 50.0;
+  cut.dMuon.ctauTrue.Min = -50.0; 
+  cut.dMuon.ctauTrue.Max = 50.0;
+  cut.dMuon.ctau.Min = -50.0;   
+  cut.dMuon.ctau.Max = 50.0;    
   cut.dMuon.ctauCut = "";   
   cut.dMuon.M.Min = 2.0; 
   cut.dMuon.M.Max = 5.0;  
@@ -496,7 +516,37 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
       }  
       cut.dMuon.ctau.Min = v.at(0); 
       cut.dMuon.ctau.Max = v.at(1);
-    } 
+    }  
+    else if (label=="ctauErr"){
+      if (col->second=="" || col->second.find("-")!=std::string::npos) {
+        cout << "[ERROR] Input column 'ctauErr' has invalid value: " << col->second << endl; return false;
+      }
+      std::vector<double> v; 
+      if(!parseString(col->second, "-", v)) { return false; }
+      if (v.size()!=2) {
+        cout << "[ERROR] Input column 'ctauErr' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
+      }  
+      cut.dMuon.ctauErr.Min = v.at(0); 
+      cut.dMuon.ctauErr.Max = v.at(1);
+    }
+    else if (label=="ctauTrue"){
+      if (col->second=="" || col->second.find("->")!=std::string::npos) {
+        cout << "[ERROR] Input column 'ctauTrue' has invalid value: " << col->second << endl; return false;
+      }
+      std::vector<double> v; 
+      if(!parseString(col->second, "->", v)) { return false; }
+      if (v.size()!=2) {
+        cout << "[ERROR] Input column 'ctauTrue' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
+      }  
+      cut.dMuon.ctauTrue.Min = v.at(0); 
+      cut.dMuon.ctauTrue.Max = v.at(1);
+    }
+    else if (label=="ctauCut"){
+      if (col->second=="") {
+        cout << "[ERROR] Input column 'ctauCut' has invalid value: " << col->second << endl; return false;
+      }
+      cut.dMuon.ctauCut = col->second;
+    }    
     else if (label.find("Model")!=std::string::npos){
       if (col->second=="") {
         cout << "[ERROR] Input column 'Model' has empty value" << endl; return false;
@@ -673,13 +723,22 @@ bool existDir(string dir)
   return exist;
 };
 
-bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, 
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, 
                    bool cutCtau, bool doSimulFit, bool wantPureSMC, bool setLogScale, bool zoomPsi, bool incSS, int numCores, float binWidth)
 { 
   cout << "[INFO] Checking user settings " << endl;
 
-  if (!fitMass && !fitCtau) {
+  if (!fitMass && !fitCtau && !fitCtauTrue) {
     cout << "[ERROR] At least one distribution has to be selected for fitting, please select either Mass or Ctau!" << endl; return false;
+  }
+  if (fitCtauTrue && fitData) {
+    cout << "[ERROR] We can not fit the truth ctau distribution on data, please select only MC!" << endl; return false;
+  }
+  if (fitCtauTrue && !incNonPrompt) {
+    cout << "[ERROR] The ctau truth distribution is only fitted on Non-Prompt MC, please include the Non-Prompt components!" << endl; return false;
+  }
+  if (!fitData && !fitMC) {
+    cout << "[ERROR] At least one type of dataset has to be selected for fitting, please select either Data or MC!" << endl; return false;
   }
   // if (fitMass && fitCtau && (!fitData || !fitMC) ) {
   //  cout << "[ERROR] We need both MC and Data to fit both ctau and mass, please enable both Data and MC!" << endl; return false;

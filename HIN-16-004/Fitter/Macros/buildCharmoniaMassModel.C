@@ -1,6 +1,6 @@
 #include "Utilities/initClasses.h"
 
-void fixPsi2StoJpsi(map<string, string>& parIni, bool isPbPb);
+void fixMassParPsi2StoJpsi(map<string, string>& parIni, bool isPbPb);
 void fixPbPbtoPP(map<string, string>& parIni);
 void setMassDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries);
 bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<string,string> parIni, bool isPbPb); 
@@ -22,7 +22,7 @@ bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<stri
 
   // Fix all psi2S parameters to jpsi
   if (incJpsi && incPsi2S) {
-    fixPsi2StoJpsi(parIni, isPbPb);
+    fixMassParPsi2StoJpsi(parIni, isPbPb);
   }
 
   // Let's define the single and double ratio variables
@@ -836,7 +836,7 @@ void fixPbPbtoPP(map<string, string>& parIni)
   //parIni["f_Psi2S_PbPb"] = Form("RooFormulaVar::%s('@0',{%s})", "f_Psi2S_PbPb", "f_Jpsi_PP");  
 };
 
-void fixPsi2StoJpsi(map<string, string>& parIni, bool isPbPb)
+void fixMassParPsi2StoJpsi(map<string, string>& parIni, bool isPbPb)
 {
   cout << "[INFO] Constraining Psi(2S) parameters to Jpsi using PDF Mass Ratio" << endl;
   Double_t MassRatio = (Mass.Psi2S/Mass.JPsi);

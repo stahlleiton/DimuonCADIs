@@ -73,7 +73,7 @@ typedef struct EvtPar {
 } EvtPar;
 
 typedef struct DiMuonPar {
-  MinMax ctau, ctauErr, M, Pt, AbsRap;
+  MinMax ctau, ctauErr, ctauTrue, M, Pt, AbsRap;
   string ctauCut;
 } DiMuonPar;
 
@@ -110,6 +110,9 @@ bool isEqualKinCuts(struct KinCuts cutA, struct KinCuts cutB, bool isPbPb)
   cond = cond && (cutA.dMuon.ctau.Max      == cutB.dMuon.ctau.Max);
   cond = cond && (cutA.dMuon.ctauErr.Min   == cutB.dMuon.ctauErr.Min);
   cond = cond && (cutA.dMuon.ctauErr.Max   == cutB.dMuon.ctauErr.Max);
+  cond = cond && (cutA.dMuon.ctauTrue.Min  == cutB.dMuon.ctauTrue.Min);
+  cond = cond && (cutA.dMuon.ctauTrue.Max  == cutB.dMuon.ctauTrue.Max);
+  cond = cond && (cutA.dMuon.ctauCut       == cutB.dMuon.ctauCut);
   cond = cond && (cutA.dMuon.M.Min         == cutB.dMuon.M.Min);
   cond = cond && (cutA.dMuon.M.Max         == cutB.dMuon.M.Max);
   cond = cond && (cutA.dMuon.Pt.Min        == cutB.dMuon.Pt.Min);
@@ -200,13 +203,16 @@ typedef struct CtauMassModel {
 typedef struct CharmModel {
   CtauMassModel  Jpsi, Psi2S, Bkg;
   CtauModel CtauRes;
+  CtauModel CtauTrue, CtauTrueRes;
 } CharmModel;
 
 typedef struct OniaModel {
   CharmModel  PbPb, PP;
 } OniaModel;
 
-
+typedef struct RangeStruc {
+  string label, cut;
+} RangeStruc;
 
 
 #endif // #ifndef initClasses_h
