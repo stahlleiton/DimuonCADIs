@@ -27,7 +27,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
                   bool incSS,           // Include Same Sign data
                   bool zoomPsi,         // Zoom Psi(2S) peak on extra pad
                   int  nBins,           // Number of bins used for plotting
-                  bool getMeanPT        // Compute the mean PT (NEED TO FIX)
+                  bool getMeanPT,       // Compute the mean PT (NEED TO FIX)
                   bool paperStyle=false,// if true, print less info
                   bool saveWS=true      // save the workspace into a file
                   ) 
@@ -212,7 +212,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
     if (incBkg) {
       myws.pdf(pdfName.c_str())->plotOn(framezoom, Name("BKG"),Components(*myws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP")))),
                                         Normalization(norm, RooAbsReal::NumEvent), 
-                                        FillStyle((paperStyle ? 0 : 1001), FillColor(kAzure-9), VLines(), DrawOption("LCF"), LineColor(kBlue), LineStyle(kDashed),Precision(1e-4));
+                                        FillStyle(paperStyle ? 0 : 1001), FillColor(kAzure-9), VLines(), DrawOption("LCF"), LineColor(kBlue), LineStyle(kDashed),Precision(1e-4));
     }
     myws.data(dsOSName.c_str())->plotOn(framezoom, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
     myws.pdf(pdfName.c_str())->plotOn(framezoom,Name("PDF"), Normalization(norm, RooAbsReal::NumEvent), NormRange("MassWindow"),
@@ -351,7 +351,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
        framezoom->GetYaxis()->SetTitleSize(0.072);
        framezoom->GetXaxis()->SetTitleSize(0.072);
     // }
-    setRange(myws, framezoom, dsOSName, setLogScale, cut.dMuon.AbsRap.Min);
+    setMassRange(myws, framezoom, dsOSName, setLogScale, cut.dMuon.AbsRap.Min);
 
     pad4->Draw();
     pad4->cd();

@@ -15,7 +15,7 @@ bool setCtauModel( struct OniaModel& model, map<string, string>&  parIni, bool i
 bool setCtauTrueModel( struct OniaModel& model, map<string, string>&  parIni, bool isPbPb );
 
 void setOptions(struct InputOpt* opt);
-void setFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut, bool fitMass, bool fitCtau, bool fitCtauTrue, bool doSimulFit, bool isPbPb=true);
+void setFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut, bool fitMass, bool fitCtau, bool fitCtauTrue, bool doSimulFit, bool isPbPb=true, bool cutSideBand=false);
 bool saveWorkSpace(RooWorkspace& myws, string outputDir, string plotLabel, string DSTAG, struct KinCuts cut, bool fitMass, bool fitCtau, bool fitCtauTrue, bool doSimulFit, bool isPbPb=true);
 
 bool isFitAlreadyFound(RooArgSet *newpars, string outputDir, string plotLabel, string DSTAG, struct KinCuts cut, bool fitMass, bool fitCtau, bool fitCtauTrue, bool doSimulFit, bool isPbPb=true);
@@ -531,7 +531,6 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
     }
   }
 
-  return false;
   return true;
 };
 
@@ -973,7 +972,7 @@ void setOptions(struct InputOpt* opt)
   return;
 };
 
-void setFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut,bool fitMass, bool fitCtau, bool fitCtauTrue, bool doSimulFit, bool isPbPb) 
+void setFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut,bool fitMass, bool fitCtau, bool fitCtauTrue, bool doSimulFit, bool isPbPb, bool cutSideBand) 
 {
   if (fitCtauTrue) {
     FileName = Form("%sresult/%s/ctauTrue%s/FIT_%s_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), TAG.c_str(), (cutSideBand?"SB":""), "CTAUTRUE", TAG.c_str(), "Psi2SJpsi", (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
