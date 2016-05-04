@@ -39,6 +39,8 @@
 using namespace RooFit;
 using namespace RooStats;
 
+const bool dosyst = false;
+
 void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root"){
 
    // TFile File(filename);
@@ -63,7 +65,7 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    ws->factory( "Gaussian::constr_syst_PP(beta_syst_PP,glob_syst_PP[0,-5,5],1)" );
    // build the pp pdf
    ws->factory( "SUM::pdfMASS_Tot_PP_syst(N_Jpsi_PP * pdfMASS_Jpsi_PP, N_Psi2S_PP * pdfMASS_Psi2S_PP, N_Bkg_PP_syst * pdfMASS_Bkg_PP)" );
-   ws->factory( "PROD::pdfMASS_Tot_PP_constr(constr_syst_PP,pdfMASS_Tot_PP_syst)" );
+   ws->factory( "PROD::pdfMASS_Tot_PP_constr(pdfMASS_Tot_PP_syst,constr_syst_PP)" );
 
    ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP_constr)");
    // ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP)");
@@ -88,11 +90,14 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    obs.add(*pObs);
    obs.add( *ws->cat("sample"));    
    //  /////////////////////////////////////////////////////////////////////
+
    ws->var("glob_syst_PP")->setConstant(true);
    // ws->var("glob_syst_pbpb")->setConstant(true);
    RooArgSet globalObs("global_obs");
-   // globalObs.add( *ws->var("glob_syst_pbpb") );
-   globalObs.add( *ws->var("glob_syst_PP") );
+   if (dosyst) {
+      // globalObs.add( *ws->var("glob_syst_pbpb") );
+      globalObs.add( *ws->var("glob_syst_PP") );
+   }
 
    // ws->Print();
 
@@ -103,8 +108,10 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
 
    // create set of nuisance parameters
    RooArgSet nuis("nuis");
-   // nuis.add( *ws->var("beta_syst_pbpb") );
-   nuis.add( *ws->var("beta_syst_PP") );
+   if (dosyst) {
+      // nuis.add( *ws->var("beta_syst_pbpb") );
+      nuis.add( *ws->var("beta_syst_PP") );
+   }
 
    // set parameters constant
    RooArgSet allVars = ws->allVars();
@@ -115,10 +122,14 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
       if (varname != "RFrac2Svs1S_PbPbvsPP"
             && varname != "invMass"
             && varname != "sample"
-            && varname != "beta_syst_PP"
-            && varname != "glob_syst_PP"
             ) 
          theVar->setConstant();
+      if (varname=="glob_syst_PP"
+            || varname=="beta_syst_PP"
+            ) {
+         cout << varname << endl;
+         theVar->setConstant(!dosyst);
+      }
       theVar = (RooRealVar*) it->Next();
    }
 

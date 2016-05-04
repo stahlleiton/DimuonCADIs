@@ -37,6 +37,8 @@
 using namespace RooFit;
 using namespace RooStats;
 
+const bool dosyst = false;
+
 void combinedWorkspace_fromSimFit(const char* name_in, const char* name_out){
 
    TFile *fin = TFile::Open(name_in);
@@ -79,8 +81,10 @@ void combinedWorkspace_fromSimFit(const char* name_in, const char* name_out){
    ws->var("glob_syst_PP")->setConstant(true);
    // ws->var("glob_syst_pbpb")->setConstant(true);
    RooArgSet globalObs("global_obs");
-   // globalObs.add( *ws->var("glob_syst_pbpb") );
-   globalObs.add( *ws->var("glob_syst_PP") );
+   if (dosyst) {
+      // globalObs.add( *ws->var("glob_syst_pbpb") );
+      globalObs.add( *ws->var("glob_syst_PP") );
+   }
 
    // ws->Print();
 
@@ -108,14 +112,15 @@ void combinedWorkspace_fromSimFit(const char* name_in, const char* name_out){
       TString varname(theVar->GetName());
       if (varname != "RFrac2Svs1S_PbPbvsPP"
             && varname != "invMass"
-            && varname != "beta_syst_PP"
-            && varname != "glob_syst_PP"
-            // && varname != "N_Bkg_PbPb"
-            // && varname != "N_Bkg_PP"
-            // && varname != "N_Jpsi_PbPb"
-            // && varname != "N_Jpsi_PP"
+            && varname != "sample"
             ) 
          theVar->setConstant();
+      if (varname=="glob_syst_PP"
+            || varname=="beta_syst_PP"
+            ) {
+         cout << varname << endl;
+         theVar->setConstant(!dosyst);
+      }
       theVar = (RooRealVar*) it->Next();
    }
 
