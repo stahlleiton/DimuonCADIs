@@ -3,7 +3,7 @@
 
 #include "Utilities/initClasses.h"
 
-void setCtauTrueRange(RooWorkspace& myws, RooPlot* frame, string dsName, int nBins, bool setLogScale, double dMuonYmin = -1.);
+void setCtauTrueRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLogScale, double dMuonYmin = -1.);
 void printCtauTrueParameters(RooWorkspace myws, TPad* Pad, bool isPbPb, string pdfName, bool isWeighted);
 void printCtauTrueChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, string dataLabel, string pdfLabel, int nBins, bool isWeighted); 
 
@@ -87,7 +87,7 @@ void drawCtauTruePlot(RooWorkspace& myws,   // Local workspace
   frame->GetYaxis()->SetTitleSize(0.04);
   frame->GetYaxis()->SetTitleOffset(1.7);
   frame->GetYaxis()->SetTitleFont(42);
-  setCtauTrueRange(myws, frame, dsOSName, nBins, setLogScale, cut.dMuon.AbsRap.Min);
+  setCtauTrueRange(myws, frame, dsOSName, setLogScale, cut.dMuon.AbsRap.Min);
  
   cFig->cd();
   pad2->SetTopMargin(0.02);
@@ -109,7 +109,7 @@ void drawCtauTruePlot(RooWorkspace& myws,   // Local workspace
   
   t->SetTextSize(0.03);
   t->DrawLatex(0.21, 0.86-dy, "2015 HI Soft Muon ID"); dy+=0.045;
-  if (cutCtau) { t->DrawLatex(0.21, 0.86-dy, "c#tau^{J/#psi} cuts applied"); dy+=0.045; }
+  if (cutCtau) { t->DrawLatex(0.21, 0.86-dy, "l_{J/#psi} cuts applied"); dy+=0.045; }
   if (isPbPb) {
     t->DrawLatex(0.21, 0.86-dy, "HLT_HIL1DoubleMu0_v1"); dy+=0.045;
   } else {
@@ -165,7 +165,7 @@ void drawCtauTruePlot(RooWorkspace& myws,   // Local workspace
   frame2->GetXaxis()->SetTitleOffset(1);
   frame2->GetXaxis()->SetTitleSize(0.12);
   frame2->GetXaxis()->SetLabelSize(0.1);
-  frame2->GetXaxis()->SetTitle("MC Truth c#tau_{#mu^{+}#mu^{-}} (mm)");
+  frame2->GetXaxis()->SetTitle("MC Truth l_{J/#psi} (mm)");
   frame2->GetYaxis()->SetRangeUser(-7.0, 7.0);
 
   frame2->Draw(); 
@@ -177,27 +177,26 @@ void drawCtauTruePlot(RooWorkspace& myws,   // Local workspace
   pad2->Update();
   
   // Save the plot in different formats
-  gSystem->mkdir(Form("%splot/%s/ctauTrue/root/", outputDir.c_str(), DSTAG.c_str()), kTRUE); 
-  cFig->SaveAs(Form("%splot/%s/ctauTrue/root/%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), DSTAG.c_str(), DSTAG.c_str(),  "Psi2SJpsi", (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End));
-  gSystem->mkdir(Form("%splot/%s/ctauTrue/png/", outputDir.c_str(), DSTAG.c_str()), kTRUE);
-  cFig->SaveAs(Form("%splot/%s/ctauTrue/png/%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.png", outputDir.c_str(), DSTAG.c_str(), DSTAG.c_str(), "Psi2SJpsi", (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End));
-  gSystem->mkdir(Form("%splot/%s/ctauTrue/pdf/", outputDir.c_str(), DSTAG.c_str()), kTRUE);
-  cFig->SaveAs(Form("%splot/%s/ctauTrue/pdf/%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.pdf", outputDir.c_str(), DSTAG.c_str(), DSTAG.c_str(), "Psi2SJpsi", (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End));
+  gSystem->mkdir(Form("%splot/%s/ctauTrue/root/", outputDir.c_str(), DSTAG.c_str(), SB?"SB":""), kTRUE); 
+  cFig->SaveAs(Form("%splot/%s/ctauTrue/root/%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), DSTAG.c_str(), SB?"SB":"", DSTAG.c_str(),  "Psi2SJpsi", (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End));
+  gSystem->mkdir(Form("%splot/%s/ctauTrue/png/", outputDir.c_str(), DSTAG.c_str(), SB?"SB":""), kTRUE);
+  cFig->SaveAs(Form("%splot/%s/ctauTrue/png/%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.png", outputDir.c_str(), DSTAG.c_str(), SB?"SB":"", DSTAG.c_str(), "Psi2SJpsi", (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End));
+  gSystem->mkdir(Form("%splot/%s/ctauTrue/pdf/", outputDir.c_str(), DSTAG.c_str(), SB?"SB":""), kTRUE);
+  cFig->SaveAs(Form("%splot/%s/ctauTrue/pdf/%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.pdf", outputDir.c_str(), DSTAG.c_str(), SB?"SB":"", DSTAG.c_str(), "Psi2SJpsi", (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End));
   
   cFig->Clear();
   cFig->Close();
 
 }
 
-#endif // #ifndef drawCtauTruePlot_C
-
-
-void setCtauTrueRange(RooWorkspace& myws, RooPlot* frame, string dsName, int nBins, bool setLogScale, double dMuonYmin)
+void setCtauTrueRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLogScale, double dMuonYmin)
 { 
   // Find maximum and minimum points of Plot to rescale Y axis
-  TH1* h = myws.data(dsName.c_str())->createHistogram("hist", *myws.var("ctauTrue"), Binning(nBins));
+  TH1* h = myws.data(dsName.c_str())->createHistogram("hist", *myws.var("invMass"), Binning(frame->GetNbinsX(),frame->GetXaxis()->GetXmin(),frame->GetXaxis()->GetXmax()));
   Double_t YMax = h->GetBinContent(h->GetMaximumBin());
-  Double_t YMin = min( h->GetBinContent(h->FindFirstBinAbove(0.0)), h->GetBinContent(h->FindLastBinAbove(0.0)) );
+  // Double_t YMin = min( h->GetBinContent(h->FindFirstBinAbove(0.0)), h->GetBinContent(h->FindLastBinAbove(0.0)) );
+  Double_t YMin = 1e99;
+  for (int i=1; i<=h->GetNbinsX(); i++) if (h->GetBinContent(i)>0) YMin = min(YMin, h->GetBinContent(i));
   
   bool isMC = false;
   if (dsName.find("MC")!=std::string::npos) isMC = true;
@@ -292,3 +291,5 @@ void printCtauTrueChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string var
   delete hdatact; 
   delete hpull;
 };
+
+#endif // #ifndef drawCtauTruePlot_C
