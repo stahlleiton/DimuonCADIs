@@ -145,7 +145,8 @@ void drawCtauTruePlot(RooWorkspace& myws,   // Local workspace
     }
   }
   
-  CMS_lumi(pad1, isPbPb ? 105 : 104, 33, label);
+  //CMS_lumi(pad1, isPbPb ? 105 : 104, 33, label);
+  CMS_lumi(pad1, isPbPb ? 108 : 107, 33, "");
   gStyle->SetTitleFontSize(0.05);
   
   pad1->Update();
