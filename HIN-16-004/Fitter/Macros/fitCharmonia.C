@@ -1,3 +1,5 @@
+#ifndef fitCharmonia_C
+#define fitCharmonia_C
 
 #include "Utilities/initClasses.h"
 #include "buildCharmoniaMassModel.C"
@@ -464,3 +466,5 @@ bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2) {
 
   return true;
 }
+
+#endif // #ifndef fitCharmonia_C

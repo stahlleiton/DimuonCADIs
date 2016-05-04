@@ -48,45 +48,43 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    // ws->Print();
    RooAbsData * data = ws->data("dOS_DATA");
 
-   RooRealVar* doubleRatio = ws->var("doubleRatio");
-   RooRealVar* leftEdge = new RooRealVar("leftEdge","leftEdge",0);
+   RooRealVar* RFrac2Svs1S_PbPbvsPP = ws->var("RFrac2Svs1S_PbPbvsPP");
+   RooRealVar* leftEdge = new RooRealVar("leftEdge","leftEdge",-10);
    RooRealVar* rightEdge = new RooRealVar("rightEdge","rightEdge",10);
-   RooGenericPdf step("step", "step", "(@0 >= @1) && (@0 < @2)", RooArgList(*doubleRatio, *leftEdge, *rightEdge));
+   RooGenericPdf step("step", "step", "(@0 >= @1) && (@0 < @2)", RooArgList(*RFrac2Svs1S_PbPbvsPP, *leftEdge, *rightEdge));
    ws->import(step);
-   ws->factory( "Uniform::flat(doubleRatio)" );
+   ws->factory( "Uniform::flat(RFrac2Svs1S_PbPbvsPP)" );
 
    // systematics
    ws->factory( "syst_PP_kappa[1.10]" );
    ws->factory( "expr::alpha_syst_PP('pow(syst_PP_kappa,beta_syst_PP)',syst_PP_kappa,beta_syst_PP[0,-5,5])" );
-   ws->factory( "SUM::syst_PP_nom(alpha_syst_PP*pdfMASS_Bkg_PP)" );
+   ws->factory( "SUM::pdfMASS_Bkg_PP_nom(alpha_syst_PP*pdfMASS_Bkg_PP)" );
    ws->factory( "Gaussian::constr_syst_PP(beta_syst_PP,glob_syst_PP[0,-5,5],1)" );
-   ws->factory("RooExtendPdf::pdfMASSTot_Bkg_PP_syst(syst_PP_nom,N_Bkg_PP)");
-   RooAddPdf *pdftot_PP = new RooAddPdf("pdfMASS_Tot_PP_syst","pdfMASS_Tot_PP_syst",
-         RooArgList(*ws->pdf("pdfMASSTot_Jpsi_PP"),*ws->pdf("pdfMASSTot_Psi2S_PP"),*ws->pdf("pdfMASSTot_Bkg_PP_syst")));
-   ws->import(*pdftot_PP);
-   // ws->factory("SUM::pdfMASS_Tot_PP_syst(pdfMASSTot_Jpsi_PP,pdfMASSTot_Psi2S_PP,pdfMASSTot_Bkg_PP_syst)");
-   // RooAbsPdf *pdfJpsiPP = ws->pdf("pdfMASS_Jpsi_PP");
-   // RooAbsPdf *pdfPsi2SPP = ws->pdf("pdfMASS_Psi2S_PP");
-   // RooAbsPdf *pdfBkgPP = ws->pdf("pdfMASS_Bkg_PP_syst");
-   // RooArgList pdfs_PP(*pdfJpsiPP,*pdfPsi2SPP,*pdfBkgPP);
-   // RooRealVar *nJpsiPP = ws->var("N_Jpsi_PP");
-   // RooRealVar *nPsi2SPP = ws->var("N_Psi2S_PP");
-   // RooRealVar *nBkgPP = ws->var("N_Bkg_PP");
-   // RooArgList norms_PP(*nJpsiPP,*nPsi2SPP,*nBkgPP);
-   // RooAddPdf *pdfpp_tot_syst = new RooAddPdf("pdfMASS_Tot_PP_syst","pdfMASS_Tot_PP_syst",pdfs_PP,norms_PP);
-   // ws->import(*pdfpp_tot_syst);
+   // build the pp pdf
+   ws->factory( "SUM::pdfMASS_Tot_PP_syst(N_Jpsi_PP * pdfMASS_Jpsi_PP, N_Psi2S_PP * pdfMASS_Psi2S_PP, N_Bkg_PP * pdfMASS_Bkg_PP_nom)" );
 
-   // ws->factory("SIMUL::pdfMASS_Tot_syst(dataCat,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP_syst)");
-   ws->factory("SIMUL::pdfMASS_Tot_syst(dataCat,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP)");
+   ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP_syst)");
+   // ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP)");
 
+   ws->Print();
 
+   ws->var("beta_syst_PP")->setConstant(kTRUE);
+   RooAbsPdf *simPdf = ws->pdf("simPdf_syst");
+   RooFitResult* fit_2nd;// fit results
+   fit_2nd = simPdf->fitTo(*data,
+         // RooFit::Constrained(),
+         RooFit::Save(kTRUE),
+         RooFit::Extended(kTRUE),
+         // RooFit::Minos(kTRUE),
+         RooFit::NumCPU(2));
+   ws->var("beta_syst_PP")->setConstant(kFALSE);
 
 
    /////////////////////////////////////////////////////////////////////
    RooRealVar * pObs = ws->var("invMass"); // get the pointer to the observable
    RooArgSet obs("observables");
    obs.add(*pObs);
-   obs.add( *ws->cat("dataCat"));    
+   obs.add( *ws->cat("sample"));    
    //  /////////////////////////////////////////////////////////////////////
    ws->var("glob_syst_PP")->setConstant(true);
    // ws->var("glob_syst_pbpb")->setConstant(true);
@@ -97,7 +95,7 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    // ws->Print();
 
    RooArgSet poi("poi");
-   poi.add( *ws->var("doubleRatio") );
+   poi.add( *ws->var("RFrac2Svs1S_PbPbvsPP") );
 
 
 
@@ -112,10 +110,10 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    RooRealVar *theVar = (RooRealVar*) it->Next();
    while (theVar) {
       TString varname(theVar->GetName());
-      if (varname != "doubleRatio"
+      if (varname != "RFrac2Svs1S_PbPbvsPP"
             && varname != "invMass"
             && varname != "beta_syst_PP"
-            && varname != "glob_syst_PP") 
+            ) 
          theVar->setConstant();
       theVar = (RooRealVar*) it->Next();
    }
@@ -123,7 +121,7 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    // create signal+background Model Config
    RooStats::ModelConfig sbHypo("SbHypo");
    sbHypo.SetWorkspace( *ws );
-   sbHypo.SetPdf( *ws->pdf("pdfMASS_Tot_syst") );
+   sbHypo.SetPdf( *ws->pdf("simPdf_syst") );
    sbHypo.SetObservables( obs );
    sbHypo.SetGlobalObservables( globalObs );
    sbHypo.SetParametersOfInterest( poi );
@@ -132,16 +130,17 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
 
    // ws->Print();
    /////////////////////////////////////////////////////////////////////
-   RooAbsReal * pNll = sbHypo.GetPdf()->createNLL( *data,NumCPU(2) );
+   RooAbsReal * pNll = sbHypo.GetPdf()->createNLL( *data,NumCPU(2),Offset(kTRUE), Extended(kTRUE) );
    RooMinuit(*pNll).migrad(); // minimize likelihood wrt all parameters before making plots
-   RooPlot *framepoi = ((RooRealVar *)poi.first())->frame(Bins(10),Range(0.,0.2),Title("LL and profileLL in doubleRatio"));
+   RooPlot *framepoi = ((RooRealVar *)poi.first())->frame(Bins(10),Range(0.,1),Title("LL and profileLL in RFrac2Svs1S_PbPbvsPP"));
+   // RooPlot *framepoi = ((RooRealVar *) ws->var("beta_syst_PP"))->frame(Bins(10),Range(-5,5),Title("LL and profileLL in RFrac2Svs1S_PbPbvsPP"));
    pNll->plotOn(framepoi,ShiftToZero());
    
    RooAbsReal * pProfile = pNll->createProfile( globalObs ); // do not profile global observables
    pProfile->getVal(); // this will do fit and set POI and nuisance parameters to fitted values
    pProfile->plotOn(framepoi,LineColor(kRed));
    framepoi->SetMinimum(0);
-   framepoi->SetMaximum(3);
+   framepoi->SetMaximum(10);
    TCanvas *cpoi = new TCanvas();
    cpoi->cd(); framepoi->Draw();
    cpoi->SaveAs("cpoi.pdf");
@@ -155,13 +154,20 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    sbHypo.SetSnapshot(*pPoiAndNuisance);
 
    RooPlot* xframeSB = pObs->frame(Title("SBhypo"));
-   data->plotOn(xframeSB,Cut("dataCat==dataCat::PP"));
+   data->plotOn(xframeSB,Cut("sample==sample::PP"));
    RooAbsPdf *pdfSB = sbHypo.GetPdf();
-   RooCategory *dataCat = ws->cat("dataCat");
-   pdfSB->plotOn(xframeSB,Slice(*dataCat,"PP"),ProjWData(*dataCat,*data));
+   RooCategory *sample = ws->cat("sample");
+   pdfSB->plotOn(xframeSB,Slice(*sample,"PP"),ProjWData(*sample,*data));
    TCanvas *c1 = new TCanvas();
    c1->cd(); xframeSB->Draw();
    c1->SaveAs("c1.pdf");
+   RooPlot* xframeB = pObs->frame(Title("SBhypo_PbPb"));
+   data->plotOn(xframeB,Cut("sample==sample::PbPb"));
+   RooAbsPdf *pdfB = sbHypo.GetPdf();
+   pdfB->plotOn(xframeB,Slice(*sample,"PbPb"),ProjWData(*sample,*data));
+   TCanvas *c2 = new TCanvas();
+   c2->cd(); xframeB->Draw();
+   c2->SaveAs("c2.pdf");
 
    delete pProfile;
    delete pNll;
@@ -176,20 +182,13 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    poiAndGlobalObs.add( poi );
    poiAndGlobalObs.add( globalObs );
    pProfile = pNll->createProfile( poiAndGlobalObs ); // do not profile POI and global observables
-   ((RooRealVar *)poi.first())->setVal( 0 );  // set doubleRatio=0 here
+   ((RooRealVar *)poi.first())->setVal( 0 );  // set RFrac2Svs1S_PbPbvsPP=0 here
    pProfile->getVal(); // this will do fit and set nuisance parameters to profiled values
    pPoiAndNuisance = new RooArgSet( "poiAndNuisance" );
    pPoiAndNuisance->add( nuis );
    pPoiAndNuisance->add( poi );
    bHypo.SetSnapshot(*pPoiAndNuisance);
 
-   RooPlot* xframeB = pObs->frame(Title("Bhypo"));
-   data->plotOn(xframeB,Cut("dataCat==dataCat::PbPb"));
-   RooAbsPdf *pdfB = bHypo.GetPdf();
-   pdfB->plotOn(xframeB,Slice(*dataCat,"PbPb"),ProjWData(*dataCat,*data));
-   TCanvas *c2 = new TCanvas();
-   c2->cd(); xframeB->Draw();
-   c2->SaveAs("c2.pdf");
 
    delete pProfile;
    delete pNll;

@@ -123,7 +123,8 @@ namespace RooStats {
                      int testStatType, 
                      bool useCLs,  
                      int npoints,
-                     const char * fileNameBase = 0 );
+                     const char * fileNameBase = 0,
+                     pair<double,double> * lims=NULL);
 
       void SetParameter(const char * name, const char * value);
       void SetParameter(const char * name, bool value);
@@ -328,7 +329,7 @@ StandardHypoTestInvDemo(const char * infile = 0,
    // if input file was specified but not found, quit
    if(!file && !TString(infile).IsNull()){
       cout <<"file " << fileName << " not found" << endl;
-      return;
+      return pair<double,double>();
    } 
   
    // if default file not found, try to create it
@@ -349,7 +350,7 @@ StandardHypoTestInvDemo(const char * infile = 0,
    if(!file){
       // if it is still not there, then we can't continue
       cout << "Not able to run hist2workspace to create example input" <<endl;
-      return;
+      return pair<double,double>();
    }
   
 
@@ -388,7 +389,7 @@ StandardHypoTestInvDemo(const char * infile = 0,
                            ntoys, useNumberCounting, nuisPriorName );    
       if (!r) { 
          std::cerr << "Error running the HypoTestInverter - Exit " << std::endl;
-         return;          
+         return pair<double,double>();          
       }
    }
    else { 
@@ -399,7 +400,7 @@ StandardHypoTestInvDemo(const char * infile = 0,
          std::cerr << "File " << fileName << " does not contain a workspace or an HypoTestInverterResult - Exit " 
                    << std::endl;
          file->ls();
-         return; 
+         return pair<double,double>(); 
       }
    }		
 
@@ -574,24 +575,24 @@ RooStats::HypoTestInvTool::RunInverter(RooWorkspace * w,
    ModelConfig* sbModel = modelSBName;
   
    if (!sbModel) {
-      Error("StandardHypoTestDemo","Not existing ModelConfig %i",modelSBName);
+      Error("StandardHypoTestDemo","Not existing ModelConfig %s",modelSBName->GetTitle());
       return 0;
    }
    // check the model 
    if (!sbModel->GetPdf()) { 
-      Error("StandardHypoTestDemo","Model %i has no pdf ",modelSBName);
+      Error("StandardHypoTestDemo","Model %s has no pdf ",modelSBName->GetTitle());
       return 0;
    }
    if (!sbModel->GetParametersOfInterest()) {
-      Error("StandardHypoTestDemo","Model %i has no poi ",modelSBName);
+      Error("StandardHypoTestDemo","Model %s has no poi ",modelSBName->GetTitle());
       return 0;
    }
    if (!sbModel->GetObservables()) {
-      Error("StandardHypoTestInvDemo","Model %i has no observables ",modelSBName);
+      Error("StandardHypoTestInvDemo","Model %s has no observables ",modelSBName->GetTitle());
       return 0;
    }
    if (!sbModel->GetSnapshot() ) { 
-      Info("StandardHypoTestInvDemo","Model %i has no snapshot  - make one using model poi",modelSBName);
+      Info("StandardHypoTestInvDemo","Model %s has no snapshot  - make one using model poi",modelSBName->GetTitle());
       sbModel->SetSnapshot( *sbModel->GetParametersOfInterest() );
    }
 
@@ -613,8 +614,8 @@ RooStats::HypoTestInvTool::RunInverter(RooWorkspace * w,
    }
   
    if (!bModel || bModel == sbModel) {
-      Info("StandardHypoTestInvDemo","The background model %i does not exist",modelBName);
-      Info("StandardHypoTestInvDemo","Copy it from ModelConfig %i and set POI to zero",modelSBName);
+      Info("StandardHypoTestInvDemo","The background model %s does not exist",modelBName->GetTitle());
+      Info("StandardHypoTestInvDemo","Copy it from ModelConfig %s and set POI to zero",modelSBName->GetTitle());
       bModel = (ModelConfig*) sbModel->Clone();
       bModel->SetName(TString(modelSBName->GetName())+TString("_with_poi_0"));      
       RooRealVar * var = dynamic_cast<RooRealVar*>(bModel->GetParametersOfInterest()->first());
@@ -627,7 +628,7 @@ RooStats::HypoTestInvTool::RunInverter(RooWorkspace * w,
    }
    else { 
       if (!bModel->GetSnapshot() ) { 
-         Info("StandardHypoTestInvDemo","Model %s has no snapshot  - make one using model poi and 0 values ",modelBName);
+         Info("StandardHypoTestInvDemo","Model %s has no snapshot  - make one using model poi and 0 values ",modelBName->GetTitle());
          RooRealVar * var = dynamic_cast<RooRealVar*>(bModel->GetParametersOfInterest()->first());
          if (var) { 
             double oldval = var->getVal();
@@ -636,7 +637,7 @@ RooStats::HypoTestInvTool::RunInverter(RooWorkspace * w,
             var->setVal(oldval);
          }
          else { 
-            Error("StandardHypoTestInvDemo","Model %s has no valid poi",modelBName);
+            Error("StandardHypoTestInvDemo","Model %s has no valid poi",modelBName->GetTitle());
             return 0;
          }         
       }
@@ -692,11 +693,18 @@ RooStats::HypoTestInvTool::RunInverter(RooWorkspace * w,
       if (sbModel->GetNuisanceParameters() ) constrainParams.add(*sbModel->GetNuisanceParameters());
       RooStats::RemoveConstantParameters(&constrainParams);
       tw.Start(); 
-      RooFitResult * fitres = sbModel->GetPdf()->fitTo(*data,InitialHesse(false), Hesse(false),
-                                                       Minimizer(minimizerType.c_str(),"Migrad"), Strategy(0), PrintLevel(mPrintLevel), Constrain(constrainParams), Save(true) );
+      RooFitResult * fitres = sbModel->GetPdf()->fitTo(*data,InitialHesse(false), Hesse(false), 
+            // Extended(kTRUE),
+            Minimizer(minimizerType.c_str(),"Migrad"), Strategy(0), 
+            PrintLevel(mPrintLevel), 
+            Constrain(constrainParams), Save(true), Offset(kTRUE) );
       if (fitres->status() != 0) { 
          Warning("StandardHypoTestInvDemo","Fit to the model failed - try with strategy 1 and perform first an Hesse computation");
-         fitres = sbModel->GetPdf()->fitTo(*data,InitialHesse(true), Hesse(false),Minimizer(minimizerType.c_str(),"Migrad"), Strategy(1), PrintLevel(mPrintLevel+1), Constrain(constrainParams), Save(true) );
+         fitres = sbModel->GetPdf()->fitTo(*data,InitialHesse(true),
+               // Extended(kTRUE), 
+               Hesse(false),Minimizer(minimizerType.c_str(),"Migrad"), Strategy(1), 
+               PrintLevel(mPrintLevel+1), 
+               Constrain(constrainParams), Save(true), Offset(kTRUE) );
       }
       if (fitres->status() != 0) 
          Warning("StandardHypoTestInvDemo"," Fit still failed - continue anyway.....");
@@ -965,11 +973,11 @@ RooStats::HypoTestInvTool::RunInverter(RooWorkspace * w,
 
 
 
-void ReadResult(const char * fileName, const char * resultName="", bool useCLs=true) { 
-   // read a previous stored result from a file given the result name
+// void ReadResult(const char * fileName, const char * resultName="", bool useCLs=true) { 
+//    // read a previous stored result from a file given the result name
 
-   StandardHypoTestInvDemo(fileName, resultName,"","","",0,0,useCLs);
-}
+//    StandardHypoTestInvDemo(fileName, resultName,"","","",0,0,useCLs);
+// }
 
 
 #ifdef USE_AS_MAIN

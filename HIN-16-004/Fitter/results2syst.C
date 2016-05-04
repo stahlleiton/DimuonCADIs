@@ -171,11 +171,11 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
       texfile << " & ";
       texfile.unsetf(ios::fixed);
       texfile << thebin.centbin().low()/2 << "-" << thebin.centbin().high()/2 << "\\% ";
-      texfile.precision(2);
+      texfile.precision(1);
       texfile.setf(ios::fixed);
 
       // first print the nominal value
-      texfile << " & " << vval[0] << " (" << 100.*maperr[thebin]/vval[0] << "\\%, " << vchi2[0] << "/" << vndof[0] << ")";
+      texfile << " & " << 100.*vval[0] << "\\% (" << 100.*maperr[thebin]/vval[0] << "\\%, " << vchi2[0] << "/" << vndof[0] << ")";
 
       // then the alternative values
       for (unsigned int i=1; i<vval.size(); i++) {
