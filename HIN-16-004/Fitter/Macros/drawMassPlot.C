@@ -3,7 +3,7 @@
 
 #include "Utilities/initClasses.h"
 
-void setMassRange(RooWorkspace& myws, RooPlot* frame, string dsName, int nBins, bool setLogScale, double dMuonYmin = -1.);
+void setMassRange(RooWorkspace& myws, RooPlot* frame, string dsName, int nBins, bool setLogScale, double dMuonYmin = -1., bool cutSideBand=false);
 void printMassParameters(RooWorkspace myws, TPad* Pad, bool isPbPb, string pdfName, bool isWeighted);
 void printMassChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, string dataLabel, string pdfLabel, int nBins, bool isWeighted); 
 
@@ -38,6 +38,10 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
   if (plotPureSMC) dsOSName = Form("dOS_%s_%s_NoBkg", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
     
   bool isWeighted = myws.data(dsOSName.c_str())->isWeighted();
+  string cutSB = Form("(%.6f < invMass && invMass < %.6f)", cut.dMuon.M.Min, cut.dMuon.M.Max);
+  cutSB = cutSB + "&&"+"((2.0 < invMass && invMass < 2.9) || (3.3 < invMass && invMass < 3.5) || (3.7 < invMass && invMass < 5.0))";
+  string cutSBLabel = "SideBandMID";
+  if (cut.dMuon.M.Min < 2.9) { cutSBLabel = cutSBLabel + "," + "SideBandBOT"; } if (cut.dMuon.M.Max > 3.7) { cutSBLabel = cutSBLabel + "," + "SideBandTOP"; }
 
   // Create the main plot of the fit
   RooPlot*   frame     = myws.var("invMass")->frame(Bins(nBins), Range(cut.dMuon.M.Min, cut.dMuon.M.Max));
@@ -130,8 +134,8 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
   }
   if (incBkg && (!incJpsi && !incPsi2S)) {
     myws.pdf(pdfName.c_str())->plotOn(frame,Name("BKG"),Components(RooArgSet(*myws.pdf(Form("pdfMASSTot_Bkg_%s", (isPbPb?"PbPb":"PP"))))),
-                                      Normalization(myws.data(dsOSName.c_str())->reduce("invMass<2.8 ||invMass>4.0")->sumEntries(), RooAbsReal::NumEvent), 
-                                      Range(cut.dMuon.M.Min, cut.dMuon.M.Max), FillStyle(1001), FillColor(kAzure-9), VLines(), DrawOption("LCF"), LineColor(kBlue), LineStyle(kDashed)
+                                      Normalization(norm, RooAbsReal::NumEvent), NormRange(cutSBLabel.c_str()),
+                                      FillStyle(1001), FillColor(kAzure-9), VLines(), DrawOption("LCF"), LineColor(kBlue), LineStyle(kDashed)
                                       );
   } 
   if (incBkg && (incJpsi || incPsi2S)) {
@@ -145,8 +149,8 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
   }
   myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
   if (incBkg && (!incJpsi && !incPsi2S)) {
-    myws.pdf(pdfName.c_str())->plotOn(frame,Name("PDF"),  Normalization(myws.data(dsOSName.c_str())->reduce("invMass<2.8||invMass>4.0")->sumEntries(), RooAbsReal::NumEvent), 
-                                      LineColor(kBlack), LineStyle(1), Precision(1e-4), Range(cut.dMuon.M.Min, cut.dMuon.M.Max));
+    myws.pdf(pdfName.c_str())->plotOn(frame,Name("PDF"), Normalization(norm, RooAbsReal::NumEvent), NormRange(cutSBLabel.c_str()), Range("MassWindow"),
+                                      LineColor(kBlack), LineStyle(1), Precision(1e-4));
   } else {
     myws.pdf(pdfName.c_str())->plotOn(frame,Name("PDF"),  Normalization(norm, RooAbsReal::NumEvent), 
                                       LineColor(kBlack), LineStyle(1), Precision(1e-4), Range(cut.dMuon.M.Min, cut.dMuon.M.Max));
@@ -236,7 +240,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
   frame->GetYaxis()->SetTitleSize(0.04);
   frame->GetYaxis()->SetTitleOffset(1.7);
   frame->GetYaxis()->SetTitleFont(42);
-  setMassRange(myws, frame, dsOSName, nBins, setLogScale, cut.dMuon.AbsRap.Min);
+  setMassRange(myws, frame, dsOSName, nBins, setLogScale, cut.dMuon.AbsRap.Min, (incBkg&&(!incJpsi&&!incPsi2S)) );
  
   cFig->cd();
   pad2->SetTopMargin(0.02);
@@ -375,7 +379,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
 #endif // #ifndef drawMassPlot_C
 
 
-void setMassRange(RooWorkspace& myws, RooPlot* frame, string dsName, int nBins, bool setLogScale, double dMuonYmin)
+void setMassRange(RooWorkspace& myws, RooPlot* frame, string dsName, int nBins, bool setLogScale, double dMuonYmin, bool cutSideBand)
 { 
   // Find maximum and minimum points of Plot to rescale Y axis
   TH1* h = myws.data(dsName.c_str())->createHistogram("hist", *myws.var("invMass"), Binning(nBins));
@@ -388,9 +392,14 @@ void setMassRange(RooWorkspace& myws, RooPlot* frame, string dsName, int nBins, 
   Double_t Yup(0.),Ydown(0.);
   if(setLogScale)
   {
-    if (isMC) Ydown = YMin*0.3;
-    else Ydown = max(1.0, YMin/(TMath::Power((YMax/YMin), 0.1)));
-    Yup = YMax*TMath::Power((YMax/YMin), 0.5);
+    if (cutSideBand) {
+      Yup = YMax*1000.0;
+      Ydown = YMin*0.3;
+    } else {
+      if (isMC) Ydown = YMin*0.3;
+      else Ydown = max(1.0, YMin/(TMath::Power((YMax/YMin), 0.1)));
+      Yup = YMax*TMath::Power((YMax/YMin), 0.5);
+    }
   }
   else
   {

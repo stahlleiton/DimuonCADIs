@@ -205,7 +205,7 @@ void fitter(
       }
     }
   }
-  if (fitCtauTrue) {
+  if (fitCtauTrue || (fitCtau && incNonPrompt)) {
     if (fitPbPb) {
       // Add initial parameters for PbPb jpsi models
       InputFile = (DIR["input"] + "InitialParam_CTAU_TRUE_PbPb.csv");
