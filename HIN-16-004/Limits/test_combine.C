@@ -2,7 +2,12 @@
 #include "RooWorkspace.h"
 #include "RooExtendPdf.h"
 
+#include <list>
+#include <string>
+#include <iostream>
+
 using namespace RooFit;
+using namespace std;
 
 RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* name_pp="fitresult_pp.root", bool commonParams=false)
 {
@@ -28,14 +33,22 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
 	sample.defineType("PbPb");
 	sample.defineType("PP");
 
-   RooRealVar *pt = ws->var("pt");
-   RooRealVar *rap = ws->var("rap");
-   RooRealVar *cent = ws->var("cent");
-   RooRealVar *ctau = ws->var("ctau");
-   RooRealVar *ctauErr = ws->var("ctauErr");
+   // RooRealVar *pt = ws->var("pt");
+   // RooRealVar *rap = ws->var("rap");
+   // RooRealVar *cent = ws->var("cent");
+   // RooRealVar *ctau = ws->var("ctau");
+   // RooRealVar *ctauErr = ws->var("ctauErr");
    RooRealVar *invMass = ws->var("invMass");
+   RooRealVar *invMass_pp = ws_pp->var("invMass");
+   // add missing binnings
+   list<string> binningNames = invMass_pp->getBinningNames();
+   for (list<string>::const_iterator it=binningNames.begin(); it!=binningNames.end(); it++) {
+      if (invMass->hasBinning(it->c_str())) continue;
+      invMass->setBinning(invMass_pp->getBinning(it->c_str()));
+   }
 
-	RooArgSet cols(*invMass,*ctau,*ctauErr,*pt,*rap,*cent);
+   // RooArgSet cols(*invMass,*ctau,*ctauErr,*pt,*cent);
+   RooArgSet cols(*invMass);
 
 	RooDataSet data_combo("dOS_DATA", "dOS_DATA", cols, RooFit::Index(sample),
 /*Only for track rotation*/
@@ -149,6 +162,6 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
    }
 	wcombo->import(simPdf, RecycleConflictNodes());
 
-   wcombo->writeToFile("fitresult_combo.root");
+   // wcombo->writeToFile("fitresult_combo.root");
    return wcombo;
 }

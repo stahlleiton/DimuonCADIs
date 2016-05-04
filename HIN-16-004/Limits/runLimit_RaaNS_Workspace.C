@@ -4,7 +4,7 @@
 #include "RooStats/LikelihoodIntervalPlot.h"
 #include "TLatex.h"
 
-void runLimit_RaaNS_Workspace(const char *filename="TRIAL.root", const char *poiname="raa3", const char *pdfname="joint", const char *wsname="wcombo");
+void runLimit_RaaNS_Workspace(const char *filename="TRIAL.root", const char *poiname="raa3", const char *pdfname="joint", const char *wsname="wcombo", const char* dataname="dOS_DATA");
 
 #include "StandardHypoTestInvDemo.C"
 
@@ -27,7 +27,7 @@ void runLimit_RaaNS_Workspace(const char *filename, const char *poiname, const c
    theVar = ws->var(poiname);
    // if (!theVar) theVar = ws->function(poiname);
    pdf = ws->pdf(pdfname);
-   data =(RooDataSet *) ws->data("dOS_DATA");
+   data =(RooDataSet *) ws->data(dataname);
 
    // Print structure of composite p.d.f.
    pdf->Print("t") ;
@@ -38,18 +38,13 @@ void runLimit_RaaNS_Workspace(const char *filename, const char *poiname, const c
 
    // get a first estimate of where to look
 
-   cout << __LINE__ << endl;
    // pdf->fitTo(*data, Offset(kTRUE), Extended(kTRUE), NumCPU(2), Range("MassWindow"), Save(), Minimizer("Minuit2","Migrad"));
-   pdf->fitTo(*data, Extended(kTRUE), Offset(kTRUE));
-   cout << __LINE__ << endl;
+   // pdf->fitTo(*data, Extended(kTRUE), Offset(kTRUE));
    ProfileLikelihoodCalculator pl(*data,*sbHypo,1.-CI);
-   cout << __LINE__ << endl;
    cout << data << " " << pdf << " " << theVar << endl;
    pl.SetConfidenceLevel(CI); 
    int ci = 100*CI;
-   cout << __LINE__ << endl;
    LikelihoodInterval* interval = pl.GetInterval();
-   cout << __LINE__ << endl;
    LikelihoodIntervalPlot plot(interval);
    TCanvas c4; c4.cd(); 
    plot.SetRange(0.,1.,0.05,3.);
@@ -123,15 +118,15 @@ void runLimit_RaaNS_Workspace(const char *filename, const char *poiname, const c
          wsname,
          sbHypo,
          bHypo,
-         "dOS_DATA",                 
+         dataname,
          calculatorType,
          testStatType, 
-         useCLs,  
-         20,   
-         poimin,  
-         poimax, 
+         useCLs,
+         20,
+         poimin,
+         poimax,
          1000,
-         false,
+         false
          0);
 
    std::streambuf *coutbuf = std::cout.rdbuf();
