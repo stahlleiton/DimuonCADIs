@@ -500,8 +500,10 @@ void centrality2npart(TGraphAsymmErrors* tg, bool issyst, bool isMB, double xshi
       eyh = tg->GetErrorYhigh(i);
       x = isMB ? 150 + xshift : HI::findNpartAverage(2.*(x-exl),2.*(x+exh));
       if (!issyst) {
-         exl = 0.;
-         exh = 0.;
+         if (isMB) {exl=0; exh=0;} else {
+            exl = HI::findNpartSyst(2.*(x-exl),2.*(x+exh));//0.;
+            exh = HI::findNpartSyst(2.*(x-exl),2.*(x+exh));//0.;
+         }
       } else {
          exl = !isMB ? 5 : 5./(1.-xfrac);
          exh = exl;
