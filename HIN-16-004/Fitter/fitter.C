@@ -21,24 +21,24 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 void fitter(
             const string workDirName="Test", // Working directory
             // Select the type of datasets to fit
-            bool fitData      = false,        // Fits Data datasets
-            bool fitMC        = true,         // Fits MC datasets
+            bool fitData      = true,        // Fits Data datasets
+            bool fitMC        = false,         // Fits MC datasets
             bool fitPbPb      = true,         // Fits PbPb datasets
-            bool fitPP        = false,        // Fits PP datasets
-            bool fitMass      = false,        // Fits invariant mass distribution
-            bool fitCtau      = false,        // Fits ctau distribution
-            bool fitCtauTrue  = true,         // Fits ctau true MC distribution
+            bool fitPP        = true,        // Fits PP datasets
+            bool fitMass      = true,        // Fits invariant mass distribution
+            bool fitCtau      = true,        // Fits ctau distribution
+            bool fitCtauTrue  = false,         // Fits ctau true MC distribution
             // Select the type of object to fit
             bool incJpsi      = true,          // Includes Jpsi model
-            bool incPsi2S     = false,         // Includes Psi(2S) model
-            bool incBkg       = false,         // Includes Background model
-            bool incPrompt    = false,         // Includes Prompt ctau model
+            bool incPsi2S     = true,         // Includes Psi(2S) model
+            bool incBkg       = true,         // Includes Background model
+            bool incPrompt    = true,         // Includes Prompt ctau model
             bool incNonPrompt = true,          // Includes Non Prompt ctau model 
             // Select the fitting options
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
             bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
-            int  numCores     = 2,            // Number of cores used for fitting
+            int  numCores     = 32,            // Number of cores used for fitting
             // Select the drawing options
             bool  setLogScale  = true,         // Draw plot with log scale
             bool  incSS        = false,        // Include Same Sign data
@@ -170,7 +170,7 @@ void fitter(
     if (fitPP) {
       // Add initial parameters for PP Ctau resolution model
       InputFile = (DIR["input"] + "InitialParam_CTAU_RES_PP.csv");
-      if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
+      if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
     }       
     if (incNonPrompt) {
       if (fitPbPb && incBkg) {

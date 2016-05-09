@@ -13,6 +13,7 @@
 #include "TF1.h"
 #include "TProfile.h"
 #include "TVectorD.h"
+#include "TMatrixD.h"
 #include "TCanvas.h"
 #include "TPaveText.h"
 #include "TPave.h"
@@ -22,6 +23,9 @@
 #include "TLegend.h"
 
 #include "RooWorkspace.h"
+#include "RooKeysPdf.h"
+#include "RooHistPdf.h"
+#include "RooGaussModel.h"
 #include "RooChi2Var.h"
 #include "RooDataSet.h"
 #include "RooDataHist.h"
@@ -100,7 +104,6 @@ bool isEqualKinCuts(struct KinCuts cutA, struct KinCuts cutB, bool isPbPb)
     cond = cond && (cutA.Centrality.Start    == cutB.Centrality.Start);
     cond = cond && (cutA.Centrality.End      == cutB.Centrality.End);
   }
-
   cond = cond && (cutA.sMuon.Pt.Min        == cutB.sMuon.Pt.Min);
   cond = cond && (cutA.sMuon.Pt.Max        == cutB.sMuon.Pt.Max);
   cond = cond && (cutA.sMuon.Eta.Min       == cutB.sMuon.Eta.Min);
@@ -136,19 +139,20 @@ enum class MassModel
     SingleCrystalBall=3, 
     DoubleCrystalBall=4, 
     GaussianAndCrystalBall=6, 
-    Chebychev1=7, 
-    Chebychev2=8, 
-    Chebychev3=9, 
-    Chebychev4=10,
-    Chebychev5=11,
-    Chebychev6=12,
-    ExpChebychev1=13,
-    ExpChebychev2=14,
-    ExpChebychev3=15,
-    ExpChebychev4=16,
-    ExpChebychev5=17,
-    ExpChebychev6=18,
-    Exponential=19
+    Uniform=7, 
+    Chebychev1=8, 
+    Chebychev2=9, 
+    Chebychev3=10, 
+    Chebychev4=11,
+    Chebychev5=12,
+    Chebychev6=13,
+    ExpChebychev1=14,
+    ExpChebychev2=15,
+    ExpChebychev3=16,
+    ExpChebychev4=17,
+    ExpChebychev5=18,
+    ExpChebychev6=19,
+    Exponential=20
 };
 map< string , MassModel > MassModelDictionary = {
   {"InvalidModel",            MassModel::InvalidModel},
@@ -157,6 +161,7 @@ map< string , MassModel > MassModelDictionary = {
   {"SingleCrystalBall",       MassModel::SingleCrystalBall},
   {"DoubleCrystalBall",       MassModel::DoubleCrystalBall},
   {"GaussianAndCrystalBall",  MassModel::GaussianAndCrystalBall},
+  {"Uniform",                 MassModel::Uniform},
   {"Chebychev1",              MassModel::Chebychev1},
   {"Chebychev2",              MassModel::Chebychev2},
   {"Chebychev3",              MassModel::Chebychev3},
@@ -209,10 +214,6 @@ typedef struct CharmModel {
 typedef struct OniaModel {
   CharmModel  PbPb, PP;
 } OniaModel;
-
-typedef struct RangeStruc {
-  string label, cut;
-} RangeStruc;
 
 
 #endif // #ifndef initClasses_h

@@ -41,8 +41,8 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   RooMsgService::instance().getStream(1).removeTopic(Integration);
   RooMsgService::instance().setGlobalKillBelow(RooFit::WARNING) ;
 
-
   string dsOSName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
+  string hOSName  = Form("dOS_%s_%s_binning", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   string dsSSName = Form("dSS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   string pdfName  = "pdfCTAU";
   if (fitMass) { pdfName = "pdfCTAUMASS"; }
@@ -50,13 +50,19 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   if (plotPureSMC) dsOSName = Form("dOS_%s_%s_NoBkg", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
     
   bool isWeighted = myws.data(dsOSName.c_str())->isWeighted();
+  bool isMC = (DSTAG.find("MC")!=std::string::npos);
+  bool incCtauErrPDF = false;//( !isMC );
 
   // Create the main plot of the fit
   RooPlot*   frame     = myws.var("ctau")->frame(Bins(nBins), Range(cut.dMuon.ctau.Min, cut.dMuon.ctau.Max));
+  frame->updateNormVars(RooArgSet(*myws.var("invMass"), *myws.var("ctau"), *myws.var("ctauErr"))) ;
   myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
   
-  Double_t norm = 1.0; //myws.data(dsOSName.c_str())->sumEntries();
-    
+  Double_t norm = 1.0;
+  if (incCtauErrPDF) {
+    norm = myws.data(dsOSName.c_str())->sumEntries();
+  }
+  /* 
   if (incJpsi) {
     if (incBkg) {
       if (incNonPrompt && incPrompt) {
@@ -65,16 +71,16 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
                                                                                            *myws.pdf(Form("%sTot_Bkg_%s", pdfName.c_str(),  (isPbPb?"PbPb":"PP")))
                                                                                            )
                                                                                  ),
-                                             Normalization(norm, RooAbsReal::NumEvent), ProjWData(*((RooAbsData*)myws.data(dsOSName.c_str()))), NumCPU(32),
-                                             LineColor(kGreen+3), LineStyle(1), Precision(1e-4)
+                                             Normalization(norm, RooAbsReal::NumEvent), (incCtauErrPDF? LineStyle(1):ProjWData(*myws.var("ctauErr"), *((RooAbsData*)myws.data(dsOSName.c_str())))),
+                                             NumCPU(32), LineColor(kGreen+3), Precision(1e-4)
                                              );
         myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("JPSIPR"),Components( RooArgSet(
                                                                                         *myws.pdf(Form("%sTot_JpsiPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP"))),
                                                                                         *myws.pdf(Form("%sTot_Bkg_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")))
                                                                                         )
                                                                               ),
-                                             Normalization(norm, RooAbsReal::NumEvent), ProjWData(*((RooAbsData*)myws.data(dsOSName.c_str()))), NumCPU(32), 
-                                             LineColor(kOrange+2), LineStyle(1), Precision(1e-4)
+                                             Normalization(norm, RooAbsReal::NumEvent), (incCtauErrPDF? LineStyle(1):ProjWData(*myws.var("ctauErr"), *((RooAbsData*)myws.data(dsOSName.c_str())))),
+                                             NumCPU(32), LineColor(kOrange+2), Precision(1e-4)
                                              );
       }
     } else {
@@ -83,15 +89,15 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
                                                                                            *myws.pdf(Form("%sTot_JpsiNoPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")))
                                                                                            )
                                                                                  ),
-                                             Normalization(norm, RooAbsReal::NumEvent), ProjWData(*((RooAbsData*)myws.data(dsOSName.c_str()))), NumCPU(32),
-                                             LineColor(kGreen+3), LineStyle(1), Precision(1e-4)
+                                             Normalization(norm, RooAbsReal::NumEvent), (incCtauErrPDF? LineStyle(1):ProjWData(*myws.var("ctauErr"), *((RooAbsData*)myws.data(dsOSName.c_str())))),
+                                             NumCPU(32), LineColor(kGreen+3), Precision(1e-4)
                                              );
         myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("JPSIPR"),Components( RooArgSet(
                                                                                         *myws.pdf(Form("%sTot_JpsiPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")))
                                                                                         )
                                                                               ),
-                                             Normalization(norm, RooAbsReal::NumEvent), ProjWData(*((RooAbsData*)myws.data(dsOSName.c_str()))), NumCPU(32),
-                                             LineColor(kOrange+2), LineStyle(1), Precision(1e-4)
+                                             Normalization(norm, RooAbsReal::NumEvent), (incCtauErrPDF? LineStyle(1):ProjWData(*myws.var("ctauErr"), *((RooAbsData*)myws.data(dsOSName.c_str())))), 
+                                             NumCPU(32), LineColor(kOrange+2), Precision(1e-4)
                                              );
       }
     }
@@ -104,16 +110,16 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
                                                                                            *myws.pdf(Form("%sTot_Bkg_%s", pdfName.c_str(),  (isPbPb?"PbPb":"PP")))
                                                                                            )
                                                                                  ),
-                                             Normalization(norm, RooAbsReal::NumEvent), ProjWData(*((RooAbsData*)myws.data(dsOSName.c_str()))), NumCPU(32),
-                                             LineColor(kGreen+3), LineStyle(1), Precision(1e-4)
+                                             Normalization(norm, RooAbsReal::NumEvent), (incCtauErrPDF? LineStyle(1):ProjWData(*myws.var("ctauErr"), *((RooAbsData*)myws.data(dsOSName.c_str())))),
+                                             NumCPU(32), LineColor(kGreen+3), Precision(1e-4)
                                              );
         myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PSI2SPR"),Components( RooArgSet(
                                                                                          *myws.pdf(Form("%sTot_Psi2SPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP"))),
                                                                                          *myws.pdf(Form("%sTot_Bkg_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")))
                                                                                          )
                                                                                ),
-                                             Normalization(norm, RooAbsReal::NumEvent), ProjWData(*((RooAbsData*)myws.data(dsOSName.c_str()))), NumCPU(32), 
-                                             LineColor(kOrange+2), LineStyle(1), Precision(1e-4)
+                                             Normalization(norm, RooAbsReal::NumEvent), (incCtauErrPDF? LineStyle(1):ProjWData(*myws.var("ctauErr"), *((RooAbsData*)myws.data(dsOSName.c_str())))),
+                                             NumCPU(32), LineColor(kOrange+2), Precision(1e-4)
                                              );
       }
     } else {
@@ -122,46 +128,43 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
                                                                                            *myws.pdf(Form("%sTot_Psi2SNoPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")))
                                                                                            )
                                                                                  ),
-                                             Normalization(norm, RooAbsReal::NumEvent), ProjWData(*((RooAbsData*)myws.data(dsOSName.c_str()))), NumCPU(32),
-                                             LineColor(kGreen+3), LineStyle(1), Precision(1e-4)
+                                             Normalization(norm, RooAbsReal::NumEvent), (incCtauErrPDF? LineStyle(1):ProjWData(*myws.var("ctauErr"), *((RooAbsData*)myws.data(dsOSName.c_str())))),
+                                             NumCPU(32), LineColor(kGreen+3), Precision(1e-4)
                                              );
         myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PSI2SPR"),Components( RooArgSet(
                                                                                          *myws.pdf(Form("%sTot_Psi2SPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")))
                                                                                          )
                                                                                ),
-                                             Normalization(norm, RooAbsReal::NumEvent), ProjWData(*((RooAbsData*)myws.data(dsOSName.c_str()))), NumCPU(32),
-                                             LineColor(kOrange+2), LineStyle(1), Precision(1e-4)
+                                             Normalization(norm, RooAbsReal::NumEvent), (incCtauErrPDF? LineStyle(1):ProjWData(*myws.var("ctauErr"), *((RooAbsData*)myws.data(dsOSName.c_str())))),
+                                             NumCPU(32), LineColor(kOrange+2), Precision(1e-4)
                                              );
       }
     }
   }
-  if (incBkg && (!incJpsi && !incPsi2S)) {
-    myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("BKG"),Components(RooArgSet(*myws.pdf(Form("%sTot_Bkg_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP"))))),
-                                         Normalization(norm, RooAbsReal::NumEvent), ProjWData(*((RooAbsData*)myws.data(dsOSName.c_str()))), 
-                                         Range("CtauWindow"), FillStyle(1001), FillColor(kAzure-9), VLines(), DrawOption("LCF"), LineColor(kBlue)
-                                         );
-  } 
   if (incBkg && (incJpsi || incPsi2S)) {
     myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("BKG"),Components(RooArgSet(*myws.pdf(Form("%sTot_Bkg_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP"))))),
-                                         Normalization(norm, RooAbsReal::NumEvent), ProjWData(*((RooAbsData*)myws.data(dsOSName.c_str()))),
-                                         FillStyle(1001), FillColor(kAzure-9), VLines(), DrawOption("LCF"), LineColor(kBlue)
+                                         Normalization(norm, RooAbsReal::NumEvent), (incCtauErrPDF?  Precision(1e-1):ProjWData(RooArgSet(*myws.var("ctauErr"),*myws.var("invMass")), *((RooAbsData*)myws.data(dsOSName.c_str())))),
+                                         FillStyle(1001), FillColor(kAzure-9), VLines(), DrawOption("LCF"), LineColor(kBlue), NumCPU(32)
+                                         );
+  } 
+  */
+  if (incBkg && (!incJpsi && !incPsi2S)) {
+    myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PDF"),  Normalization(1.0, RooAbsReal::NumEvent), NumCPU(32), 
+                                         ProjWData(*myws.var("ctauErr"), *((RooAbsData*)myws.data(hOSName.c_str())), kTRUE),
+                                         LineColor(kBlack), FillStyle(1001), FillColor(kAzure-9), VLines(), DrawOption("LCF"), Precision(1e-4)
                                          );
   } 
   if (incSS) { 
     myws.data(dsSSName.c_str())->plotOn(frame, Name("dSS"), MarkerColor(kRed), LineColor(kRed), MarkerSize(1.2)); 
   }
   myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
-
-  if (incBkg && (!incJpsi && !incPsi2S)) {
-    myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PDF"),  Normalization(norm, RooAbsReal::NumEvent), 
-                                         ProjWData(*((RooAbsData*)myws.data(dsOSName.c_str())), kTRUE), NumCPU(32), 
-                                         LineColor(kBlack), LineStyle(1), Precision(1e-4), Range("CtauWindow"), NormRange("CtauWindow")
-                                         );
-  } else {
-    myws.pdf(pdfTotName.c_str())->plotOn(frame, Name("PDF"),  Normalization(norm, RooAbsReal::NumEvent), ProjWData(*((RooAbsData*)myws.data(dsOSName.c_str()))), NumCPU(32), 
-                                         LineColor(kBlack), LineStyle(1), Precision(1e-4), Range("CtauWindow"), NormRange("CtauWindow")
+  if (!incBkg || (incJpsi || incPsi2S)) {
+    myws.pdf(pdfTotName.c_str())->plotOn(frame, Name("PDF"), Normalization(myws.data(dsOSName.c_str())->sumEntries(), RooAbsReal::NumEvent), NumCPU(32), 
+                                         //ProjWData(RooArgSet(*myws.var("ctauErr")),*((RooAbsData*)myws.data(Form("hCtauErr_Tot_%s", (isPbPb?"PbPb":"PP"))))), 
+                                         LineColor(kBlack), Precision(1e-4)
                                          );
   }
+
   // Create the pull distribution of the fit
   RooHist *hpull = frame->pullHist(0, 0, true);
   hpull->SetName("hpull");
@@ -217,7 +220,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   
   t->SetTextSize(0.03);
   t->DrawLatex(0.21, 0.86-dy, "2015 HI Soft Muon ID"); dy+=0.045;
-  if (cutCtau) { t->DrawLatex(0.21, 0.86-dy, "l_{J/#psi} cuts applied"); dy+=0.045; }
+  if (cutCtau) { t->DrawLatex(0.21, 0.86-dy, ";#font[12]{l}_{J/#psi} cuts applied"); dy+=0.045; }
   if (isPbPb) {
     t->DrawLatex(0.21, 0.86-dy, "HLT_HIL1DoubleMu0_v1"); dy+=0.045;
   } else {
@@ -275,7 +278,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   frame2->GetXaxis()->SetTitleOffset(1);
   frame2->GetXaxis()->SetTitleSize(0.12);
   frame2->GetXaxis()->SetLabelSize(0.1);
-  frame2->GetXaxis()->SetTitle("l_{J/#psi} (mm)");
+  frame2->GetXaxis()->SetTitle("#font[12]{l}_{J/#psi} (mm)");
   frame2->GetYaxis()->SetRangeUser(-7.0, 7.0);
 
   frame2->Draw(); 
@@ -303,26 +306,20 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
 void setCtauRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLogScale, double dMuonYmin)
 { 
   // Find maximum and minimum points of Plot to rescale Y axis
-  TH1* h = myws.data(dsName.c_str())->createHistogram("hist", *myws.var("invMass"), Binning(frame->GetNbinsX(),frame->GetXaxis()->GetXmin(),frame->GetXaxis()->GetXmax()));
+  TH1* h = myws.data(dsName.c_str())->createHistogram("hist", *myws.var("ctau"), Binning(frame->GetNbinsX(),frame->GetXaxis()->GetXmin(),frame->GetXaxis()->GetXmax()));
   Double_t YMax = h->GetBinContent(h->GetMaximumBin());
-  // Double_t YMin = min( h->GetBinContent(h->FindFirstBinAbove(0.0)), h->GetBinContent(h->FindLastBinAbove(0.0)) );
-  Double_t YMin = 1e99;
-  for (int i=1; i<=h->GetNbinsX(); i++) if (h->GetBinContent(i)>0) YMin = min(YMin, h->GetBinContent(i));
-  
-  bool isMC = false;
-  if (dsName.find("MC")!=std::string::npos) isMC = true;
-    
+  Double_t YMin = 0.0;
+
   Double_t Yup(0.),Ydown(0.);
   if(setLogScale)
   {
-    if (isMC) Ydown = YMin*0.3;
-    else Ydown = YMin/(TMath::Power((YMax/YMin), (0.1/0.5)));
-    Yup = YMax*TMath::Power((YMax/YMin), (0.4/0.5));
+    Ydown = max(0.1, YMin);
+    Yup = YMax*100.0;
   }
   else
   {
-    Ydown = max(YMin-(YMax-YMin)*0.2,0.0);
-    Yup = YMax+(YMax-YMin)*0.5;
+    Ydown = YMin;
+    Yup = YMax*1.4;
   }
   frame->GetYaxis()->SetRangeUser(Ydown,Yup);
   delete h;
@@ -333,8 +330,8 @@ void setCtauRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLog
 void printCtauParameters(RooWorkspace myws, TPad* Pad, bool isPbPb, string pdfName, bool isWeighted)
 {
   Pad->cd();
-  TLatex *t = new TLatex(); t->SetNDC(); t->SetTextSize(0.026); float dy = 0.025; 
-  RooArgSet* Parameters =  myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*myws.var("invMass"), *myws.var("ctau"), *myws.var("ctauErr")));
+  TLatex *t = new TLatex(); t->SetNDC(); t->SetTextSize(0.026); float dy = 0.045; 
+  RooArgSet* Parameters = (RooArgSet*)myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*myws.var("invMass"), *myws.var("ctau"), *myws.var("ctauErr")))->selectByAttrib("Constant",kFALSE);
   TIterator* parIt = Parameters->createIterator(); 
   for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
     stringstream ss(it->GetName()); string s1, s2, s3, label; 
@@ -349,13 +346,13 @@ void printCtauParameters(RooWorkspace myws, TPad* Pad, bool isPbPb, string pdfNa
     if(s2=="CtauRes")  { s2="Res";   } 
     else if(s2=="JpsiNoPR")  { s2="J/#psi[NoPR]";   } 
     else if(s2=="JpsiPR")  { s2="J/#psi[PR]";   } 
-    else if(s2=="Jpsi" && s1=="N")  { s2="J/#psi";   } 
+    else if(s2=="Jpsi" && (s1=="N" || s1=="b"))  { s2="J/#psi";   } 
     else if(s2=="Psi2SNoPR") { s2="#psi(2S)[NoPR]"; }
     else if(s2=="Psi2SPR") { s2="#psi(2S)[PR]"; } 
-    else if(s2=="Psi2S" && s1=="N")  { s2="#psi(2S)";   } 
+    else if(s2=="Psi2S" && (s1=="N" || s1=="b"))  { s2="#psi(2S)";   } 
     else if(s2=="BkgNoPR")   { s2="bkg[NoPR]";      } 
     else if(s2=="BkgPR")   { s2="bkg[PR]";      } 
-    else if(s2=="Bkg" && s1=="N")   { s2="bkg";      }
+    else if(s2=="Bkg" && (s1=="N" || s1=="b"))   { s2="bkg";      }
     else {continue;}
     if(s3!=""){
       label=Form("%s_{%s}^{%s}", s1.c_str(), s2.c_str(), s3.c_str());
@@ -363,6 +360,9 @@ void printCtauParameters(RooWorkspace myws, TPad* Pad, bool isPbPb, string pdfNa
     // Print the parameter's results
     if(s1=="N"){ 
       t->DrawLatex(0.69, 0.75-dy, Form((isWeighted?"%s = %.6f#pm%.6f ":"%s = %.0f#pm%.0f "), label.c_str(), it->getValV(), it->getError())); dy+=0.045; 
+    }
+    else if(s1=="b"){ 
+      t->DrawLatex(0.69, 0.75-dy, Form("%s = %.4f#pm%.4f ", label.c_str(), it->getValV(), it->getError())); dy+=0.045; 
     }
     else if(s1.find("sigma")!=std::string::npos){ 
       t->DrawLatex(0.69, 0.75-dy, Form("%s = %.2f#pm%.2f mm", label.c_str(), it->getValV(), it->getError())); dy+=0.045; 

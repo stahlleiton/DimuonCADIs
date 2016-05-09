@@ -109,7 +109,7 @@ void drawCtauTruePlot(RooWorkspace& myws,   // Local workspace
   
   t->SetTextSize(0.03);
   t->DrawLatex(0.21, 0.86-dy, "2015 HI Soft Muon ID"); dy+=0.045;
-  if (cutCtau) { t->DrawLatex(0.21, 0.86-dy, "l_{J/#psi} cuts applied"); dy+=0.045; }
+  if (cutCtau) { t->DrawLatex(0.21, 0.86-dy, "#font[12]{l}_{J/#psi} cuts applied"); dy+=0.045; }
   if (isPbPb) {
     t->DrawLatex(0.21, 0.86-dy, "HLT_HIL1DoubleMu0_v1"); dy+=0.045;
   } else {
@@ -166,7 +166,7 @@ void drawCtauTruePlot(RooWorkspace& myws,   // Local workspace
   frame2->GetXaxis()->SetTitleOffset(1);
   frame2->GetXaxis()->SetTitleSize(0.12);
   frame2->GetXaxis()->SetLabelSize(0.1);
-  frame2->GetXaxis()->SetTitle("MC Truth l_{J/#psi} (mm)");
+  frame2->GetXaxis()->SetTitle("#font[12]{l}_{J/#psi} MC True (mm)");
   frame2->GetYaxis()->SetRangeUser(-7.0, 7.0);
 
   frame2->Draw(); 
@@ -193,7 +193,7 @@ void drawCtauTruePlot(RooWorkspace& myws,   // Local workspace
 void setCtauTrueRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLogScale, double dMuonYmin)
 { 
   // Find maximum and minimum points of Plot to rescale Y axis
-  TH1* h = myws.data(dsName.c_str())->createHistogram("hist", *myws.var("invMass"), Binning(frame->GetNbinsX(),frame->GetXaxis()->GetXmin(),frame->GetXaxis()->GetXmax()));
+  TH1* h = myws.data(dsName.c_str())->createHistogram("hist", *myws.var("ctauTrue"), Binning(frame->GetNbinsX(),frame->GetXaxis()->GetXmin(),frame->GetXaxis()->GetXmax()));
   Double_t YMax = h->GetBinContent(h->GetMaximumBin());
   // Double_t YMin = min( h->GetBinContent(h->FindFirstBinAbove(0.0)), h->GetBinContent(h->FindLastBinAbove(0.0)) );
   Double_t YMin = 1e99;

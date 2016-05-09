@@ -41,9 +41,9 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
     
   bool isWeighted = myws.data(dsOSName.c_str())->isWeighted();
   string cutSB = Form("(%.6f < invMass && invMass < %.6f)", cut.dMuon.M.Min, cut.dMuon.M.Max);
-  cutSB = cutSB + "&&"+"((2.0 < invMass && invMass < 2.9) || (3.3 < invMass && invMass < 3.5) || (3.7 < invMass && invMass < 5.0))";
+  cutSB = cutSB + "&&"+"((2.0 < invMass && invMass < 2.9) || (3.3 < invMass && invMass < 3.5) || (3.9 < invMass && invMass < 5.0))";
   string cutSBLabel = "SideBandMID";
-  if (cut.dMuon.M.Min < 2.9) { cutSBLabel = cutSBLabel + "," + "SideBandBOT"; } if (cut.dMuon.M.Max > 3.7) { cutSBLabel = cutSBLabel + "," + "SideBandTOP"; }
+  if (cut.dMuon.M.Min < 2.9) { cutSBLabel = cutSBLabel + "," + "SideBandBOT"; } if (cut.dMuon.M.Max > 3.9) { cutSBLabel = cutSBLabel + "," + "SideBandTOP"; }
 
   // Create the main plot of the fit
   RooPlot*   frame     = myws.var("invMass")->frame(Bins(nBins), Range(cut.dMuon.M.Min, cut.dMuon.M.Max));
@@ -153,7 +153,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
   }
   myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
   if (incBkg && (!incJpsi && !incPsi2S)) {
-    myws.pdf(pdfName.c_str())->plotOn(frame,Name("PDF"), Normalization(norm, RooAbsReal::NumEvent), NormRange(cutSBLabel.c_str()), Range("MassWindow"),
+    myws.pdf(pdfName.c_str())->plotOn(frame,Name("PDF"), Normalization(norm, RooAbsReal::NumEvent), NormRange(cutSBLabel.c_str()), Range("FullWindow"),
                                       LineColor(kBlack), LineStyle(1), Precision(1e-4));
   } else {
     myws.pdf(pdfName.c_str())->plotOn(frame,Name("PDF"),  Normalization(norm, RooAbsReal::NumEvent), 
@@ -215,7 +215,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
                                         FillStyle(paperStyle ? 0 : 1001), FillColor(kAzure-9), VLines(), DrawOption("LCF"), LineColor(kBlue), LineStyle(kDashed),Precision(1e-4));
     }
     myws.data(dsOSName.c_str())->plotOn(framezoom, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
-    myws.pdf(pdfName.c_str())->plotOn(framezoom,Name("PDF"), Normalization(norm, RooAbsReal::NumEvent), NormRange("MassWindow"),
+    myws.pdf(pdfName.c_str())->plotOn(framezoom,Name("PDF"), Normalization(norm, RooAbsReal::NumEvent), NormRange("FullWindow"),
                                       LineColor(kBlack), LineStyle(1),Precision(1e-4));
   }			
   

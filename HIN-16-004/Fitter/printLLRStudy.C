@@ -53,7 +53,7 @@ void printLLRStudy(
 {
   
   vector<string> fileNames;
-  string dirPath = Form("./Output/%s/result/DATA/",dirLabel.c_str());
+  string dirPath = Form("./Output/%s/result/DATA/mass/",dirLabel.c_str());
   if (!findFiles(dirPath, fileNames)) { return; } 
 
   cout << "[INFO] Creating " << ((type=="Bkg")?"Background":"Signal") << " Study summary!" << endl;
@@ -62,8 +62,8 @@ void printLLRStudy(
   map<string, setModels_t> content;
   if (!readFiles(dirPath, fileNames, content, type)) { return; }
 
-  string plotDir = Form("./Output/%s/plot/DATA/", dirLabel.c_str());
-  string outputDir = Form("./Output/%s/LLR/DATA/", dirLabel.c_str());
+  string plotDir = Form("./Output/%s/plot/DATA/mass/", dirLabel.c_str());
+  string outputDir = Form("./Output/%s/LLR/DATA/mass/", dirLabel.c_str());
   if (existDir(outputDir)==false){ 
     cout << "[INFO] Output directory: " << outputDir << " does not exist, will create it!" << endl;  
     if (existDir(outputDir)==false){ gSystem->mkdir(outputDir.c_str(), kTRUE); }
@@ -87,7 +87,7 @@ void printLLRStudy(
 
      gSystem->CopyFile((dirPath+bestModelFile+".root").c_str(), (outputDir+"root/"+bestModelFile+".root").c_str());
  
-     bestModelFile.erase(0, bestModelFile.find("FIT_")+ string("FIT_").length());
+     bestModelFile.erase(0, bestModelFile.find("FIT_MASS_")+ string("FIT_MASS_").length());
      gSystem->CopyFile((plotDir+"pdf/"+bestModelFile+".pdf").c_str(), (outputDir+"pdf/"+bestModelFile+".pdf").c_str());
      gSystem->CopyFile((plotDir+"png/"+bestModelFile+".png").c_str(), (outputDir+"png/"+bestModelFile+".png").c_str());
   }

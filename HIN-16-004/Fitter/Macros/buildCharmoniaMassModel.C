@@ -154,6 +154,18 @@ bool addBackgroundMassModel(RooWorkspace& ws, string object, MassModel model, ma
   
   switch(model) 
     {  
+    case (MassModel::Uniform): 
+
+      // create the PDF           
+      ws.factory(Form("Uniform::%s(%s)", Form("pdfMASS_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), "invMass"));
+
+      ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("pdfMASSTot_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),
+                      Form("pdfMASS_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),
+                      parIni[Form("N_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str()
+                      ));
+
+      cout << Form("[INFO] %s Background Uniform PDF in %s included", object.c_str(), (isPbPb?"PbPb":"PP")) << endl; break;
+ 
     case (MassModel::Chebychev1): 
 
       // check that all input parameters are defined 
@@ -844,7 +856,9 @@ void fixMassParPsi2StoJpsi(map<string, string>& parIni, bool isPbPb)
   parIni[Form("sigma1_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{MassRatio,%s})", Form("sigma1_Psi2S_%s", (isPbPb?"PbPb":"PP")), Form("sigma1_Jpsi_%s", (isPbPb?"PbPb":"PP") ));
   parIni[Form("sigma2_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{MassRatio,%s})", Form("sigma2_Psi2S_%s", (isPbPb?"PbPb":"PP")), Form("sigma2_Jpsi_%s", (isPbPb?"PbPb":"PP") ));
   parIni[Form("alpha_Psi2S_%s", (isPbPb?"PbPb":"PP"))]  = Form("RooFormulaVar::%s('@0',{%s})", Form("alpha_Psi2S_%s", (isPbPb?"PbPb":"PP")), Form("alpha_Jpsi_%s", (isPbPb?"PbPb":"PP")));
+  parIni[Form("alpha2_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0',{%s})", Form("alpha2_Psi2S_%s", (isPbPb?"PbPb":"PP")), Form("alpha2_Jpsi_%s", (isPbPb?"PbPb":"PP")));
   parIni[Form("n_Psi2S_%s", (isPbPb?"PbPb":"PP"))]      = Form("RooFormulaVar::%s('@0',{%s})", Form("n_Psi2S_%s", (isPbPb?"PbPb":"PP")), Form("n_Jpsi_%s", (isPbPb?"PbPb":"PP")));
+  parIni[Form("n2_Psi2S_%s", (isPbPb?"PbPb":"PP"))]     = Form("RooFormulaVar::%s('@0',{%s})", Form("n2_Psi2S_%s", (isPbPb?"PbPb":"PP")), Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP")));
   parIni[Form("f_Psi2S_%s", (isPbPb?"PbPb":"PP"))]      = Form("RooFormulaVar::%s('@0',{%s})", Form("f_Psi2S_%s", (isPbPb?"PbPb":"PP")), Form("f_Jpsi_%s", (isPbPb?"PbPb":"PP")));
 };
 
@@ -855,21 +869,21 @@ void setMassDefaultParameters(map<string, string> &parIni, bool isPbPb, double n
 
   // DEFAULT SINGLE AND DOUBLE RATIO PARAMETERS
   if (parIni.count("RFrac2Svs1S_PbPbvsPP")==0 || parIni["RFrac2Svs1S_PbPbvsPP"]=="") { 
-    parIni["RFrac2Svs1S_PbPbvsPP"] = Form("%s[%.4f,%.4f,%.4f]", "RFrac2Svs1S_PbPbvsPP", 0.26, 0.0, 3.0);
+    parIni["RFrac2Svs1S_PbPbvsPP"] = Form("%s[%.4f,%.4f,%.4f]", "RFrac2Svs1S_PbPbvsPP", 0.26, -3.0, 3.0);
   }
   if (parIni.count(Form("RFrac2Svs1S_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("RFrac2Svs1S_%s", (isPbPb?"PbPb":"PP"))]=="") {
-    parIni[Form("RFrac2Svs1S_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("RFrac2Svs1S_%s", (isPbPb?"PbPb":"PP")), 0.26, 0.0, 1.0);
+    parIni[Form("RFrac2Svs1S_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("RFrac2Svs1S_%s", (isPbPb?"PbPb":"PP")), 0.26, -2.0, 2.0);
   }
 
   // DEFAULT RANGE OF NUMBER OF EVENTS
   if (parIni.count(Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.10f,%.10f,%.10f]", Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP")), numEntries, 0.0, numEntries*2.0);
+    parIni[Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.10f,%.10f,%.10f]", Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP")), numEntries, -2.0*numEntries, 2.0*numEntries);
   }
   if (parIni.count(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.10f,%.10f,%.10f]", Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")), numEntries, 0.0, numEntries*2.0);
+    parIni[Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.10f,%.10f,%.10f]", Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")), numEntries, -2.0*numEntries, 2.0*numEntries);
   }
   if (parIni.count(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.10f,%.10f,%.10f]", Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")), numEntries, 0.0, numEntries*2.0);
+    parIni[Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.10f,%.10f,%.10f]", Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")), numEntries, -2.0*numEntries, 2.0*numEntries);
   }
 
   // DEFAULT SIGNAL MASS MODEL PARAMETERS 
