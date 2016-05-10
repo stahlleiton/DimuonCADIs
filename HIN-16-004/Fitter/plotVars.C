@@ -36,6 +36,10 @@ void plotRap(const char* workDirName, const char* varname, const char* collTag="
 void plotFiles(const char* workDirNames, const char* varname, const char* xaxis, float rapmin, float rapmax, float ptmin, float ptmax, int centmin, int centmax, 
       const char* collTag="PP", bool plotErr=true, const char* DSTag="DATA");
 
+// will plot the dependence of varname as a function of the analysis bin (scanning all analysis bins)
+// if xaxis=="", all bins are plotted. Otherwise only bins differential in xaxis are shown.
+void plotFiles(const char* workDirNames, const char* varname, const char* xaxis="", const char* collTag="PP", bool plotErr=true, const char* DSTag="DATA");
+
 ////////////////////////
 // OTHER DECLARATIONS //
 ////////////////////////
@@ -44,6 +48,7 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
 vector<TGraphErrors*> plotVar(TTree *tr, const char* varname, vector<anabin> theBin, string xaxis, string collTag, bool plotErr=true);
 TGraphErrors* plotVar(const char* filename, const char* varname, anabin theBin, string xaxis, string collTag, bool plotErr=true);
 void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* workDirName, string collTag="", const char* basename="");
+bool binok(anabin thebin, const char* xaxis);
 
 
 
@@ -422,4 +427,175 @@ void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* w
    closetex(texname);
    cout << "Closed " << texname << endl;
    cout << "It is advised that you check the contents of " << texname << " as it may not compile nicely as is." << endl;
+}
+
+void plotFiles(const char* workDirNames, const char* varname, const char* xaxis, const char* collTag, bool plotErr, const char* DSTag) {
+   setTDRStyle();
+
+   typedef pair<anabin,string> anabinc;
+
+   vector<string> tags;
+   vector<map<anabinc, float> > vals;
+   vector<map<anabinc, float> > errs;
+   map<anabinc,int> binmap;
+   TH1F *hpull = new TH1F("hpull","Pull distribution;Pull;Entries",20,-5,5);
+   hpull->Sumw2(kFALSE); hpull->SetBinErrorOption(TH1::kPoisson);
+
+   float ptmin, ptmax, ymin, ymax, centmin, centmax;
+   char collSystem[5];
+   float val, val_err=0;
+
+   TString workDirNamesStr(workDirNames);
+   TString workDirName; Int_t from = 0;
+   int ibin=1;
+   while (workDirNamesStr.Tokenize(workDirName, from , ",")) {
+      TFile *f = TFile::Open(TString("Output/") + workDirName + "/result/" + TString(DSTag) + "/tree_allvars.root");
+      if (!f->IsOpen()) continue;
+      TTree *tr = (TTree*) f->Get("fitresults");
+      if (!tr) continue;
+      tr->SetBranchAddress("ptmin",&ptmin);
+      tr->SetBranchAddress("ptmax",&ptmax);
+      tr->SetBranchAddress("ymin",&ymin);
+      tr->SetBranchAddress("ymax",&ymax);
+      tr->SetBranchAddress("centmin",&centmin);
+      tr->SetBranchAddress("centmax",&centmax);
+      tr->SetBranchAddress("collSystem",collSystem);
+      if (string(varname)=="nll" || string(varname)=="chi2" || string(varname)=="normchi2" || string(varname) == "chi2prob") {
+         tr->SetBranchAddress(varname,&val);
+      } else if (string(varname).find("npar") != string::npos) {
+         tr->SetBranchAddress(varname,&val);
+      } else {
+         tr->SetBranchAddress(Form("%s_val",varname),&val);
+      }
+      if (plotErr) tr->SetBranchAddress(Form("%s_err",varname),&val_err);
+
+      map<anabinc,float> vals0;
+      map<anabinc,float> errs0;
+
+      for (int i=0; i<tr->GetEntries(); i++) {
+         tr->GetEntry(i);
+         anabinc thebin(anabin(ymin,ymax,ptmin,ptmax,centmin,centmax), collSystem);
+         if ((string(collTag) == "" || string(collTag) == collSystem) && binok(thebin.first,xaxis)) {
+            vals0[thebin] = val;
+            errs0[thebin] = val_err;
+
+            if (binmap.find(thebin) == binmap.end()) {
+               binmap[thebin] = ibin;
+               ibin++;
+            }
+         }
+      }
+
+      vals.push_back(vals0);
+      errs.push_back(errs0);
+      tags.push_back(string(workDirName.Data()));
+
+      delete f;
+   }
+
+   int nbins = binmap.size();
+   TCanvas  *c1 = new TCanvas("c1","c1",600,600);
+   TLegend *tleg = new TLegend(0.18,0.73,0.52,0.89);
+   tleg->SetBorderSize(0);
+
+   map<anabinc,float> vals0 = vals[0];
+   map<anabinc,float> errs0 = errs[0];
+
+   double vmin=0,vmax=0;
+   TH1F *haxes=NULL;
+   for (unsigned int i=0; i<vals.size(); i++) {
+      map<anabinc,float> valsi = vals[i];
+      map<anabinc,float> errsi = errs[i];
+      string tagi = tags[i];
+      TH1F *h = new TH1F(Form("h%i",i),Form(";Bin;%s",varname),nbins,0,nbins);
+      if (i==0) haxes=h;
+      h->SetLineColor((i<4) ? 1+i : 2+i); // skip yellow
+      h->SetMarkerColor((i<4) ? 1+i : 2+i);
+      h->SetMarkerStyle(20+i);
+      h->SetMarkerSize(1.5);
+
+      map<anabinc,float>::const_iterator itv=valsi.begin(),ite=errsi.begin();
+      for (;itv!=valsi.end();itv++,ite++) {
+         anabinc thebinc = itv->first;
+         anabin thebin = thebinc.first;
+         h->SetBinContent(binmap[thebinc],itv->second);
+         h->SetBinError(binmap[thebinc],ite->second);
+         h->GetXaxis()->SetBinLabel(binmap[thebinc],Form("%s-Pt[%.1f-%.1f]-Y[%.1f-%.1f]-C[%i-%i]",thebinc.second.c_str(),
+                  thebin.ptbin().low(),thebin.ptbin().high(),
+                  thebin.rapbin().low(),thebin.rapbin().high(),
+                  thebin.centbin().low(),thebin.centbin().high()));
+         // h->GetXaxis()->LabelsOption("v");
+
+         // pulls
+         if (i>1 && i%2==0 && plotErr && ite->second != 0) {
+            float pull = (itv->second-vals[i-1][thebinc]) / sqrt(pow(ite->second,2) + pow(errs[i-1][thebinc],2));
+            hpull->Fill(pull);
+         }
+         if (i==1 && vals.size()==2) {
+            float pull = (itv->second-vals[0][thebinc]) / sqrt(pow(ite->second,2) + pow(errs[0][thebinc],2));
+            hpull->Fill(pull);
+         }
+      }
+
+      int binmin = h->GetMinimumBin();
+      int binmax = h->GetMaximumBin();
+      vmin = min(vmin,h->GetBinContent(binmin)-1.2*h->GetBinError(binmin));
+      vmax = max(vmin,h->GetBinContent(binmax)+1.2*h->GetBinError(binmax));
+
+      h->Draw(i==0 ? "" : "same");
+      tleg->AddEntry(h,tagi.c_str(),"l");
+   }
+
+   if (haxes) haxes->GetYaxis()->SetRangeUser(vmin,vmax);
+   tleg->Draw();
+   int iPos = 33;
+   int ilumi = 106;
+   if (string(collTag)=="PP") ilumi = 107;
+   if (string(collTag)=="PbPb") ilumi = 108;
+   CMS_lumi( (TPad*) gPad, ilumi, iPos, "" );
+
+   c1->cd();
+   c1->Update();
+   c1->RedrawAxis();
+   gSystem->mkdir(Form("Output/%s/plot/RESULT/root/", tags[0].c_str()), kTRUE); 
+   c1->SaveAs(Form("Output/%s/plot/RESULT/root/plot_%s_%s_vs_%s.root",tags[0].c_str(), collTag, varname, xaxis));
+   gSystem->mkdir(Form("Output/%s/plot/RESULT/png/", tags[0].c_str()), kTRUE);
+   c1->SaveAs(Form("Output/%s/plot/RESULT/png/plot_%s_%s_vs_%s.png",tags[0].c_str(), collTag, varname, xaxis));
+   gSystem->mkdir(Form("Output/%s/plot/RESULT/pdf/", tags[0].c_str()), kTRUE);
+   c1->SaveAs(Form("Output/%s/plot/RESULT/pdf/plot_%s_%s_vs_%s.pdf",tags[0].c_str(), collTag, varname, xaxis));
+
+   TCanvas *cpull = new TCanvas("cpull","cpull",600,600); cpull->cd();
+   hpull->Draw("E");
+   auto r = hpull->Fit("gaus","LES");
+   double chi2_BC =  2.* r->MinFcnValue(); 
+   cout << "chi2 (Baker-Cousins) = " << chi2_BC << endl;
+   CMS_lumi( (TPad*) gPad, ilumi, iPos, "" );
+
+   cpull->cd();
+   cpull->Update();
+   cpull->RedrawAxis();
+   cpull->SaveAs(Form("Output/%s/plot/RESULT/root/pull_%s_%s_vs_%s.root",tags[0].c_str(), collTag, varname, xaxis));
+   cpull->SaveAs(Form("Output/%s/plot/RESULT/png/pull_%s_%s_vs_%s.png",tags[0].c_str(), collTag, varname, xaxis));
+   cpull->SaveAs(Form("Output/%s/plot/RESULT/pdf/pull_%s_%s_vs_%s.pdf",tags[0].c_str(), collTag, varname, xaxis));
+}
+
+bool binok(anabin thebin, const char* xaxis) {
+   if (string(xaxis) == "") return true;
+
+   if (string(xaxis) == "rap") {
+      if (thebin==anabin(0,1.6,6.5,30,0,200)) return true;
+      if (thebin==anabin(1.6,2.4,3.,30,0,200)) return true;
+      return false;
+   }
+
+   // if the xaxis is not "" not "rap", discard pt- and centrality-integrated bins
+   if (thebin==anabin(0,1.6,6.5,30,0,200)) return false;
+   if (thebin==anabin(1.6,2.4,3.,30,0,200)) return false;
+
+   if (string(xaxis) == "pt" && thebin.centbin() == binI(0,200)) return true; 
+
+   if (string(xaxis) == "cent" && thebin.rapbin() == binF(0,1.6) && thebin.ptbin() == binF(6.5,30)) return true; 
+   if (string(xaxis) == "cent" && thebin.rapbin() == binF(1.6,2.4) && thebin.ptbin() == binF(3.,30)) return true; 
+
+   return false;
 }
