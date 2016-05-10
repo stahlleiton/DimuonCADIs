@@ -20,7 +20,7 @@ RooWorkspace* combine(const char* name_pbpb, const char* name_pp) {
 
    // RooRealVar *theVar; 
    RooDataSet *data; RooAbsPdf *pdf;
-   RooRealVar *theVar_pp; RooDataSet *data_pp; RooAbsPdf *pdf_pp;
+   RooRealVar *theVar_pp; RooDataSet *data_pp; RooAbsPdf *pdf_pp, *pdf_pbpb;
 
    // theVar = ws->var(poiname);
    // pdf = ws->pdf("pdf");
@@ -54,24 +54,30 @@ RooWorkspace* combine(const char* name_pbpb, const char* name_pp) {
    // build the pp pdf
    // pdf_pp = ws_pp->pdf("pdfMASS_Tot_PP");
    RooAbsPdf *sig1S_PP = ws_pp->pdf("sig_nonorm_PP");
+   RooAbsPdf *sig2S_PP = ws_pp->pdf("sig2_nonorm_PP");
    RooAbsPdf *pdf_combinedbkgd_PP = ws_pp->pdf("bkg_nonorm_PP");
    RooRealVar *nsig1f_PP = ws_pp->var("Nsig_PP");
+   RooRealVar *frac_PP = ws_pp->var("frac_PP");
+   RooFormulaVar *nsig2f_PP = new RooFormulaVar("Nsig2_PP","@0*@1",RooArgList(*frac_PP,*nsig1f_PP));
    RooRealVar *nbkgd_PP = ws_pp->var("Nbkg_PP");
 
    pdf_pp = new RooAddPdf ("tot_PP","new total p.d.f. PP",
-         RooArgList(*sig1S_PP,*pdf_combinedbkgd_PP),
-         RooArgList(*nsig1f_PP,*nbkgd_PP));
+         RooArgList(*sig1S_PP,*sig2S_PP,*pdf_combinedbkgd_PP),
+         RooArgList(*nsig1f_PP,*nsig2f_PP,*nbkgd_PP));
 
    // build the pbpb pdf
    RooAbsPdf *sig1S_PbPb = ws->pdf("sig_nonorm_PbPb");
+   RooAbsPdf *sig2S_PbPb = ws->pdf("sig2_nonorm_PbPb");
    RooAbsPdf *pdf_combinedbkgd_PbPb = ws->pdf("bkg_nonorm_PbPb");
+   RooRealVar *nsig1f_PbPb = ws->var("Nsig_PbPb");
+   RooRealVar *frac_PbPb = ws->var("frac_PbPb");
    RooRealVar *frac = new RooRealVar("frac","frac",1,-10,10);
-   RooFormulaVar *nsig1f_PbPb = new RooFormulaVar("Nsig_PbPb","@0*@1",RooArgList(*frac,*nsig1f_PP));
+   RooFormulaVar *nsig2f_PbPb = new RooFormulaVar("Nsig2_PbPb","@0*@1*@2",RooArgList(*frac,*frac_PbPb,*nsig1f_PP));
    RooRealVar *nbkgd_PbPb = ws->var("Nbkg_PbPb");
 
    pdf_pbpb = new RooAddPdf ("tot_PbPb","new total p.d.f. PbPb",
-         RooArgList(*sig1S_PbPb,*pdf_combinedbkgd_PbPb),
-         RooArgList(*nsig1f_PbPb,*nbkgd_PbPb));
+         RooArgList(*sig1S_PbPb,*sig2S_PbPb,*pdf_combinedbkgd_PbPb),
+         RooArgList(*nsig1f_PbPb,*nsig2f_PbPb,*nbkgd_PbPb));
 
 	RooSimultaneous simPdf("simPdf", "simPdf", sample);
 	simPdf.addPdf(*pdf_pbpb, "PbPb");
