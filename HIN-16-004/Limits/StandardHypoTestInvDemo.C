@@ -44,6 +44,7 @@
 #include "TLine.h"
 #include "TROOT.h"
 #include "TSystem.h"
+#include "TString.h"
 
 #include "RooStats/AsymptoticCalculator.h"
 #include "RooStats/HybridCalculator.h"
@@ -102,7 +103,7 @@ double confLevel = 0.95;                // confidence level value
 
 std::string  minimizerType = "";                  // minimizer type (default is what is in ROOT::Math::MinimizerOptions::DefaultMinimizerType()
 std::string massValue = "";              // extra string to tag output file of result
-int   printLevel = 0;                    // print level for debugging PL test statistics and calculators
+int   printLevel = 2;                    // print level for debugging PL test statistics and calculators
 
 bool useNLLOffset = false;               // use NLL offset when fitting (this increase stability of fits)
 
@@ -467,6 +468,9 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
    if (lowerLimit < upperLimit*(1.- 1.E-4) && lowerLimit != 0)
       std::cout << "The computed lower limit is: " << lowerLimit << " +/- " << llError << std::endl;
    std::cout << "The computed upper limit is: " << upperLimit << " +/- " << ulError << std::endl;
+
+   lims->first = lowerLimit;
+   lims->second = upperLimit;
 
 
    // compute expected limit

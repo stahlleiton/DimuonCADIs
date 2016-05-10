@@ -58,21 +58,35 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    ws->factory( "Uniform::flat(RFrac2Svs1S_PbPbvsPP)" );
 
    // systematics
-   ws->factory( "syst_PP_kappa[1.10]" );
-   ws->factory( "expr::alpha_syst_PP('pow(syst_PP_kappa,beta_syst_PP)',syst_PP_kappa,beta_syst_PP[0,-5,5])" );
-   // ws->factory( "SUM::pdfMASS_Bkg_PP_nom(alpha_syst_PP*pdfMASS_Bkg_PP)" );
-   ws->factory( "prod::N_Bkg_PP_syst(alpha_syst_PP,N_Bkg_PP)" );
-   ws->factory( "Gaussian::constr_syst_PP(beta_syst_PP,glob_syst_PP[0,-5,5],1)" );
+   // n bkg pp
+   ws->factory( "kappa_nbkg_PP[1.10]" );
+   ws->factory( "expr::alpha_nbkg_PP('pow(kappa_nbkg_PP,beta_nbkg_PP)',kappa_nbkg_PP,beta_nbkg_PP[0,-5,5])" );
+   // ws->factory( "SUM::pdfMASS_Bkg_PP_nom(alpha_nbkg_PP*pdfMASS_Bkg_PP)" );
+   ws->factory( "prod::N_Bkg_PP_syst(alpha_nbkg_PP,N_Bkg_PP)" );
+   ws->factory( "Gaussian::constr_nbkg_PP(beta_nbkg_PP,glob_nbkg_PP[0,-5,5],1)" );
+
+   // dummy syst
+   ws->factory( "kappa_dummysyst_PbPb[1.10]" );
+   ws->factory( "expr::alpha_dummysyst_PbPb('pow(kappa_dummysyst_PbPb,beta_dummysyst_PbPb)',kappa_dummysyst_PbPb,beta_dummysyst_PbPb[0,-5,5])" );
+   ws->factory( "Gaussian::constr_dummysyst_PbPb(beta_dummysyst_PbPb,glob_dummysyst_PbPb[0,-5,5],1)" );
+
    // build the pp pdf
    ws->factory( "SUM::pdfMASS_Tot_PP_syst(N_Jpsi_PP * pdfMASS_Jpsi_PP, N_Psi2S_PP * pdfMASS_Psi2S_PP, N_Bkg_PP_syst * pdfMASS_Bkg_PP)" );
-   ws->factory( "PROD::pdfMASS_Tot_PP_constr(pdfMASS_Tot_PP_syst,constr_syst_PP)" );
+   ws->factory( "PROD::pdfMASS_Tot_PP_constr(pdfMASS_Tot_PP_syst,constr_nbkg_PP)" );
 
-   ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP_constr)");
+   // add systematics into the double ratio
+   ws->factory( "expr::N_Psi2S_PbPb_syst('@0*@1',N_Psi2S_PbPb,alpha_dummysyst_PbPb)" );
+   // build the pbpb pdf
+   ws->factory( "SUM::pdfMASS_Tot_PbPb_syst(N_Jpsi_PbPb * pdfMASS_Jpsi_PbPb, N_Psi2S_PbPb_syst * pdfMASS_Psi2S_PbPb, N_Bkg_PbPb * pdfMASS_Bkg_PbPb)" );
+   ws->factory( "PROD::pdfMASS_Tot_PbPb_constr(pdfMASS_Tot_PbPb_syst,constr_dummysyst_PbPb)" );
+
+   // build the combined pdf
+   ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb_constr,PP=pdfMASS_Tot_PP_constr)");
    // ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP)");
 
    ws->Print();
 
-   // ws->var("beta_syst_PP")->setConstant(kTRUE);
+   // ws->var("beta_nbkg_PP")->setConstant(kTRUE);
    // RooAbsPdf *simPdf = ws->pdf("simPdf_syst");
    // RooFitResult* fit_2nd;// fit results
    // fit_2nd = simPdf->fitTo(*data,
@@ -81,7 +95,8 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    //       RooFit::Extended(kTRUE),
    //       // RooFit::Minos(kTRUE),
    //       RooFit::NumCPU(2));
-   ws->var("beta_syst_PP")->setConstant(kFALSE);
+   ws->var("beta_nbkg_PP")->setConstant(kFALSE);
+   ws->var("beta_dummysyst_PbPb")->setConstant(kFALSE);
 
 
    /////////////////////////////////////////////////////////////////////
@@ -91,12 +106,12 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    obs.add( *ws->cat("sample"));    
    //  /////////////////////////////////////////////////////////////////////
 
-   ws->var("glob_syst_PP")->setConstant(true);
-   // ws->var("glob_syst_pbpb")->setConstant(true);
+   ws->var("glob_nbkg_PP")->setConstant(true);
+   ws->var("glob_dummysyst_PbPb")->setConstant(true);
    RooArgSet globalObs("global_obs");
    if (dosyst) {
-      // globalObs.add( *ws->var("glob_syst_pbpb") );
-      globalObs.add( *ws->var("glob_syst_PP") );
+      globalObs.add( *ws->var("glob_nbkg_PP") );
+      globalObs.add( *ws->var("glob_dummysyst_PbPb") );
    }
 
    // ws->Print();
@@ -109,8 +124,8 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    // create set of nuisance parameters
    RooArgSet nuis("nuis");
    if (dosyst) {
-      // nuis.add( *ws->var("beta_syst_pbpb") );
-      nuis.add( *ws->var("beta_syst_PP") );
+      nuis.add( *ws->var("beta_nbkg_PP") );
+      nuis.add( *ws->var("beta_dummysyst_PbPb") );
    }
 
    // set parameters constant
@@ -124,8 +139,10 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
             && varname != "sample"
             ) 
          theVar->setConstant();
-      if (varname=="glob_syst_PP"
-            || varname=="beta_syst_PP"
+      if (varname=="glob_nbkg_PP"
+            || varname=="beta_nbkg_PP"
+            || varname=="glob_dummysyst_PbPb"
+            || varname=="beta_dummysyst_PbPb"
             ) {
          cout << varname << endl;
          theVar->setConstant(!dosyst);
@@ -148,7 +165,7 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    RooAbsReal * pNll = sbHypo.GetPdf()->createNLL( *data,NumCPU(2) );
    RooMinuit(*pNll).migrad(); // minimize likelihood wrt all parameters before making plots
    RooPlot *framepoi = ((RooRealVar *)poi.first())->frame(Bins(10),Range(0.,1),Title("LL and profileLL in RFrac2Svs1S_PbPbvsPP"));
-   // RooPlot *framepoi = ((RooRealVar *) ws->var("beta_syst_PP"))->frame(Bins(10),Range(-5,5),Title("LL and profileLL in RFrac2Svs1S_PbPbvsPP"));
+   // RooPlot *framepoi = ((RooRealVar *) ws->var("beta_nbkg_PP"))->frame(Bins(10),Range(-5,5),Title("LL and profileLL in RFrac2Svs1S_PbPbvsPP"));
    pNll->plotOn(framepoi,ShiftToZero());
    
    RooAbsReal * pProfile = pNll->createProfile( globalObs ); // do not profile global observables

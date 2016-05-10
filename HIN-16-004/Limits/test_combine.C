@@ -33,21 +33,16 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
 	sample.defineType("PbPb");
 	sample.defineType("PP");
 
-   // RooRealVar *pt = ws->var("pt");
-   // RooRealVar *rap = ws->var("rap");
-   // RooRealVar *cent = ws->var("cent");
-   // RooRealVar *ctau = ws->var("ctau");
-   // RooRealVar *ctauErr = ws->var("ctauErr");
    RooRealVar *invMass = ws->var("invMass");
-   RooRealVar *invMass_pp = ws_pp->var("invMass");
+   // RooRealVar *invMass = (RooRealVar*) ws->var("invMass")->Clone("invMass");
+   // RooRealVar *invMass_pp = ws_pp->var("invMass");
    // add missing binnings
-   list<string> binningNames = invMass_pp->getBinningNames();
-   for (list<string>::const_iterator it=binningNames.begin(); it!=binningNames.end(); it++) {
-      if (invMass->hasBinning(it->c_str())) continue;
-      invMass->setBinning(invMass_pp->getBinning(it->c_str()));
-   }
+   // list<string> binningNames = invMass_pp->getBinningNames();
+   // for (list<string>::const_iterator it=binningNames.begin(); it!=binningNames.end(); it++) {
+   //    if (invMass->hasBinning(it->c_str())) continue;
+   //    invMass->setBinning(invMass_pp->getBinning(it->c_str()));
+   // }
 
-   // RooArgSet cols(*invMass,*ctau,*ctauErr,*pt,*cent);
    RooArgSet cols(*invMass);
 
 	RooDataSet data_combo("dOS_DATA", "dOS_DATA", cols, RooFit::Index(sample),
@@ -72,13 +67,6 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
          RooArgList(*sig1S_PP,*sig2S_PP,*pdf_combinedbkgd_PP),
          RooArgList(*nsig1f_PP,*nsig2f_PP,*nbkgd_PP));
 
-
-
-   cout << "******** PP ********" << endl;
-   cout << "1S+2S+bkg = " << nsig1f_PP->getVal() << "+" << nsig2f_PP->getVal() << "+" << nbkgd_PP->getVal() << " = " << nsig1f_PP->getVal()+nsig2f_PP->getVal()+nbkgd_PP->getVal()<< endl;
-   cout << "data = " << data_pp->numEntries() << endl;
-   cout << "********************" << endl;
-
    // build the pbpb pdf
    RooAbsPdf *sig1S = ws->pdf("pdfMASS_Jpsi_PbPb");
    RooAbsPdf *sig2S = ws->pdf("pdfMASS_Psi2S_PbPb");
@@ -86,16 +74,7 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
    RooRealVar *nsig1f = ws->var("N_Jpsi_PbPb");
    RooRealVar *nbkgd = ws->var("N_Bkg_PbPb");
    RooRealVar *RFrac2Svs1S_PbPbvsPP = new RooRealVar("RFrac2Svs1S_PbPbvsPP","RFrac2Svs1S_PbPbvsPP",0.5,-10,10);
-   // RooFormulaVar *RFrac2Svs1S_PbPb = new RooFormulaVar("RFrac2Svs1S_PbPb","@0*@1",RooArgList(*RFrac2Svs1S_PbPbvsPP,*RFrac2Svs1S_PP));
    RooFormulaVar *nsig2f = new RooFormulaVar("N_Psi2S_PbPb","@0*@1*@2",RooArgList(*RFrac2Svs1S_PbPbvsPP,*RFrac2Svs1S_PP,*nsig1f));
-   // RooExtendPdf *sig1S_tot = new RooExtendPdf("pdfMASSTot_Jpsi_PbPb","pdfMASSTot_Jpsi_PbPb",*sig1S,*nsig1f);
-   // RooExtendPdf *sig2S_tot = new RooExtendPdf("pdfMASSTot_Psi2S_PbPb","pdfMASSTot_Psi2S_PbPb",*sig2S,*nsig2f);
-   // RooExtendPdf *pdf_combinedbkgd_tot = new RooExtendPdf("pdfMASSTot_Bkg_PbPb","pdfMASSTot_Bkg_PbPb",*pdf_combinedbkgd,*nbkgd);
-   
-   cout << "******** PbPb ********" << endl;
-   cout << "1S+2S+bkg = " << nsig1f->getVal() << "+" << nsig2f->getVal() << "+" << nbkgd->getVal() << " = " << nsig1f->getVal()+nsig2f->getVal()+nbkgd->getVal()<< endl;
-   cout << "data = " << data->numEntries() << endl;
-   cout << "********************" << endl;
 
    RooAbsPdf *pdf_pbpb = new RooAddPdf ("pdfMASS_Tot_PbPb","new total p.d.f.",
          RooArgList(*sig1S,*sig2S,*pdf_combinedbkgd),
@@ -103,51 +82,6 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
 	RooSimultaneous simPdf("simPdf", "simPdf", sample);
 	simPdf.addPdf(*pdf_pbpb, "PbPb");
 	simPdf.addPdf(*pdf_pp, "PP");
-
-   // // not sure this is really needed since we will fit again in the later workspace creation
-   // RooFitResult* fit_2nd;// fit results
-   // fit_2nd = simPdf.fitTo(data_combo,
-   //       // RooFit::Constrained(),
-   //       RooFit::Save(kTRUE),
-   //       RooFit::Extended(kTRUE),
-   //       // RooFit::Minos(kTRUE),
-   //       RooFit::NumCPU(2));
-
-   cout << "*********POST-FIT**********" << endl;
-   cout << "******** PP ********" << endl;
-   cout << "1S+2S+bkg = " << nsig1f_PP->getVal() << "+" << nsig2f_PP->getVal() << "+" << nbkgd_PP->getVal() << " = " << nsig1f_PP->getVal()+nsig2f_PP->getVal()+nbkgd_PP->getVal()<< endl;
-   cout << "******** PbPb ********" << endl;
-   cout << "1S+2S+bkg = " << nsig1f->getVal() << "+" << nsig2f->getVal() << "+" << nbkgd->getVal() << " = " << nsig1f->getVal()+nsig2f->getVal()+nbkgd->getVal()<< endl;
-   cout << "data = " << data_combo.numEntries() << endl;
-   cout << "********************" << endl;
-
-   // fix all other variables in model:
-   // everything except observables, POI, and nuisance parameters
-   // must be constant
-   // wcombo->var("#alpha_{CB}_hi")->setConstant(true);
-   // wcombo->var("#alpha_{CB}_pp")->setConstant(true);
-   // wcombo->var("#sigma_{CB1}_hi")->setConstant(true);
-   // wcombo->var("#sigma_{CB1}_pp")->setConstant(true);
-   // wcombo->var("#sigma_{CB2}/#sigma_{CB1}_hi")->setConstant(true);
-   // wcombo->var("#sigma_{CB2}/#sigma_{CB1}_pp")->setConstant(true);
-   // wcombo->var("N_{#Upsilon(1S)}_hi")->setConstant(true);
-   // wcombo->var("N_{#Upsilon(1S)}_pp")->setConstant(true);
-   // wcombo->var("N_{#Upsilon(2S)}_hi")->setConstant(true);
-   // wcombo->var("N_{#Upsilon(2S)}_pp")->setConstant(true);
-   // wcombo->var("N_{#Upsilon(3S)}_pp")->setConstant(true);
-   // wcombo->var("decay_hi")->setConstant(true);
-   // wcombo->var("decay_pp")->setConstant(true);
-   // wcombo->var("mass1S_hi")->setConstant(true);
-   // wcombo->var("mass1S_pp")->setConstant(true);
-   // wcombo->var("n_{Bkgd}_hi")->setConstant(true);
-   // wcombo->var("n_{Bkgd}_pp")->setConstant(true);
-   // wcombo->var("npow")->setConstant(true);
-   // wcombo->var("sigmaFraction_hi")->setConstant(true);
-   // wcombo->var("sigmaFraction_pp")->setConstant(true);
-   // wcombo->var("turnOn_hi")->setConstant(true);
-   // wcombo->var("turnOn_pp")->setConstant(true);
-   // wcombo->var("width_hi")->setConstant(true);
-   // wcombo->var("width_pp")->setConstant(true);
 
    // import PDFs to the workspace
    if (!commonParams) {
@@ -161,6 +95,9 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
       wcombo->import(*pdf_pbpb,	RecycleConflictNodes(), RenameVariable("f_Jpsi_PbPb","f_Jpsi"), RenameVariable("m_Jpsi_PbPb","m_Jpsi"), RenameVariable("sigma1_Jpsi_PbPb","sigma1_Jpsi"), RenameVariable("rSigma21_Jpsi_PbPb","rSigma21_Jpsi"));
    }
 	wcombo->import(simPdf, RecycleConflictNodes());
+
+   // simPdf.fitTo(data_combo); // crashes sometimes but not always?? adding Range("MassWindow") or NumCPU(2) improves stability
+   simPdf.fitTo(data_combo,NumCPU(3),Range("MassWindow"));
 
    // wcombo->writeToFile("fitresult_combo.root");
    return wcombo;
