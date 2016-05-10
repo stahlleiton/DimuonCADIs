@@ -40,6 +40,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
   if (DSName.find("PP")!=std::string::npos) isPP =true;
   int triggerIndex_PP   = 0;
   int triggerIndex_PbPb = 0;
+  int CentFactor = 1;
 
   bool applyWeight = false;
   if (isMC && !isPP) applyWeight = true;
@@ -104,20 +105,25 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
       for (int iQQ=0; iQQ<Reco_QQ_size; iQQ++) {
         TLorentzVector *RecoQQ4mom = (TLorentzVector*) Reco_QQ_4mom->At(iQQ);
         mass->setVal(RecoQQ4mom->M());
-        ctau->setVal(Reco_QQ_ctau3D[iQQ]);
-        ctauErr->setVal(Reco_QQ_ctauErr3D[iQQ]);
+        if (theTree->GetBranch("Reco_QQ_ctau3D")) { ctau->setVal(Reco_QQ_ctau3D[iQQ]); }
+        else if (theTree->GetBranch("Reco_QQ_ctau")) { ctau->setVal(Reco_QQ_ctau[iQQ]); }
+        else { cout << "[ERROR] No ctau information found in the Onia Tree" << endl; }
+        if (theTree->GetBranch("Reco_QQ_ctauErr3D")) { ctauErr->setVal(Reco_QQ_ctauErr3D[iQQ]); }
+        else if (theTree->GetBranch("Reco_QQ_ctauErr")) { ctauErr->setVal(Reco_QQ_ctauErr[iQQ]); }
+        else { cout << "[ERROR] No ctauErr information found in the Onia Tree" << endl; }
+        
         ptQQ->setVal(RecoQQ4mom->Pt());
         rapQQ->setVal(RecoQQ4mom->Rapidity());
-        cent->setVal(Centrality);
+        cent->setVal(Centrality*CentFactor);
         
         if (applyWeight){
           double w = theTree->GetWeight();//*getNColl(Centrality,isPP);
           weight->setVal(w);
         }
         
-	if ( 
-	    ( RecoQQ::areMuonsInAcceptance2015(iQQ) ) &&  // 2015 Global Muon Acceptance Cuts
-	    ( RecoQQ::passQualityCuts2015(iQQ)      ) &&  // 2015 Soft Global Muon Quality Cuts
+	if (
+            ( RecoQQ::areMuonsInAcceptance2015(iQQ) ) &&  // 2015 Global Muon Acceptance Cuts
+            ( RecoQQ::passQualityCuts2015(iQQ)      ) &&  // 2015 Soft Global Muon Quality Cuts
 	    ( RecoQQ::isTriggerMatch(iQQ, (isPP ? triggerIndex_PP : triggerIndex_PbPb))        )     // HLT_HIL1DoubleMu0_v1
 	    )
 	  {
@@ -204,28 +210,30 @@ bool getTChain(TChain *fChain, vector<string> FileNames)
 void iniBranch(TChain* fChain, bool isMC)
 {
   cout << "[INFO] Initializing Branches of " << TreeName.c_str() << endl;
-  fChain->GetBranch("Reco_QQ_4mom")->SetAutoDelete(false);   
-  fChain->GetBranch("Reco_QQ_mupl_4mom")->SetAutoDelete(false); 
-  fChain->GetBranch("Reco_QQ_mumi_4mom")->SetAutoDelete(false);  
+  if (fChain->GetBranch("Reco_QQ_4mom"))      { fChain->GetBranch("Reco_QQ_4mom")->SetAutoDelete(false);      }
+  if (fChain->GetBranch("Reco_QQ_mupl_4mom")) { fChain->GetBranch("Reco_QQ_mupl_4mom")->SetAutoDelete(false); }
+  if (fChain->GetBranch("Reco_QQ_mumi_4mom")) { fChain->GetBranch("Reco_QQ_mumi_4mom")->SetAutoDelete(false); } 
   if (isMC) {
-    fChain->GetBranch("Gen_QQ_mupl_4mom")->SetAutoDelete(false); 
-    fChain->GetBranch("Gen_QQ_mumi_4mom")->SetAutoDelete(false);  
+    if (fChain->GetBranch("Gen_QQ_mupl_4mom")) { fChain->GetBranch("Gen_QQ_mupl_4mom")->SetAutoDelete(false); }
+    if (fChain->GetBranch("Gen_QQ_mumi_4mom")) { fChain->GetBranch("Gen_QQ_mumi_4mom")->SetAutoDelete(false); }
   }
   fChain->SetBranchStatus("*",0);
   RecoQQ::iniBranches(fChain); 
-  fChain->SetBranchStatus("Centrality",1); 
-  fChain->SetBranchStatus("Reco_QQ_size",1); 
-  fChain->SetBranchStatus("Reco_QQ_sign",1); 
-  fChain->SetBranchStatus("Reco_QQ_4mom",1); 
-  fChain->SetBranchStatus("Reco_QQ_mupl_4mom",1); 
-  fChain->SetBranchStatus("Reco_QQ_mumi_4mom",1);
-  fChain->SetBranchStatus("Reco_QQ_ctau3D",1); 
-  fChain->SetBranchStatus("Reco_QQ_ctauErr3D",1);  
+  if (fChain->GetBranch("Centrality"))        { fChain->SetBranchStatus("Centrality",1);        }
+  if (fChain->GetBranch("Reco_QQ_size"))      { fChain->SetBranchStatus("Reco_QQ_size",1);      }
+  if (fChain->GetBranch("Reco_QQ_sign"))      { fChain->SetBranchStatus("Reco_QQ_sign",1);      }
+  if (fChain->GetBranch("Reco_QQ_4mom"))      { fChain->SetBranchStatus("Reco_QQ_4mom",1);      }
+  if (fChain->GetBranch("Reco_QQ_mupl_4mom")) { fChain->SetBranchStatus("Reco_QQ_mupl_4mom",1); }
+  if (fChain->GetBranch("Reco_QQ_mumi_4mom")) { fChain->SetBranchStatus("Reco_QQ_mumi_4mom",1); }
+  if (fChain->GetBranch("Reco_QQ_ctau3D"))    { fChain->SetBranchStatus("Reco_QQ_ctau3D",1);    }
+  if (fChain->GetBranch("Reco_QQ_ctauErr3D")) { fChain->SetBranchStatus("Reco_QQ_ctauErr3D",1); }
+  if (fChain->GetBranch("Reco_QQ_ctau"))      { fChain->SetBranchStatus("Reco_QQ_ctau",1);      }
+  if (fChain->GetBranch("Reco_QQ_ctauErr"))   { fChain->SetBranchStatus("Reco_QQ_ctauErr",1);   }
   if (isMC)
   {
-    fChain->SetBranchStatus("Gen_QQ_size",1);
-    fChain->SetBranchStatus("Gen_QQ_mupl_4mom",1);
-    fChain->SetBranchStatus("Gen_QQ_mumi_4mom",1);
+    if (fChain->GetBranch("Gen_QQ_size"))      { fChain->SetBranchStatus("Gen_QQ_size",1);      }
+    if (fChain->GetBranch("Gen_QQ_mupl_4mom")) { fChain->SetBranchStatus("Gen_QQ_mupl_4mom",1); }
+    if (fChain->GetBranch("Gen_QQ_mumi_4mom")) { fChain->SetBranchStatus("Gen_QQ_mumi_4mom",1); }
   }
 };
 
