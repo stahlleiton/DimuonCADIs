@@ -1,7 +1,13 @@
 #include "RooGlobalFunc.h"
 #include "RooWorkspace.h"
+#include "RooExtendPdf.h"
+
+#include <list>
+#include <string>
+#include <iostream>
 
 using namespace RooFit;
+using namespace std;
 
 RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* name_pp="fitresult_pp.root", bool commonParams=false)
 {
@@ -20,76 +26,100 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
    // theVar = ws->var(poiname);
    // pdf = ws->pdf("pdf");
    data =(RooDataSet *) ws->data("dOS_DATA_PbPb");
-   pdf_pp = ws_pp->pdf("pdfMASS_Tot_PP");
    data_pp =(RooDataSet *) ws_pp->data("dOS_DATA_PP");
 
-	RooCategory dataCat("dataCat", "dataCat");
-	dataCat.defineType("PbPb");
-	dataCat.defineType("PP");
+   // make the combined dataset
+	RooCategory sample("sample", "sample");
+	sample.defineType("PbPb");
+	sample.defineType("PP");
 
-   RooRealVar *pt = ws->var("pt");
-   RooRealVar *rap = ws->var("rap");
-   RooRealVar *cent = ws->var("cent");
-   RooRealVar *ctau = ws->var("ctau");
-   RooRealVar *ctauErr = ws->var("ctauErr");
+   // RooRealVar *pt = ws->var("pt");
+   // RooRealVar *rap = ws->var("rap");
+   // RooRealVar *cent = ws->var("cent");
+   // RooRealVar *ctau = ws->var("ctau");
+   // RooRealVar *ctauErr = ws->var("ctauErr");
    RooRealVar *invMass = ws->var("invMass");
+   RooRealVar *invMass_pp = ws_pp->var("invMass");
+   // add missing binnings
+   list<string> binningNames = invMass_pp->getBinningNames();
+   for (list<string>::const_iterator it=binningNames.begin(); it!=binningNames.end(); it++) {
+      if (invMass->hasBinning(it->c_str())) continue;
+      invMass->setBinning(invMass_pp->getBinning(it->c_str()));
+   }
 
-	RooArgSet cols(*invMass,*ctau,*ctauErr,*pt,*rap,*cent);
+   // RooArgSet cols(*invMass,*ctau,*ctauErr,*pt,*cent);
+   RooArgSet cols(*invMass);
 
-	RooDataSet data_combo("dOS_DATA", "dOS_DATA", cols, RooFit::Index(dataCat),
+	RooDataSet data_combo("dOS_DATA", "dOS_DATA", cols, RooFit::Index(sample),
 /*Only for track rotation*/
 		RooFit::Import("PbPb", *data), RooFit::Import("PP", *data_pp));
 
    RooWorkspace *wcombo = new RooWorkspace("wcombo","workspace for PbPb + pp");
    wcombo->import(data_combo);
-   if (!commonParams) {
-      wcombo->import(*pdf_pp,	RecycleConflictNodes());
-   } else {
-      wcombo->import(*pdf_pp,	RecycleConflictNodes(), RenameVariable("f_Jpsi_PP","f_Jpsi"), RenameVariable("m_Jpsi_PP","m_Jpsi"), RenameVariable("sigma1_Jpsi_PP","sigma1_Jpsi"), RenameVariable("rSigma21_Jpsi_PP","rSigma21_Jpsi"));
-   }
 
-   // // create the combined variable
-   // RooRealVar* n3shi = wcombo->var("N_{#Upsilon(3S)}_hi");
-   // RooRealVar* n3spp = wcombo->var("N_{#Upsilon(3S)}_pp");
-   // RooFormulaVar x3raw("x3raw","x3raw","@0/@1",RooArgList(*n3shi,*n3spp));
-   // cout << x3raw.getVal() << endl;
-   // wcombo->import(x3raw);
-   // wcombo->Print();
+   // build the pp pdf
+   // pdf_pp = ws_pp->pdf("pdfMASS_Tot_PP");
+   RooAbsPdf *sig1S_PP = ws_pp->pdf("pdfMASS_Jpsi_PP");
+   RooAbsPdf *sig2S_PP = ws_pp->pdf("pdfMASS_Psi2S_PP");
+   RooAbsPdf *pdf_combinedbkgd_PP = ws_pp->pdf("pdfMASS_Bkg_PP");
+   RooRealVar *nsig1f_PP = ws_pp->var("N_Jpsi_PP");
+   RooRealVar *RFrac2Svs1S_PP = ws_pp->var("RFrac2Svs1S_PP");
+   RooRealVar *nbkgd_PP = ws_pp->var("N_Bkg_PP");
+   RooFormulaVar *nsig2f_PP = new RooFormulaVar("N_Psi2S_PP","@0*@1",RooArgList(*RFrac2Svs1S_PP,*nsig1f_PP));
+   cout << sig1S_PP << " " << sig2S_PP << " " << pdf_combinedbkgd_PP << " " << nsig1f_PP << " " << nbkgd_PP << " " << RFrac2Svs1S_PP << endl;
 
+   pdf_pp = new RooAddPdf ("pdfMASS_Tot_PP","new total p.d.f. PP",
+         RooArgList(*sig1S_PP,*sig2S_PP,*pdf_combinedbkgd_PP),
+         RooArgList(*nsig1f_PP,*nsig2f_PP,*nbkgd_PP));
+
+
+
+   cout << "******** PP ********" << endl;
+   cout << "1S+2S+bkg = " << nsig1f_PP->getVal() << "+" << nsig2f_PP->getVal() << "+" << nbkgd_PP->getVal() << " = " << nsig1f_PP->getVal()+nsig2f_PP->getVal()+nbkgd_PP->getVal()<< endl;
+   cout << "data = " << data_pp->numEntries() << endl;
+   cout << "********************" << endl;
+
+   // build the pbpb pdf
    RooAbsPdf *sig1S = ws->pdf("pdfMASS_Jpsi_PbPb");
    RooAbsPdf *sig2S = ws->pdf("pdfMASS_Psi2S_PbPb");
    RooAbsPdf *pdf_combinedbkgd = ws->pdf("pdfMASS_Bkg_PbPb");
    RooRealVar *nsig1f = ws->var("N_Jpsi_PbPb");
-   RooRealVar *RFrac2Svs1S_PP = ws_pp->var("RFrac2Svs1S_PP");
    RooRealVar *nbkgd = ws->var("N_Bkg_PbPb");
-   RooRealVar *doubleRatio = new RooRealVar("doubleRatio","doubleRatio",0.5,-10,10);
-   RooFormulaVar *RFrac2Svs1S_PbPb = new RooFormulaVar("RFrac2Svs1S_PbPb","@0*@1",RooArgList(*doubleRatio,*RFrac2Svs1S_PP));
-   RooFormulaVar *nsig2f = new RooFormulaVar("N_Psi2S_PbPb","@0*@1",RooArgList(*RFrac2Svs1S_PbPb,*nsig1f));
+   RooRealVar *RFrac2Svs1S_PbPbvsPP = new RooRealVar("RFrac2Svs1S_PbPbvsPP","RFrac2Svs1S_PbPbvsPP",0.5,-10,10);
+   // RooFormulaVar *RFrac2Svs1S_PbPb = new RooFormulaVar("RFrac2Svs1S_PbPb","@0*@1",RooArgList(*RFrac2Svs1S_PbPbvsPP,*RFrac2Svs1S_PP));
+   RooFormulaVar *nsig2f = new RooFormulaVar("N_Psi2S_PbPb","@0*@1*@2",RooArgList(*RFrac2Svs1S_PbPbvsPP,*RFrac2Svs1S_PP,*nsig1f));
+   // RooExtendPdf *sig1S_tot = new RooExtendPdf("pdfMASSTot_Jpsi_PbPb","pdfMASSTot_Jpsi_PbPb",*sig1S,*nsig1f);
+   // RooExtendPdf *sig2S_tot = new RooExtendPdf("pdfMASSTot_Psi2S_PbPb","pdfMASSTot_Psi2S_PbPb",*sig2S,*nsig2f);
+   // RooExtendPdf *pdf_combinedbkgd_tot = new RooExtendPdf("pdfMASSTot_Bkg_PbPb","pdfMASSTot_Bkg_PbPb",*pdf_combinedbkgd,*nbkgd);
+   
+   cout << "******** PbPb ********" << endl;
+   cout << "1S+2S+bkg = " << nsig1f->getVal() << "+" << nsig2f->getVal() << "+" << nbkgd->getVal() << " = " << nsig1f->getVal()+nsig2f->getVal()+nbkgd->getVal()<< endl;
+   cout << "data = " << data->numEntries() << endl;
+   cout << "********************" << endl;
 
    RooAbsPdf *pdf_pbpb = new RooAddPdf ("pdfMASS_Tot_PbPb","new total p.d.f.",
          RooArgList(*sig1S,*sig2S,*pdf_combinedbkgd),
          RooArgList(*nsig1f,*nsig2f,*nbkgd));
-   if (!commonParams) {
-      wcombo->import(*pdf_pbpb, RecycleConflictNodes());
-   } else {
-      wcombo->import(*pdf_pbpb,	RecycleConflictNodes(), RenameVariable("f_Jpsi_PbPb","f_Jpsi"), RenameVariable("m_Jpsi_PbPb","m_Jpsi"), RenameVariable("sigma1_Jpsi_PbPb","sigma1_Jpsi"), RenameVariable("rSigma21_Jpsi_PbPb","rSigma21_Jpsi"));
-   }
-   wcombo->Print();
-	RooSimultaneous simPdf("pdfMASS_Tot", "pdfMASS_Tot", dataCat);
+	RooSimultaneous simPdf("simPdf", "simPdf", sample);
 	simPdf.addPdf(*pdf_pbpb, "PbPb");
 	simPdf.addPdf(*pdf_pp, "PP");
-	wcombo->import(simPdf, RecycleConflictNodes());
-   wcombo->Print();
 
-   // not sure this is really needed since we will fit again in the later workspace creation
+   // // not sure this is really needed since we will fit again in the later workspace creation
    // RooFitResult* fit_2nd;// fit results
    // fit_2nd = simPdf.fitTo(data_combo,
    //       // RooFit::Constrained(),
    //       RooFit::Save(kTRUE),
    //       RooFit::Extended(kTRUE),
-   //       RooFit::Minos(kTRUE),
+   //       // RooFit::Minos(kTRUE),
    //       RooFit::NumCPU(2));
 
+   cout << "*********POST-FIT**********" << endl;
+   cout << "******** PP ********" << endl;
+   cout << "1S+2S+bkg = " << nsig1f_PP->getVal() << "+" << nsig2f_PP->getVal() << "+" << nbkgd_PP->getVal() << " = " << nsig1f_PP->getVal()+nsig2f_PP->getVal()+nbkgd_PP->getVal()<< endl;
+   cout << "******** PbPb ********" << endl;
+   cout << "1S+2S+bkg = " << nsig1f->getVal() << "+" << nsig2f->getVal() << "+" << nbkgd->getVal() << " = " << nsig1f->getVal()+nsig2f->getVal()+nbkgd->getVal()<< endl;
+   cout << "data = " << data_combo.numEntries() << endl;
+   cout << "********************" << endl;
 
    // fix all other variables in model:
    // everything except observables, POI, and nuisance parameters
@@ -119,6 +149,19 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
    // wcombo->var("width_hi")->setConstant(true);
    // wcombo->var("width_pp")->setConstant(true);
 
-   wcombo->writeToFile("fitresult_combo.root");
+   // import PDFs to the workspace
+   if (!commonParams) {
+      wcombo->import(*pdf_pp,	RecycleConflictNodes());
+   } else {
+      wcombo->import(*pdf_pp,	RecycleConflictNodes(), RenameVariable("f_Jpsi_PP","f_Jpsi"), RenameVariable("m_Jpsi_PP","m_Jpsi"), RenameVariable("sigma1_Jpsi_PP","sigma1_Jpsi"), RenameVariable("rSigma21_Jpsi_PP","rSigma21_Jpsi"));
+   }
+   if (!commonParams) {
+      wcombo->import(*pdf_pbpb, RecycleConflictNodes());
+   } else {
+      wcombo->import(*pdf_pbpb,	RecycleConflictNodes(), RenameVariable("f_Jpsi_PbPb","f_Jpsi"), RenameVariable("m_Jpsi_PbPb","m_Jpsi"), RenameVariable("sigma1_Jpsi_PbPb","sigma1_Jpsi"), RenameVariable("rSigma21_Jpsi_PbPb","rSigma21_Jpsi"));
+   }
+	wcombo->import(simPdf, RecycleConflictNodes());
+
+   // wcombo->writeToFile("fitresult_combo.root");
    return wcombo;
 }

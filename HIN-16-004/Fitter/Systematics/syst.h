@@ -172,7 +172,7 @@ void printTex(vector< map<anabin, syst> > theSysts, const char* texName, bool is
       file << " & ";
       file.unsetf(ios::fixed);
       file << thebin.centbin().low()/2 << "-" << thebin.centbin().high()/2 << "\\% ";
-      file.precision(2);
+      file.precision(1);
       file.setf(ios::fixed);
 
       for (unsigned int i=0; i<nsyst; i++) {

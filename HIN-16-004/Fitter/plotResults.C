@@ -466,16 +466,17 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
 
    int iPos = 33;
    CMS_lumi( (TPad*) gPad, 106, iPos, "" );
+   // CMS_lumi( (TPad*) gPad, 103, iPos, "" );
 
    c1->cd();
    c1->Update();
    c1->RedrawAxis();
    gSystem->mkdir(Form("Output/%s/plot/RESULT/root/", outputDir.c_str()), kTRUE); 
-   c1->SaveAs(Form("Output/%s/plot/RESULT/root/result_%s.root",outputDir.c_str(), xaxis.c_str()));
+   c1->SaveAs(Form("Output/%s/plot/RESULT/root/result_%s%s.root",outputDir.c_str(), xaxis.c_str(), plot12007 ? "_12007" : ""));
    gSystem->mkdir(Form("Output/%s/plot/RESULT/png/", outputDir.c_str()), kTRUE);
-   c1->SaveAs(Form("Output/%s/plot/RESULT/png/result_%s.png",outputDir.c_str(), xaxis.c_str()));
+   c1->SaveAs(Form("Output/%s/plot/RESULT/png/result_%s%s.png",outputDir.c_str(), xaxis.c_str(), plot12007 ? "_12007" : ""));
    gSystem->mkdir(Form("Output/%s/plot/RESULT/pdf/", outputDir.c_str()), kTRUE);
-   c1->SaveAs(Form("Output/%s/plot/RESULT/pdf/result_%s.pdf",outputDir.c_str(), xaxis.c_str()));
+   c1->SaveAs(Form("Output/%s/plot/RESULT/pdf/result_%s%s.pdf",outputDir.c_str(), xaxis.c_str(), plot12007 ? "_12007" : ""));
 
    delete tleg;
    delete haxes; delete haxesr;
@@ -499,8 +500,10 @@ void centrality2npart(TGraphAsymmErrors* tg, bool issyst, bool isMB, double xshi
       eyh = tg->GetErrorYhigh(i);
       x = isMB ? 150 + xshift : HI::findNpartAverage(2.*(x-exl),2.*(x+exh));
       if (!issyst) {
-         exl = 0.;
-         exh = 0.;
+         if (isMB) {exl=0; exh=0;} else {
+            exl = HI::findNpartSyst(2.*(x-exl),2.*(x+exh));//0.;
+            exh = HI::findNpartSyst(2.*(x-exl),2.*(x+exh));//0.;
+         }
       } else {
          exl = !isMB ? 5 : 5./(1.-xfrac);
          exh = exl;
