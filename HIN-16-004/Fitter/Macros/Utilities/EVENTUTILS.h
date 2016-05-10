@@ -147,28 +147,28 @@ namespace PP {
 namespace RecoQQ {
   void iniBranches(TChain* fChain)
   {
-    fChain->SetBranchStatus("HLTriggers",1); 
-    fChain->SetBranchStatus("Reco_QQ_trig",1);
-    fChain->SetBranchStatus("Reco_QQ_VtxProb",1); 
-    fChain->SetBranchStatus("Reco_QQ_mupl_isGoodMuon",1); 
-    fChain->SetBranchStatus("Reco_QQ_mumi_isGoodMuon",1);
-    fChain->SetBranchStatus("Reco_QQ_mupl_nTrkWMea",1); 
-    fChain->SetBranchStatus("Reco_QQ_mumi_nTrkWMea",1);
-    fChain->SetBranchStatus("Reco_QQ_mupl_nPixWMea",1); 
-    fChain->SetBranchStatus("Reco_QQ_mumi_nPixWMea",1);
-    fChain->SetBranchStatus("Reco_QQ_mupl_dxy",1); 
-    fChain->SetBranchStatus("Reco_QQ_mumi_dxy",1);
-    fChain->SetBranchStatus("Reco_QQ_mupl_dz",1); 
-    fChain->SetBranchStatus("Reco_QQ_mumi_dz",1);
+    if (fChain->GetBranch("HLTriggers")) fChain->SetBranchStatus("HLTriggers",1); 
+    if (fChain->GetBranch("Reco_QQ_trig")) fChain->SetBranchStatus("Reco_QQ_trig",1);
+    if (fChain->GetBranch("Reco_QQ_VtxProb")) fChain->SetBranchStatus("Reco_QQ_VtxProb",1); 
+    if (fChain->GetBranch("Reco_QQ_mupl_isGoodMuon")) fChain->SetBranchStatus("Reco_QQ_mupl_isGoodMuon",1); 
+    if (fChain->GetBranch("Reco_QQ_mumi_isGoodMuon")) fChain->SetBranchStatus("Reco_QQ_mumi_isGoodMuon",1);
+    if (fChain->GetBranch("Reco_QQ_mupl_nTrkWMea")) fChain->SetBranchStatus("Reco_QQ_mupl_nTrkWMea",1); 
+    if (fChain->GetBranch("Reco_QQ_mumi_nTrkWMea")) fChain->SetBranchStatus("Reco_QQ_mumi_nTrkWMea",1);
+    if (fChain->GetBranch("Reco_QQ_mupl_nPixWMea")) fChain->SetBranchStatus("Reco_QQ_mupl_nPixWMea",1); 
+    if (fChain->GetBranch("Reco_QQ_mumi_nPixWMea")) fChain->SetBranchStatus("Reco_QQ_mumi_nPixWMea",1);
+    if (fChain->GetBranch("Reco_QQ_mupl_dxy")) fChain->SetBranchStatus("Reco_QQ_mupl_dxy",1); 
+    if (fChain->GetBranch("Reco_QQ_mumi_dxy")) fChain->SetBranchStatus("Reco_QQ_mumi_dxy",1);
+    if (fChain->GetBranch("Reco_QQ_mupl_dz")) fChain->SetBranchStatus("Reco_QQ_mupl_dz",1); 
+    if (fChain->GetBranch("Reco_QQ_mumi_dz")) fChain->SetBranchStatus("Reco_QQ_mumi_dz",1);
 
-    fChain->SetBranchStatus("Reco_QQ_mupl_nTrkHits",1); 
-    fChain->SetBranchStatus("Reco_QQ_mumi_nTrkHits",1);
-    fChain->SetBranchStatus("Reco_QQ_mupl_normChi2_global",1); 
-    fChain->SetBranchStatus("Reco_QQ_mumi_normChi2_global",1);
-    fChain->SetBranchStatus("Reco_QQ_mupl_normChi2_inner",1); 
-    fChain->SetBranchStatus("Reco_QQ_mumi_normChi2_inner",1);
-    fChain->SetBranchStatus("Reco_QQ_mupl_TrkMuArb",1); 
-    fChain->SetBranchStatus("Reco_QQ_mumi_TrkMuArb",1);
+    if (fChain->GetBranch("Reco_QQ_mupl_nTrkHits")) fChain->SetBranchStatus("Reco_QQ_mupl_nTrkHits",1); 
+    if (fChain->GetBranch("Reco_QQ_mumi_nTrkHits")) fChain->SetBranchStatus("Reco_QQ_mumi_nTrkHits",1);
+    if (fChain->GetBranch("Reco_QQ_mupl_normChi2_global")) fChain->SetBranchStatus("Reco_QQ_mupl_normChi2_global",1); 
+    if (fChain->GetBranch("Reco_QQ_mumi_normChi2_global")) fChain->SetBranchStatus("Reco_QQ_mumi_normChi2_global",1);
+    if (fChain->GetBranch("Reco_QQ_mupl_normChi2_inner")) fChain->SetBranchStatus("Reco_QQ_mupl_normChi2_inner",1); 
+    if (fChain->GetBranch("Reco_QQ_mumi_normChi2_inner")) fChain->SetBranchStatus("Reco_QQ_mumi_normChi2_inner",1);
+    if (fChain->GetBranch("Reco_QQ_mupl_TrkMuArb")) fChain->SetBranchStatus("Reco_QQ_mupl_TrkMuArb",1); 
+    if (fChain->GetBranch("Reco_QQ_mumi_TrkMuArb")) fChain->SetBranchStatus("Reco_QQ_mumi_TrkMuArb",1);
 
   }
     
