@@ -280,7 +280,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
   t->SetTextSize(0.03);
   if (!paperStyle) { // do not print selection details for paper style
     t->DrawLatex(0.21, 0.86-dy, "2015 HI Soft Muon ID"); dy+=0.045;
-    if (cutCtau) { t->DrawLatex(0.21, 0.86-dy, "l_{J/#psi} cuts applied"); dy+=0.045; }
+    if (cutCtau) { t->DrawLatex(0.21, 0.86-dy, "#font[12]{l}_{J/#psi} cuts applied"); dy+=0.045; }
     if (isPbPb) {
       t->DrawLatex(0.21, 0.86-dy, "HLT_HIL1DoubleMu0_v1"); dy+=0.045;
     } else {
