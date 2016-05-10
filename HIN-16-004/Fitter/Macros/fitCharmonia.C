@@ -15,6 +15,8 @@ void setOptions(struct InputOpt* opt);
 
 bool isFitAlreadyFound(RooArgSet *newpars, string outputDir, string plotLabel, string TAG, struct KinCuts cut, bool isPbPb, bool doSimulFit);
 bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2);
+bool loadPreviousFitResult(RooWorkspace& myws, string outputDir, string plotLabel, string DSTAG, struct KinCuts cut, bool isPbPb=true, bool doSimulFit=false);
+
 
 bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the input RooDatasets
 		   struct KinCuts cut,            // Variable containing all kinematic cuts
@@ -185,18 +187,18 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
           cout << "[INFO] This fit was already done, so I'll just go to the next one." << endl;
           return true;
         }
-
+        
         bool isWeighted = myws.data(dsName.c_str())->isWeighted();
         
         // Fit the Datasets
         if (incJpsi || incPsi2S) {
           if (isWeighted) {
             RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(kTRUE), Range("MassWindow"), NumCPU(numCores), Save());
-            fitResult->Print(); 
+            fitResult->Print("v"); 
             myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
           } else {
             RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(numCores), Save());
-            fitResult->Print();
+            fitResult->Print("v");
             myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
           }  
         } else {
@@ -223,17 +225,17 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
           cout << "[INFO] This fit was already done, so I'll just go to the next one." << endl;
           return true;
         }
-
+        
         bool isWeighted = myws.data(dsName.c_str())->isWeighted();
         
         // Fit the Datasets
         if (incJpsi || incPsi2S) {
           RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(numCores), Save());
-          fitResult->Print(); 
+          fitResult->Print("v"); 
           myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
         } else {
           RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBand1,SideBand2"), NumCPU(numCores), Save());
-          fitResult->Print();
+          fitResult->Print("v");
           myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
         }
         
@@ -466,5 +468,50 @@ bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2) {
 
   return true;
 }
+
+bool loadPreviousFitResult(RooWorkspace& myws, string outputDir, string plotLabel, string DSTAG, struct KinCuts cut, bool isPbPb, bool doSimulFit)
+{
+  string FileName = "";
+  if (doSimulFit) {
+    FileName = Form("%sresult/%s/FIT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), DSTAG.c_str(), DSTAG.c_str(), "Psi2SJpsi", "COMB", plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
+  } else {
+    FileName = Form("%sresult/%s/FIT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), DSTAG.c_str(), DSTAG.c_str(), "Psi2SJpsi", (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
+  }
+ 
+  if (gSystem->AccessPathName(FileName.c_str())) {
+    cout << "[INFO] Results not found for: " << FileName << endl;
+    return false; // File was not found
+  }
+ 
+  TFile *file = new TFile(FileName.c_str());
+  if (!file) return false;
+
+  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  if (!ws) {
+    file->Close(); delete file;
+    return false;
+  }
+
+  cout <<  "[INFO] Loading variables from: " << FileName << endl;
+  RooArgSet listVar = ws->allVars();
+  TIterator* parIt = listVar.createIterator();
+  string print = "[INFO] Variables loaded: ";
+  for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
+    string name = it->GetName();
+    if ( name=="invMass" || name=="ctau" || name=="ctauErr" || 
+         name=="ctauTrue" || name=="pt" || name=="cent" || 
+         name=="rap" || name=="One" ) continue;
+    if ( (DSTAG.find("MC")!=std::string::npos) && (name.find("N_")!=std::string::npos) ) continue; 
+    if (myws.var(name.c_str())) { 
+      print = print + Form("  %s: %.5f->%.5f  ", name.c_str(), myws.var(name.c_str())->getValV(), ws->var(name.c_str())->getValV()) ;
+      myws.var(name.c_str())->setVal  ( ws->var(name.c_str())->getValV()  );
+      myws.var(name.c_str())->setError( ws->var(name.c_str())->getError() );
+    }
+  }
+  cout << print << endl;
+ 
+  return true;
+};
+
 
 #endif // #ifndef fitCharmonia_C
