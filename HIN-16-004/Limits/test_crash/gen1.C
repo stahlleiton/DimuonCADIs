@@ -19,7 +19,10 @@ void gen1(const char* output, const char* suffix) {
   // Declare variables x,mean,sigma with associated name, title, initial value and allowed range
   ws->factory("invMass[2,5]");
   RooRealVar *invMass = ws->var("invMass");
-  ws->factory(Form("Gaussian::sig_nonorm_%s(invMass,m_%s[3,2.5,3.5],sigma_%s[0.1,0.,0.5])",suffix,suffix,suffix));
+  RooRealVar *weight = new RooRealVar("weight","weight",1,0,1e6);
+  ws->factory(Form("Gaussian::siga_nonorm_%s(invMass,m_%s[3,2.5,3.5],sigmaa_%s[0.02,0.,0.5])",suffix,suffix,suffix));
+  ws->factory(Form("Gaussian::sigb_nonorm_%s(invMass,m_%s,sigmab_%s[0.1,0.,0.5])",suffix,suffix,suffix));
+  ws->factory(Form("SUM::sig_nonorm_%s(f_%s[0.8,0,1]*siga_nonorm_%s,sigb_nonorm_%s)",suffix,suffix,suffix,suffix));
   ws->factory(Form("RooExtendPdf::sig_%s(sig_nonorm_%s,Nsig_%s[1e4,-1e5,1e5])",suffix,suffix,suffix));
   ws->factory(Form("Gaussian::sig2_nonorm_%s(invMass,m2_%s[3.5,3.,4.],sigma2_%s[0.1,0.,0.5])",suffix,suffix,suffix));
   ws->factory(Form("RooFormulaVar::Nsig2_%s('@0*@1',{Nsig_%s,frac_%s[0.5,-10,10]})",suffix,suffix,suffix));

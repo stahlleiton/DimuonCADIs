@@ -10,6 +10,10 @@ using namespace RooFit;
 using namespace std;
 
 RooWorkspace* combine(const char* name_pbpb, const char* name_pp) {
+   RooFit::PrintLevel(0);
+   RooTrace::active(kTRUE);
+   RooTrace::verbose(kTRUE);
+   RooMsgService::instance().addStream(RooFit::MsgLevel::DEBUG); 
    // const char *poiname="N_{#Upsilon(3S)}";
    TFile *f = new TFile(name_pbpb) ;
    TFile *f_pp = new TFile(name_pp) ;
