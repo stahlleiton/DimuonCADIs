@@ -550,6 +550,10 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
 
    plot->Draw("CLb 2CL");  // plot all and Clb
 
+   c1->SaveAs(c1Name + ".pdf");
+   c1->SaveAs(c1Name + ".png");
+   c1->SaveAs(c1Name + ".root");
+
    // if (useCLs)
    //    plot->Draw("CLb 2CL");  // plot all and Clb
    // else
@@ -571,6 +575,9 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
          pl->SetLogYaxis(true);
          pl->Draw();
       }
+      c2->SaveAs("distribs.pdf");
+      c2->SaveAs("distribs.png");
+      c2->SaveAs("distribs.root");
    }
    gPad = c1; 
 
