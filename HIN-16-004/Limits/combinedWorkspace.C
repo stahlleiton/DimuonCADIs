@@ -39,10 +39,8 @@
 using namespace RooFit;
 using namespace RooStats;
 
-const bool dosyst = true;
-const float systval = 0.10; // 10% systematics (placeholder)
-
-void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root"){
+double combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root", const float systval = 0.){
+   bool dosyst = (systval > 0.);
 
    RooWorkspace * ws = test_combine(name_pbpb, name_PP);
    RooAbsData * data = ws->data("dOS_DATA");
@@ -207,7 +205,7 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    // save workspace to file
    ws -> SaveAs(name_out);
 
-   return;
+   return ws->var("RFrac2Svs1S_PbPbvsPP")->getError();
 }
 
 

@@ -97,7 +97,7 @@ int randomSeed = -1;                     // random seed (if = -1: use default va
 int nAsimovBins = 0;                     // number of bins in observables used for Asimov data sets (0 is the default and it is given by workspace, typically is 100)
 
 bool reuseAltToys = false;                // reuse same toys for alternate hypothesis (if set one gets more stable bands)
-double confLevel = 0.95;                // confidence level value
+double confLevel = 0.95;                // default confidence level value
 
 
 
@@ -291,7 +291,8 @@ StandardHypoTestInvDemo(const char * infile = 0,
                         double poimax = 5,
                         int ntoys=1000,
                         bool useNumberCounting = false,
-                        const char * nuisPriorName = 0){
+                        const char * nuisPriorName = 0,
+                        double CL = 0.95){
 /*
 
   Other Parameter to pass in tutorial
@@ -338,7 +339,7 @@ StandardHypoTestInvDemo(const char * infile = 0,
 
 */
 
-
+  optHTInv.confLevel = CL;
 
    TString filename(infile);
    if (filename.IsNull()) {
@@ -473,6 +474,10 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
    lims->second = upperLimit;
 
 
+  lims->first = lowerLimit;
+  lims->second = upperLimit;
+  
+  
    // compute expected limit
    std::cout << "Expected upper limits, using the B (alternate) model : " << std::endl;
    std::cout << " expected limit (median) " << r->GetExpectedUpperLimit(0) << std::endl;

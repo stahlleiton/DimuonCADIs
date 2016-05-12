@@ -449,8 +449,12 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
    TString workDirName; Int_t from = 0;
    int ibin=1;
    while (workDirNamesStr.Tokenize(workDirName, from , ",")) {
-      TFile *f = TFile::Open(TString("Output/") + workDirName + "/result/" + TString(DSTag) + "/tree_allvars.root");
-      if (!f->IsOpen()) continue;
+      TFile *f = new TFile(treeFileName(workDirName,DSTag));
+      if (!f || !f->IsOpen()) {
+         results2tree(workDirName,DSTag);
+         f = new TFile(treeFileName(workDirName,DSTag));
+         if (!f) return;
+      }
       TTree *tr = (TTree*) f->Get("fitresults");
       if (!tr) continue;
       tr->SetBranchAddress("ptmin",&ptmin);
@@ -540,7 +544,7 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
       int binmin = h->GetMinimumBin();
       int binmax = h->GetMaximumBin();
       vmin = min(vmin,h->GetBinContent(binmin)-1.2*h->GetBinError(binmin));
-      vmax = max(vmin,h->GetBinContent(binmax)+1.2*h->GetBinError(binmax));
+      vmax = max(vmax,h->GetBinContent(binmax)+1.2*h->GetBinError(binmax));
 
       h->Draw(i==0 ? "" : "same");
       tleg->AddEntry(h,tagi.c_str(),"l");
