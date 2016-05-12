@@ -44,6 +44,7 @@
 #include "TLine.h"
 #include "TROOT.h"
 #include "TSystem.h"
+#include "TString.h"
 
 #include "RooStats/AsymptoticCalculator.h"
 #include "RooStats/HybridCalculator.h"
@@ -102,7 +103,7 @@ double confLevel = 0.95;                // default confidence level value
 
 std::string  minimizerType = "";                  // minimizer type (default is what is in ROOT::Math::MinimizerOptions::DefaultMinimizerType()
 std::string massValue = "";              // extra string to tag output file of result
-int   printLevel = 0;                    // print level for debugging PL test statistics and calculators
+int   printLevel = 2;                    // print level for debugging PL test statistics and calculators
 
 bool useNLLOffset = false;               // use NLL offset when fitting (this increase stability of fits)
 
@@ -469,6 +470,9 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
       std::cout << "The computed lower limit is: " << lowerLimit << " +/- " << llError << std::endl;
    std::cout << "The computed upper limit is: " << upperLimit << " +/- " << ulError << std::endl;
 
+   lims->first = lowerLimit;
+   lims->second = upperLimit;
+
 
   lims->first = lowerLimit;
   lims->second = upperLimit;
@@ -551,6 +555,10 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
 
    plot->Draw("CLb 2CL");  // plot all and Clb
 
+   c1->SaveAs(c1Name + ".pdf");
+   c1->SaveAs(c1Name + ".png");
+   c1->SaveAs(c1Name + ".root");
+
    // if (useCLs)
    //    plot->Draw("CLb 2CL");  // plot all and Clb
    // else
@@ -572,6 +580,9 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
          pl->SetLogYaxis(true);
          pl->Draw();
       }
+      c2->SaveAs("distribs.pdf");
+      c2->SaveAs("distribs.png");
+      c2->SaveAs("distribs.root");
    }
    gPad = c1; 
 
