@@ -25,11 +25,12 @@ RooRealVar* poiFromFile(const char* filename, const char* token, const char* the
 RooRealVar* poiFromWS(RooWorkspace* ws, const char* token, const char* thepoiname);
 RooAbsPdf* pdfFromWS(RooWorkspace* ws, const char* token, const char* thepdfname);
 RooAbsData* dataFromWS(RooWorkspace* ws, const char* token, const char* thedataname);
-vector<TString> fileList(const char* input, const char* token="", const char* DSTag="DATA");
+vector<TString> fileList(const char* input, const char* token="", const char* DSTag="DATA", const char* prependPath="");
 RooRealVar* ratioVar(RooRealVar *num, RooRealVar *den, bool usedenerror=true);
 anabin binFromFile(const char* filename);
 bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck);
 bool binok(anabin thecat, string xaxis, anabin &tocheck);
+bool isSameBinPPPbPb(const char* filenamePbPb, const char* filenamePP);
 TString treeFileName(const char* workDirName, const char* DSTag="DATA");
 void prune(vector<anabin> &v, bool keppshortest=true);
 void prune(TGraphAsymmErrors *g, TGraphAsymmErrors *gsyst=NULL, bool keppshortest=true);
@@ -81,10 +82,11 @@ RooAbsData* dataFromWS(RooWorkspace* ws, const char* token, const char* thedatan
    return ans;
 }
 
-vector<TString> fileList(const char* input, const char* token, const char* DSTag) {
+vector<TString> fileList(const char* input, const char* token, const char* DSTag, const char* prependPath) {
    vector<TString> ans;
 
    TString basedir(Form("Output/%s/result/%s/",input, DSTag));
+   if ( strcmp(prependPath,"") ) basedir.Prepend(Form("%s/",prependPath));
    TSystemDirectory dir(input,basedir);
 
    TList *files = dir.GetListOfFiles();
@@ -173,6 +175,26 @@ bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck) {
 bool binok(anabin thecat, string xaxis, anabin &tocheck) {
    vector<anabin> thecats; thecats.push_back(thecat);
    return binok(thecats, xaxis, tocheck);
+}
+
+bool isSameBinPPPbPb(const char* filenamePbPb, const char* filenamePP)
+{
+  TString fPbPb(filenamePbPb);
+  TString fPP(filenamePP);
+  
+  anabin thebin_PbPb = binFromFile(fPbPb.Data());
+  anabin thebin_PP = binFromFile(fPP.Data());
+  
+  if ( fPbPb.Contains("_PbPb_") && fPP.Contains("_PP_"))
+  {
+    if ( (thebin_PbPb.ptbin().low() == thebin_PP.ptbin().low()) && (thebin_PbPb.ptbin().high() == thebin_PP.ptbin().high())  && (thebin_PbPb.rapbin().low() == thebin_PP.rapbin().low()) && (thebin_PbPb.rapbin().high() == thebin_PP.rapbin().high()) ) return true;
+    else return false;
+  }
+  else
+  {
+    cout << "[ERROR]: Comparing bins of same collision system" << endl;
+    return false;
+  }
 }
 
 TString treeFileName(const char* workDirName, const char* DSTag) {
