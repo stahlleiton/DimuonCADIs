@@ -39,9 +39,7 @@
 using namespace RooFit;
 using namespace RooStats;
 
-const bool dosyst = false;
-
-void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root"){
+double combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root", const bool dosyst = false){
 
    // TFile File(filename);
 
@@ -221,7 +219,7 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    // save workspace to file
    ws -> SaveAs(name_out);
 
-   return;
+   return ws->var("RFrac2Svs1S_PbPbvsPP")->getError();
 }
 
 
