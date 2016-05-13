@@ -1,4 +1,3 @@
-#include <algorithm>
 #include "RooStats/ProfileLikelihoodCalculator.h"
 #include "RooStats/LikelihoodInterval.h"
 #include "RooStats/LikelihoodIntervalPlot.h"
@@ -7,6 +6,9 @@
 pair<double,double> runLimit_RaaNS_Workspace(const char *filename="TRIAL.root", const char *poiname="raa3", const char *pdfname="joint", const char *wsname="wcombo", const char* dataname="dOS_DATA", double CI = 0.95);
 
 #include "StandardHypoTestInvDemo.C"
+
+using namespace std;
+using namespace RooStats;
 
 pair<double,double> runLimit_RaaNS_Workspace(const char *filename, const char *poiname, const char *pdfname, const char *wsname, const char* dataname, double CI)
 {
@@ -111,7 +113,7 @@ pair<double,double> runLimit_RaaNS_Workspace(const char *filename, const char *p
    TStopwatch tw; 
    tw.Start();
 
-   pair<double,double> lims = StandardHypoTestInvDemo(f->GetName(),
+   HypoTestInverterResult* r = StandardHypoTestInvDemo(f->GetName(),
          wsname,
          sbHypo,
          bHypo,
@@ -126,6 +128,10 @@ pair<double,double> runLimit_RaaNS_Workspace(const char *filename, const char *p
          false,
          0,
          CI);
+
+   pair<double,double> lims;
+   lims.first = r->LowerLimit();
+   lims.second = r->UpperLimit();
 
    std::streambuf *coutbuf = std::cout.rdbuf();
    std::cout.rdbuf(of.rdbuf());
