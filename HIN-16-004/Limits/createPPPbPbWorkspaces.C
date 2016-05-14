@@ -13,7 +13,6 @@ using namespace std;
 
 void createPPPbPbWorkspaces(
                    const char* workDirName, // workDirName: usual tag where to look for files in Output
-                   bool doSyst=false,
                    const char* DSTag="DATA", // Data Set tag can be: "DATA","MCPSI2SP", "MCJPSIP" ...
                    const char* ACTag="Nominal" // Analysis Case tag (e.g. Nominal fits = "Nominal")
 )
@@ -44,7 +43,7 @@ void createPPPbPbWorkspaces(
         binName.Remove(0,binName.Index("_pt")+1);
         binName.Remove(binName.First('.'),binName.Length());
         
-        combinedWorkspace(*it_PbPb, *it_PP, Form("combined_PbPbPP_workspace_%s.root",binName.Data()), doSyst, ACTag);
+        combinedWorkspace(*it_PbPb, *it_PP, Form("combined_PbPbPP_workspace_%s.root",binName.Data()), 0., ACTag);
         
         cout << ">>>>>>>> Combined workspace created for bin " << binName.Data() << endl;
       }

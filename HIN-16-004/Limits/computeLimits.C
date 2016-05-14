@@ -64,7 +64,7 @@ void computeLimits(
       {
         cout << "PP workspace " << cnt << " / " << theFiles_PP.size() << ": " << *it_PP << endl;
         
-        double sigmaDoubleR = combinedWorkspace(*it_PbPb, *it_PP,"combined_PbPbPP_workspace.root", false);
+        double sigmaDoubleR = combinedWorkspace(*it_PbPb, *it_PP,"combined_PbPbPP_workspace.root", -1.);
         
         pair<double,double> limits = runLimit_RaaNS_Workspace("combined_PbPbPP_workspace.root", "RFrac2Svs1S_PbPbvsPP", "simPdf", "wcombo", "dOS_DATA", CL);
         
