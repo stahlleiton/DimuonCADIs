@@ -39,7 +39,7 @@
 using namespace RooFit;
 using namespace RooStats;
 
-double combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root", const float systval = 0., const char* subDirName ="wsTest"){
+void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root", const float systval = 0., const char* subDirName ="wsTest"){
    // subdir: Directory to save workspaces under currentPATH/CombinedWorkspaces/subDir/
   
    bool dosyst = (systval > 0.);
