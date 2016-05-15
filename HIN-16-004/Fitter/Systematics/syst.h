@@ -17,17 +17,18 @@ struct syst {
 
 using namespace std;
 
-vector<TString> fileList_syst(const char* token);
+vector<TString> fileList_syst(const char* token, const char* prependPath="");
 map<anabin, syst> readSyst(const char* systfile);
 map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name="Total");
-map<anabin, syst> readSyst_all(const char* token, bool doPrintTex=false, const char* texName="Systematics/systs.tex");
+map<anabin, syst> readSyst_all(const char* token, const char* prependPath="", bool doPrintTex=false, const char* texName="Systematics/systs.tex");
 void printTex(vector< map<anabin, syst> > theSysts, const char* texName="Systematics/systs.tex", bool isLastTotal=false);
 map<anabin, vector<syst> > vm2mv(vector< map<anabin,syst> > v);
 
-vector<TString> fileList_syst(const char* token) {
+vector<TString> fileList_syst(const char* token, const char* prependPath) {
    vector<TString> ans;
 
    TString basedir("Systematics/csv/");
+   if ( strcmp(prependPath,"") ) basedir.Prepend(Form("%s/",prependPath));
    TSystemDirectory dir(token,basedir);
 
    TList *files = dir.GetListOfFiles();
@@ -108,11 +109,11 @@ map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name)
    return ans;
 };
 
-map<anabin, syst> readSyst_all(const char* token, bool doPrintTex, const char* texName) {
+map<anabin, syst> readSyst_all(const char* token, const char* prependPath, bool doPrintTex, const char* texName) {
    // token should be PP or PbPb
 
    vector< map<anabin, syst> > systmap_all;
-   vector<TString> filelist = fileList_syst(token);
+   vector<TString> filelist = fileList_syst(token,prependPath);
 
    for (vector<TString>::const_iterator it=filelist.begin(); it!=filelist.end(); it++) {
       cout << "Reading file " << *it << endl;
