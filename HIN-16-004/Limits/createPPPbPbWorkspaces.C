@@ -8,7 +8,7 @@
 #include <map>
 
 #include "../Fitter/Macros/Utilities/resultUtils.h"
-#include "../Fitter/Macros/Systematics/syst.h"
+#include "../Fitter/Systematics/syst.h"
 #include "combinedWorkspace.C"
 
 using namespace std;
