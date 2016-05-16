@@ -29,8 +29,8 @@ vector<TString> fileList(const char* input, const char* token="", const char* DS
 vector<TString> combFileList(const char* input, const char* token="", const char* prependPath="");
 RooRealVar* ratioVar(RooRealVar *num, RooRealVar *den, bool usedenerror=true);
 anabin binFromFile(const char* filename);
-bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck);
-bool binok(anabin thecat, string xaxis, anabin &tocheck);
+bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck, bool override=true);
+bool binok(anabin thecat, string xaxis, anabin &tocheck, bool override=true);
 bool isSameBinPPPbPb(const char* filenamePbPb, const char* filenamePP);
 TString treeFileName(const char* workDirName, const char* DSTag="DATA");
 void prune(vector<anabin> &v, bool keppshortest=true);
@@ -174,19 +174,19 @@ anabin binFromFile(const char* filename) {
    return ans;
 }
 
-bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck) {
+bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck, bool override) {
    bool ok=false;
 
    for (vector<anabin>::const_iterator it=thecats.begin(); it!=thecats.end(); it++) {
       if (xaxis=="pt" && it->rapbin()==tocheck.rapbin() && it->centbin()==tocheck.centbin()
             && ! (it->ptbin()==tocheck.ptbin())) {
          ok=true;
-         tocheck.setptbin(it->ptbin());
+         if (override) tocheck.setptbin(it->ptbin());
          break;
       } else if (xaxis=="cent" && it->rapbin()==tocheck.rapbin() && it->ptbin()==tocheck.ptbin()
             && ! (it->centbin()==tocheck.centbin())) {
          ok=true;
-         tocheck.setcentbin(it->centbin());
+         if (override) tocheck.setcentbin(it->centbin());
          break;
       } else if (((it->centbin().low()<=0 && it->centbin().high()<=0) || xaxis=="rap")
             && it->rapbin()==tocheck.rapbin() && it->ptbin()==tocheck.ptbin()
@@ -199,9 +199,9 @@ bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck) {
    return ok;
 }
 
-bool binok(anabin thecat, string xaxis, anabin &tocheck) {
+bool binok(anabin thecat, string xaxis, anabin &tocheck, bool override) {
    vector<anabin> thecats; thecats.push_back(thecat);
-   return binok(thecats, xaxis, tocheck);
+   return binok(thecats, xaxis, tocheck, override);
 }
 
 bool isSameBinPPPbPb(const char* filenamePbPb, const char* filenamePP)
