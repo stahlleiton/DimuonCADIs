@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <tuple>
+#include <iostream>
 
 using namespace std;
 
@@ -30,6 +31,11 @@ class anabin : public tuple<binF,binF,binI> {
       void setrapbin(binF rapbin) {get<0>(*this) = rapbin;};
       void setptbin(binF ptbin) {get<1>(*this) = ptbin;};
       void setcentbin(binI centbin) {get<2>(*this) = centbin;};
+      void print() {
+         cout << "rap=[" << get<0>(*this).low() << "," << get<0>(*this).high() <<
+            "], pt=[" << get<1>(*this).low() << "," << get<1>(*this).high() <<
+            "], cent=[" << get<2>(*this).low() << "," << get<2>(*this).high() << "]" << endl;
+      }
 };
 
 #endif // #ifndef bin_h
