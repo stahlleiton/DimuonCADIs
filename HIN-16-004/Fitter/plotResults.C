@@ -7,6 +7,7 @@
 #include "Macros/Utilities/resultUtils.h"
 #include "Macros/Utilities/texUtils.h"
 #include "Systematics/syst.h"
+#include "../Limits/limits.h"
 
 #include <vector>
 #include <map>
@@ -53,6 +54,8 @@ RooRealVar* poiFromFile(const char* filename, const char* token="");
 void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsymmErrors*> theGraphs_syst, string xaxis, string outputDir, map<anabin, syst> gsyst);
 void plot(vector<anabin> thecats, string xaxis, string workDirName);
 void centrality2npart(TGraphAsymmErrors* tg, bool issyst=false, bool isMB=false, double xshift=0.);
+void plotLimits(vector<anabin> theCats, string xaxis);
+void drawArrow(double x, double y, double dx, Color_t color);
 
 
 
@@ -250,6 +253,7 @@ RooRealVar* poiFromFile(const char* filename, const char* token) {
 void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsymmErrors*> theGraphs_syst, string xaxis, string outputDir, map<anabin, syst> gsyst) {
    setTDRStyle();
 
+   vector<anabin> theCats;
 
    TCanvas *c1 = NULL;
    if (xaxis=="cent") c1 = new TCanvas("c1","c1",600/xfrac,600);
@@ -337,6 +341,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       TGraphAsymmErrors* tg = it->second;
       TGraphAsymmErrors* tg_syst = it_syst->second;
       if (!tg || !tg_syst) continue;
+
+      theCats.push_back(thebin);
 
       if (thebin.rapbin() == binF(0.,1.6)) {
          tg->SetMarkerStyle(kFullSquare);
@@ -461,6 +467,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       padl->cd();
    }
 
+   plotLimits(theCats,xaxis);
+
    if (xaxis=="cent") padl->cd();
    tleg->Draw();
 
@@ -511,4 +519,46 @@ void centrality2npart(TGraphAsymmErrors* tg, bool issyst, bool isMB, double xshi
       tg->SetPoint(i,x,y);
       tg->SetPointError(i,exl,exh,eyl,eyh);
    }
+}
+
+void plotLimits(vector<anabin> theCats, string xaxis) {
+   map<anabin,limits> maplim = readLimits("../Limits/csv/Limits_95.csv");
+
+   map<anabin,limits>::const_iterator it;
+   for (it=maplim.begin(); it!=maplim.end(); it++) {
+      anabin thebin = it->first;
+      if (!binok(theCats,xaxis,thebin,false)) continue;
+      limits lim = it->second;
+      if (lim.val.first>0) continue; // only draw upper limits, ie interval which lower limit is 0
+      // draw arrow in the right place and with the right color...
+      Color_t color=kBlack;
+      double x=0, y=0, dx=0;
+      y = lim.val.second;
+      if (xaxis=="pt") {
+         double low= thebin.ptbin().low();
+         double high = thebin.ptbin().high();
+         x = (low+high)/2.;
+         dx = 0.5;
+      } else if (xaxis=="cent") {
+         double low= thebin.centbin().low();
+         double high = thebin.centbin().high();
+         x = HI::findNpartAverage(low,high);
+         dx = 10;
+      }
+      if (thebin.rapbin() == binF(0.,1.6)) {
+         color = kBlue;
+      } else if (thebin.rapbin() == binF(1.6,2.4)) {
+         color = kRed;
+      }
+      drawArrow(x, y, dx, color);
+   }
+}
+
+void drawArrow(double x, double y, double dx, Color_t color) {
+   TArrow *arrow = new TArrow(x,y,x,0.05,0.03);
+   arrow->SetLineColor(color);
+   arrow->Draw();
+   TLine *line = new TLine(x-dx,y,x+dx,y);
+   line->SetLineColor(color);
+   line->Draw();
 }
