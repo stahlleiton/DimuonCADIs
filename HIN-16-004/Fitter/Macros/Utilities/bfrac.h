@@ -33,10 +33,13 @@ RooRealVar bfrac (const char *pr_fits, // name of the prompt fits directory
    vector<TString> files_pr = fileList(pr_fits, token);
    vector<TString> files_npr = fileList(npr_fits, token);
 
+   // fix the centrality if needed
+   bin.setcentbin(binI(bin.centbin().low(),abs(bin.centbin().high())));
+
    vector<TString>::const_iterator it;
    TString file_pr, file_npr;
    int nok=0;
-   TString thebin_str(Form("pt%i%i_rap%i%i_cent%i%i",
+   TString thebin_str(Form("pt%i%i_rap%i%i_cent%i%i.root",
             (int) (10*bin.ptbin().low()), (int) (10*bin.ptbin().high()),
             (int) (10*bin.rapbin().low()), (int) (10*bin.rapbin().high()),
             bin.centbin().low(),bin.centbin().high()));
@@ -47,7 +50,7 @@ RooRealVar bfrac (const char *pr_fits, // name of the prompt fits directory
       }
    }
    if (nok != 1) {
-      cout << "Error, found " << nok << " files corresponding to the requested bin. Exiting." << endl;
+      cout << "Error, found " << nok << " files corresponding to the requested bin " << thebin_str << ". Exiting." << endl;
       return bfrac;
    }
    nok=0;
@@ -58,7 +61,7 @@ RooRealVar bfrac (const char *pr_fits, // name of the prompt fits directory
       }
    }
    if (nok != 1) {
-      cout << "Error, found " << nok << " files corresponding to the requested bin. Exiting." << endl;
+      cout << "Error, found " << nok << " files corresponding to the requested bin " << thebin_str << ". Exiting." << endl;
       return bfrac;
    }
 
@@ -176,14 +179,16 @@ RooRealVar bfrac (const char *pr_fits, // name of the prompt fits directory
    if (!doNprompt) formulastr = "((@2/(@2+@4)) - (@0/(@0+@1))) / ((@2/(@2+@4)) - (@3/(@3+@5)))"; // B-fraction
    else  formulastr = "(@0+@1) * (((@2/(@2+@4)) - (@0/(@0+@1))) / ((@2/(@2+@4)) - (@3/(@3+@5))))"; // Nb of prompt onia
    RooFormulaVar formula("formula","formula",formulastr.Data(),lvar);
+   double bfracval = formula.getVal();
    RooArgSet pdfs(Npr_pdf,Nnpr_pdf,*numpr_pdf,*numnpr_pdf,*failpr_pdf,*failnpr_pdf);
    SamplingDistribution s = combDist(formula, pdfs, 1e4);
 
    // bfrac.setVal(s.InverseCDF(0.5)); // median
-   bfrac.setVal(mean(&s)); // mean
+   // bfrac.setVal(mean(&s)); // mean
+   bfrac.setVal(bfracval); // mode?
    bfrac.setAsymError(s.InverseCDF(ROOT::Math::normal_cdf(-1))-bfrac.getVal(),s.InverseCDF(ROOT::Math::normal_cdf(1))-bfrac.getVal());
    bfrac.setError((fabs(bfrac.getErrorLo())+fabs(bfrac.getErrorHi()))/2.);
-   // cout << s.InverseCDF(0.5) << " " << mean(&s) << ", " << s.InverseCDF(ROOT::Math::normal_cdf(-1)) << " " << s.InverseCDF(ROOT::Math::normal_cdf(1)) << endl;
+   // cout << bfracval << " " << s.InverseCDF(0.5) << " " << mean(&s) << ", " << s.InverseCDF(ROOT::Math::normal_cdf(-1)) << " " << s.InverseCDF(ROOT::Math::normal_cdf(1)) << endl;
 
    delete numpr_pdf; numpr_pdf=0;
    delete numnpr_pdf; numnpr_pdf=0;
