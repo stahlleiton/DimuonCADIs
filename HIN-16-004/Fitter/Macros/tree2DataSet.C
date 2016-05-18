@@ -45,8 +45,8 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
   bool applyWeight = false;
   if (isMC && !isPP) applyWeight = true;
   
-  bool isPureSDataset = false;
-  if (OutputFileName.find("_PureS")!=std::string::npos) isPureSDataset = true;
+  //bool isPureSDataset = false;
+  //if (OutputFileName.find("_PureS")!=std::string::npos) isPureSDataset = true;
 
   if (gSystem->AccessPathName(OutputFileName.c_str()) || UpdateDS) {
     cout << "[INFO] Creating " << (isPureSDataset ? "pure signal " : "") << "RooDataSet for " << DSName << endl;
