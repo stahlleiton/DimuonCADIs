@@ -10,6 +10,9 @@
 #include "RooStats/SamplingDistribution.h"
 #include "RooDataSet.h"
 #include "RooFitResult.h"
+#include "RooPoisson.h"
+#include "RooGaussian.h"
+#include "RooMultiVarGaussian.h"
 #include "TMath.h"
 
 using namespace std;
@@ -23,10 +26,14 @@ void testCombDist();
 RooRealVar bfrac (const char *pr_fits, // name of the prompt fits directory
       const char* npr_fits,         // name of the non-prompt fits directory
       anabin bin,                  // bin to be considered
-      bool isPbPb,                 // true -> PbPb, false -> pp
-      bool is2S,                   // true -> psi(2S), false -> J/psi
-      bool doNprompt               // true -> return N_prompt, false -> return B-fraction
+      TString obs                  // name of the observable (eg Bfrac_PbPb or N_psi2S_NPrompt_PP)
       ) {
+   bool isPbPb = (obs.Index("_PbPb") != kNPOS);
+   bool is2S = (obs.Index("_psi2S") != kNPOS);
+   bool doN = (obs.Index("N_") != kNPOS);
+   bool doRfrac = (obs.Index("RFrac2Svs1S_") != kNPOS); 
+   bool doNonPrompt = (obs.Index("_NPrompt") != kNPOS);
+
    RooRealVar bfrac("bfrac","bfrac",0);
 
    const char* token = isPbPb ? "PbPb" : "PP";
@@ -71,68 +78,83 @@ RooRealVar bfrac (const char *pr_fits, // name of the prompt fits directory
    TFile *fnpr = TFile::Open(file_npr); if (!fnpr || !fnpr->IsOpen()) return bfrac;
    RooWorkspace *wspr = (RooWorkspace*) fpr->Get("workspace"); if (!wspr) return bfrac;
    RooWorkspace *wsnpr = (RooWorkspace*) fnpr->Get("workspace"); if (!wsnpr) return bfrac;
-   RooRealVar *Njpsipr = wspr->var(Form("N_Jpsi_%s", isPbPb ? "PbPb" : "PP"));
-   RooRealVar *Njpsinpr = wsnpr->var(Form("N_Jpsi_%s", isPbPb ? "PbPb" : "PP"));
-   RooRealVar *Nprtmp=NULL,*Nnprtmp=NULL;
-   if (!is2S) {
-      Nprtmp = Njpsipr;
-      Nnprtmp = Njpsinpr;
-   } else { // the number of psi' is a RooFormula, so we have to build it and compute its uncertainty
-      RooRealVar *rfracpr = wspr->var(Form("RFrac2Svs1S_%s", isPbPb ? "PbPb" : "PP"));
-      RooRealVar *rfracnpr = wsnpr->var(Form("RFrac2Svs1S_%s", isPbPb ? "PbPb" : "PP"));
-      RooFitResult *frpr = (RooFitResult*) wspr->obj(Form("fitResult_pdfMASS_Tot_%s", isPbPb ? "PbPb" : "PP"));
-      RooFitResult *frnpr = (RooFitResult*) wsnpr->obj(Form("fitResult_pdfMASS_Tot_%s", isPbPb ? "PbPb" : "PP"));
-      double corrpr = frpr->correlation(Form("N_Jpsi_%s", isPbPb ? "PbPb" : "PP"), Form("RFrac2Svs1S_%s", isPbPb ? "PbPb" : "PP"));
-      double corrnpr = frnpr->correlation(Form("N_Jpsi_%s", isPbPb ? "PbPb" : "PP"), Form("RFrac2Svs1S_%s", isPbPb ? "PbPb" : "PP"));
-      double valpr = Njpsipr->getVal() * rfracpr->getVal();
-      double valnpr = Njpsinpr->getVal() * rfracnpr->getVal();
-      // cf https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas
-      double errpr = fabs(valpr) * sqrt(pow(Njpsipr->getError()/Njpsipr->getVal(),2)
-            +pow(rfracpr->getError()/rfracpr->getVal(),2)
-            +2.*fabs(corrpr*Njpsipr->getError()*rfracpr->getError()/Njpsipr->getVal()/rfracpr->getVal()));
-      double errnpr = fabs(valnpr) * sqrt(pow(Njpsinpr->getError()/Njpsinpr->getVal(),2)
-            +pow(rfracnpr->getError()/rfracnpr->getVal(),2)
-            +2.*fabs(corrnpr*Njpsinpr->getError()*rfracnpr->getError()/Njpsinpr->getVal()/rfracnpr->getVal()));
-      Nprtmp = new RooRealVar("Nprtmp","",valpr); Nprtmp->setError(errpr);
-      Nnprtmp = new RooRealVar("Nnprtmp","",valnpr); Nnprtmp->setError(errnpr);
-   }
+   RooRealVar Njpsipr_var(*wspr->var(Form("N_Jpsi_%s", isPbPb ? "PbPb" : "PP"))); Njpsipr_var.SetName("Njpsipr_var");
+   RooRealVar Njpsipr("Njpsipr","",Njpsipr_var.getVal());
+   RooRealVar Njpsinpr_var(*wsnpr->var(Form("N_Jpsi_%s", isPbPb ? "PbPb" : "PP"))); Njpsinpr_var.SetName("Njpsinpr_var");
+   RooRealVar Njpsinpr("Njpsinpr","",Njpsinpr_var.getVal());
+   // the number of psi' is a RooFormula, so we have to build it and compute its uncertainty
+   RooRealVar rfracpr_var(*wspr->var(Form("RFrac2Svs1S_%s", isPbPb ? "PbPb" : "PP"))); rfracpr_var.SetName("rfracpr_var");
+   RooRealVar rfracpr("rfracpr","",rfracpr_var.getVal());
+   RooRealVar rfracnpr_var(*wsnpr->var(Form("RFrac2Svs1S_%s", isPbPb ? "PbPb" : "PP"))); rfracnpr_var.SetName("rfracnpr_var");
+   RooRealVar rfracnpr("rfracnpr","",rfracnpr_var.getVal());
+   RooFitResult *frpr = (RooFitResult*) wspr->obj(Form("fitResult_pdfMASS_Tot_%s", isPbPb ? "PbPb" : "PP"));
+   RooFitResult *frnpr = (RooFitResult*) wsnpr->obj(Form("fitResult_pdfMASS_Tot_%s", isPbPb ? "PbPb" : "PP"));
+   double corrpr = frpr->correlation(Form("N_Jpsi_%s", isPbPb ? "PbPb" : "PP"), Form("RFrac2Svs1S_%s", isPbPb ? "PbPb" : "PP"));
+   double corrnpr = frnpr->correlation(Form("N_Jpsi_%s", isPbPb ? "PbPb" : "PP"), Form("RFrac2Svs1S_%s", isPbPb ? "PbPb" : "PP"));
+   double valpr = Njpsipr.getVal() * rfracpr.getVal();
+   double valnpr = Njpsinpr.getVal() * rfracnpr.getVal();
+   // cf https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas
+   double errpr = fabs(valpr) * sqrt(pow(Njpsipr_var.getError()/Njpsipr.getVal(),2)
+         +pow(rfracpr_var.getError()/rfracpr.getVal(),2)
+         +2.*fabs(corrpr*Njpsipr_var.getError()*rfracpr_var.getError()/Njpsipr.getVal()/rfracpr.getVal()));
+   double errnpr = fabs(valnpr) * sqrt(pow(Njpsinpr_var.getError()/Njpsinpr.getVal(),2)
+         +pow(rfracnpr_var.getError()/rfracnpr.getVal(),2)
+         +2.*fabs(corrnpr*Njpsinpr_var.getError()*rfracnpr_var.getError()/Njpsinpr.getVal()/rfracnpr.getVal()));
+   RooRealVar Npsi2Spr_var("Npsi2Spr_var","",valpr); Npsi2Spr_var.setError(errpr); RooRealVar Npsi2Spr("Npsi2Spr","",Npsi2Spr_var.getVal());
+   RooRealVar Npsi2Snpr_var("Npsi2Snpr_var","",valnpr); Npsi2Snpr_var.setError(errnpr); RooRealVar Npsi2Snpr("Npsi2Snpr","",Npsi2Snpr_var.getVal());
 
-   RooRealVar Npr(*Nprtmp);
-   RooRealVar Nnpr(*Nnprtmp);
-   RooRealVar Npr_err("Npr_err","Npr_err",Npr.getError());
-   RooRealVar Nnpr_err("Nnpr_err","Nnpr_err",Nnpr.getError());
+   RooRealVar Njpsipr_err("Njpsipr_err","Njpsipr_err",Njpsipr_var.getError());
+   RooRealVar Njpsinpr_err("Nijpsinpr_err","Njpsinpr_err",Njpsinpr_var.getError());
+   RooRealVar Npsi2Spr_err("Npsi2Spr_err","Npsi2Spr_err",Npsi2Spr_var.getError());
+   RooRealVar Npsi2Snpr_err("Npsi2Snpr_err","Npsi2Snpr_err",Npsi2Snpr_var.getError());
+   RooRealVar rfracpr_err("rfracpr_err","rfracpr_err",rfracpr_var.getError());
+   RooRealVar rfracnpr_err("Nrfracnpr_err","rfracnpr_err",rfracnpr_var.getError());
 
    // then efficiencies
-   TString feffpr("../Efficiency/files/histos_"); feffpr += is2S ? "psi2s_" : "jpsi_"; feffpr += isPbPb ? "pbpb.root" : "pp.root";
+   TString feffjpsipr("../Efficiency/files/histos_"); feffjpsipr += "jpsi_"; feffjpsipr += isPbPb ? "pbpb.root" : "pp.root";
+   TString feffpsippr("../Efficiency/files/histos_"); feffpsippr += "psi2s_"; feffpsippr += isPbPb ? "pbpb.root" : "pp.root";
    TString feffnpr("../Efficiency/files/histos_npjpsi_"); feffnpr += isPbPb ? "pbpb.root" : "pp.root";
    TString numname("hnumptdepcut_"); numname += (bin.centbin() == binI(0,200)) ? "pt" : "cent"; numname += (bin.rapbin() == binF(0,1.6)) ? "mid" : "fwd";
    TString denname("hnum_"); denname += (bin.centbin() == binI(0,200)) ? "pt" : "cent"; denname += (bin.rapbin() == binF(0,1.6)) ? "mid" : "fwd";
-   TFile *tfeffpr = TFile::Open(feffpr);
+   TFile *tfeffjpsipr = TFile::Open(feffjpsipr);
+   TFile *tfeffpsippr = TFile::Open(feffpsippr);
    TFile *tfeffnpr = TFile::Open(feffnpr);
 
-   TH1F *hnumpr = (TH1F*) tfeffpr->Get(numname);
+   TH1F *hnumjpsipr = (TH1F*) tfeffjpsipr->Get(numname);
+   TH1F *hnumpsippr = (TH1F*) tfeffpsippr->Get(numname);
    TH1F *hnumnpr = (TH1F*) tfeffnpr->Get(numname);
-   TH1F *hdenpr = (TH1F*) tfeffpr->Get(denname);
+   TH1F *hdenjpsipr = (TH1F*) tfeffjpsipr->Get(denname);
+   TH1F *hdenpsippr = (TH1F*) tfeffpsippr->Get(denname);
    TH1F *hdennpr = (TH1F*) tfeffnpr->Get(denname);
 
-   RooRealVar numpr("numpr","",0), numpr_err("numpr_err","",0), numnpr("numnpr","",0), numnpr_err("numnpr_err","",0);
-   RooRealVar failpr("failpr","",0), failpr_err("failpr_err","",0), failnpr("failnpr","",0), failnpr_err("failnpr_err","",0);
+   RooRealVar numjpsipr("numjpsipr","",0), numjpsipr_err("numjpsipr_err","",0), numnjpsipr("numnjpsipr","",0), numnjpsipr_err("numnjpsipr_err","",0);
+   RooRealVar numpsippr("numpsippr","",0), numpsippr_err("numpsippr_err","",0), numnpsippr("numnpsippr","",0), numnpsippr_err("numnpsippr_err","",0);
+   RooRealVar numnpr("numnpr","",0), numnpr_err("numnpr_err","",0), numnnpr("numnnpr","",0), numnnpr_err("numnnpr_err","",0);
+   RooRealVar failjpsipr("failjpsipr","",0), failjpsipr_err("failjpsipr_err","",0), failnjpsipr("failnjpsipr","",0), failnjpsipr_err("failnjpsipr_err","",0);
+   RooRealVar failpsippr("failpsippr","",0), failpsippr_err("failpsippr_err","",0), failnpsippr("failnpsippr","",0), failnpsippr_err("failnpsippr_err","",0);
+   RooRealVar failnpr("failnpr","",0), failnpr_err("failnpr_err","",0), failnnpr("failnnpr","",0), failnnpr_err("failnnpr_err","",0);
    if (bin == anabin(0,1.6,6.5,30,0,200) || bin == anabin(1.6,2.4,3,30,0,200)) { // Min.Bias bin
-      hnumpr = integrateHist(hnumpr); numpr.setVal(hnumpr->GetBinContent(1)); numpr_err.setVal(hnumpr->GetBinError(1));
+      hnumjpsipr = integrateHist(hnumjpsipr); numjpsipr.setVal(hnumjpsipr->GetBinContent(1)); numjpsipr_err.setVal(hnumjpsipr->GetBinError(1));
+      hnumpsippr = integrateHist(hnumpsippr); numpsippr.setVal(hnumpsippr->GetBinContent(1)); numpsippr_err.setVal(hnumpsippr->GetBinError(1));
       hnumnpr = integrateHist(hnumnpr); numnpr.setVal(hnumnpr->GetBinContent(1)); numnpr_err.setVal(hnumnpr->GetBinError(1));
-      hdenpr = integrateHist(hdenpr); failpr.setVal(hdenpr->GetBinContent(1)-numpr.getVal()); failpr_err.setVal(sqrt(pow(hdenpr->GetBinError(1),2)-pow(numpr_err.getVal(),2)));
+      hdenjpsipr = integrateHist(hdenjpsipr); failjpsipr.setVal(hdenjpsipr->GetBinContent(1)-numjpsipr.getVal()); failjpsipr_err.setVal(sqrt(pow(hdenjpsipr->GetBinError(1),2)-pow(numjpsipr_err.getVal(),2)));
+      hdenpsippr = integrateHist(hdenpsippr); failpsippr.setVal(hdenpsippr->GetBinContent(1)-numpsippr.getVal()); failpsippr_err.setVal(sqrt(pow(hdenpsippr->GetBinError(1),2)-pow(numpsippr_err.getVal(),2)));
       hdennpr = integrateHist(hdennpr); failnpr.setVal(hdennpr->GetBinContent(1)-numnpr.getVal()); failnpr_err.setVal(sqrt(pow(hdennpr->GetBinError(1),2)-pow(numnpr_err.getVal(),2)));
    } else {
-      for (int i=1; i<=hnumpr->GetNbinsX(); i++) { // loop over the histogram bins to find the one we want
-         if ((bin.centbin()==binI(0,200) && bin.ptbin()==binF(hnumpr->GetXaxis()->GetBinLowEdge(i),hnumpr->GetXaxis()->GetBinUpEdge(i))) // this is the bin we're looking for (pt)
-               || bin.centbin()==binI(2*hnumpr->GetXaxis()->GetBinLowEdge(i),2*hnumpr->GetXaxis()->GetBinUpEdge(i))) { // this is the bin we're looking for (centrality)
-            numpr.setVal(hnumpr->GetBinContent(i));
-            numpr_err.setVal(hnumpr->GetBinError(i));
+      for (int i=1; i<=hnumjpsipr->GetNbinsX(); i++) { // loop over the histogram bins to find the one we want
+         if ((bin.centbin()==binI(0,200) && bin.ptbin()==binF(hnumjpsipr->GetXaxis()->GetBinLowEdge(i),hnumjpsipr->GetXaxis()->GetBinUpEdge(i))) // this is the bin we're looking for (pt)
+               || bin.centbin()==binI(2*hnumjpsipr->GetXaxis()->GetBinLowEdge(i),2*hnumjpsipr->GetXaxis()->GetBinUpEdge(i))) { // this is the bin we're looking for (centrality)
+            numjpsipr.setVal(hnumjpsipr->GetBinContent(i));
+            numpsippr.setVal(hnumpsippr->GetBinContent(i));
+            numjpsipr_err.setVal(hnumjpsipr->GetBinError(i));
+            numpsippr_err.setVal(hnumpsippr->GetBinError(i));
             numnpr.setVal(hnumnpr->GetBinContent(i));
             numnpr_err.setVal(hnumnpr->GetBinError(i));
-            failpr.setVal(hdenpr->GetBinContent(i)-numpr.getVal());
+            failjpsipr.setVal(hdenjpsipr->GetBinContent(i)-numjpsipr.getVal());
+            failpsippr.setVal(hdenpsippr->GetBinContent(i)-numpsippr.getVal());
             failnpr.setVal(hdennpr->GetBinContent(i)-numnpr.getVal());
-            failpr_err.setVal(sqrt(pow(hdenpr->GetBinError(i),2)-pow(numpr_err.getVal(),2)));
+            failjpsipr_err.setVal(sqrt(pow(hdenjpsipr->GetBinError(i),2)-pow(numjpsipr_err.getVal(),2)));
+            failpsippr_err.setVal(sqrt(pow(hdenpsippr->GetBinError(i),2)-pow(numpsippr_err.getVal(),2)));
             failnpr_err.setVal(sqrt(pow(hdennpr->GetBinError(i),2)-pow(numnpr_err.getVal(),2)));
             break;
          }
@@ -141,47 +163,90 @@ RooRealVar bfrac (const char *pr_fits, // name of the prompt fits directory
 
    delete fpr; fpr=0;
    delete fnpr; fnpr=0;
-   delete tfeffpr; tfeffpr=0;
+   delete tfeffjpsipr; tfeffjpsipr=0;
+   delete tfeffpsippr; tfeffpsippr=0;
    delete tfeffnpr; tfeffnpr=0;
 
    // build the RooRealVar for each ingredient
-   RooRealVar Npr_var("Npr_var","Npr_var",Npr.getVal(),Npr.getVal()-100.*Npr_err.getVal(),Npr.getVal()+100.*Npr_err.getVal());
-   RooRealVar Nnpr_var("Nnpr_var","Nnpr_var",Nnpr.getVal(),Nnpr.getVal()-100.*Nnpr_err.getVal(),Nnpr.getVal()+100.*Nnpr_err.getVal());
-   RooRealVar numpr_var("numpr_var","numpr_var",numpr.getVal(),0,numpr.getVal()+100.*numpr_err.getVal());
-   RooRealVar numnpr_var("numnpr_var","numnpr_var",numnpr.getVal(),0,numnpr.getVal()+100.*numnpr_err.getVal());
-   RooRealVar failpr_var("failpr_var","failpr_var",failpr.getVal(),0,failpr.getVal()+100.*failpr_err.getVal());
-   RooRealVar failnpr_var("failnpr_var","failnpr_var",failnpr.getVal(),0,failnpr.getVal()+100.*failnpr_err.getVal());
+   RooRealVar numjpsipr_var("numjpsipr_var","numjpsipr_var",numjpsipr.getVal(),0,numjpsipr.getVal()+100.*numjpsipr_err.getVal()); numjpsipr_var.setError(numjpsipr_err.getVal());
+   RooRealVar numpsippr_var("numpsippr_var","numpsippr_var",numpsippr.getVal(),0,numpsippr.getVal()+100.*numpsippr_err.getVal()); numpsippr_var.setError(numpsippr_err.getVal());
+   RooRealVar numnpr_var("numnpr_var","numnpr_var",numnpr.getVal(),0,numnpr.getVal()+100.*numnpr_err.getVal()); numnpr_var.setError(numnpr_err.getVal());
+   RooRealVar failjpsipr_var("failjpsipr_var","failjpsipr_var",failjpsipr.getVal(),0,failjpsipr.getVal()+100.*failjpsipr_err.getVal()); failjpsipr_var.setError(failjpsipr_err.getVal());
+   RooRealVar failpsippr_var("failpsippr_var","failpsippr_var",failpsippr.getVal(),0,failpsippr.getVal()+100.*failpsippr_err.getVal()); failpsippr_var.setError(failpsippr_err.getVal());
+   RooRealVar failnpr_var("failnpr_var","failnpr_var",failnpr.getVal(),0,failnpr.getVal()+100.*failnpr_err.getVal()); failnpr_var.setError(failnpr_err.getVal());
+   RooRealVar *Npr_var, *Npr, *Npr_err, *Nnpr_var, *Nnpr, *Nnpr_err;
+   if (!is2S) {
+      Npr_var = &Njpsipr_var; Npr = &Njpsipr; Npr_err = &Njpsipr_err;
+      Nnpr_var = &Njpsinpr_var; Nnpr = &Njpsinpr; Nnpr_err = &Njpsinpr_err;
+   } else {
+      Npr_var = &Npsi2Spr_var; Npr = &Npsi2Spr; Npr_err = &Npsi2Spr_err;
+      Nnpr_var = &Npsi2Snpr_var; Nnpr = &Npsi2Snpr; Nnpr_err = &Npsi2Snpr_err;
+   }
 
    // build the PDFs: Gaussian for numbers of events, Gaussian (PbPb) or Poissonian (pp) for MC numbers of events
-   RooGaussian Npr_pdf("Npr_pdf","Npr_pdf",Npr_var,Npr,Npr_err);
-   RooGaussian Nnpr_pdf("Nnpr_pdf","Nnpr_pdf",Nnpr_var,Nnpr,Nnpr_err);
-   RooAbsPdf *numpr_pdf=NULL; 
-   numpr_pdf = isPbPb ? 
-      (RooAbsPdf*) new RooGaussian("numpr_var","numpr_var",numpr_var,numpr,numpr_err) : 
-      (RooAbsPdf*) new RooPoisson("numpr_var","numpr_var",numpr_var,numpr);
+   RooGaussian Npr_pdf("Npr_pdf","",*Npr_var,*Npr,*Npr_err);
+   RooGaussian Nnpr_pdf("Nnpr_pdf","",*Nnpr_var,*Nnpr,*Nnpr_err);
+   double elempr[4] = {pow(Njpsipr_var.getError(),2),corrpr*Njpsipr_var.getError()*rfracpr_var.getError(),corrpr*Njpsipr_var.getError()*rfracpr_var.getError(),pow(rfracpr_var.getError(),2)};
+   double elemnpr[4] = {pow(Njpsinpr_var.getError(),2),corrnpr*Njpsinpr_var.getError()*rfracnpr_var.getError(),corrnpr*Njpsinpr_var.getError()*rfracnpr_var.getError(),pow(rfracnpr_var.getError(),2)};
+   RooMultiVarGaussian Nmultipr_pdf("Nmultipr_pdf","",RooArgList(Njpsipr_var,rfracpr_var),RooArgList(Njpsipr,rfracpr),TMatrixDSym(2,elempr));
+   RooMultiVarGaussian Nmultinpr_pdf("Nmultinpr_pdf","",RooArgList(Njpsinpr_var,rfracnpr_var),RooArgList(Njpsinpr,rfracnpr),TMatrixDSym(2,elemnpr));
+   RooAbsPdf *numjpsipr_pdf=NULL; 
+   numjpsipr_pdf = isPbPb ? 
+      (RooAbsPdf*) new RooGaussian("numjpsipr_pdf","",numjpsipr_var,numjpsipr,numjpsipr_err) : 
+      (RooAbsPdf*) new RooPoisson("numjpsipr_pdf","",numjpsipr_var,numjpsipr);
+   RooAbsPdf *numpsippr_pdf=NULL; 
+   numpsippr_pdf = isPbPb ? 
+      (RooAbsPdf*) new RooGaussian("numpsippr_pdf","",numpsippr_var,numpsippr,numpsippr_err) : 
+      (RooAbsPdf*) new RooPoisson("numpsippr_pdf","",numpsippr_var,numpsippr);
    RooAbsPdf *numnpr_pdf=NULL; 
    numnpr_pdf = isPbPb ? 
-      (RooAbsPdf*) new RooGaussian("numnpr_var","numnpr_var",numnpr_var,numnpr,numnpr_err) : 
-      (RooAbsPdf*) new RooPoisson("numnpr_var","numnpr_var",numnpr_var,numnpr);
-   RooAbsPdf *failpr_pdf=NULL; 
-   failpr_pdf = isPbPb ? 
-      (RooAbsPdf*) new RooGaussian("failpr_var","failpr_var",failpr_var,failpr,failpr_err) : 
-      (RooAbsPdf*) new RooPoisson("failpr_var","failpr_var",failpr_var,failpr);
+      (RooAbsPdf*) new RooGaussian("numnpr_pdf","",numnpr_var,numnpr,numnpr_err) : 
+      (RooAbsPdf*) new RooPoisson("numnpr_pdf","",numnpr_var,numnpr);
+   RooAbsPdf *failjpsipr_pdf=NULL; 
+   failjpsipr_pdf = isPbPb ? 
+      (RooAbsPdf*) new RooGaussian("failjpsipr_pdf","",failjpsipr_var,failjpsipr,failjpsipr_err) : 
+      (RooAbsPdf*) new RooPoisson("failjpsipr_pdf","",failjpsipr_var,failjpsipr);
+   RooAbsPdf *failpsippr_pdf=NULL; 
+   failpsippr_pdf = isPbPb ? 
+      (RooAbsPdf*) new RooGaussian("failpsippr_pdf","",failpsippr_var,failpsippr,failpsippr_err) : 
+      (RooAbsPdf*) new RooPoisson("failpsippr_pdf","",failpsippr_var,failpsippr);
    RooAbsPdf *failnpr_pdf=NULL; 
    failnpr_pdf = isPbPb ? 
-      (RooAbsPdf*) new RooGaussian("failnpr_var","failnpr_var",failnpr_var,failnpr,failnpr_err) : 
-      (RooAbsPdf*) new RooPoisson("failnpr_var","failnpr_var",failnpr_var,failnpr);
+      (RooAbsPdf*) new RooGaussian("failnpr_pdf","",failnpr_var,failnpr,failnpr_err) : 
+      (RooAbsPdf*) new RooPoisson("failnpr_pdf","",failnpr_var,failnpr);
 
-   // cout << Npr.getVal() << " " << Nnpr.getVal() << " " << numpr.getVal() << " " << numnpr.getVal() << " " << failpr.getVal() << " " << failnpr.getVal() << endl;
-   // cout << Npr_err.getVal() << " " << Nnpr_err.getVal() << " " << numpr_err.getVal() << " " << numnpr_err.getVal() << " " << failpr_err.getVal() << " " << failnpr_err.getVal() << endl;
-   RooArgList lvar(Npr_var,Nnpr_var,numpr_var,numnpr_var,failpr_var,failnpr_var);
+   // variable list
+   RooArgList *lvar = new RooArgList(*Npr_var,*Nnpr_var,numjpsipr_var,numnpr_var,failjpsipr_var,failnpr_var);
+   if (is2S) lvar = new RooArgList(*Npr_var,*Nnpr_var,numpsippr_var,numnpr_var,failpsippr_var,failnpr_var);
+   if (doRfrac) lvar->add(RooArgList(rfracpr_var,rfracnpr_var,numpsippr_var,failpsippr_var));
+
+   // pdf list
+   RooArgSet *pdfs = new RooArgSet(Npr_pdf,Nnpr_pdf,*numjpsipr_pdf,*numnpr_pdf,*failjpsipr_pdf,*failnpr_pdf);
+   if (is2S) pdfs = new RooArgSet(Npr_pdf,Nnpr_pdf,*numpsippr_pdf,*numnpr_pdf,*failpsippr_pdf,*failnpr_pdf);
+   if (doRfrac) pdfs = new RooArgSet(Nmultipr_pdf,Nmultinpr_pdf,*numjpsipr_pdf,*numpsippr_pdf,*numnpr_pdf,*failjpsipr_pdf,*failpsippr_pdf,*failnpr_pdf);
+
+   // formula
    TString formulastr;
-   if (!doNprompt) formulastr = "((@2/(@2+@4)) - (@0/(@0+@1))) / ((@2/(@2+@4)) - (@3/(@3+@5)))"; // B-fraction
-   else  formulastr = "(@0+@1) * (((@2/(@2+@4)) - (@0/(@0+@1))) / ((@2/(@2+@4)) - (@3/(@3+@5))))"; // Nb of prompt onia
-   RooFormulaVar formula("formula","formula",formulastr.Data(),lvar);
+   if (!doN) formulastr = "((@2/(@2+@4)) - (@0/(@0+@1))) / ((@2/(@2+@4)) - (@3/(@3+@5)))"; // B-fraction
+   else if (doNonPrompt) formulastr = "(@0+@1) * (((@2/(@2+@4)) - (@0/(@0+@1))) / ((@2/(@2+@4)) - (@3/(@3+@5))))"; // Nb of non-prompt onia
+   else formulastr = "(@0+@1) * (1-(((@2/(@2+@4)) - (@0/(@0+@1))) / ((@2/(@2+@4)) - (@3/(@3+@5)))))"; // Nb of prompt onia
+   if (doRfrac) {
+      if (doNonPrompt) formulastr = "((@0*@6+@1*@7)/(@0+@1))" // (Njpsi,prompt*Rprompt+Njspi,nonprompt*Rnonprompt) / (Njpsi,prompt+Njpsi,nonprompt)
+         " * (((@8/(@8+@9)) - (@0*@6/(@0*@6+@1*@7))) / ((@8/(@8+@9)) - (@3/(@3+@5))))" // B fraction for psi prime
+         " / (((@2/(@2+@4)) - (@0/(@0+@1))) / ((@2/(@2+@4)) - (@3/(@3+@5))))"; // B fraction for jpsi
+      else formulastr = "((@0*@6+@1*@7)/(@0+@1))" // (Njpsi,prompt*Rprompt+Njspi,nonprompt*Rnonprompt) / (Njpsi,prompt+Njpsi,nonprompt)
+         " * (1-(((@8/(@8+@9)) - (@0*@6/(@0*@6+@1*@7))) / ((@8/(@8+@9)) - (@3/(@3+@5)))))" // 1- (B fraction for psi prime)
+         " / (1-(((@2/(@2+@4)) - (@0/(@0+@1))) / ((@2/(@2+@4)) - (@3/(@3+@5)))))"; // 1 - (B fraction for jpsi)
+   }
+   RooFormulaVar formula("formula","formula",formulastr.Data(),*lvar);
+
+   // compute the final variable
    double bfracval = formula.getVal();
-   RooArgSet pdfs(Npr_pdf,Nnpr_pdf,*numpr_pdf,*numnpr_pdf,*failpr_pdf,*failnpr_pdf);
-   SamplingDistribution s = combDist(formula, pdfs, 1e4);
+   // for (int i=0; i<lvar->getSize(); i++) cout << ((RooRealVar*) &((*lvar)[i]))->getVal() << " +- " << ((RooRealVar*) &((*lvar)[i]))->getError() << ", ";
+   // cout << endl;
+   // cout << formulastr.Data() << endl;
+   // cout << bfracval << endl;
+   SamplingDistribution s = combDist(formula, *pdfs, 1e4);
 
    // bfrac.setVal(s.InverseCDF(0.5)); // median
    // bfrac.setVal(mean(&s)); // mean
@@ -190,9 +255,11 @@ RooRealVar bfrac (const char *pr_fits, // name of the prompt fits directory
    bfrac.setError((fabs(bfrac.getErrorLo())+fabs(bfrac.getErrorHi()))/2.);
    // cout << bfracval << " " << s.InverseCDF(0.5) << " " << mean(&s) << ", " << s.InverseCDF(ROOT::Math::normal_cdf(-1)) << " " << s.InverseCDF(ROOT::Math::normal_cdf(1)) << endl;
 
-   delete numpr_pdf; numpr_pdf=0;
+   delete numjpsipr_pdf; numjpsipr_pdf=0;
+   delete numpsippr_pdf; numpsippr_pdf=0;
    delete numnpr_pdf; numnpr_pdf=0;
-   delete failpr_pdf; failpr_pdf=0;
+   delete failjpsipr_pdf; failjpsipr_pdf=0;
+   delete failpsippr_pdf; failpsippr_pdf=0;
    delete failnpr_pdf; failnpr_pdf=0;
 
    return bfrac;
@@ -206,7 +273,7 @@ SamplingDistribution combDist(RooFormulaVar formula, RooArgSet pdfs, int nevts) 
       TIterator* it = pdfs.createIterator();
       RooAbsPdf *thePdf = (RooAbsPdf*) it->Next();
       while (thePdf) {
-         thePdf->generateEvent(1);
+         thePdf->generateEvent((TString(thePdf->ClassName())=="RooMultiVarGaussian") ? -1 : 1); // generateEvent(-1) for MultiVarGaussian, (1) for others
          thePdf = (RooAbsPdf*) it->Next();
       }
       // cout << formula->getVal() << endl;
@@ -219,6 +286,7 @@ SamplingDistribution combDist(RooFormulaVar formula, RooArgSet pdfs, int nevts) 
 
    // // plot the distribution
    // RooPlot *frame = formulaRRV.frame(Bins(100),Range(themin, themax));
+   // // RooPlot *frame = formulaRRV.frame(Bins(100),Range(-0.5, 1.5));
    // TCanvas *c1 = new TCanvas();
    // data.plotOn(frame);
    // frame->Draw();
