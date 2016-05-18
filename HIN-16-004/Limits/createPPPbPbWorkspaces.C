@@ -23,6 +23,27 @@ void createPPPbPbWorkspaces(
   // list of files
   vector<TString> theFiles_PbPb = fileList(workDirName,"PbPb",DSTag,"../Fitter");
   vector<TString> theFiles_PP = fileList(workDirName,"PP",DSTag,"../Fitter");
+  if ( (theFiles_PbPb.size() < 1) || (theFiles_PP.size() < 1) )
+  {
+    cout << "#[Error]: No files found in " << workDirName << endl;
+    return;
+  }
+  if ( theFiles_PbPb.size() != theFiles_PP.size() )
+  {
+    cout << "#[Error]: The number of PP and PbPb workspaces is different" << endl;
+    return;
+  }
+  
+  map<anabin, syst> syst_PbPb;
+  if ( doSyst )
+  {
+    syst_PbPb = readSyst_all("PbPb","../Fitter");
+    if ( syst_PbPb.empty() )
+    {
+      cout << "#[Error]: No systematics files found" << endl;
+      return;
+    }
+  }
   
   int cnt=1;
   for (vector<TString>::const_iterator it_PbPb=theFiles_PbPb.begin(); it_PbPb!=theFiles_PbPb.end(); it_PbPb++)
@@ -31,12 +52,11 @@ void createPPPbPbWorkspaces(
     cout << "############ Merging workspaces for analysis bin " << cnt << " ..." << endl;
     cout << "PbPb workspace " << cnt << " / " << theFiles_PbPb.size() << ": " << *it_PbPb << endl;
     
-    double syst(0.);
+    double systVal(0.);
     if ( doSyst )
     {
-      map<anabin, syst> syst_PbPb = readSyst_all("PbPb","../Fitter");
       anabin thebin = binFromFile(*it_PbPb);
-      syst = syst_PbPb[thebin].value;
+      systVal = syst_PbPb[thebin].value;
     }
     
     bool foundPPws = false;
@@ -54,8 +74,9 @@ void createPPPbPbWorkspaces(
         binName.Remove(0,binName.Index("_pt")+1);
         binName.Remove(binName.First('.'),binName.Length());
         if ( doSyst ) binName.Prepend("wSyst_");
+        else  binName.Prepend("woSyst_");
         
-        combinedWorkspace(*it_PbPb, *it_PP, Form("combined_PbPbPP_workspace_%s.root",binName.Data()), syst, ACTag);
+        combinedWorkspace(*it_PbPb, *it_PP, Form("combined_PbPbPP_workspace_%s.root",binName.Data()), systVal, ACTag);
         
         cout << ">>>>>>>> Combined workspace created for bin " << binName.Data() << endl;
       }

@@ -26,6 +26,7 @@ RooRealVar* poiFromWS(RooWorkspace* ws, const char* token, const char* thepoinam
 RooAbsPdf* pdfFromWS(RooWorkspace* ws, const char* token, const char* thepdfname);
 RooAbsData* dataFromWS(RooWorkspace* ws, const char* token, const char* thedataname);
 vector<TString> fileList(const char* input, const char* token="", const char* DSTag="DATA", const char* prependPath="");
+vector<TString> combFileList(const char* input, const char* token="", const char* prependPath="");
 RooRealVar* ratioVar(RooRealVar *num, RooRealVar *den, bool usedenerror=true);
 anabin binFromFile(const char* filename);
 bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck);
@@ -106,6 +107,32 @@ vector<TString> fileList(const char* input, const char* token, const char* DSTag
    }
 
    return ans;
+}
+
+vector<TString> combFileList(const char* input, const char* token, const char* prependPath) {
+  vector<TString> ans;
+  
+  TString basedir(Form("CombinedWorkspaces/%s/",input));
+  if ( strcmp(prependPath,"") ) basedir.Prepend(Form("%s/",prependPath));
+  TSystemDirectory dir(input,basedir);
+  
+  TList *files = dir.GetListOfFiles();
+  
+  if (files) {
+    TIter next(files);
+    TSystemFile *file;
+    TString fname;
+    
+    while ((file=(TSystemFile*)next())) {
+      fname = file->GetName();
+      if (fname.EndsWith(".root") && fname.Index("combined_PbPbPP_workspace") != kNPOS
+          && (fname.Index(token) != kNPOS)) {
+        ans.push_back(basedir+fname);
+      }
+    }
+  }
+  
+  return ans;
 }
 
 RooRealVar* ratioVar(RooRealVar *num, RooRealVar *den, bool usedenerror) {

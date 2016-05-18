@@ -29,7 +29,7 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
    RooDataSet *data_pp=NULL;
 
    // let's massively clone everything into the new workspace
-   RooWorkspace *wcombo = new RooWorkspace("wcombo","workspace for PbPb + pp");
+   RooWorkspace *wcombo = new RooWorkspace("workspace","workspace for PbPb + pp");
 
    // first, variables
    RooArgSet allVars = ws_pp->allVars(); allVars.add(ws->allVars());
@@ -205,7 +205,8 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
    ws->Delete(); ws_pp->Delete(); f->Delete(); f_pp->Delete();
 
    // simPdf.fitTo(data_combo); // crashes sometimes but not always?? adding Range("MassWindow") or NumCPU(2) improves stability
-   simPdf.fitTo(data_combo,NumCPU(3));
+   simPdf.fitTo(data_combo,NumCPU(3), Extended(kTRUE), Minimizer("Minuit2","Migrad"));
+  //, NumCPU(numCores), Range("MassWindow"), Save()
 
    // wcombo->writeToFile("fitresult_combo.root");
    return wcombo;
