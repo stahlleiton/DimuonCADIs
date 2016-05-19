@@ -37,11 +37,11 @@ const char* poiname = "RFrac2Svs1S";
 const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
 const bool  doratio       = true;  // true -> look for separate PP and PbPb files, false -> input files are with simultaneous pp-PbPb fits
 const bool  plot12007     = false; // compare with 12-007
-const bool  promptonly    = false; // plot the prompt only double ratio
+const bool  promptonly    = true; // plot the prompt only double ratio
 const bool  nonpromptonly = false; // plot the non-prompt only double ratio
 const char* normalCutsDir="nominal";
 const char* invCutsDir="nonprompt";
-const char* nameTag="";            // can put here e.g. "_prompt", "_nonprompt", ...
+const char* nameTag="_prompt";            // can put here e.g. "_prompt", "_nonprompt", ...
 
 
 ///////////////
@@ -341,7 +341,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    // prepare for the printing of the result tables
    const char* xname = (xaxis=="cent") ? "Centrality" : "\\pt";
    gSystem->mkdir(Form("Output/%s/tex/", outputDir.c_str()), kTRUE); 
-   char texname[2048]; sprintf(texname, "Output/%s/tex/result_%s%s.tex",outputDir.c_str(),xaxis.c_str(),nameTag.Data());
+   char texname[2048]; sprintf(texname, "Output/%s/tex/result_%s%s.tex",outputDir.c_str(),xaxis.c_str(),nameTag);
    string yname("\\doubleRatio");
    inittex(texname, xname, yname);
 
@@ -493,11 +493,11 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    c1->Update();
    c1->RedrawAxis();
    gSystem->mkdir(Form("Output/%s/plot/RESULT/root/", outputDir.c_str()), kTRUE); 
-   c1->SaveAs(Form("Output/%s/plot/RESULT/root/result_%s%s%s.root",outputDir.c_str(), xaxis.c_str(), nameTag.Data(), plot12007 ? "_12007" : ""));
+   c1->SaveAs(Form("Output/%s/plot/RESULT/root/result_%s%s%s.root",outputDir.c_str(), xaxis.c_str(), nameTag, plot12007 ? "_12007" : ""));
    gSystem->mkdir(Form("Output/%s/plot/RESULT/png/", outputDir.c_str()), kTRUE);
-   c1->SaveAs(Form("Output/%s/plot/RESULT/png/result_%s%s%s.png",outputDir.c_str(), xaxis.c_str(), nameTag.Data(), plot12007 ? "_12007" : ""));
+   c1->SaveAs(Form("Output/%s/plot/RESULT/png/result_%s%s%s.png",outputDir.c_str(), xaxis.c_str(), nameTag, plot12007 ? "_12007" : ""));
    gSystem->mkdir(Form("Output/%s/plot/RESULT/pdf/", outputDir.c_str()), kTRUE);
-   c1->SaveAs(Form("Output/%s/plot/RESULT/pdf/result_%s%s%s.pdf",outputDir.c_str(), xaxis.c_str(), nameTag.Data(), plot12007 ? "_12007" : ""));
+   c1->SaveAs(Form("Output/%s/plot/RESULT/pdf/result_%s%s%s.pdf",outputDir.c_str(), xaxis.c_str(), nameTag, plot12007 ? "_12007" : ""));
 
    delete tleg;
    delete haxes; delete haxesr;
