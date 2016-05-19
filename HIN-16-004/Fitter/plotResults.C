@@ -23,6 +23,7 @@
 #include "RooWorkspace.h"
 #include "TSystemDirectory.h"
 #include "TSystemFile.h"
+#include "TArrow.h"
 
 using namespace std;
 
@@ -37,11 +38,13 @@ const char* poiname = "RFrac2Svs1S";
 const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
 const bool  doratio       = true;  // true -> look for separate PP and PbPb files, false -> input files are with simultaneous pp-PbPb fits
 const bool  plot12007     = false; // compare with 12-007
-const bool  promptonly    = true; // plot the prompt only double ratio
+const bool  fiterrors     = true;  // statistical errors are from the fit
+const bool  FCerrors      = false; // statistical errors are from the Feldman-Cousins intervals ("limits")
+const bool  promptonly    = false; // plot the prompt only double ratio
 const bool  nonpromptonly = false; // plot the non-prompt only double ratio
 const char* normalCutsDir="nominal";
 const char* invCutsDir="nonprompt";
-const char* nameTag="_prompt";            // can put here e.g. "_prompt", "_nonprompt", ...
+const char* nameTag="";            // can put here e.g. "_prompt", "_nonprompt", ...
 
 
 ///////////////
@@ -60,8 +63,8 @@ RooRealVar* poiFromFile(const char* filename, const char* token="");
 void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsymmErrors*> theGraphs_syst, string xaxis, string outputDir, map<anabin, syst> gsyst);
 void plot(vector<anabin> thecats, string xaxis, string workDirName);
 void centrality2npart(TGraphAsymmErrors* tg, bool issyst=false, bool isMB=false, double xshift=0.);
-void plotLimits(vector<anabin> theCats, string xaxis);
-void drawArrow(double x, double y, double dx, Color_t color);
+void plotLimits(vector<anabin> theCats, string xaxis, const char* filename="../Limits/csv/Limits_95.csv", double xshift=0, bool ULonly=true);
+void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color);
 
 
 
@@ -235,8 +238,20 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
             // also add
          }
          y = theVarsBinned[*it][i]->getVal();
-         eyl = fabs(theVarsBinned[*it][i]->getErrorLo());
-         eyh = theVarsBinned[*it][i]->getErrorHi();
+         if (fiterrors) {
+            eyl = fabs(theVarsBinned[*it][i]->getErrorLo());
+            eyh = theVarsBinned[*it][i]->getErrorHi();
+         } else {
+            map<anabin, limits> maplim = readLimits("../Limits/csv/Limits_68.csv");
+            if (maplim.find(*it) != maplim.end()) {
+               limits lim = maplim[*it];
+               eyl = lim.val.first;
+               eyh = lim.val.second;
+            } else {
+               eyl = fabs(theVarsBinned[*it][i]->getErrorLo());
+               eyh = theVarsBinned[*it][i]->getErrorHi();
+            }
+         }
          eysyst = y*eysyst;
          theGraphs[*it]->SetPoint(i,x,y);
          theGraphs[*it]->SetPointError(i,exl,exh,eyl,eyh);
@@ -481,6 +496,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    }
 
    plotLimits(theCats,xaxis);
+   if (fiterrors && FCerrors) plotLimits(theCats,xaxis,"../Limits/csv/Limits_68.csv",xaxis=="cent" ? 5 : 1, false);
 
    if (xaxis=="cent") padl->cd();
    tleg->Draw();
@@ -534,18 +550,19 @@ void centrality2npart(TGraphAsymmErrors* tg, bool issyst, bool isMB, double xshi
    }
 }
 
-void plotLimits(vector<anabin> theCats, string xaxis) {
-   map<anabin,limits> maplim = readLimits("../Limits/csv/Limits_95.csv");
+void plotLimits(vector<anabin> theCats, string xaxis, const char* filename, double xshift, bool ULonly) {
+   map<anabin,limits> maplim = readLimits(filename);
 
    map<anabin,limits>::const_iterator it;
    for (it=maplim.begin(); it!=maplim.end(); it++) {
       anabin thebin = it->first;
       if (!binok(theCats,xaxis,thebin,false)) continue;
       limits lim = it->second;
-      if (lim.val.first>0) continue; // only draw upper limits, ie interval which lower limit is 0
+      if (ULonly && lim.val.first>0) continue; // only draw upper limits, ie interval which lower limit is 0
       // draw arrow in the right place and with the right color...
       Color_t color=kBlack;
       double x=0, y=0, dx=0;
+      double ylow = lim.val.first;
       y = lim.val.second;
       if (xaxis=="pt") {
          double low= thebin.ptbin().low();
@@ -563,15 +580,17 @@ void plotLimits(vector<anabin> theCats, string xaxis) {
       } else if (thebin.rapbin() == binF(1.6,2.4)) {
          color = kRed;
       }
-      drawArrow(x, y, dx, color);
+      drawArrow(x+xshift, ylow, y, dx, color);
    }
 }
 
-void drawArrow(double x, double y, double dx, Color_t color) {
-   TArrow *arrow = new TArrow(x,y,x,0.05,0.03);
+void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color) {
+   TArrow *arrow = new TArrow(x,yhigh,x,ylow<=0. ? 0.05 : ylow,0.03,ylow<=0. ? ">" : "<>");
    arrow->SetLineColor(color);
    arrow->Draw();
-   TLine *line = new TLine(x-dx,y,x+dx,y);
-   line->SetLineColor(color);
-   line->Draw();
+   if (ylow<=0.) {
+      TLine *line = new TLine(x-dx,yhigh,x+dx,yhigh);
+      line->SetLineColor(color);
+      line->Draw();
+   }
 }
