@@ -1,6 +1,7 @@
 #include "Macros/CMS/CMS_lumi.C"
 #include "Macros/CMS/tdrstyle.C"
 #include "Macros/Utilities/bin.h"
+#include "Macros/Utilities/bfrac.h"
 #include "Macros/Utilities/EVENTUTILS.h"
 
 #include "Macros/Utilities/initClasses.h"
@@ -34,8 +35,12 @@ using namespace std;
 const char* poiname = "RFrac2Svs1S";
 #endif
 const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
-const bool  doratio = true; // true -> look for separate PP and PbPb files, false -> input files are with simultaneous pp-PbPb fits
-const bool  plot12007 = false;
+const bool  doratio       = true;  // true -> look for separate PP and PbPb files, false -> input files are with simultaneous pp-PbPb fits
+const bool  plot12007     = false; // compare with 12-007
+const bool  promptonly    = true;  // plot the prompt only double ratio
+const bool  nonpromptonly = false;  // plot the non-prompt only double ratio
+const char* normalCutsDir="nominal";
+const char* invCutsDir="nonprompt";
 
 
 ///////////////
@@ -118,7 +123,10 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       if (!doratio) {
          theVars[thebin] = poiFromFile(it->Data(),"_PbPbvsPP");
       } else {
-         RooRealVar *num = poiFromFile(it->Data(),"_PbPb");
+         RooRealVar *num=NULL;
+         if (!promptonly && !nonpromptonly) num = poiFromFile(it->Data(),"_PbPb");
+         else if (promptonly) num = new RooRealVar(bfrac(normalCutsDir,invCutsDir,thebin,"RFrac2Svs1S_PbPb"));
+         else  num = new RooRealVar(bfrac(normalCutsDir,invCutsDir,thebin,"RFrac2Svs1S_NPrompt_PbPb"));
 
          // force the centrality to 0-200 for pp
          anabin thebinpp = thebin;
@@ -137,7 +145,11 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
             cout << "Error! I did not find the PP file for " << *it << endl;
             return;
          }
-         RooRealVar *den = poiFromFile(it2->Data(),"_PP");
+         anabin thebin_PP = binFromFile(it2->Data());
+         RooRealVar *den = NULL;
+         if (!promptonly && !nonpromptonly) den = poiFromFile(it2->Data(),"_PP");
+         else if (promptonly) den = new RooRealVar(bfrac(normalCutsDir,invCutsDir,thebin_PP,"RFrac2Svs1S_PP"));
+         else  den = new RooRealVar(bfrac(normalCutsDir,invCutsDir,thebin_PP,"RFrac2Svs1S_NPrompt_PP"));
          theVars[thebin] = ratioVar(num,den,!(xaxis=="cent")); // if plotting the centrality dependence, do not put the pp stat
          syst thestat_PP;
          thestat_PP.name = "stat_PP";

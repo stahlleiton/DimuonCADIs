@@ -271,23 +271,8 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
       if (string(collSystem) != collTag) continue;
 
       // special cases of Bfrac and Nprompt
-      if (TString(varname) == "Bfrac_Jpsi") {
-         RooRealVar bfracvar = bfrac(normalCutsDir,invCutsDir,trbin,collTag=="PbPb",false,false);
-         val = bfracvar.getVal();
-         val_err = bfracvar.getError();
-      } 
-      if (TString(varname) == "Bfrac_psi2S") {
-         RooRealVar bfracvar = bfrac(normalCutsDir,invCutsDir,trbin,collTag=="PbPb",true,false);
-         val = bfracvar.getVal();
-         val_err = bfracvar.getError();
-      } 
-      if (TString(varname) == "Nprompt_Jpsi") {
-         RooRealVar bfracvar = bfrac(normalCutsDir,invCutsDir,trbin,collTag=="PbPb",false,true);
-         val = bfracvar.getVal();
-         val_err = bfracvar.getError();
-      } 
-      if (TString(varname) == "Nprompt_psi2S") {
-         RooRealVar bfracvar = bfrac(normalCutsDir,invCutsDir,trbin,collTag=="PbPb",true,true);
+      if (TString(varname).Index("Bfrac") != kNPOS || TString(varname).Index("Prompt") != kNPOS) {
+         RooRealVar bfracvar = bfrac(normalCutsDir,invCutsDir,trbin,Form("%s_%s",varname,collTag));
          val = bfracvar.getVal();
          val_err = bfracvar.getError();
       } 
