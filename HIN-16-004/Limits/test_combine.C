@@ -32,7 +32,7 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
    RooWorkspace *wcombo = new RooWorkspace("workspace","workspace for PbPb + pp");
 
    // first, variables
-   RooArgSet allVars = ws_pp->allVars(); allVars.add(ws->allVars());
+   RooArgSet allVars = ws->allVars(); allVars.add(ws_pp->allVars());
    TIterator* it = allVars.createIterator();
    RooRealVar *theVar = (RooRealVar*) it->Next();
    while (theVar) {
@@ -110,6 +110,15 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
             args.ReplaceAll("(","{"); args.ReplaceAll(")","}");
             cout << Form("Chebychev::%s(%s, %s)",thePdf->GetName(),obs.Data(),args.Data()) << endl;
             wcombo->factory(Form("Chebychev::%s(%s, %s)",thePdf->GetName(),obs.Data(),args.Data()));
+         } else if (className == "RooUniform") {
+           TString obs;
+           TString t; Int_t from = 0;
+           while (theargs.Tokenize(t, from , " ")) {
+             if (t.Index("x=")!=kNPOS) obs=((TObjString*) t.Tokenize("=")->At(1))->String();
+           }
+           obs.ReplaceAll("(",""); obs.ReplaceAll(")","");
+           cout << Form("Uniform::%s(%s)",thePdf->GetName(),obs.Data()) << endl;
+           wcombo->factory(Form("Uniform::%s(%s)",thePdf->GetName(),obs.Data()));
          } else if (className == "RooAddPdf") {
             // skip the total PDFs as we will rebuild them
             if (TString(thePdf->GetName()).Index("pdfMASS_Tot_")!=kNPOS) {thePdf = (RooAbsPdf*) it->Next(); nok++; continue;}

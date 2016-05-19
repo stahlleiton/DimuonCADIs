@@ -142,8 +142,8 @@ RooRealVar* ratioVar(RooRealVar *num, RooRealVar *den, bool usedenerror) {
    double dd = den->getError();
 
    double r = d!=0 ? n/d : 0;
-   double dr = n!=0 && d!=0 ? r * sqrt(pow(dn/n,2) + pow(dd/d,2)) : 0;
-   if (!usedenerror && n!=0) dr = (dn/n)*r;
+   double dr = n!=0 && d!=0 ? fabs(r * sqrt(pow(dn/n,2) + pow(dd/d,2))) : 0;
+   if (!usedenerror && n!=0) dr = fabs((dn/n)*r);
    RooRealVar *ans = new RooRealVar(Form("%s_over_%s",num->GetName(),den->GetName()), Form("%s / %s",num->GetTitle(),den->GetTitle()), r);
    ans->setError(dr);
 

@@ -28,11 +28,6 @@ void createPPPbPbWorkspaces(
     cout << "#[Error]: No files found in " << workDirName << endl;
     return;
   }
-  if ( theFiles_PbPb.size() != theFiles_PP.size() )
-  {
-    cout << "#[Error]: The number of PP and PbPb workspaces is different" << endl;
-    return;
-  }
   
   map<anabin, syst> syst_PbPb;
   if ( doSyst )
