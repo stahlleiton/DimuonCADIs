@@ -48,8 +48,8 @@ void drawCtauErrorPlot(RooWorkspace& myws,   // Local workspace
   if (incJpsi) {
     string pdfName = ""; string dsName = "";
     if (incNonPrompt  && incPrompt)  { pdfName = Form("pdfCTAUERR_Jpsi_%s", (isPbPb?"PbPb":"PP"));       dsName = Form("hCtauErr_Jpsi_%s", (isPbPb?"PbPb":"PP")); }
-    if (!incNonPrompt && incPrompt)  { pdfName = Form("pdfCTAUERR_JpsiPR_%s", (isPbPb?"PbPb":"PP"));     dsName = dsOSName + "_binned";}
-    if (incNonPrompt  && !incPrompt) { pdfName = Form("pdfCTAUERR_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"));   dsName = dsOSName + "_binned";}
+    if (!incNonPrompt && incPrompt)  { pdfName = Form("pdfCTAUERR_JpsiPR_%s", (isPbPb?"PbPb":"PP"));     dsName = Form("hCtauErr_Tot_%s", (isPbPb?"PbPb":"PP"));  }
+    if (incNonPrompt  && !incPrompt) { pdfName = Form("pdfCTAUERR_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"));   dsName = Form("hCtauErr_Tot_%s", (isPbPb?"PbPb":"PP"));  }
 
     myws.data(dsName.c_str())->plotOn(frame, Name("JPSIDATA"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlue+3), MarkerSize(1.0));
     if ( myws.pdf(pdfName.c_str()) ) { 
@@ -59,8 +59,8 @@ void drawCtauErrorPlot(RooWorkspace& myws,   // Local workspace
   if (incPsi2S) {
     string pdfName = ""; string dsName = "";
     if (incNonPrompt  && incPrompt)  { pdfName = Form("pdfCTAUERR_Psi2S_%s", (isPbPb?"PbPb":"PP"));       dsName = Form("hCtauErr_Psi2S_%s", (isPbPb?"PbPb":"PP"));  }
-    if (!incNonPrompt && incPrompt)  { pdfName = Form("pdfCTAUERR_Psi2SPR_%s", (isPbPb?"PbPb":"PP"));     dsName = dsOSName + "_binned";   }
-    if (incNonPrompt  && !incPrompt) { pdfName = Form("pdfCTAUERR_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"));   dsName = dsOSName + "_binned"; }
+    if (!incNonPrompt && incPrompt)  { pdfName = Form("pdfCTAUERR_Psi2SPR_%s", (isPbPb?"PbPb":"PP"));     dsName = Form("hCtauErr_Tot_%s", (isPbPb?"PbPb":"PP")); }
+    if (incNonPrompt  && !incPrompt) { pdfName = Form("pdfCTAUERR_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"));   dsName = Form("hCtauErr_Tot_%s", (isPbPb?"PbPb":"PP")); }
 
     myws.data(dsName.c_str())->plotOn(frame, Name("PSI2SDATA"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kRed+3), MarkerSize(1.0));
     if ( myws.pdf(pdfName.c_str()) ) { 
@@ -70,10 +70,11 @@ void drawCtauErrorPlot(RooWorkspace& myws,   // Local workspace
   if (incBkg) {
     string pdfName = ""; string dsName = "";
     if (incNonPrompt  && incPrompt)  { pdfName = Form("pdfCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"));     dsName = Form("hCtauErr_Bkg_%s", (isPbPb?"PbPb":"PP")); }
-    if (!incNonPrompt && incPrompt)  { pdfName = Form("pdfCTAUERR_BkgPR_%s", (isPbPb?"PbPb":"PP"));   dsName = dsOSName + "_binned"; }
-    if (incNonPrompt  && !incPrompt) { pdfName = Form("pdfCTAUERR_BkgNoPR_%s", (isPbPb?"PbPb":"PP")); dsName = dsOSName + "_binned"; }
+    if (!incNonPrompt && incPrompt)  { pdfName = Form("pdfCTAUERR_BkgPR_%s", (isPbPb?"PbPb":"PP"));   dsName = Form("hCtauErr_Tot_%s", (isPbPb?"PbPb":"PP")); }
+    if (incNonPrompt  && !incPrompt) { pdfName = Form("pdfCTAUERR_BkgNoPR_%s", (isPbPb?"PbPb":"PP")); dsName = Form("hCtauErr_Tot_%s", (isPbPb?"PbPb":"PP")); }
+    if (!incJpsi && !incPsi2S) { dsName = Form("hCtauErr_Tot_%s", (isPbPb?"PbPb":"PP")); } 
 
-    myws.data(dsName.c_str())->plotOn(frame, Name("BKGDATA"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kGreen+3), MarkerSize(1.0));
+    myws.data(dsName.c_str())->plotOn(frame, Name("BKGDATA"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kGreen+3));
     if ( myws.pdf(pdfName.c_str()) ) { 
       myws.pdf(pdfName.c_str())->plotOn(frame,Name("BKG"), LineStyle(1), NumCPU(32), LineColor(kGreen+3), Precision(1e-4) );
     }
@@ -83,7 +84,7 @@ void drawCtauErrorPlot(RooWorkspace& myws,   // Local workspace
     myws.data(dsSSName.c_str())->plotOn(frame, Name("dSS"), MarkerColor(kRed), LineColor(kRed), MarkerSize(1.2)); 
   }
   myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
-   
+
   // set the CMS style
   setTDRStyle();
   

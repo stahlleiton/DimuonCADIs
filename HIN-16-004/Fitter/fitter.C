@@ -1,3 +1,4 @@
+
 #include "Macros/Utilities/initClasses.h"
 #include "Macros/tree2DataSet.C"
 #include "Macros/fitCharmonia.C"
@@ -29,7 +30,7 @@ void fitter(
             bool fitCtau      = true,        // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
             // Select the type of object to fit
-            bool incJpsi      = true,          // Includes Jpsi model
+            bool incJpsi      = false,          // Includes Jpsi model
             bool incPsi2S     = true,         // Includes Psi(2S) model
             bool incBkg       = true,         // Includes Background model
             bool incPrompt    = true,         // Includes Prompt ctau model
@@ -38,7 +39,7 @@ void fitter(
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
             bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
-            int  numCores     = 32,            // Number of cores used for fitting
+            int  numCores     = 4,            // Number of cores used for fitting
             // Select the drawing options
             bool  setLogScale  = true,         // Draw plot with log scale
             bool  incSS        = false,        // Include Same Sign data
@@ -135,12 +136,12 @@ void fitter(
       InputFile = (DIR["input"] + "InitialParam_MASS_BKG_PbPb.csv");
       if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
     } 
-    if (fitPbPb && incJpsi) {
+    if (fitPbPb && (incJpsi || incPsi2S)) {
       // Add initial parameters for PbPb jpsi models
       InputFile = (DIR["input"] + "InitialParam_MASS_JPSI_PbPb.csv");
     if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
     } 
-    if (fitPbPb && incPsi2S) {
+    if (fitPbPb && (incJpsi || incPsi2S)) {
       // Add initial parameters for PbPb psi(2S) models
       InputFile = (DIR["input"] + "InitialParam_MASS_PSI2S_PbPb.csv");
       if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
@@ -150,12 +151,12 @@ void fitter(
       InputFile = (DIR["input"] + "InitialParam_MASS_BKG_PP.csv");
       if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
     } 
-    if (fitPP && incJpsi) {
+    if (fitPP && (incJpsi || incPsi2S)) {
       // Add initial parameters for PP jpsi models
       InputFile = (DIR["input"] + "InitialParam_MASS_JPSI_PP.csv");
       if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
     } 
-    if (fitPP && incPsi2S) {
+    if (fitPP && (incJpsi || incPsi2S)) {
       // Add initial parameters for PP psi(2S) models
       InputFile = (DIR["input"] + "InitialParam_MASS_PSI2S_PP.csv");
       if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }

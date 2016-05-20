@@ -16,7 +16,6 @@ bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<stri
                              double  numEntries = 300000. // Number of entries in the dataset
                              )
 {
-
   // If the initial parameters are empty, set defaul parameter values
   setMassDefaultParameters(parIni, isPbPb, numEntries);
 

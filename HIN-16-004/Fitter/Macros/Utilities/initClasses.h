@@ -22,6 +22,7 @@
 #include "TAxis.h"
 #include "TLegend.h"
 
+#include "RooNumIntConfig.h"
 #include "RooWorkspace.h"
 #include "RooKeysPdf.h"
 #include "RooHistPdf.h"

@@ -41,9 +41,9 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
     
   bool isWeighted = myws.data(dsOSName.c_str())->isWeighted();
   string cutSB = Form("(%.6f < invMass && invMass < %.6f)", cut.dMuon.M.Min, cut.dMuon.M.Max);
-  cutSB = cutSB + "&&"+"((2.0 < invMass && invMass < 2.9) || (3.3 < invMass && invMass < 3.5) || (3.9 < invMass && invMass < 5.0))";
-  string cutSBLabel = "SideBandMID";
-  if (cut.dMuon.M.Min < 2.9) { cutSBLabel = cutSBLabel + "," + "SideBandBOT"; } if (cut.dMuon.M.Max > 3.9) { cutSBLabel = cutSBLabel + "," + "SideBandTOP"; }
+  cutSB = cutSB + "&&"+"((2.0 < invMass && invMass < 2.7) || (3.3 < invMass && invMass < 3.5) || (3.9 < invMass && invMass < 5.0))";
+  string cutSBLabel = "SideBandMID_FULL";
+  if (cut.dMuon.M.Min < 2.9) { cutSBLabel = cutSBLabel + "," + "SideBandBOT_FULL"; } if (cut.dMuon.M.Max > 3.9) { cutSBLabel = cutSBLabel + "," + "SideBandTOP_FULL"; }
 
   // Create the main plot of the fit
   RooPlot*   frame     = myws.var("invMass")->frame(Bins(nBins), Range(cut.dMuon.M.Min, cut.dMuon.M.Max));
