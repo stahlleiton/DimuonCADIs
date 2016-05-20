@@ -16,7 +16,6 @@
 #include "Utilities/EVENTUTILS.h"
 #include "Utilities/initClasses.h"
 
-
 map<int, double>   fCentMap; // map for centrality-Ncoll mapping
 double             fCentBinning[200];
 int                fCentBins;
@@ -27,7 +26,9 @@ void    iniBranch(TChain* fChain,bool isMC=false);
 double  deltaR(TLorentzVector* GenMuon, TLorentzVector* RecoMuon);
 bool    isMatchedRecoDiMuon(int iRecoDiMuon, double maxDeltaR=0.03);
 double  getNColl(int centr, bool isPP);
+double  getAccEff(Double_t rapidity,Double_t pt);
 void    setCentralityMap(const char* file);
+TH2F *AccEffHist = NULL;
 
 bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string DSName, string OutputFileName, bool UpdateDS=false)
 {
@@ -48,6 +49,10 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
   bool isPureSDataset = false;
   if (OutputFileName.find("_PureS")!=std::string::npos) isPureSDataset = true;
 
+  bool applyWeight_AccEff = false;
+  if (OutputFileName.find("_AccEff")!=std::string::npos) applyWeight_AccEff = true;
+  if(applyWeight == true) applyWeight_AccEff = false;
+  
   if (gSystem->AccessPathName(OutputFileName.c_str()) || UpdateDS) {
     cout << "[INFO] Creating " << (isPureSDataset ? "pure signal " : "") << "RooDataSet for " << DSName << endl;
     TreeName = findMyTree(InputFileNames[0]); if(TreeName==""){return false;}
@@ -63,16 +68,18 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     RooRealVar* ptQQ    = new RooRealVar("pt","#mu#mu p_{T}", 0.0, 50.0, "GeV/c");
     RooRealVar* rapQQ   = new RooRealVar("rap","#mu#mu y", -2.4, 2.4, "");
     RooRealVar* cent    = new RooRealVar("cent","centrality", 0.0, 200.0, "");
-    RooRealVar* weight  = new RooRealVar("weight","MC weight", 0.0, 1.0, "");
+    RooRealVar* weight  = new RooRealVar("weight","MC weight", 0.0, 10000.0, "");
+    RooRealVar* weightAE   = new RooRealVar("weightAE","Data weight with AccEff", 0.0, 10000.0, "");
     RooArgSet*  cols    = NULL;
     
-    if (applyWeight)
-    {
-      setCentralityMap(Form("%s/Input/CentralityMap_PbPb2015.txt",gSystem->ExpandPathName(gSystem->pwd())));
+    if (applyWeight || applyWeight_AccEff)
+      {
+      if(isMC) setCentralityMap(Form("%s/Input/CentralityMap_PbPb2015.txt",gSystem->ExpandPathName(gSystem->pwd())));
       cols   = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent, *weight);
       dataOS = new RooDataSet(Form("dOS_%s", DSName.c_str()), "dOS", *cols, WeightVar(*weight), StoreAsymError(*mass));
       dataSS = new RooDataSet(Form("dSS_%s", DSName.c_str()), "dSS", *cols, WeightVar(*weight), StoreAsymError(*mass));
       if (isPureSDataset) dataOSNoBkg = new RooDataSet(Form("dOS_%s_NoBkg", DSName.c_str()), "dOSNoBkg", *cols, WeightVar(*weight), StoreAsymError(*mass));
+      if(applyWeight_AccEff)cout<<"---one applyWeight_AccEff applied---"<<endl;
     }
     else
     {
@@ -82,7 +89,10 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
       if (isMC && isPureSDataset) dataOSNoBkg = new RooDataSet(Form("dOS_%s_NoBkg", DSName.c_str()), "dOSNoBkg", *cols, StoreAsymError(*mass));
     }
     
+    TFile *froot = new TFile("Input/f2dTot.root"); 
+    
     Long64_t nentries = theTree->GetEntries();
+    //nentries = 50000;
     cout << "[INFO] Starting to process " << nentries << " nentries" << endl;
     for (Long64_t jentry=0; jentry<nentries;jentry++) {
 
@@ -120,7 +130,30 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
           double w = theTree->GetWeight();//*getNColl(Centrality,isPP);
           weight->setVal(w);
         }
-        
+	if (applyWeight_AccEff){
+	  if(isPP && fabs(RecoQQ4mom->Rapidity())<1.6){                                     
+	    if(RecoQQ4mom->M()<=3.4) AccEffHist = (TH2F*)froot->Get("hjpsitotal2d_midpp"); 
+	    if(RecoQQ4mom->M()>3.4) AccEffHist = (TH2F*)froot->Get("hjpsi2total2d_midpp"); 
+	  }
+	  else if(isPP){ 
+	    if(RecoQQ4mom->M()<=3.4) AccEffHist = (TH2F*)froot->Get("hjpsitotal2d_fwdpp");           
+	    if(RecoQQ4mom->M()>3.4)  AccEffHist = (TH2F*)froot->Get("hjpsi2total2d_fwdpp");                     
+	  }                                                                                                                   
+	  if(!isPP && fabs(RecoQQ4mom->Rapidity())<1.6){
+	    if(RecoQQ4mom->M()<=3.4) AccEffHist = (TH2F*)froot->Get("hjpsitotal2d_midpbpb");
+	    if(RecoQQ4mom->M()>3.4)  AccEffHist = (TH2F*)froot->Get("hjpsi2total2d_midpbpb");                      
+	  }                                                                                                                	    else if(!isPP){                                                                                                
+	    if(RecoQQ4mom->M()<=3.4) AccEffHist = (TH2F*)froot->Get("hjpsitotal2d_fwdpbpb");              	      
+	    if(RecoQQ4mom->M()>3.4)  AccEffHist = (TH2F*)froot->Get("hjpsi2total2d_fwdpbpb");                  
+	  }                      
+	  
+	  
+	  double AccEff = getAccEff(RecoQQ4mom->Rapidity(),RecoQQ4mom->Pt());
+	  //if (jentry%200==0)  cout<<" AccEff  "<<AccEff<<endl;
+	  double wAE = 1/AccEff;
+	  weight->setVal(wAE);
+	}
+      
 	if (
             ( RecoQQ::areMuonsInAcceptance2015(iQQ) ) &&  // 2015 Global Muon Acceptance Cuts
             ( RecoQQ::passQualityCuts2015(iQQ)      ) &&  // 2015 Soft Global Muon Quality Cuts
@@ -128,11 +161,14 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
 	    )
 	  {
 	    if (Reco_QQ_sign[iQQ]==0) { // Opposite-Sign dimuons
-        if (isMC && isPureSDataset && isMatchedRecoDiMuon(iQQ)) dataOSNoBkg->add(*cols, (applyWeight ? weight->getVal() : 1.0)); // Signal-only dimuons
-	      else dataOS->add(*cols, (applyWeight ? weight->getVal() : 1.0)); // Signal and background dimuons
+	      if (isMC && isPureSDataset && isMatchedRecoDiMuon(iQQ)) 
+		dataOSNoBkg->add(*cols, (applyWeight ? weight->getVal() : 1.0)); // Signal-only dimuons
+	      else
+	        dataOS->add(*cols, ( (applyWeight || applyWeight_AccEff) ? weight->getVal() : 1.0)); //Signal and background dimuons
+	      
 	    }
-            else {                    // Like-Sign dimuons
-	      if (!isPureSDataset) dataSS->add(*cols, (applyWeight ? weight->getVal() : 1.0));
+            else { // Like-Sign dimuons
+	      if (!isPureSDataset) dataSS->add(*cols, ( (applyWeight || applyWeight_AccEff) ? weight->getVal() : 1.0));
 	    }
 	  }
       }
@@ -140,6 +176,8 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     // Close the TChain and all its pointers
     delete Reco_QQ_4mom; delete Reco_QQ_mumi_4mom; delete Reco_QQ_mupl_4mom; delete Gen_QQ_mumi_4mom; delete Gen_QQ_mupl_4mom;
     theTree->Reset(); delete theTree;
+    froot->Close();
+    //dataOS->Print("v");
     
     // Save all the datasets
     TFile *DBFile = TFile::Open(OutputFileName.c_str(),"RECREATE");
@@ -315,4 +353,21 @@ void setCentralityMap(const char* file)
     fCentBins = 0;
     std::cout << "[INFO] No centrality map could be defined: No file provided" << std::endl;
   }
+}
+
+double getAccEff(Double_t rapidity, Double_t pt)
+{
+  
+  if (!AccEffHist)
+    {
+      std::cout << "[INFO] No histogram provided for AccEff weight" << std::endl;
+      return 0;
+    }
+  
+  Int_t bin = AccEffHist->FindBin(rapidity, pt);
+  Double_t accXeff = AccEffHist->GetBinContent(bin);
+  if(accXeff<0.00001) accXeff=1.0;
+  
+  delete AccEffHist;
+  return accXeff;
 }
