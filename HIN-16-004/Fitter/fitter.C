@@ -90,7 +90,6 @@ void fitter(
       if(applyAccEff){
 	OutputFileName = DIR["dataset"] + "DATASET_" + FILETAG + "_AccEff" + ".root";
 	if(!tree2DataSet(Workspace[Form("%s_AccEff",FILETAG.c_str())], InputFileNames, Form("%s_AccEff",FILETAG.c_str()), OutputFileName)){ return; }
-	cout<<DSTAG<<"---0---------"<<FILETAG<<endl;
       }
       else {
 	OutputFileName = DIR["dataset"] + "DATASET_" + FILETAG + ".root";
@@ -182,9 +181,8 @@ void fitter(
     {
       TString DSTAG   = static_cast<TString>(soDSTAG->GetString());
       
-      //const char* DataName = applyAccEff ? Form("%s_PP_AccEff",DSTAG.Data()) : DSTAG.Data();
       const char* DataName = applyAccEff ? Form("%s_%s_AccEff",DSTAG.Data(),(fitPbPb?"PbPb":"PP")) : DSTAG.Data();
-      cout<<"---1---------"<<DSTAG<<"======"<<DataName<<endl;
+      //cout<<"---1---------"<<DSTAG<<"======"<<DataName<<endl;
       
       if (Workspace.count(DataName)>0) {
         // DATA/MC datasets were loaded

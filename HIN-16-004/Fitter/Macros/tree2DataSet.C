@@ -149,7 +149,6 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
 	  
 	  
 	  double AccEff = getAccEff(RecoQQ4mom->Rapidity(),RecoQQ4mom->Pt());
-	  //if (jentry%200==0)  cout<<" AccEff  "<<AccEff<<endl;
 	  double wAE = 1/AccEff;
 	  weight->setVal(wAE);
 	}
@@ -177,7 +176,6 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     delete Reco_QQ_4mom; delete Reco_QQ_mumi_4mom; delete Reco_QQ_mupl_4mom; delete Gen_QQ_mumi_4mom; delete Gen_QQ_mupl_4mom;
     theTree->Reset(); delete theTree;
     froot->Close();
-    //dataOS->Print("v");
     
     // Save all the datasets
     TFile *DBFile = TFile::Open(OutputFileName.c_str(),"RECREATE");

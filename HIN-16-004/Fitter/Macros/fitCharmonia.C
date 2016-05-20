@@ -224,8 +224,6 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
 
         bool isWeighted = myws.data(dsName.c_str())->isWeighted();
 	
-	if(isWeighted==true) cout<<"----------ok is weighted--------"<<endl;
-        
         // Fit the Datasets
         if (incJpsi || incPsi2S) {
 	  if (isWeighted) {
@@ -243,10 +241,8 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
           myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
         }
        
-	cout<<"---------------------ok1---------------------------"<<endl;
-        // Draw the mass plot
+	// Draw the mass plot
         drawMassPlot(myws, outputDir, opt, cut, wantPureSMC ? (plotLabelPP+"_NoBkg") : plotLabelPP, DSTAG, false, incJpsi, incPsi2S, incBkg, cutCtau, doSimulFit, wantPureSMC, setLogScale, incSS, zoomPsi, nBins, getMeanPT);
-	cout<<"---------------------ok2---------------------------"<<endl;
       }
     }
   }
