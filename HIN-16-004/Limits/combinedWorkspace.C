@@ -33,21 +33,21 @@
 #include <TGraph.h>
 #include "TMath.h"
 #include "TF1.h"
+#include "RooFitResult.h"
 
 #include "test_combine.C"
 
 using namespace RooFit;
 using namespace RooStats;
 
-const bool dosyst = false;
+void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root", const float systval = 0., const char* subDirName ="wsTest"){
+   // subdir: Directory to save workspaces under currentPATH/CombinedWorkspaces/subDir/
+  
+   bool dosyst = (systval > 0.);
 
-void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root"){
-
-   // TFile File(filename);
-
+   TString nameOut(name_out);
+  
    RooWorkspace * ws = test_combine(name_pbpb, name_PP);
-   // File.GetObject("wcombo", ws);
-   // ws->Print();
    RooAbsData * data = ws->data("dOS_DATA");
 
    RooRealVar* RFrac2Svs1S_PbPbvsPP = ws->var("RFrac2Svs1S_PbPbvsPP");
@@ -58,30 +58,23 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    ws->factory( "Uniform::flat(RFrac2Svs1S_PbPbvsPP)" );
 
    // systematics
-   ws->factory( "syst_PP_kappa[1.10]" );
-   ws->factory( "expr::alpha_syst_PP('pow(syst_PP_kappa,beta_syst_PP)',syst_PP_kappa,beta_syst_PP[0,-5,5])" );
-   // ws->factory( "SUM::pdfMASS_Bkg_PP_nom(alpha_syst_PP*pdfMASS_Bkg_PP)" );
-   ws->factory( "prod::N_Bkg_PP_syst(alpha_syst_PP,N_Bkg_PP)" );
-   ws->factory( "Gaussian::constr_syst_PP(beta_syst_PP,glob_syst_PP[0,-5,5],1)" );
-   // build the pp pdf
-   ws->factory( "SUM::pdfMASS_Tot_PP_syst(N_Jpsi_PP * pdfMASS_Jpsi_PP, N_Psi2S_PP * pdfMASS_Psi2S_PP, N_Bkg_PP_syst * pdfMASS_Bkg_PP)" );
-   ws->factory( "PROD::pdfMASS_Tot_PP_constr(pdfMASS_Tot_PP_syst,constr_syst_PP)" );
+   ws->factory( Form("kappa_syst[%f]",1.+systval) );
+   ws->factory( "expr::alpha_syst('pow(kappa_syst,beta_syst)',kappa_syst,beta_syst[0,-5,5])" );
+   ws->factory( "Gaussian::constr_syst(beta_syst,glob_syst[0,-5,5],1)" );
 
-   ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP_constr)");
+   // add systematics into the double ratio
+   ws->factory( "expr::N_Psi2S_PbPb_syst('@0*@1',N_Psi2S_PbPb,alpha_syst)" );
+   // build the pbpb pdf
+   ws->factory( "SUM::pdfMASS_Tot_PbPb_syst(N_Jpsi_PbPb * pdfMASS_Jpsi_PbPb, N_Psi2S_PbPb_syst * pdfMASS_Psi2S_PbPb, N_Bkg_PbPb * pdfMASS_Bkg_PbPb)" );
+   ws->factory( "PROD::pdfMASS_Tot_PbPb_constr(pdfMASS_Tot_PbPb_syst,constr_syst)" );
+
+   // build the combined pdf
+   ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb_constr,PP=pdfMASS_Tot_PP)");
    // ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP)");
 
    ws->Print();
 
-   // ws->var("beta_syst_PP")->setConstant(kTRUE);
-   // RooAbsPdf *simPdf = ws->pdf("simPdf_syst");
-   // RooFitResult* fit_2nd;// fit results
-   // fit_2nd = simPdf->fitTo(*data,
-   //       // RooFit::Constrained(),
-   //       RooFit::Save(kTRUE),
-   //       RooFit::Extended(kTRUE),
-   //       // RooFit::Minos(kTRUE),
-   //       RooFit::NumCPU(2));
-   ws->var("beta_syst_PP")->setConstant(kFALSE);
+   ws->var("beta_syst")->setConstant(kFALSE);
 
 
    /////////////////////////////////////////////////////////////////////
@@ -91,12 +84,10 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    obs.add( *ws->cat("sample"));    
    //  /////////////////////////////////////////////////////////////////////
 
-   ws->var("glob_syst_PP")->setConstant(true);
-   // ws->var("glob_syst_pbpb")->setConstant(true);
+   ws->var("glob_syst")->setConstant(true);
    RooArgSet globalObs("global_obs");
    if (dosyst) {
-      // globalObs.add( *ws->var("glob_syst_pbpb") );
-      globalObs.add( *ws->var("glob_syst_PP") );
+      globalObs.add( *ws->var("glob_syst") );
    }
 
    // ws->Print();
@@ -109,8 +100,7 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    // create set of nuisance parameters
    RooArgSet nuis("nuis");
    if (dosyst) {
-      // nuis.add( *ws->var("beta_syst_pbpb") );
-      nuis.add( *ws->var("beta_syst_PP") );
+      nuis.add( *ws->var("beta_syst") );
    }
 
    // set parameters constant
@@ -124,9 +114,9 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
             && varname != "sample"
             ) 
          theVar->setConstant();
-      if (varname=="glob_syst_PP"
-            || varname=="beta_syst_PP"
-            ) {
+      if (varname=="glob_syst"
+            || varname=="beta_syst"
+         ) {
          cout << varname << endl;
          theVar->setConstant(!dosyst);
       }
@@ -148,7 +138,6 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    RooAbsReal * pNll = sbHypo.GetPdf()->createNLL( *data,NumCPU(2) );
    RooMinuit(*pNll).migrad(); // minimize likelihood wrt all parameters before making plots
    RooPlot *framepoi = ((RooRealVar *)poi.first())->frame(Bins(10),Range(0.,1),Title("LL and profileLL in RFrac2Svs1S_PbPbvsPP"));
-   // RooPlot *framepoi = ((RooRealVar *) ws->var("beta_syst_PP"))->frame(Bins(10),Range(-5,5),Title("LL and profileLL in RFrac2Svs1S_PbPbvsPP"));
    pNll->plotOn(framepoi,ShiftToZero());
    
    RooAbsReal * pProfile = pNll->createProfile( globalObs ); // do not profile global observables
@@ -158,7 +147,7 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    framepoi->SetMaximum(10);
    TCanvas *cpoi = new TCanvas();
    cpoi->cd(); framepoi->Draw();
-   cpoi->SaveAs("cpoi.pdf");
+//   cpoi->SaveAs("cpoi.pdf");
 
    ((RooRealVar *)poi.first())->setMin(0.);
    RooArgSet * pPoiAndNuisance = new RooArgSet("poiAndNuisance");
@@ -175,7 +164,7 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    pdfSB->plotOn(xframeSB,Slice(*sample,"PP"),ProjWData(*sample,*data));
    TCanvas *c1 = new TCanvas();
    c1->cd(); xframeSB->Draw();
-   c1->SaveAs("c1.pdf");
+//   c1->SaveAs("c1.pdf");
    RooPlot* xframeB = pObs->frame(Title("SBhypo_PbPb"));
    data->plotOn(xframeB,Cut("sample==sample::PbPb"));
    RooAbsPdf *pdfB = sbHypo.GetPdf();
@@ -183,8 +172,8 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    TCanvas *c2 = new TCanvas();
    c2->cd(); xframeB->Draw();
    c2->SetLogy();
-   c2->SaveAs("c2.pdf");
-   c2->SaveAs("c2.root");
+//   c2->SaveAs("c2.pdf");
+//   c2->SaveAs("c2.root");
 
    delete pProfile;
    delete pNll;
@@ -219,9 +208,22 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    sbHypo.Print();
 
    // save workspace to file
-   ws -> SaveAs(name_out);
+   string mainDIR = gSystem->ExpandPathName(gSystem->pwd());
+   string wsDIR = mainDIR + "/CombinedWorkspaces/";
+   string ssubDirName="";
+   if (subDirName) ssubDirName.append(subDirName);
+   string subDIR = wsDIR + ssubDirName;
+  
+   void * dirp = gSystem->OpenDirectory(wsDIR.c_str());
+   if (dirp) gSystem->FreeDirectory(dirp);
+   else gSystem->mkdir(wsDIR.c_str(), kTRUE);
 
-   return;
+   void * dirq = gSystem->OpenDirectory(subDIR.c_str());
+   if (dirq) gSystem->FreeDirectory(dirq);
+   else gSystem->mkdir(subDIR.c_str(), kTRUE);
+  
+   const char* saveName = Form("%s/%s",subDIR.c_str(),nameOut.Data());
+   ws->writeToFile(saveName);
 }
 
 

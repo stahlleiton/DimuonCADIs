@@ -44,6 +44,7 @@
 #include "TLine.h"
 #include "TROOT.h"
 #include "TSystem.h"
+#include "TString.h"
 
 #include "RooStats/AsymptoticCalculator.h"
 #include "RooStats/HybridCalculator.h"
@@ -96,13 +97,13 @@ int randomSeed = -1;                     // random seed (if = -1: use default va
 int nAsimovBins = 0;                     // number of bins in observables used for Asimov data sets (0 is the default and it is given by workspace, typically is 100)
 
 bool reuseAltToys = false;                // reuse same toys for alternate hypothesis (if set one gets more stable bands)
-double confLevel = 0.95;                // confidence level value
+double confLevel = 0.95;                // default confidence level value
 
 
 
 std::string  minimizerType = "";                  // minimizer type (default is what is in ROOT::Math::MinimizerOptions::DefaultMinimizerType()
 std::string massValue = "";              // extra string to tag output file of result
-int   printLevel = 0;                    // print level for debugging PL test statistics and calculators
+int   printLevel = 2;                    // print level for debugging PL test statistics and calculators
 
 bool useNLLOffset = false;               // use NLL offset when fitting (this increase stability of fits)
 
@@ -139,8 +140,7 @@ namespace RooStats {
                      int testStatType,
                      bool useCLs,
                      int npoints,
-                     const char * fileNameBase = 0,
-                     pair<double,double> * lims=NULL);
+                     const char * fileNameBase = 0);
 
       void SetParameter(const char * name, const char * value);
       void SetParameter(const char * name, bool value);
@@ -276,7 +276,7 @@ RooStats::HypoTestInvTool::SetParameter(const char * name, const char * value){
 
 
 
-pair<double,double>
+HypoTestInverterResult* 
 StandardHypoTestInvDemo(const char * infile = 0,
                         const char * wsName = "combined",
                         ModelConfig * modelSBName = 0,
@@ -290,7 +290,8 @@ StandardHypoTestInvDemo(const char * infile = 0,
                         double poimax = 5,
                         int ntoys=1000,
                         bool useNumberCounting = false,
-                        const char * nuisPriorName = 0){
+                        const char * nuisPriorName = 0,
+                        double CL = 0.95){
 /*
 
   Other Parameter to pass in tutorial
@@ -337,7 +338,7 @@ StandardHypoTestInvDemo(const char * infile = 0,
 
 */
 
-
+  optHTInv.confLevel = CL;
 
    TString filename(infile);
    if (filename.IsNull()) {
@@ -368,7 +369,7 @@ StandardHypoTestInvDemo(const char * infile = 0,
    // if input file was specified byt not found, quit
    if(!file ){
       cout <<"StandardRooStatsDemoMacro: Input file " << filename << " is not found" << endl;
-      return pair<double,double>();
+      return NULL;
    }
 
 
@@ -411,7 +412,7 @@ StandardHypoTestInvDemo(const char * infile = 0,
                            ntoys, useNumberCounting, nuisPriorName );
       if (!r) {
          std::cerr << "Error running the HypoTestInverter - Exit " << std::endl;
-         return pair<double,double>();          
+         return NULL;          
       }
    }
    else {
@@ -422,15 +423,13 @@ StandardHypoTestInvDemo(const char * infile = 0,
          std::cerr << "File " << filename << " does not contain a workspace or an HypoTestInverterResult - Exit "
                    << std::endl;
          file->ls();
-         return pair<double,double>(); 
+         return NULL; 
       }
    }
 
-   pair<double,double> lims;
+   calc.AnalyzeResult( r, calculatorType, testStatType, useCLs, npoints, infile);
   
-   calc.AnalyzeResult( r, calculatorType, testStatType, useCLs, npoints, infile, &lims );
-  
-   return lims;
+   return r;
 }
 
 
@@ -441,8 +440,7 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
                                           int testStatType,
                                           bool useCLs,
                                           int npoints,
-                                          const char * fileNameBase,
-                                          pair<double,double> * lims){
+                                          const char * fileNameBase){
 
    // analyze result produced by the inverter, optionally save it in a file
 
@@ -468,7 +466,7 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
       std::cout << "The computed lower limit is: " << lowerLimit << " +/- " << llError << std::endl;
    std::cout << "The computed upper limit is: " << upperLimit << " +/- " << ulError << std::endl;
 
-
+  
    // compute expected limit
    std::cout << "Expected upper limits, using the B (alternate) model : " << std::endl;
    std::cout << " expected limit (median) " << r->GetExpectedUpperLimit(0) << std::endl;
@@ -540,11 +538,17 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
    HypoTestInverterPlot *plot = new HypoTestInverterPlot("HTI_Result_Plot",plotTitle,r);
 
    // plot in a new canvas with style
-   TString c1Name = TString::Format("%s_Scan",typeName.c_str());
+   TString c1Name = mResultFileName;
+   c1Name.ReplaceAll(".root","");
+   c1Name += "_Scan";
    TCanvas * c1 = new TCanvas(c1Name);
    c1->SetLogy(false);
 
    plot->Draw("CLb 2CL");  // plot all and Clb
+
+   c1->SaveAs(c1Name + ".pdf");
+   c1->SaveAs(c1Name + ".png");
+   c1->SaveAs(c1Name + ".root");
 
    // if (useCLs)
    //    plot->Draw("CLb 2CL");  // plot all and Clb
@@ -567,6 +571,12 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
          pl->SetLogYaxis(true);
          pl->Draw();
       }
+      TString c2Name = mResultFileName;
+      c2Name.ReplaceAll(".root","");
+      c2Name += "_Distribs";
+      c2->SaveAs(c2Name + ".root");
+      c2->SaveAs(c2Name + ".png");
+      c2->SaveAs(c2Name + ".pdf");
    }
    gPad = c1; 
 
