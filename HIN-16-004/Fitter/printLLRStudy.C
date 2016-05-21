@@ -52,7 +52,7 @@ void printLLRStudy(
 {
   
   vector<string> fileNames;
-  string dirPath = Form("./Output/%s/result/DATA_PbPb_AccEff/",dirLabel.c_str());
+  string dirPath = Form("./Output/%s/result/DATA/",dirLabel.c_str());
   if (!findFiles(dirPath, fileNames)) { return; } 
   cout << "[INFO] Creating " << ((type=="Bkg")?"Background":"Signal") << " Study summary!" << endl;
   
@@ -60,7 +60,7 @@ void printLLRStudy(
   map<string, setModels_t> content;
   if (!readFiles(dirPath, fileNames, content, type)) { return; }
   
-  string plotDir = Form("./Output/%s/plot/DATA_PbPb_AccEff/", dirLabel.c_str());
+  string plotDir = Form("./Output/%s/plot/DATA/", dirLabel.c_str());
   string outputDir = Form("./Output/%s/LLR/DATA/", dirLabel.c_str());
   
   if (existDir(outputDir)==false){ 
