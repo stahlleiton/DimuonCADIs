@@ -46,14 +46,12 @@ bool extractNLL(string fileName, model_t& value) ;
 
 
 void printLLRStudy(
-                   //string dirLabel="BkgShapeStudy",  // Name of the working directory (currently hardcoded to work with DATA)
-		   string dirLabel="DataAccEffNew",  
+		   string dirLabel="DataAccEffNew",  // Name of the working directory (currently hardcoded to work with DATA)
                    string type = "Bkg"               // Type of the LLR test, available options are: "Bkg" , "Jpsi" and "Psi2S"
                    ) 
 {
   
   vector<string> fileNames;
-  //string dirPath = Form("./Output/%s/result/DATA/",dirLabel.c_str());
   string dirPath = Form("./Output/%s/result/DATA_PbPb_AccEff/",dirLabel.c_str());
   if (!findFiles(dirPath, fileNames)) { return; } 
   cout << "[INFO] Creating " << ((type=="Bkg")?"Background":"Signal") << " Study summary!" << endl;
