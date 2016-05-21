@@ -182,7 +182,6 @@ void fitter(
       TString DSTAG   = static_cast<TString>(soDSTAG->GetString());
       
       const char* DataName = applyAccEff ? Form("%s_%s_AccEff",DSTAG.Data(),(fitPbPb?"PbPb":"PP")) : DSTAG.Data();
-      //cout<<"---1---------"<<DSTAG<<"======"<<DataName<<endl;
       
       if (Workspace.count(DataName)>0) {
         // DATA/MC datasets were loaded
