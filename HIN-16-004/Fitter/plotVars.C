@@ -1,6 +1,7 @@
 #include "Macros/Utilities/resultUtils.h"
 #include "Macros/Utilities/texUtils.h"
 #include "Macros/Utilities/bin.h"
+#include "Macros/Utilities/bfrac.h"
 #include "Macros/CMS/CMS_lumi.C"
 #include "Macros/CMS/tdrstyle.C"
 #include "Systematics/syst.h"
@@ -21,6 +22,11 @@
 
 using namespace std;
 
+//////////////
+// SETTINGS //
+//////////////
+const char* normalCutsDir="nominal";
+const char* invCutsDir="nonprompt";
 
 /////////////////////////////////////////////
 // MAIN FUNCTIONS TO BE CALLED BY THE USER //
@@ -261,8 +267,15 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
       // special case of PP and centrality
       if (collTag=="PP" && xaxis=="cent") trbin = anabin(ymin, ymax, ptmin, ptmax, centmin, -centmax);
       // general case
-      if (!binok(theBin, xaxis, trbin)) continue;
+      if (!binok(theBin, xaxis, trbin, false)) continue;
       if (string(collSystem) != collTag) continue;
+
+      // special cases of Bfrac and Nprompt
+      if (TString(varname).Index("Bfrac") != kNPOS || TString(varname).Index("Prompt") != kNPOS) {
+         RooRealVar bfracvar = bfrac(normalCutsDir,invCutsDir,trbin,Form("%s_%s",varname,collTag));
+         val = bfracvar.getVal();
+         val_err = bfracvar.getError();
+      } 
 
       if (xaxis=="pt") {
          x.push_back((ptmin+ptmax)/2.);

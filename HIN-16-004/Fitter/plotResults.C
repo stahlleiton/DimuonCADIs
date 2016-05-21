@@ -1,12 +1,14 @@
 #include "Macros/CMS/CMS_lumi.C"
 #include "Macros/CMS/tdrstyle.C"
 #include "Macros/Utilities/bin.h"
+#include "Macros/Utilities/bfrac.h"
 #include "Macros/Utilities/EVENTUTILS.h"
 
 #include "Macros/Utilities/initClasses.h"
 #include "Macros/Utilities/resultUtils.h"
 #include "Macros/Utilities/texUtils.h"
 #include "Systematics/syst.h"
+#include "../Limits/limits.h"
 
 #include <vector>
 #include <map>
@@ -33,8 +35,12 @@ using namespace std;
 const char* poiname = "RFrac2Svs1S";
 #endif
 const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
-const bool  doratio = true; // true -> look for separate PP and PbPb files, false -> input files are with simultaneous pp-PbPb fits
-const bool  plot12007 = false;
+const bool  doratio       = true;  // true -> look for separate PP and PbPb files, false -> input files are with simultaneous pp-PbPb fits
+const bool  plot12007     = false; // compare with 12-007
+const bool  promptonly    = true;  // plot the prompt only double ratio
+const bool  nonpromptonly = false;  // plot the non-prompt only double ratio
+const char* normalCutsDir="nominal";
+const char* invCutsDir="nonprompt";
 
 
 ///////////////
@@ -53,6 +59,8 @@ RooRealVar* poiFromFile(const char* filename, const char* token="");
 void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsymmErrors*> theGraphs_syst, string xaxis, string outputDir, map<anabin, syst> gsyst);
 void plot(vector<anabin> thecats, string xaxis, string workDirName);
 void centrality2npart(TGraphAsymmErrors* tg, bool issyst=false, bool isMB=false, double xshift=0.);
+void plotLimits(vector<anabin> theCats, string xaxis);
+void drawArrow(double x, double y, double dx, Color_t color);
 
 
 
@@ -115,7 +123,10 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       if (!doratio) {
          theVars[thebin] = poiFromFile(it->Data(),"_PbPbvsPP");
       } else {
-         RooRealVar *num = poiFromFile(it->Data(),"_PbPb");
+         RooRealVar *num=NULL;
+         if (!promptonly && !nonpromptonly) num = poiFromFile(it->Data(),"_PbPb");
+         else if (promptonly) num = new RooRealVar(bfrac(normalCutsDir,invCutsDir,thebin,"RFrac2Svs1S_PbPb"));
+         else  num = new RooRealVar(bfrac(normalCutsDir,invCutsDir,thebin,"RFrac2Svs1S_NPrompt_PbPb"));
 
          // force the centrality to 0-200 for pp
          anabin thebinpp = thebin;
@@ -134,7 +145,11 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
             cout << "Error! I did not find the PP file for " << *it << endl;
             return;
          }
-         RooRealVar *den = poiFromFile(it2->Data(),"_PP");
+         anabin thebin_PP = binFromFile(it2->Data());
+         RooRealVar *den = NULL;
+         if (!promptonly && !nonpromptonly) den = poiFromFile(it2->Data(),"_PP");
+         else if (promptonly) den = new RooRealVar(bfrac(normalCutsDir,invCutsDir,thebin_PP,"RFrac2Svs1S_PP"));
+         else  den = new RooRealVar(bfrac(normalCutsDir,invCutsDir,thebin_PP,"RFrac2Svs1S_NPrompt_PP"));
          theVars[thebin] = ratioVar(num,den,!(xaxis=="cent")); // if plotting the centrality dependence, do not put the pp stat
          syst thestat_PP;
          thestat_PP.name = "stat_PP";
@@ -250,6 +265,7 @@ RooRealVar* poiFromFile(const char* filename, const char* token) {
 void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsymmErrors*> theGraphs_syst, string xaxis, string outputDir, map<anabin, syst> gsyst) {
    setTDRStyle();
 
+   vector<anabin> theCats;
 
    TCanvas *c1 = NULL;
    if (xaxis=="cent") c1 = new TCanvas("c1","c1",600/xfrac,600);
@@ -337,6 +353,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       TGraphAsymmErrors* tg = it->second;
       TGraphAsymmErrors* tg_syst = it_syst->second;
       if (!tg || !tg_syst) continue;
+
+      theCats.push_back(thebin);
 
       if (thebin.rapbin() == binF(0.,1.6)) {
          tg->SetMarkerStyle(kFullSquare);
@@ -461,6 +479,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       padl->cd();
    }
 
+   plotLimits(theCats,xaxis);
+
    if (xaxis=="cent") padl->cd();
    tleg->Draw();
 
@@ -511,4 +531,46 @@ void centrality2npart(TGraphAsymmErrors* tg, bool issyst, bool isMB, double xshi
       tg->SetPoint(i,x,y);
       tg->SetPointError(i,exl,exh,eyl,eyh);
    }
+}
+
+void plotLimits(vector<anabin> theCats, string xaxis) {
+   map<anabin,limits> maplim = readLimits("../Limits/csv/Limits_95.csv");
+
+   map<anabin,limits>::const_iterator it;
+   for (it=maplim.begin(); it!=maplim.end(); it++) {
+      anabin thebin = it->first;
+      if (!binok(theCats,xaxis,thebin,false)) continue;
+      limits lim = it->second;
+      if (lim.val.first>0) continue; // only draw upper limits, ie interval which lower limit is 0
+      // draw arrow in the right place and with the right color...
+      Color_t color=kBlack;
+      double x=0, y=0, dx=0;
+      y = lim.val.second;
+      if (xaxis=="pt") {
+         double low= thebin.ptbin().low();
+         double high = thebin.ptbin().high();
+         x = (low+high)/2.;
+         dx = 0.5;
+      } else if (xaxis=="cent") {
+         double low= thebin.centbin().low();
+         double high = thebin.centbin().high();
+         x = HI::findNpartAverage(low,high);
+         dx = 10;
+      }
+      if (thebin.rapbin() == binF(0.,1.6)) {
+         color = kBlue;
+      } else if (thebin.rapbin() == binF(1.6,2.4)) {
+         color = kRed;
+      }
+      drawArrow(x, y, dx, color);
+   }
+}
+
+void drawArrow(double x, double y, double dx, Color_t color) {
+   TArrow *arrow = new TArrow(x,y,x,0.05,0.03);
+   arrow->SetLineColor(color);
+   arrow->Draw();
+   TLine *line = new TLine(x-dx,y,x+dx,y);
+   line->SetLineColor(color);
+   line->Draw();
 }

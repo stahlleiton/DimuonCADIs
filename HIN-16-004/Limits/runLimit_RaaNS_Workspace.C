@@ -1,19 +1,21 @@
-#include <algorithm>
 #include "RooStats/ProfileLikelihoodCalculator.h"
 #include "RooStats/LikelihoodInterval.h"
 #include "RooStats/LikelihoodIntervalPlot.h"
 #include "TLatex.h"
 
-pair<double,double> runLimit_RaaNS_Workspace(const char *filename="TRIAL.root", const char *poiname="raa3", const char *pdfname="joint", const char *wsname="wcombo", const char* dataname="dOS_DATA", double CI = 0.95);
+pair<double,double> runLimit_RaaNS_Workspace(const char *filename="TRIAL.root", const char *poiname="raa3", const char *pdfname="joint", const char *wsname="wcombo", const char* dataname="dOS_DATA", double CI = 0.95, int calculatorType = 2, int testStatType = 2,  bool useCLs = false);
 
 #include "StandardHypoTestInvDemo.C"
 
-pair<double,double> runLimit_RaaNS_Workspace(const char *filename, const char *poiname, const char *pdfname, const char *wsname, const char* dataname, double CI)
+using namespace std;
+using namespace RooStats;
+
+pair<double,double> runLimit_RaaNS_Workspace(const char *filename, const char *poiname, const char *pdfname, const char *wsname, const char* dataname, double CI, int calculatorType, int testStatType,  bool useCLs)
 {
    // RooMsgService::instance().addStream(RooFit::MsgLevel::DEBUG); 
    RooRealVar *theVar; RooDataSet *data; RooAbsPdf *pdf;
    TFile *f = new TFile(filename) ;
-
+  
    // Open text file to write results
    ofstream of("results.txt");
 
@@ -101,17 +103,17 @@ pair<double,double> runLimit_RaaNS_Workspace(const char *filename, const char *p
    //
 
    // 0,3,true for frequentist CLs; 2,3,true for asymptotic CLs; 0,2,false for FC
-   int calculatorType = 2;
-   int testStatType = 2;
-   bool useCLs = false;
-   // root> StandardHypoTestInvDemo("fileName","workspace name","S+B modelconfig name","B model name","data set name",calculator type, test statistic type, use CLS, 
+//   int calculatorType = 2;
+//   int testStatType = 2;
+//   bool useCLs = false;
+   // root> StandardHypoTestInvDemo("fileName","workspace name","S+B modelconfig name","B model name","data set name",calculator type, test statistic type, use CLS,
    //                                number of points, xmin, xmax, number of toys, use number counting)
 
 
    TStopwatch tw; 
    tw.Start();
 
-   pair<double,double> lims = StandardHypoTestInvDemo(f->GetName(),
+   HypoTestInverterResult* r = StandardHypoTestInvDemo(f->GetName(),
          wsname,
          sbHypo,
          bHypo,
@@ -126,6 +128,10 @@ pair<double,double> runLimit_RaaNS_Workspace(const char *filename, const char *p
          false,
          0,
          CI);
+
+   pair<double,double> lims;
+   lims.first = r->LowerLimit();
+   lims.second = r->UpperLimit();
 
    std::streambuf *coutbuf = std::cout.rdbuf();
    std::cout.rdbuf(of.rdbuf());

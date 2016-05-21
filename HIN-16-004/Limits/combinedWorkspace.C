@@ -33,15 +33,20 @@
 #include <TGraph.h>
 #include "TMath.h"
 #include "TF1.h"
+#include "RooFitResult.h"
 
 #include "test_combine.C"
 
 using namespace RooFit;
 using namespace RooStats;
 
-double combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root", const float systval = 0.){
+void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root", const float systval = 0., const char* subDirName ="wsTest"){
+   // subdir: Directory to save workspaces under currentPATH/CombinedWorkspaces/subDir/
+  
    bool dosyst = (systval > 0.);
 
+   TString nameOut(name_out);
+  
    RooWorkspace * ws = test_combine(name_pbpb, name_PP);
    RooAbsData * data = ws->data("dOS_DATA");
 
@@ -142,7 +147,7 @@ double combinedWorkspace(const char* name_pbpb="fitresult.root", const char* nam
    framepoi->SetMaximum(10);
    TCanvas *cpoi = new TCanvas();
    cpoi->cd(); framepoi->Draw();
-   cpoi->SaveAs("cpoi.pdf");
+//   cpoi->SaveAs("cpoi.pdf");
 
    ((RooRealVar *)poi.first())->setMin(0.);
    RooArgSet * pPoiAndNuisance = new RooArgSet("poiAndNuisance");
@@ -159,7 +164,7 @@ double combinedWorkspace(const char* name_pbpb="fitresult.root", const char* nam
    pdfSB->plotOn(xframeSB,Slice(*sample,"PP"),ProjWData(*sample,*data));
    TCanvas *c1 = new TCanvas();
    c1->cd(); xframeSB->Draw();
-   c1->SaveAs("c1.pdf");
+//   c1->SaveAs("c1.pdf");
    RooPlot* xframeB = pObs->frame(Title("SBhypo_PbPb"));
    data->plotOn(xframeB,Cut("sample==sample::PbPb"));
    RooAbsPdf *pdfB = sbHypo.GetPdf();
@@ -167,8 +172,8 @@ double combinedWorkspace(const char* name_pbpb="fitresult.root", const char* nam
    TCanvas *c2 = new TCanvas();
    c2->cd(); xframeB->Draw();
    c2->SetLogy();
-   c2->SaveAs("c2.pdf");
-   c2->SaveAs("c2.root");
+//   c2->SaveAs("c2.pdf");
+//   c2->SaveAs("c2.root");
 
    delete pProfile;
    delete pNll;
@@ -203,9 +208,22 @@ double combinedWorkspace(const char* name_pbpb="fitresult.root", const char* nam
    sbHypo.Print();
 
    // save workspace to file
-   ws -> SaveAs(name_out);
+   string mainDIR = gSystem->ExpandPathName(gSystem->pwd());
+   string wsDIR = mainDIR + "/CombinedWorkspaces/";
+   string ssubDirName="";
+   if (subDirName) ssubDirName.append(subDirName);
+   string subDIR = wsDIR + ssubDirName;
+  
+   void * dirp = gSystem->OpenDirectory(wsDIR.c_str());
+   if (dirp) gSystem->FreeDirectory(dirp);
+   else gSystem->mkdir(wsDIR.c_str(), kTRUE);
 
-   return ws->var("RFrac2Svs1S_PbPbvsPP")->getError();
+   void * dirq = gSystem->OpenDirectory(subDIR.c_str());
+   if (dirq) gSystem->FreeDirectory(dirq);
+   else gSystem->mkdir(subDIR.c_str(), kTRUE);
+  
+   const char* saveName = Form("%s/%s",subDIR.c_str(),nameOut.Data());
+   ws->writeToFile(saveName);
 }
 
 

@@ -29,10 +29,10 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
    RooDataSet *data_pp=NULL;
 
    // let's massively clone everything into the new workspace
-   RooWorkspace *wcombo = new RooWorkspace("wcombo","workspace for PbPb + pp");
+   RooWorkspace *wcombo = new RooWorkspace("workspace","workspace for PbPb + pp");
 
    // first, variables
-   RooArgSet allVars = ws_pp->allVars(); allVars.add(ws->allVars());
+   RooArgSet allVars = ws->allVars(); allVars.add(ws_pp->allVars());
    TIterator* it = allVars.createIterator();
    RooRealVar *theVar = (RooRealVar*) it->Next();
    while (theVar) {
@@ -110,6 +110,15 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
             args.ReplaceAll("(","{"); args.ReplaceAll(")","}");
             cout << Form("Chebychev::%s(%s, %s)",thePdf->GetName(),obs.Data(),args.Data()) << endl;
             wcombo->factory(Form("Chebychev::%s(%s, %s)",thePdf->GetName(),obs.Data(),args.Data()));
+         } else if (className == "RooUniform") {
+           TString obs;
+           TString t; Int_t from = 0;
+           while (theargs.Tokenize(t, from , " ")) {
+             if (t.Index("x=")!=kNPOS) obs=((TObjString*) t.Tokenize("=")->At(1))->String();
+           }
+           obs.ReplaceAll("(",""); obs.ReplaceAll(")","");
+           cout << Form("Uniform::%s(%s)",thePdf->GetName(),obs.Data()) << endl;
+           wcombo->factory(Form("Uniform::%s(%s)",thePdf->GetName(),obs.Data()));
          } else if (className == "RooAddPdf") {
             // skip the total PDFs as we will rebuild them
             if (TString(thePdf->GetName()).Index("pdfMASS_Tot_")!=kNPOS) {thePdf = (RooAbsPdf*) it->Next(); nok++; continue;}
@@ -205,7 +214,8 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
    ws->Delete(); ws_pp->Delete(); f->Delete(); f_pp->Delete();
 
    // simPdf.fitTo(data_combo); // crashes sometimes but not always?? adding Range("MassWindow") or NumCPU(2) improves stability
-   simPdf.fitTo(data_combo,NumCPU(3));
+   simPdf.fitTo(data_combo,NumCPU(3), Extended(kTRUE), Minimizer("Minuit2","Migrad"));
+  //, NumCPU(numCores), Range("MassWindow"), Save()
 
    // wcombo->writeToFile("fitresult_combo.root");
    return wcombo;

@@ -26,10 +26,11 @@ RooRealVar* poiFromWS(RooWorkspace* ws, const char* token, const char* thepoinam
 RooAbsPdf* pdfFromWS(RooWorkspace* ws, const char* token, const char* thepdfname);
 RooAbsData* dataFromWS(RooWorkspace* ws, const char* token, const char* thedataname);
 vector<TString> fileList(const char* input, const char* token="", const char* DSTag="DATA", const char* prependPath="");
+vector<TString> combFileList(const char* input, const char* token="", const char* prependPath="");
 RooRealVar* ratioVar(RooRealVar *num, RooRealVar *den, bool usedenerror=true);
 anabin binFromFile(const char* filename);
-bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck);
-bool binok(anabin thecat, string xaxis, anabin &tocheck);
+bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck, bool override=true);
+bool binok(anabin thecat, string xaxis, anabin &tocheck, bool override=true);
 bool isSameBinPPPbPb(const char* filenamePbPb, const char* filenamePP);
 TString treeFileName(const char* workDirName, const char* DSTag="DATA");
 void prune(vector<anabin> &v, bool keppshortest=true);
@@ -108,6 +109,32 @@ vector<TString> fileList(const char* input, const char* token, const char* DSTag
    return ans;
 }
 
+vector<TString> combFileList(const char* input, const char* token, const char* prependPath) {
+  vector<TString> ans;
+  
+  TString basedir(Form("CombinedWorkspaces/%s/",input));
+  if ( strcmp(prependPath,"") ) basedir.Prepend(Form("%s/",prependPath));
+  TSystemDirectory dir(input,basedir);
+  
+  TList *files = dir.GetListOfFiles();
+  
+  if (files) {
+    TIter next(files);
+    TSystemFile *file;
+    TString fname;
+    
+    while ((file=(TSystemFile*)next())) {
+      fname = file->GetName();
+      if (fname.EndsWith(".root") && fname.Index("combined_PbPbPP_workspace") != kNPOS
+          && (fname.Index(token) != kNPOS)) {
+        ans.push_back(basedir+fname);
+      }
+    }
+  }
+  
+  return ans;
+}
+
 RooRealVar* ratioVar(RooRealVar *num, RooRealVar *den, bool usedenerror) {
    double n = num->getVal();
    double d = den->getVal();
@@ -115,8 +142,8 @@ RooRealVar* ratioVar(RooRealVar *num, RooRealVar *den, bool usedenerror) {
    double dd = den->getError();
 
    double r = d!=0 ? n/d : 0;
-   double dr = n!=0 && d!=0 ? r * sqrt(pow(dn/n,2) + pow(dd/d,2)) : 0;
-   if (!usedenerror && n!=0) dr = (dn/n)*r;
+   double dr = n!=0 && d!=0 ? fabs(r * sqrt(pow(dn/n,2) + pow(dd/d,2))) : 0;
+   if (!usedenerror && n!=0) dr = fabs((dn/n)*r);
    RooRealVar *ans = new RooRealVar(Form("%s_over_%s",num->GetName(),den->GetName()), Form("%s / %s",num->GetTitle(),den->GetTitle()), r);
    ans->setError(dr);
 
@@ -147,19 +174,19 @@ anabin binFromFile(const char* filename) {
    return ans;
 }
 
-bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck) {
+bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck, bool override) {
    bool ok=false;
 
    for (vector<anabin>::const_iterator it=thecats.begin(); it!=thecats.end(); it++) {
       if (xaxis=="pt" && it->rapbin()==tocheck.rapbin() && it->centbin()==tocheck.centbin()
             && ! (it->ptbin()==tocheck.ptbin())) {
          ok=true;
-         tocheck.setptbin(it->ptbin());
+         if (override) tocheck.setptbin(it->ptbin());
          break;
       } else if (xaxis=="cent" && it->rapbin()==tocheck.rapbin() && it->ptbin()==tocheck.ptbin()
             && ! (it->centbin()==tocheck.centbin())) {
          ok=true;
-         tocheck.setcentbin(it->centbin());
+         if (override) tocheck.setcentbin(it->centbin());
          break;
       } else if (((it->centbin().low()<=0 && it->centbin().high()<=0) || xaxis=="rap")
             && it->rapbin()==tocheck.rapbin() && it->ptbin()==tocheck.ptbin()
@@ -172,9 +199,9 @@ bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck) {
    return ok;
 }
 
-bool binok(anabin thecat, string xaxis, anabin &tocheck) {
+bool binok(anabin thecat, string xaxis, anabin &tocheck, bool override) {
    vector<anabin> thecats; thecats.push_back(thecat);
-   return binok(thecats, xaxis, tocheck);
+   return binok(thecats, xaxis, tocheck, override);
 }
 
 bool isSameBinPPPbPb(const char* filenamePbPb, const char* filenamePP)
