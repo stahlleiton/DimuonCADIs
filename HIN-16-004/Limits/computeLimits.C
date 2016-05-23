@@ -52,11 +52,22 @@ void computeLimits(
   TString sCL(str);
   sCL.Remove(0,sCL.First('.')+1);
   string limitsFileName = string("csv/") + "cLimits_" + string(sCL) + "_" + string(ACTag);
+  if ( calculatorType == 0 ) limitsFileName = limitsFileName + "_Freq";
+  else if ( calculatorType == 1 ) limitsFileName = limitsFileName + "_Hybr";
+  else if ( calculatorType == 2 ) limitsFileName = limitsFileName + "_Asym";
+  else if ( calculatorType == 3 ) limitsFileName = limitsFileName + "_AsymAsi";
+  if ( testStatType == 0 ) limitsFileName = limitsFileName + "_LEP";
+  else if ( testStatType == 1 ) limitsFileName = limitsFileName + "_Tev";
+  else if ( testStatType == 2 ) limitsFileName = limitsFileName + "_2SPL";
+  else if ( testStatType == 3 ) limitsFileName = limitsFileName + "_1SPL";
+  else if ( testStatType == 4 ) limitsFileName = limitsFileName + "_SPL";
+  else if ( testStatType == 5 ) limitsFileName = limitsFileName + "_MaxL";
+  else if ( testStatType == 6 ) limitsFileName = limitsFileName + "_NOE";
   if ( doSyst ) limitsFileName = limitsFileName + "_wSyst.csv";
   else limitsFileName = limitsFileName + "_woSyst.csv";
   
   ofstream file(limitsFileName.c_str());
-  file << CL*100 << "% " << " confidence limits" << endl;
+  file << CL << endl;
   
   // Confidence interval computation
   int cnt=1;

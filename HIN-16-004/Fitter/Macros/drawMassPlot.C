@@ -33,15 +33,20 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
                   bool saveWS=true      // save the workspace into a file
                   ) 
 {
-
-
+  bool applyWeight_AccEff = false;
+  if (DSTAG.find("AccEff")!=std::string::npos) applyWeight_AccEff = true;
+  else applyWeight_AccEff = false;
+  
   string dsOSName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   string dsSSName = Form("dSS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
+  if(applyWeight_AccEff) dsOSName = Form("dOS_%s", DSTAG.c_str());
+  if(applyWeight_AccEff) dsSSName = Form("dSS_%s", DSTAG.c_str());
+
   string pdfName  = Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP"));
   if (plotPureSMC) dsOSName = Form("dOS_%s_%s_NoBkg", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
     
   bool isWeighted = myws.data(dsOSName.c_str())->isWeighted();
-
+  
   // Create the main plot of the fit
   RooPlot*   frame     = myws.var("invMass")->frame(Bins(nBins), Range(cut.dMuon.M.Min, cut.dMuon.M.Max));
   myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
