@@ -13,7 +13,9 @@
 #include "RooPoisson.h"
 #include "RooGaussian.h"
 #include "RooMultiVarGaussian.h"
+#include "RooUniform.h"
 #include "TMath.h"
+#include "Math/ProbFuncMathCore.h"
 
 using namespace std;
 using namespace RooFit;
@@ -22,14 +24,16 @@ using namespace RooStats;
 SamplingDistribution combDist(RooFormulaVar formula, RooArgSet pdfs, int nevts=1e4);
 double mean(SamplingDistribution* s);
 void testCombDist();
+RooRealVar Bval(const char* pr_fits, const char* npr_fits, anabin bin);
+RooRealVar alphaval(const char* pr_fits, const char* npr_fits, anabin bin, bool is2S=false);
 
-RooRealVar bfrac (const char *pr_fits, // name of the prompt fits directory
+RooRealVar bfrac (const char* pr_fits, // name of the prompt fits directory
       const char* npr_fits,         // name of the non-prompt fits directory
       anabin bin,                  // bin to be considered
-      TString obs                  // name of the observable (eg Bfrac_PbPb or N_psi2S_NPrompt_PP)
+      TString obs                  // name of the observable (eg Bfrac_PbPb or N_Psi2S_NPrompt_PP)
       ) {
    bool isPbPb = (obs.Index("_PbPb") != kNPOS);
-   bool is2S = (obs.Index("_psi2S") != kNPOS);
+   bool is2S = (obs.Index("_Psi2S") != kNPOS);
    bool doN = (obs.Index("N_") != kNPOS);
    bool doRfrac = (obs.Index("RFrac2Svs1S_") != kNPOS); 
    bool doNonPrompt = (obs.Index("_NPrompt") != kNPOS);
@@ -314,6 +318,73 @@ double mean(SamplingDistribution *s) {
    for (vector<double>::const_iterator it=v.begin(); it!=v.end(); it++) ans+=*it;
 
    return ans / v.size();
+}
+
+RooRealVar Bval(const char* pr_fits, const char* npr_fits, anabin bin) {
+   RooRealVar alpha = alphaval(pr_fits, npr_fits, bin);
+   RooRealVar Nnp_PbPb = bfrac(pr_fits, npr_fits, bin, "N_Jpsi_NPrompt_PbPb");
+   RooRealVar Np_PbPb = bfrac(pr_fits, npr_fits, bin, "N_Jpsi_Prompt_PbPb");
+   RooRealVar Nnp_PP = bfrac(pr_fits, npr_fits, bin, "N_Jpsi_NPrompt_PP");
+   RooRealVar Np_PP = bfrac(pr_fits, npr_fits, bin, "N_Jpsi_Prompt_PP");
+
+   double val = alpha.getVal() * (Nnp_PbPb.getVal()/Nnp_PP.getVal()) / (Np_PbPb.getVal()/Np_PP.getVal());
+   double error = val * sqrt(pow(alpha.getError()/alpha.getVal(),2) 
+         + pow(Nnp_PbPb.getError()/Nnp_PbPb.getVal(),2)
+         + pow(Np_PbPb.getError()/Np_PbPb.getVal(),2)
+         + pow(Nnp_PP.getError()/Nnp_PP.getVal(),2)
+         + pow(Np_PP.getError()/Np_PP.getVal(),2)
+         );
+   RooRealVar ans("ans","",val);
+   ans.setError(error);
+   return ans;
+}
+
+RooRealVar alphaval(const char* pr_fits, const char* npr_fits, anabin bin, bool is2S) {
+   RooRealVar f = bfrac(pr_fits, npr_fits, bin, Form("Bfrac%s_PP",is2S ? "_Psi2S" : ""));
+   // then efficiencies
+   TString feffjpsipr(Form("../Efficiency/files/histos_%s_pp.root",is2S ? "psi2S" : "jpsi"));
+   TString feffnpr("../Efficiency/files/histos_npjpsi_pp.root");
+   TString numname("hnumptdepcut_"); numname += (bin.centbin() == binI(0,200)) ? "pt" : "cent"; numname += (bin.rapbin() == binF(0,1.6)) ? "mid" : "fwd";
+   TString denname("hnum_"); denname += (bin.centbin() == binI(0,200)) ? "pt" : "cent"; denname += (bin.rapbin() == binF(0,1.6)) ? "mid" : "fwd";
+   TFile *tfeffjpsipr = TFile::Open(feffjpsipr);
+   TFile *tfeffnpr = TFile::Open(feffnpr);
+
+   TH1F *hnumjpsipr = (TH1F*) tfeffjpsipr->Get(numname);
+   TH1F *hnumnpr = (TH1F*) tfeffnpr->Get(numname);
+   TH1F *hdenjpsipr = (TH1F*) tfeffjpsipr->Get(denname);
+   TH1F *hdennpr = (TH1F*) tfeffnpr->Get(denname);
+
+   double numjpsipr, numnpr, denjpsipr, dennpr;
+
+   if (bin == anabin(0,1.6,6.5,30,0,200) || bin == anabin(1.6,2.4,3,30,0,200)) { // Min.Bias bin
+      hnumjpsipr = integrateHist(hnumjpsipr); numjpsipr = hnumjpsipr->GetBinContent(1);
+      hnumnpr = integrateHist(hnumnpr); numnpr = hnumnpr->GetBinContent(1);
+      hdenjpsipr = integrateHist(hdenjpsipr); denjpsipr = hdenjpsipr->GetBinContent(1);
+      hdennpr = integrateHist(hdennpr); dennpr = hdennpr->GetBinContent(1);
+   } else {
+      for (int i=1; i<=hnumjpsipr->GetNbinsX(); i++) { // loop over the histogram bins to find the one we want
+         if ((bin.centbin()==binI(0,200) && bin.ptbin()==binF(hnumjpsipr->GetXaxis()->GetBinLowEdge(i),hnumjpsipr->GetXaxis()->GetBinUpEdge(i))) // this is the bin we're looking for (pt)
+               || bin.centbin()==binI(2*hnumjpsipr->GetXaxis()->GetBinLowEdge(i),2*hnumjpsipr->GetXaxis()->GetBinUpEdge(i))) { // this is the bin we're looking for (centrality)
+            numjpsipr = hnumjpsipr->GetBinContent(i);
+            numnpr = hnumnpr->GetBinContent(i);
+            denjpsipr = hdenjpsipr->GetBinContent(i);
+            dennpr = hdennpr->GetBinContent(i);
+            break;
+         }
+      }
+   }
+
+   delete tfeffjpsipr; tfeffjpsipr=0;
+   delete tfeffnpr; tfeffnpr=0;
+
+   double effjpsipr = numjpsipr/denjpsipr;
+   double effnpr = numnpr/dennpr;
+
+   double val = (effnpr/effjpsipr) * f.getVal() / (1-f.getVal());
+   double error = val*sqrt(2.)*f.getError()/f.getVal();
+   RooRealVar ans("ans", "", val);
+   ans.setError(error);
+   return ans;
 }
 
 #endif // ifndef bfrac_h

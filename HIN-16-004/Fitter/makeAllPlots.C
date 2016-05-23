@@ -10,9 +10,9 @@
 #include "RooRealVar.h"
 
 // flags
-const bool doSysts = false;        // compute the systematics
+const bool doSysts = true;        // compute the systematics
 const bool printSysts = true;     // print the systematics summary table
-const bool plotMassPlots = false; // not implemented yet
+const bool plotMassPlots = false; 
 const bool plotAllVars = true;     // plot the dependance of all vars with pt, centrality, y
 const bool plotAllResults = true; // and plot the results!
 const bool plotSystResults = false;// plot results taking syst fits as nominal too
@@ -35,8 +35,8 @@ void makeAllPlots(const char* nominalDir, const char* systDirsSig, const char* s
 
    // print the systematics table
    if (printSysts) {
-      readSyst_all("PP", true, "Systematics/tex/syst_PP_all.tex");
-      readSyst_all("PbPb", true, "Systematics/tex/syst_PbPb_all.tex");
+      readSyst_all("PP", "", true, "Systematics/tex/syst_PP_all.tex");
+      readSyst_all("PbPb", "", true, "Systematics/tex/syst_PbPb_all.tex");
    }
 
    // draw mass plots

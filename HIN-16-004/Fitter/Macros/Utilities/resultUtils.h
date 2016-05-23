@@ -68,6 +68,25 @@ RooRealVar* poiFromFile(const char* filename, const char* token, const char* the
 RooRealVar* poiFromWS(RooWorkspace* ws, const char* token, const char* thepoiname) {
    TString poiname_and_token = TString(thepoiname) + TString(token);
    RooRealVar *ans = (RooRealVar*) ws->var(poiname_and_token);
+   if (!ans && TString(thepoiname) == "N_Psi2S") { // we want the number of psi2S but it's not in the ws, let's compute it
+      RooRealVar *njpsi = (RooRealVar*) ws->var(Form("N_Jpsi%s",token));
+      cout << Form("N_Jpsi%s",token) << endl;
+      if (!njpsi) return ans;
+      RooRealVar *rfrac = (RooRealVar*) ws->var(Form("RFrac2Svs1S%s",token));
+      cout << Form("RFrac2Svs1S%s",token) << endl;
+      if (!rfrac) return ans;
+      RooFitResult *fr = (RooFitResult*) ws->obj(Form("fitResult_pdfMASS_Tot%s", token));
+      double corr=0;
+      if (fr) {
+         corr = fr->correlation(Form("N_Jpsi%s",token), Form("RFrac2Svs1S%s",token));
+      } 
+      double npsip = njpsi->getVal()*rfrac->getVal();
+      double dnpsip = fabs(npsip) * sqrt(pow(njpsi->getError()/njpsi->getVal(),2)
+            +pow(rfrac->getError()/rfrac->getVal(),2)
+            +2.*fabs(corr*njpsi->getError()*rfrac->getError()/njpsi->getVal()/rfrac->getVal()));
+      ans = new RooRealVar(Form("N_Psi2S%s",token),"",npsip);
+      ans->setError(dnpsip);
+   }
    return ans;
 }
 

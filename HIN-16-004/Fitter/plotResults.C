@@ -39,11 +39,11 @@ const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
 const bool  doratio       = true;  // true -> look for separate PP and PbPb files, false -> input files are with simultaneous pp-PbPb fits
 const bool  plot12007     = false; // compare with 12-007
 const bool  fiterrors     = true;  // statistical errors are from the fit
-const bool  FCerrors      = false; // statistical errors are from the Feldman-Cousins intervals ("limits")
+const bool  FCerrors      = true; // statistical errors are from the Feldman-Cousins intervals ("limits")
 const bool  promptonly    = false; // plot the prompt only double ratio
 const bool  nonpromptonly = false; // plot the non-prompt only double ratio
-const char* normalCutsDir="nominal";
-const char* invCutsDir="nonprompt";
+#define normalCutsDir "nominal"
+#define invCutsDir "nonprompt"
 const char* nameTag="";            // can put here e.g. "_prompt", "_nonprompt", ...
 
 

@@ -25,8 +25,8 @@ using namespace std;
 //////////////
 // SETTINGS //
 //////////////
-const char* normalCutsDir="nominal";
-const char* invCutsDir="nonprompt";
+#define normalCutsDir "nominal"
+#define invCutsDir "nonprompt"
 
 /////////////////////////////////////////////
 // MAIN FUNCTIONS TO BE CALLED BY THE USER //
@@ -272,7 +272,7 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
 
       // special cases of Bfrac and Nprompt
       if (TString(varname).Index("Bfrac") != kNPOS || TString(varname).Index("Prompt") != kNPOS) {
-         RooRealVar bfracvar = bfrac(normalCutsDir,invCutsDir,trbin,Form("%s_%s",varname,collTag));
+         RooRealVar bfracvar = bfrac(normalCutsDir,invCutsDir,trbin,Form("%s_%s",varname,collTag.c_str()));
          val = bfracvar.getVal();
          val_err = bfracvar.getError();
       } 
