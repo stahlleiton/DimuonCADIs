@@ -526,7 +526,7 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
       map<anabinc,float> valsi = vals[i];
       map<anabinc,float> errsi = errs[i];
       string tagi = tags[i];
-      TH1F *h = new TH1F(Form("h%i",i),Form(";;%s",varname),nbins,0,nbins);
+      TH1F *h = new TH1F(Form("h%i",i),Form(";Bin;%s",varname),nbins,0,nbins);
       if (i==0) haxes=h;
       h->SetLineColor((i<4) ? 1+i : 2+i); // skip yellow
       h->SetMarkerColor((i<4) ? 1+i : 2+i);

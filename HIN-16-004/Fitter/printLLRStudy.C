@@ -61,7 +61,7 @@ void printLLRStudy(
   map<string, setModels_t> content;
   if (!readFiles(dirPath, fileNames, content, type)) { return; }
   
-  string plotDir = Form("./Output/%s/plot/DATA_PP_AccEff/", dirLabel.c_str());
+  string plotDir = Form("./Output/%s/plot/DATA/", dirLabel.c_str());
   string outputDir = Form("./Output/%s/LLR/DATA/", dirLabel.c_str());
   
   if (existDir(outputDir)==false){ 
