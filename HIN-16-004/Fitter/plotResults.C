@@ -39,7 +39,7 @@ const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
 const bool  doratio       = true;  // true -> look for separate PP and PbPb files, false -> input files are with simultaneous pp-PbPb fits
 const bool  plot12007     = false; // compare with 12-007
 const bool  fiterrors     = true;  // statistical errors are from the fit
-const bool  FCerrors      = true; // statistical errors are from the Feldman-Cousins intervals ("limits")
+const bool  FCerrors      = false; // statistical errors are from the Feldman-Cousins intervals ("limits")
 const bool  promptonly    = false; // plot the prompt only double ratio
 const bool  nonpromptonly = false; // plot the non-prompt only double ratio
 #define normalCutsDir "nominal"
@@ -63,7 +63,7 @@ RooRealVar* poiFromFile(const char* filename, const char* token="");
 void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsymmErrors*> theGraphs_syst, string xaxis, string outputDir, map<anabin, syst> gsyst);
 void plot(vector<anabin> thecats, string xaxis, string workDirName);
 void centrality2npart(TGraphAsymmErrors* tg, bool issyst=false, bool isMB=false, double xshift=0.);
-void plotLimits(vector<anabin> theCats, string xaxis, const char* filename="../Limits/csv/Limits_95.csv", double xshift=0, bool ULonly=true);
+void plotLimits(vector<anabin> theCats, string xaxis, const char* filename="../Limits/csv/Limits_95.csv", double xshift=0, bool ULonly=true, bool isInclusive=false);
 void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color);
 
 
@@ -498,6 +498,13 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    plotLimits(theCats,xaxis);
    if (fiterrors && FCerrors) plotLimits(theCats,xaxis,"../Limits/csv/Limits_68.csv",xaxis=="cent" ? 5 : 1, false);
 
+   // limits for inclusive
+   if (xaxis=="cent") {
+      padr->cd();
+      plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv", 0 , true, true);
+      padl->cd();
+   }
+
    if (xaxis=="cent") padl->cd();
    tleg->Draw();
 
@@ -550,7 +557,7 @@ void centrality2npart(TGraphAsymmErrors* tg, bool issyst, bool isMB, double xshi
    }
 }
 
-void plotLimits(vector<anabin> theCats, string xaxis, const char* filename, double xshift, bool ULonly) {
+void plotLimits(vector<anabin> theCats, string xaxis, const char* filename, double xshift, bool ULonly, bool isInclusive) {
    map<anabin,limits> maplim = readLimits(filename);
 
    map<anabin,limits>::const_iterator it;
@@ -559,6 +566,9 @@ void plotLimits(vector<anabin> theCats, string xaxis, const char* filename, doub
       if (!binok(theCats,xaxis,thebin,false)) continue;
       limits lim = it->second;
       if (ULonly && lim.val.first>0) continue; // only draw upper limits, ie interval which lower limit is 0
+      bool isInclusiveBin = (thebin.centbin()==binI(0,200));
+      if (isInclusiveBin && !isInclusive) continue;
+      if (!isInclusiveBin && isInclusive) continue;
       // draw arrow in the right place and with the right color...
       Color_t color=kBlack;
       double x=0, y=0, dx=0;
@@ -572,8 +582,8 @@ void plotLimits(vector<anabin> theCats, string xaxis, const char* filename, doub
       } else if (xaxis=="cent") {
          double low= thebin.centbin().low();
          double high = thebin.centbin().high();
-         x = HI::findNpartAverage(low,high);
-         dx = 10;
+         x = isInclusive ? 150 + (150./1.6)*thebin.rapbin().low(): HI::findNpartAverage(low,high);
+         dx = isInclusive ? 10./(1.-xfrac) : 10;
       }
       if (thebin.rapbin() == binF(0.,1.6)) {
          color = kBlue;
