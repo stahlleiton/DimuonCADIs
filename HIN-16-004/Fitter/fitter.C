@@ -22,24 +22,24 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 void fitter(
             const string workDirName="Test", // Working directory
             // Select the type of datasets to fit
-            bool fitData      = true,        // Fits Data datasets
-            bool fitMC        = false,         // Fits MC datasets
-            bool fitPbPb      = true,         // Fits PbPb datasets
+            bool fitData      = false,        // Fits Data datasets
+            bool fitMC        = true,         // Fits MC datasets
+            bool fitPbPb      = false,         // Fits PbPb datasets
             bool fitPP        = true,        // Fits PP datasets
-            bool fitMass      = true,        // Fits invariant mass distribution
+            bool fitMass      = false,        // Fits invariant mass distribution
             bool fitCtau      = true,        // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
             // Select the type of object to fit
-            bool incJpsi      = false,          // Includes Jpsi model
-            bool incPsi2S     = true,         // Includes Psi(2S) model
-            bool incBkg       = true,         // Includes Background model
+            bool incJpsi      = true,          // Includes Jpsi model
+            bool incPsi2S     = false,         // Includes Psi(2S) model
+            bool incBkg       = false,         // Includes Background model
             bool incPrompt    = true,         // Includes Prompt ctau model
-            bool incNonPrompt = true,          // Includes Non Prompt ctau model 
+            bool incNonPrompt = false,          // Includes Non Prompt ctau model 
             // Select the fitting options
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
-            bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
-            int  numCores     = 4,            // Number of cores used for fitting
+            bool wantPureSMC  = true,        // Flag to indicate if we want to fit pure signal MC
+            int  numCores     = 16,            // Number of cores used for fitting
             // Select the drawing options
             bool  setLogScale  = true,         // Draw plot with log scale
             bool  incSS        = false,        // Include Same Sign data
