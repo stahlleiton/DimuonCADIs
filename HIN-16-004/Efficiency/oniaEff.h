@@ -11,6 +11,11 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
+#include <TSystem.h>
+#include <TTree.h>
+#include <TDirectory.h>
+#include <iostream>
+
 
 #include "../Fitter/Macros/Utilities/EVENTUTILS.h"
 
@@ -301,17 +306,30 @@ public :
 #ifdef oniaEff_cxx
 oniaEff::oniaEff(TTree *tree) : fChain(0) 
 {
-// if parameter tree is not specified (or zero), connect the file
-// used to generate this class and read the Tree.
-   if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("root://xrootd.unl.edu//store/group/phys_heavyions/dileptons/MC2015/PbPb502TeV/TTrees/OniaTree_Pythia8_JpsiMM_ptJpsi_30_Inf_Hydjet_MB_HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v13-v1.root");
-      if (!f || !f->IsOpen()) {
-         f = new TFile("root://xrootd.unl.edu//store/group/phys_heavyions/dileptons/MC2015/PbPb502TeV/TTrees/OniaTree_Pythia8_JpsiMM_ptJpsi_30_Inf_Hydjet_MB_HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v13-v1.root");
-      }
-      TDirectory * dir = (TDirectory*)f->Get("root://xrootd.unl.edu//store/group/phys_heavyions/dileptons/MC2015/PbPb502TeV/TTrees/OniaTree_Pythia8_JpsiMM_ptJpsi_30_Inf_Hydjet_MB_HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v13-v1.root:/hionia");
-      dir->GetObject("myTree",tree);
-
-   }
+  // if parameter tree is not specified (or zero), connect the file
+  // used to generate this class and read the Tree.
+  if (tree == 0) {
+    TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("root://xrootd.unl.edu//store/group/phys_heavyions/dileptons/MC2015/PbPb502TeV/TTrees/OniaTree_Pythia8_JpsiMM_ptJpsi_30_Inf_Hydjet_MB_HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v13-v1.root");
+    if (!f || !f->IsOpen()) {
+      f = new TFile("root://xrootd.unl.edu//store/group/phys_heavyions/dileptons/MC2015/PbPb502TeV/TTrees/OniaTree_Pythia8_JpsiMM_ptJpsi_30_Inf_Hydjet_MB_HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v13-v1.root");
+    }
+    TDirectory * dir = (TDirectory*)f->Get("root://xrootd.unl.edu//store/group/phys_heavyions/dileptons/MC2015/PbPb502TeV/TTrees/OniaTree_Pythia8_JpsiMM_ptJpsi_30_Inf_Hydjet_MB_HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v13-v1.root:/hionia");
+    dir->GetObject("myTree",tree);
+    
+    //TFile *f = TFile::Open("root://xrootd.unl.edu//store/group/phys_heavyions/dileptons/MC2015/PbPb502TeV/TTrees/OniaTree_Pythia8_JpsiMM_ptJpsi_30_Inf_Hydjet_MB_HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v13-v1.root", "READ");
+    //string name = "";
+    //TDirectory * dir = NULL;
+    //if(f->GetListOfKeys()->Contains("hionia"))
+    //{ name = "hionia/myTree"; 
+	//dir->GetObject("hionia/myTree",tree);  
+    //      }
+    //else if(f->GetListOfKeys()->Contains("myTree"))
+    //{ name = "myTree"; 
+    //}
+    //else { cout << "[ERROR] myTree was not found in: "<< endl; }
+    //f->GetObject("name",tree);
+    
+  }
    Init(tree);
 }
 
