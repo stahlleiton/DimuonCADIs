@@ -495,13 +495,13 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       padl->cd();
    }
 
-   plotLimits(theCats,xaxis);
-   if (fiterrors && FCerrors) plotLimits(theCats,xaxis,"../Limits/csv/Limits_68.csv",xaxis=="cent" ? 5 : 1, false);
+   plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv",xaxis=="cent" ? 5 : 1);
+   if (fiterrors && FCerrors) plotLimits(theCats,xaxis,"../Limits/csv/Limits_68_testnofix.csv",xaxis=="cent" ? 5 : 1, false);
 
    // limits for inclusive
    if (xaxis=="cent") {
       padr->cd();
-      plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv", 0 , true, true);
+      plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv", 5 , true, true);
       padl->cd();
    }
 
@@ -566,7 +566,7 @@ void plotLimits(vector<anabin> theCats, string xaxis, const char* filename, doub
       if (!binok(theCats,xaxis,thebin,false)) continue;
       limits lim = it->second;
       if (ULonly && lim.val.first>0) continue; // only draw upper limits, ie interval which lower limit is 0
-      bool isInclusiveBin = (thebin.centbin()==binI(0,200));
+      bool isInclusiveBin = (xaxis=="cent" && thebin.centbin()==binI(0,200));
       if (isInclusiveBin && !isInclusive) continue;
       if (!isInclusiveBin && isInclusive) continue;
       // draw arrow in the right place and with the right color...
