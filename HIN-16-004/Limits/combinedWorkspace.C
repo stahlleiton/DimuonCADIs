@@ -40,14 +40,14 @@
 using namespace RooFit;
 using namespace RooStats;
 
-void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root", const float systval = 0., const char* subDirName ="wsTest"){
+void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root", const float systval = 0., const char* subDirName ="wsTest", int nCPU=2){
    // subdir: Directory to save workspaces under currentPATH/CombinedWorkspaces/subDir/
   
    bool dosyst = (systval > 0.);
 
    TString nameOut(name_out);
   
-   RooWorkspace * ws = test_combine(name_pbpb, name_PP);
+   RooWorkspace * ws = test_combine(name_pbpb, name_PP, false, nCPU);
    RooAbsData * data = ws->data("dOS_DATA");
 
    RooRealVar* RFrac2Svs1S_PbPbvsPP = ws->var("RFrac2Svs1S_PbPbvsPP");
@@ -109,11 +109,11 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    RooRealVar *theVar = (RooRealVar*) it->Next();
    while (theVar) {
       TString varname(theVar->GetName());
-      if (varname != "RFrac2Svs1S_PbPbvsPP"
-            && varname != "invMass"
-            && varname != "sample"
-            ) 
-         theVar->setConstant();
+//      if (varname != "RFrac2Svs1S_PbPbvsPP"
+//            && varname != "invMass"
+//            && varname != "sample"
+//            )
+//         theVar->setConstant();
       if (varname=="glob_syst"
             || varname=="beta_syst"
          ) {
@@ -135,7 +135,7 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
 
    // ws->Print();
    /////////////////////////////////////////////////////////////////////
-   RooAbsReal * pNll = sbHypo.GetPdf()->createNLL( *data,NumCPU(2) );
+   RooAbsReal * pNll = sbHypo.GetPdf()->createNLL( *data,NumCPU(nCPU) );
    RooMinuit(*pNll).migrad(); // minimize likelihood wrt all parameters before making plots
    RooPlot *framepoi = ((RooRealVar *)poi.first())->frame(Bins(10),Range(0.,1),Title("LL and profileLL in RFrac2Svs1S_PbPbvsPP"));
    pNll->plotOn(framepoi,ShiftToZero());
@@ -183,7 +183,7 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    RooStats::ModelConfig bHypo = sbHypo;
    bHypo.SetName("BHypo");
    bHypo.SetWorkspace(*ws);
-   pNll = bHypo.GetPdf()->createNLL( *data,NumCPU(2) );
+   pNll = bHypo.GetPdf()->createNLL( *data,NumCPU(nCPU) );
    RooArgSet poiAndGlobalObs("poiAndGlobalObs");
    poiAndGlobalObs.add( poi );
    poiAndGlobalObs.add( globalObs );

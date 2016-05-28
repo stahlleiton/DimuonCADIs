@@ -15,7 +15,7 @@
 using namespace RooFit;
 using namespace std;
 
-RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* name_pp="fitresult_pp.root", bool commonParams=false)
+RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* name_pp="fitresult_pp.root", bool commonParams=false, int nCPU=2)
 {
    // RooMsgService::instance().addStream(RooFit::MsgLevel::DEBUG); 
    TFile *f = TFile::Open(name_pbpb) ;
@@ -214,7 +214,7 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
    ws->Delete(); ws_pp->Delete(); f->Delete(); f_pp->Delete();
 
    // simPdf.fitTo(data_combo); // crashes sometimes but not always?? adding Range("MassWindow") or NumCPU(2) improves stability
-   simPdf.fitTo(data_combo,NumCPU(3), Extended(kTRUE), Minimizer("Minuit2","Migrad"));
+   simPdf.fitTo(data_combo,NumCPU(nCPU), Extended(kTRUE), Minimizer("Minuit2","Migrad"));
   //, NumCPU(numCores), Range("MassWindow"), Save()
 
    // wcombo->writeToFile("fitresult_combo.root");

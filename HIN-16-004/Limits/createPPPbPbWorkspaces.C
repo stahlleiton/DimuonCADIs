@@ -17,7 +17,8 @@ void createPPPbPbWorkspaces(
                    const char* workDirName, // workDirName: usual tag where to look for files in Output
                    bool doSyst=false,
                    const char* DSTag="DATA", // Data Set tag can be: "DATA","MCPSI2SP", "MCJPSIP" ...
-                   const char* ACTag="Nominal" // Analysis Case tag (e.g. Nominal fits = "Nominal")
+                   const char* ACTag="Nominal", // Analysis Case tag (e.g. Nominal fits = "Nominal")
+                   int nCPU=2
 )
 {
   // list of files
@@ -71,7 +72,7 @@ void createPPPbPbWorkspaces(
         if ( doSyst ) binName.Prepend("wSyst_");
         else  binName.Prepend("woSyst_");
         
-        combinedWorkspace(*it_PbPb, *it_PP, Form("combined_PbPbPP_workspace_%s.root",binName.Data()), systVal, ACTag);
+        combinedWorkspace(*it_PbPb, *it_PP, Form("combined_PbPbPP_workspace_%s.root",binName.Data()), systVal, ACTag, nCPU);
         
         cout << ">>>>>>>> Combined workspace created for bin " << binName.Data() << endl;
       }
