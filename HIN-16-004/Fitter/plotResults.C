@@ -191,6 +191,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       syst_PP = combineSyst(all_PP,"statsyst_PP");
    }
    map<anabin, syst> syst_PbPb = readSyst_all("PbPb");
+   map<anabin, syst> syst_PbPb_NP_add = readSyst_all("Systematics/csv/syst_PbPb_bhad_add.csv");
 
    // make TGraphAsymmErrors
    int cnt=0;
@@ -235,7 +236,6 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
             // exsyst = !isMB ? 5 : 5./(1.-xfrac);
             exsyst = exl;
             eysyst = syst_PbPb[thebin].value; // only PbPb syst: the PP one will go to a dedicated box
-            // also add
          }
          y = theVarsBinned[*it][i]->getVal();
          if (fiterrors) {
@@ -252,7 +252,10 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
                eyh = theVarsBinned[*it][i]->getErrorHi();
             }
          }
+
          eysyst = y*eysyst;
+         eysyst += syst_PbPb_NP_add[thebin].value; // add the additive part of the NP contamination syst
+
          theGraphs[*it]->SetPoint(i,x,y);
          theGraphs[*it]->SetPointError(i,exl,exh,eyl,eyh);
          theGraphs_syst[*it]->SetPoint(i,x,y);
@@ -495,13 +498,13 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       padl->cd();
    }
 
-   plotLimits(theCats,xaxis);
-   if (fiterrors && FCerrors) plotLimits(theCats,xaxis,"../Limits/csv/Limits_68.csv",xaxis=="cent" ? 5 : 1, false);
+   plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv",xaxis=="cent" ? 5 : 1);
+   if (fiterrors && FCerrors) plotLimits(theCats,xaxis,"../Limits/csv/Limits_68_testnofix.csv",xaxis=="cent" ? 5 : 1, false);
 
    // limits for inclusive
    if (xaxis=="cent") {
       padr->cd();
-      plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv", 0 , true, true);
+      plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv", 5 , true, true);
       padl->cd();
    }
 
@@ -566,7 +569,7 @@ void plotLimits(vector<anabin> theCats, string xaxis, const char* filename, doub
       if (!binok(theCats,xaxis,thebin,false)) continue;
       limits lim = it->second;
       if (ULonly && lim.val.first>0) continue; // only draw upper limits, ie interval which lower limit is 0
-      bool isInclusiveBin = (thebin.centbin()==binI(0,200));
+      bool isInclusiveBin = (xaxis=="cent" && thebin.centbin()==binI(0,200));
       if (isInclusiveBin && !isInclusive) continue;
       if (!isInclusiveBin && isInclusive) continue;
       // draw arrow in the right place and with the right color...

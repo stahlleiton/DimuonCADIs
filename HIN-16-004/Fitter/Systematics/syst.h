@@ -116,6 +116,7 @@ map<anabin, syst> readSyst_all(const char* token, const char* prependPath, bool 
    vector<TString> filelist = fileList_syst(token,prependPath);
 
    for (vector<TString>::const_iterator it=filelist.begin(); it!=filelist.end(); it++) {
+      if (it->Index("_add") != kNPOS) continue; // do not combine nor return additive systematics (NP contamination)
       cout << "Reading file " << *it << endl;
       map<anabin,syst> systmap = readSyst(it->Data());
       systmap_all.push_back(systmap);

@@ -46,6 +46,7 @@ RooRealVar bfrac (const char* pr_fits, // name of the prompt fits directory
 
    // fix the centrality if needed
    bin.setcentbin(binI(bin.centbin().low(),abs(bin.centbin().high())));
+   if (!isPbPb) bin.setcentbin(binI(0,200));
 
    vector<TString>::const_iterator it;
    TString file_pr, file_npr;
@@ -61,7 +62,7 @@ RooRealVar bfrac (const char* pr_fits, // name of the prompt fits directory
       }
    }
    if (nok != 1) {
-      cout << "Error, found " << nok << " files corresponding to the requested bin " << thebin_str << ". Exiting." << endl;
+      cout << "Error, found " << nok << " files corresponding to the requested bin " << thebin_str << " in " << pr_fits << ". Exiting." << endl;
       return bfrac;
    }
    nok=0;
@@ -72,7 +73,7 @@ RooRealVar bfrac (const char* pr_fits, // name of the prompt fits directory
       }
    }
    if (nok != 1) {
-      cout << "Error, found " << nok << " files corresponding to the requested bin " << thebin_str << ". Exiting." << endl;
+      cout << "Error, found " << nok << " files corresponding to the requested bin " << thebin_str << " in " << npr_fits << ". Exiting." << endl;
       return bfrac;
    }
 
@@ -340,9 +341,10 @@ RooRealVar Bval(const char* pr_fits, const char* npr_fits, anabin bin) {
 }
 
 RooRealVar alphaval(const char* pr_fits, const char* npr_fits, anabin bin, bool is2S) {
+   bin.setcentbin(binI(0,200));
    RooRealVar f = bfrac(pr_fits, npr_fits, bin, Form("Bfrac%s_PP",is2S ? "_Psi2S" : ""));
    // then efficiencies
-   TString feffjpsipr(Form("../Efficiency/files/histos_%s_pp.root",is2S ? "psi2S" : "jpsi"));
+   TString feffjpsipr(Form("../Efficiency/files/histos_%s_pp.root",is2S ? "psi2s" : "jpsi"));
    TString feffnpr("../Efficiency/files/histos_npjpsi_pp.root");
    TString numname("hnumptdepcut_"); numname += (bin.centbin() == binI(0,200)) ? "pt" : "cent"; numname += (bin.rapbin() == binF(0,1.6)) ? "mid" : "fwd";
    TString denname("hnum_"); denname += (bin.centbin() == binI(0,200)) ? "pt" : "cent"; denname += (bin.rapbin() == binF(0,1.6)) ? "mid" : "fwd";
@@ -380,6 +382,8 @@ RooRealVar alphaval(const char* pr_fits, const char* npr_fits, anabin bin, bool 
    double effjpsipr = numjpsipr/denjpsipr;
    double effnpr = numnpr/dennpr;
 
+   // bin.print();
+   // cout << "effnpr = " << numnpr << "/" << dennpr << ", effpr = " << numjpsipr << "/" << denjpsipr << ", f = " << f.getVal() << endl;
    double val = (effnpr/effjpsipr) * f.getVal() / (1-f.getVal());
    double error = val*sqrt(2.)*f.getError()/f.getVal();
    RooRealVar ans("ans", "", val);
