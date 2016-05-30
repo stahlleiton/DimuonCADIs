@@ -32,12 +32,19 @@ void createPPPbPbWorkspaces(
   
   map<anabin, syst> syst_PbPb;
   map<anabin, syst> syst_PP;
+  map<anabin, syst> syst_PbPb_add;
   if ( doSyst )
   {
     syst_PbPb = readSyst_all("PbPb","../Fitter");
     if ( syst_PbPb.empty() )
     {
       cout << "#[Error]: No PbPb systematics files found" << endl;
+      return;
+    }
+    syst_PbPb_add = readSyst("../Fitter/Systematics/csv/syst_PbPb_bhad_add.csv");
+    if ( syst_PbPb_add.empty() )
+    {
+      cout << "#[Error]: No additive PbPb systematics files found" << endl;
       return;
     }
     
@@ -57,10 +64,12 @@ void createPPPbPbWorkspaces(
     cout << "PbPb workspace " << cnt << " / " << theFiles_PbPb.size() << ": " << *it_PbPb << endl;
     
     double systVal(0.);
+    double systValAdd(0.);
     if ( doSyst )
     {
       anabin thebinPbPb = binFromFile(*it_PbPb);
       systVal = syst_PbPb[thebinPbPb].value;
+      systValAdd = syst_PbPb_add[thebinPbPb].value;
     }
     
     bool foundPPws = false;
@@ -86,7 +95,7 @@ void createPPPbPbWorkspaces(
         if ( doSyst ) binName.Prepend("wSyst_");
         else  binName.Prepend("woSyst_");
         
-        combinedWorkspace(*it_PbPb, *it_PP, Form("combined_PbPbPP_workspace_%s.root",binName.Data()), systVal, ACTag, nCPU);
+        combinedWorkspace(*it_PbPb, *it_PP, Form("combined_PbPbPP_workspace_%s.root",binName.Data()), systVal, systValAdd, ACTag, nCPU);
         
         cout << ">>>>>>>> Combined workspace created for bin " << binName.Data() << endl;
       }
