@@ -31,12 +31,20 @@ void createPPPbPbWorkspaces(
   }
   
   map<anabin, syst> syst_PbPb;
+  map<anabin, syst> syst_PP;
   if ( doSyst )
   {
     syst_PbPb = readSyst_all("PbPb","../Fitter");
     if ( syst_PbPb.empty() )
     {
-      cout << "#[Error]: No systematics files found" << endl;
+      cout << "#[Error]: No PbPb systematics files found" << endl;
+      return;
+    }
+    
+    syst_PP = readSyst_all("PP","../Fitter");
+    if ( syst_PP.empty() )
+    {
+      cout << "#[Error]: No PP systematics files found" << endl;
       return;
     }
   }
@@ -51,8 +59,8 @@ void createPPPbPbWorkspaces(
     double systVal(0.);
     if ( doSyst )
     {
-      anabin thebin = binFromFile(*it_PbPb);
-      systVal = syst_PbPb[thebin].value;
+      anabin thebinPbPb = binFromFile(*it_PbPb);
+      systVal = syst_PbPb[thebinPbPb].value;
     }
     
     bool foundPPws = false;
@@ -64,6 +72,12 @@ void createPPPbPbWorkspaces(
         
         cout << "PP workspace " << cnt << " / " << theFiles_PP.size() << ": " << *it_PP << endl;
         cout << endl;
+        
+        if ( doSyst )
+        {
+          anabin thebinPP = binFromFile(*it_PP);
+          systVal = sqrt( pow(systVal,2.) + pow(syst_PP[thebinPP].value,2.) );
+        }
         
         TString binName(*it_PbPb);
         binName.Remove(0,binName.Last('/')+1);
@@ -79,7 +93,7 @@ void createPPPbPbWorkspaces(
       else continue;
     }
     
-    if ( !foundPPws ) cout << "# [Error]: No PP workspae found for " << *it_PbPb << endl;
+    if ( !foundPPws ) cout << "# [Error]: No PP workspace found for " << *it_PbPb << endl;
     
     cnt++;
   } // loop on the files
