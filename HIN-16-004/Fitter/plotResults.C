@@ -254,7 +254,8 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
          }
 
          eysyst = y*eysyst;
-         eysyst += syst_PbPb_NP_add[thebin].value; // add the additive part of the NP contamination syst
+         // add the additive part of the NP contamination syst
+         if (syst_PbPb_NP_add.find(thebin) != syst_PbPb_NP_add.end()) eysyst = sqrt(pow(syst_PbPb_NP_add[thebin].value,2) + pow(eysyst,2)); 
 
          theGraphs[*it]->SetPoint(i,x,y);
          theGraphs[*it]->SetPointError(i,exl,exh,eyl,eyh);
@@ -392,6 +393,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          tg_syst->SetFillColorAlpha(kGreen, 0.5);
       }
       tg->SetMarkerSize(1.5);
+      tg->SetLineWidth(tg->GetLineWidth()*2);
 
       if (xaxis=="cent") {
          if (thebin.centbin().low()<=0 && thebin.centbin().high()<=0) padr->cd();
@@ -401,7 +403,9 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          prune(tg, tg_syst);
       }
       tg_syst->Draw("2");      
-      tg->Draw("P");      
+      gStyle->SetEndErrorSize(5);
+      tg->Draw("P");
+      // tg->Draw("[]");
 
       TString raplabel = Form("%.1f < |y| < %.1f, ",it->first.rapbin().low(),it->first.rapbin().high());
       TString otherlabel = "BWAA";
@@ -498,13 +502,13 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       padl->cd();
    }
 
-   plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv",xaxis=="cent" ? 5 : 1);
+   plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv",0);
    if (fiterrors && FCerrors) plotLimits(theCats,xaxis,"../Limits/csv/Limits_68_testnofix.csv",xaxis=="cent" ? 5 : 1, false);
 
    // limits for inclusive
    if (xaxis=="cent") {
       padr->cd();
-      plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv", 5 , true, true);
+      plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv", 0 , true, true);
       padl->cd();
    }
 
