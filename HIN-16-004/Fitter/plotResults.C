@@ -191,7 +191,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       syst_PP = combineSyst(all_PP,"statsyst_PP");
    }
    map<anabin, syst> syst_PbPb = readSyst_all("PbPb");
-   map<anabin, syst> syst_PbPb_NP_add = readSyst_all("Systematics/csv/syst_PbPb_bhad_add.csv");
+   map<anabin, syst> syst_PbPb_NP_add = readSyst("Systematics/csv/syst_PbPb_bhad_add.csv");
 
    // make TGraphAsymmErrors
    int cnt=0;
