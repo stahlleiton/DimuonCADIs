@@ -277,7 +277,8 @@ TBranch        *b_Gen_mu_type;   //!
 TBranch        *b_Gen_mu_charge;   //!
 TBranch        *b_Gen_mu_4mom;   //!
 
-string TreeName("hionia/myTree");
+//string TreeName("hionia/myTree");
+string TreeName("myTree");
 
 void initOniaTree(TChain *tree)
 {

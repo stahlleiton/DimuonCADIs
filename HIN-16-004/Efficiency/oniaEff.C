@@ -1,9 +1,12 @@
 #define oniaEff_cxx
 #include "oniaEff.h"
+#include "tnp_weight.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <TFile.h>
+#include <TMath.h>
+#include <TF1.h>
 
 #include <iostream>
 
@@ -146,7 +149,11 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
       if (!gen_inbin) continue;
 
       double weight = ispbpb ? fChain->GetWeight()*findNcoll(Centrality) : 1.;
-
+      
+      TF1 *wfunt = new TF1("wfunt","[0] + [1]*x",0.0,30.0);
+      wfunt->SetParameters(1.3, -0.02); 
+      //weight = weight*wfunt->Eval(genpt);
+      
       hcentfine->Fill(Centrality,weight);
       hden2d->Fill(fabs(tlvgenqq->Rapidity()),genpt,weight);
 
@@ -169,9 +176,10 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
       // loop on the reconstructed dimuons to find the one matched to the gen one
       double mindr=999.;
       int ibestqq=-1;
+      double tnp_weight = 1.0;
       for (int i=0; i<Reco_QQ_size; i++) {
-         // acceptance
-         if (!areMuonsInAcceptance2015(i)) continue;
+	// acceptance
+	if (!areMuonsInAcceptance2015(i)) continue;
          // sign
          if (Reco_QQ_sign[i]!=0) continue;
          // quality cuts
@@ -191,7 +199,12 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
          // gen-reco matching
          TLorentzVector *tlvrecpl = (TLorentzVector*) Reco_QQ_mupl_4mom->At(i);
          TLorentzVector *tlvrecmi = (TLorentzVector*) Reco_QQ_mumi_4mom->At(i);
-         double dr = max(tlvrecpl->DeltaR(*tlvgenpl),tlvrecmi->DeltaR(*tlvgenmi));
+	 double recMuPlpt = tlvrecpl->Pt();
+	 double recMuPlEta = tlvrecpl->Eta();
+	 double recMuMipt = tlvrecmi->Pt();
+	 double recMuMiEta = tlvrecmi->Eta();
+	 
+	 double dr = max(tlvrecpl->DeltaR(*tlvgenpl),tlvrecmi->DeltaR(*tlvgenmi));
          if (dr<mindr) {
             mindr = dr;
             ibestqq = i;
@@ -199,16 +212,19 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
       } // Reco_QQ loop
 
       if (ibestqq<0) continue;
-
+      
+      //tnp_weight = tnp_weight_sta_pbpb(recMuPlpt, recMuPlEta, 0)*tnp_weight_sta_pbpb(recMuMipt, recMuMiEta, 0)*tnp_weight_muidtrg_pbpb(recMuPlpt, recMuPlEta, 0) * tnp_weight_muidtrg_pbpb(recMuMipt, recMuMiEta, 0);
+      //weight = weight*tnp_weight;
+      
       // fill the numerators
       if (fabs(tlvgenqq->Rapidity()) < 1.6) {
-         hnum_centmid->Fill(Centrality/2,weight);
-         hnum_ptmid->Fill(genpt,weight);
+	hnum_centmid->Fill(Centrality/2,weight);
+	hnum_ptmid->Fill(genpt,weight);
       } else {
-         hnum_centfwd->Fill(Centrality/2,weight);
-         hnum_ptfwd->Fill(genpt,weight);
+	hnum_centfwd->Fill(Centrality/2,weight);
+	hnum_ptfwd->Fill(genpt,weight);
       }
-
+      
       // apply ctau3D cut
       bool ctaucutok = false;
       TLorentzVector *tlvrecqq = (TLorentzVector*) Reco_QQ_4mom->At(ibestqq);
