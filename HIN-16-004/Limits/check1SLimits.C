@@ -13,15 +13,24 @@
 
 #include "../Fitter/Macros/Utilities/bin.h"
 #include "../Fitter/Macros/Utilities/resultUtils.h"
+#include "../Fitter/Systematics/syst.h"
 #include "limits.h"
 
 using namespace std;
 
 void check1SLimits(
                    const char* workDirName, // workDirName: usual tag where to look for files in Output
-                   const char* lFileName="cLimits_683_NominalABCD_Asym_2SPL_woSyst.csv" // file name to save limits results
+                   const char* lFileName="cLimits_683_NominalABCD_Asym_2SPL_woSyst.csv", // file name to save limits results
+                   bool dosyst = false
 )
 {
+  TString slFileName(lFileName);
+  if ( dosyst && !slFileName.Contains("wSyst") )
+  {
+    cout << "Comparison requires systematics but limits file does not contain them" << endl;
+    return;
+  }
+  
   // list of files
   vector<TString> theFiles_PbPb = fileList(workDirName,"PbPb","DATA","../Fitter");
   vector<TString> theFiles_PP = fileList(workDirName,"PP","DATA","../Fitter");
@@ -29,6 +38,33 @@ void check1SLimits(
   {
     cout << "#[Error]: No files found in " << workDirName << endl;
     return;
+  }
+  
+  // systematic uncertainties for fit
+  map<anabin, syst> syst_PbPb;
+  map<anabin, syst> syst_PP;
+  map<anabin, syst> syst_PbPb_add;
+  if ( dosyst )
+  {
+    syst_PbPb = readSyst_all("PbPb","../Fitter");
+    if ( syst_PbPb.empty() )
+    {
+      cout << "#[Error]: No PbPb systematics files found" << endl;
+      return;
+    }
+    syst_PbPb_add = readSyst("../Fitter/Systematics/csv/syst_PbPb_bhad_add.csv");
+    if ( syst_PbPb_add.empty() )
+    {
+      cout << "#[Error]: No additive PbPb systematics files found" << endl;
+      return;
+    }
+    
+    syst_PP = readSyst_all("PP","../Fitter");
+    if ( syst_PP.empty() )
+    {
+      cout << "#[Error]: No PP systematics files found" << endl;
+      return;
+    }
   }
   
   // bin edges
@@ -81,7 +117,18 @@ void check1SLimits(
     centmin = thebin.centbin().low();
     centmax = thebin.centbin().high();
     
-    bool foundPPws = false;
+    // Get PbPb systematics for bin
+    double systVal(0.);
+    double systValPP(0.);
+    double systValAdd(0.);
+    if ( dosyst )
+    {
+      anabin thebinPbPb = binFromFile(*it_PbPb);
+      systVal = syst_PbPb[thebinPbPb].value;
+      systValAdd = syst_PbPb_add[thebinPbPb].value;
+    }
+    
+    bool foundPPws = false; // Find corresponding PP workspace
     RooRealVar* singleR_PP(0x0);
     for (vector<TString>::const_iterator it_PP=theFiles_PP.begin(); it_PP!=theFiles_PP.end(); it_PP++)
     {
@@ -107,16 +154,23 @@ void check1SLimits(
         
         singleR_PP = wsPP->var("RFrac2Svs1S_PP");
         
+        if ( dosyst) // Get PP systematics
+        {
+          anabin thebinPP = binFromFile(*it_PP);
+          systValPP = syst_PP[thebinPP].value;
+        }
       }
       else continue;
     }
     if ( !foundPPws ) cout << "# [Error]: No PP workspace found for " << *it_PbPb << endl;
     
     RooRealVar* doubleRatio = ratioVar(singleR_PbPb,singleR_PP,1);
-    double sigmaDoubleR = doubleRatio->getError();;
-    
+    double sigmaDoubleR = doubleRatio->getError();
+    double doubleR = doubleRatio->getVal();
+    if ( dosyst ) sigmaDoubleR = sqrt( pow(sigmaDoubleR,2.) + pow(systVal*doubleR,2.) + pow(systValPP*doubleR,2.) + pow(systValAdd,2.) ); // quadratic sum of all systematics
+
     // Get limits from file
-    map<anabin,limits> maplim = readLimits(Form("csv/%s",lFileName));
+    map<anabin,limits> maplim = readLimits(Form("csv/%s",slFileName.Data()));
     
     bool foundLims = false;
     map<anabin,limits>::const_iterator it;
