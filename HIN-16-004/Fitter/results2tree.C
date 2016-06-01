@@ -32,8 +32,8 @@ const int nBins = 46;
 void results2tree(
       const char* workDirName, 
       const char* DSTag="DATA", // Data Set tag can be: "DATA","MCPSI2SP", "MCJPSIP" ...
-      const char* thePoiNames="RFrac2Svs1S,N_Jpsi,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5__Bkg,N_Bkg",
-      bool wantPureSMC=true
+      const char* thePoiNames="RFrac2Svs1S,N_Jpsi,N_Psi2S,N_Psi2S_intpl,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg",
+      bool wantPureSMC=false
       ) {
    // workDirName: usual tag where to look for files in Output
    // thePoiNames: comma-separated list of parameters to store ("par1,par2,par3"). Default: all
@@ -170,9 +170,24 @@ void results2tree(
 
          // get the POIs
          for (vector<poi>::iterator itpoi=thePois.begin(); itpoi!=thePois.end(); itpoi++) {
-            RooRealVar *thevar = poiFromWS(ws, Form("_%s",collSystem), itpoi->name);
-            itpoi->val = thevar ? thevar->getVal() : 0;
-            itpoi->err = thevar ? thevar->getError() : 0;
+            // special case of the interpolated number of psi2S events
+            if (TString(itpoi->name) == "N_Psi2S_intpl") {
+               if (!dat) {
+                 cout << "N_Psi2S_intpl cannot be computed, no dataset found" << endl;
+                  itpoi->val=0; itpoi->err=0;
+               } else {
+                  double mass1=(ymax<2) ? 3.25 : 3.3, mass2=3.5, mass3=3.9, mass4=4.2;
+                  double nsig = dat->reduce(Form("invMass>%f&&invMass<=%f",mass2,mass3))->numEntries();
+                  double nbkg1 = dat->reduce(Form("invMass>%f&&invMass<=%f",mass1,mass2))->numEntries();
+                  double nbkg2 = dat->reduce(Form("invMass>%f&&invMass<=%f",mass3,mass4))->numEntries();
+                  itpoi->val = nsig - (mass3-mass2)*(nbkg1/(mass2-mass1) + nbkg2/(mass4-mass3))/2.;
+                  itpoi->err = sqrt(nsig);
+               }
+            } else {
+               RooRealVar *thevar = poiFromWS(ws, Form("_%s",collSystem), itpoi->name);
+               itpoi->val = thevar ? thevar->getVal() : 0;
+               itpoi->err = thevar ? thevar->getError() : 0;
+            }
          }
 
          // delete model;

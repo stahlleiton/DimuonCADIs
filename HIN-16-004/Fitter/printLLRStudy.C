@@ -7,6 +7,7 @@
 #include "RooWorkspace.h"
 #include "RooRealVar.h"
 #include "RooAbsPdf.h"
+#include "RooAbsData.h"
 #include <iostream>
 #include <fstream>
 #include <dirent.h>
@@ -34,8 +35,6 @@ struct model_t {
 typedef vector<model_t> vecModels_t;
 typedef set<model_t> setModels_t;
 
-
-
 vector<string> printNLL(map< string, setModels_t > content, string outputDir, string type, string dirLabel) ;
 void setLines(vector<string>& strLin, vector<string> lin); 
 void printLines(vector<string> strLin, ofstream& fout); 
@@ -47,7 +46,7 @@ bool extractNLL(string fileName, model_t& value) ;
 
 
 void printLLRStudy(
-                   string dirLabel="BkgShapeStudy",  // Name of the working directory (currently hardcoded to work with DATA)
+		   string dirLabel="DataAccEffNew",  // Name of the working directory (currently hardcoded to work with DATA)
                    string type = "Bkg"               // Type of the LLR test, available options are: "Bkg" , "Jpsi" and "Psi2S"
                    ) 
 {
@@ -55,15 +54,15 @@ void printLLRStudy(
   vector<string> fileNames;
   string dirPath = Form("./Output/%s/result/DATA/",dirLabel.c_str());
   if (!findFiles(dirPath, fileNames)) { return; } 
-
   cout << "[INFO] Creating " << ((type=="Bkg")?"Background":"Signal") << " Study summary!" << endl;
   
   // Group the files based on their background model
   map<string, setModels_t> content;
   if (!readFiles(dirPath, fileNames, content, type)) { return; }
-
+  
   string plotDir = Form("./Output/%s/plot/DATA/", dirLabel.c_str());
   string outputDir = Form("./Output/%s/LLR/DATA/", dirLabel.c_str());
+  
   if (existDir(outputDir)==false){ 
     cout << "[INFO] Output directory: " << outputDir << " does not exist, will create it!" << endl;  
     if (existDir(outputDir)==false){ gSystem->mkdir(outputDir.c_str(), kTRUE); }
@@ -75,7 +74,6 @@ void printLLRStudy(
 
   // Loop over each kinematic bin and compute the LLR/AIC tests
   vector<string> bestModelFiles = printNLL(content, outputDir, type, dirLabel); 
-  
   cout << "[INFO] " << ((type=="Bkg")?"Background":"Signal") << " Study summary file done!" << endl; 
     
   cout << "The files for the best models are: " << endl;
@@ -351,13 +349,15 @@ bool extractNLL(string fileName, model_t& value)
   RooAbsReal *nll = NULL;
   double NLL = 0;
   int npar = 0;
+  string dsName = ws->allData().front()->GetName();
+
   if (binName.find("PP")!=std::string::npos) {
-    nll = ws->pdf("pdfMASS_Tot_PP")->createNLL(*ws->data("dOS_DATA_PP"));
-    npar = ws->pdf("pdfMASS_Bkg_PP")->getParameters(*ws->data("dOS_DATA_PP"))->getSize();
+    nll = ws->pdf("pdfMASS_Tot_PP")->createNLL(*ws->data(dsName.c_str()));
+    npar = ws->pdf("pdfMASS_Bkg_PP")->getParameters(*ws->data(dsName.c_str()))->getSize();
   }
   if (binName.find("PbPb")!=std::string::npos) {
-    nll = ws->pdf("pdfMASS_Tot_PbPb")->createNLL(*ws->data("dOS_DATA_PbPb"));
-    npar = ws->pdf("pdfMASS_Bkg_PbPb")->getParameters(*ws->data("dOS_DATA_PbPb"))->getSize();
+    nll = ws->pdf("pdfMASS_Tot_PbPb")->createNLL(*ws->data(dsName.c_str()));
+    npar = ws->pdf("pdfMASS_Bkg_PbPb")->getParameters(*ws->data(dsName.c_str()))->getSize();
   }
  
   if (!nll) {
@@ -398,16 +398,17 @@ bool readFiles(string dirPath, vector<string> fileNames, map<string, setModels_t
     string binName;   
     string modelName; 
     splitString(fileName, type, binName, modelName); 
-       
+    
     model_t modelNLL;
     modelNLL.binName = binName;
     modelNLL.modelName = modelName;
     modelNLL.fileName = fileName;
     modelNLL.cnt=0;
+    
     if (extractNLL(dirPath+fileName, modelNLL) && modelName!="") {
       if (content.find(binName) == content.end()) content[binName] = setModels_t();
       content[binName].insert(modelNLL);
-    } 
+    }
   }
   if (content.size()==0) {
     cout << "[ERROR] No NLL values were found in the input files" << endl; return false;
@@ -419,12 +420,13 @@ bool readFiles(string dirPath, vector<string> fileNames, map<string, setModels_t
 void splitString(string stringOriginal, const string Key, string& stringWithoutKey, string& stringWithKey) 
 {
   string tmp  = stringOriginal;   
-
+  
   if (tmp.find(Key+"_")==std::string::npos) {
     stringWithoutKey = "";
     stringWithKey = stringOriginal;
     return;
   }
+  
 
   tmp.erase(0, tmp.find(Key+"_")+(Key+"_").length()); stringWithKey = tmp;
   stringWithKey.erase(stringWithKey.find("_"), stringWithKey.size());

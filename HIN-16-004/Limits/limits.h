@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include "../Fitter/Macros/Utilities/bin.h"
+#include "../Fitter/Macros/Utilities/resultUtils.h"
 #include "TString.h"
 #include "TSystemFile.h"
 #include "TSystemDirectory.h"
@@ -18,10 +19,38 @@ struct limits {
 
 using namespace std;
 
+vector<TString> fileList_lim(const char* prependPath="");
 map<anabin, limits> readLimits(const char* limitsfile);
 void printTex(vector< map<anabin, limits> > theLims, const char* texName="tex/limits.tex", bool isLastTotal=false);
+void readLimits_all(const char* prependPath="", const char* texName="tex/limits.tex", const char* token="_68");
+void limitsFromFits(const char* workDir, const char* output="csv/Limits_68_fromfits.csv");
 map<anabin, vector<limits> > vm2mv(vector< map<anabin,limits> > v);
 
+
+vector<TString> fileList_lim(const char* prependPath) {
+   vector<TString> ans;
+
+   TString basedir("csv/");
+   if ( strcmp(prependPath,"") ) basedir.Prepend(Form("%s/",prependPath));
+   TSystemDirectory dir("files",basedir);
+
+   TList *files = dir.GetListOfFiles();
+
+   if (files) {
+      TIter next(files);
+      TSystemFile *file;
+      TString fname;
+
+      while ((file=(TSystemFile*)next())) {
+         fname = file->GetName();
+         if (fname.EndsWith(".csv")) {
+            ans.push_back(basedir+fname);
+         }
+      }
+   }
+
+   return ans;
+}
 
 map<anabin, limits> readLimits(const char* limitsfile) {
    map<anabin, limits> ans;
@@ -64,7 +93,21 @@ map<anabin, limits> readLimits(const char* limitsfile) {
    }
 
    return ans;
-};
+}
+
+void readLimits_all(const char* prependPath, const char* texName, const char* token) {
+   vector< map<anabin, limits> > limmap_all;
+   vector<TString> filelist = fileList_lim(prependPath);
+
+   for (vector<TString>::const_iterator it=filelist.begin(); it!=filelist.end(); it++) {
+      if (it->Index(token) == kNPOS) continue; 
+      cout << "Reading file " << *it << endl;
+      map<anabin,limits> limmap = readLimits(it->Data());
+      limmap_all.push_back(limmap);
+   }
+
+   printTex(limmap_all, texName, true);
+}
 
 void printTex(vector< map<anabin, limits> > theLims, const char* texName, bool isLastTotal) {
    unsigned int nlimits = theLims.size();
@@ -72,7 +115,6 @@ void printTex(vector< map<anabin, limits> > theLims, const char* texName, bool i
    ofstream file(texName);
    file << "\\begin{tabular}{|ccc|"; 
    for (unsigned int i=0; i<nlimits; i++) {
-      if (i==nlimits-1) file << "|";
       file << "c|";
    }
    file << "}" << endl;
@@ -97,20 +139,20 @@ void printTex(vector< map<anabin, limits> > theLims, const char* texName, bool i
          file << " - ";
       } else {
          if (itm != themap.begin()) file << "\\hline" << endl;
-         file.precision(1); file.setf(ios::fixed);
+         file.precision(2); file.setf(ios::fixed);
          file << thebin.rapbin().low() << " $< |y| < $ " << thebin.rapbin().high();
       }
       file << " & ";
       if (thebin.ptbin() == oldbin.ptbin()) {
          file << " - ";
       } else {
-         file.precision(1); file.setf(ios::fixed);
+         file.precision(2); file.setf(ios::fixed);
          file << thebin.ptbin().low() << " $< \\pt < $ " << thebin.ptbin().high();
       }
       file << " & ";
       file.unsetf(ios::fixed);
       file << thebin.centbin().low()/2 << "-" << thebin.centbin().high()/2 << "\\% ";
-      file.precision(1);
+      file.precision(2);
       file.setf(ios::fixed);
 
       for (unsigned int i=0; i<nlimits; i++) {
@@ -125,6 +167,52 @@ void printTex(vector< map<anabin, limits> > theLims, const char* texName, bool i
    file << "\\end{tabular}" << endl;
    file.close();
    cout << "Closed " << texName << endl;
+}
+
+void limitsFromFits(const char* workDir, const char* output) {
+   // list of files
+   vector<TString> theFiles, theFiles2;
+   theFiles = fileList(workDir,"PbPb", "DATA", "../Fitter/");
+   theFiles2 = fileList(workDir,"PP", "DATA", "../Fitter/");
+
+   ofstream file(output);
+   file << "0.683" << endl;
+
+   vector<TString>::const_iterator it,it2;
+   for (vector<TString>::const_iterator it=theFiles.begin(); it!=theFiles.end(); it++) {
+      anabin thebin = binFromFile(it->Data());
+      RooRealVar *num=NULL;
+      num = poiFromFile(it->Data(),"_PbPb","RFrac2Svs1S");
+
+      // force the centrality to 0-200 for pp
+      anabin thebinpp = thebin;
+      binI centbin(0,200);
+      thebinpp.setcentbin(centbin);
+
+      // look for the pp file corresponding to the pbpb one
+      bool found=false;
+      for (it2=theFiles2.begin(); it2!=theFiles2.end(); it2++) {
+         if (binFromFile(it2->Data()) == thebinpp) {
+            found=true;
+            break;
+         }
+      }
+      if (!found) {
+         cout << "Error! I did not find the PP file for " << *it << endl;
+         return;
+      }
+      anabin thebin_PP = binFromFile(it2->Data());
+      RooRealVar *den = NULL;
+      den = poiFromFile(it2->Data(),"_PP","RFrac2Svs1S");
+      RooRealVar *ratio = ratioVar(num,den,true); // if plotting the centrality dependence, do not put the pp stat
+      file << thebin.rapbin().low() << ", " << thebin.rapbin().high() << ", "
+         << thebin.ptbin().low() << ", " << thebin.ptbin().high() << ", "
+         << thebin.centbin().low() << ", " << thebin.centbin().high() << ", "
+         << ratio->getVal() + ratio->getErrorLo() << ", " << ratio->getVal() + ratio->getErrorHi() << endl;
+      delete num; delete den;
+   }
+
+   file.close();
 }
 
 map<anabin, vector<limits> > vm2mv(vector< map<anabin,limits> > v) {

@@ -14,6 +14,7 @@
 #include "TLegend.h"
 #include "TCanvas.h"
 #include "TSystem.h"
+#include "TLine.h"
 
 #include <vector>
 #include <string>
@@ -25,8 +26,8 @@ using namespace std;
 //////////////
 // SETTINGS //
 //////////////
-const char* normalCutsDir="nominal";
-const char* invCutsDir="nonprompt";
+#define normalCutsDir "nominal"
+#define invCutsDir "nonprompt"
 
 /////////////////////////////////////////////
 // MAIN FUNCTIONS TO BE CALLED BY THE USER //
@@ -45,6 +46,10 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
 // will plot the dependence of varname as a function of the analysis bin (scanning all analysis bins)
 // if xaxis=="", all bins are plotted. Otherwise only bins differential in xaxis are shown.
 void plotFiles(const char* workDirNames, const char* varname, const char* xaxis="", const char* collTag="PP", bool plotErr=true, const char* DSTag="DATA");
+
+// will plot the dependence of varname1 and varname2 (from the same file) as a function of the analysis bin (scanning all analysis bins)
+// if xaxis=="", all bins are plotted. Otherwise only bins differential in xaxis are shown.
+void plotComparisonVars(const char* workDirName, const char* varname1, const char* varname2, const char* xaxis="", const char* collTag="", bool plotErr=true, const char* DSTag="DATA");
 
 ////////////////////////
 // OTHER DECLARATIONS //
@@ -272,7 +277,7 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
 
       // special cases of Bfrac and Nprompt
       if (TString(varname).Index("Bfrac") != kNPOS || TString(varname).Index("Prompt") != kNPOS) {
-         RooRealVar bfracvar = bfrac(normalCutsDir,invCutsDir,trbin,Form("%s_%s",varname,collTag));
+         RooRealVar bfracvar = bfrac(normalCutsDir,invCutsDir,trbin,Form("%s_%s",varname,collTag.c_str()));
          val = bfracvar.getVal();
          val_err = bfracvar.getError();
       } 
@@ -594,6 +599,163 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
    cpull->SaveAs(Form("Output/%s/plot/RESULT/root/pull_%s_%s_vs_%s.root",tags[0].c_str(), collTag, varname, xaxis));
    cpull->SaveAs(Form("Output/%s/plot/RESULT/png/pull_%s_%s_vs_%s.png",tags[0].c_str(), collTag, varname, xaxis));
    cpull->SaveAs(Form("Output/%s/plot/RESULT/pdf/pull_%s_%s_vs_%s.pdf",tags[0].c_str(), collTag, varname, xaxis));
+}
+
+void plotComparisonVars(const char* workDirName, const char* varname1, const char* varname2, const char* xaxis, const char* collTag, bool plotErr, const char* DSTag) {
+  setTDRStyle();
+  
+  typedef pair<anabin,string> anabinc;
+  
+  map<anabinc,int> binmap;
+  
+  float ptmin, ptmax, ymin, ymax, centmin, centmax;
+  char collSystem[5];
+  float val1, val_err1=0;
+  float val2, val_err2=0;
+  
+  int ibin=1;
+  TFile *f = new TFile(treeFileName(workDirName,DSTag));
+  if (!f || !f->IsOpen()) {
+    results2tree(workDirName,DSTag);
+    f = new TFile(treeFileName(workDirName,DSTag));
+    if (!f) return;
+  }
+  TTree *tr = (TTree*) f->Get("fitresults");
+  if (!tr)
+  {
+    cout << "[Error]: Results tree could not be retrieved" << endl;
+    return;
+  }
+  tr->SetBranchAddress("ptmin",&ptmin);
+  tr->SetBranchAddress("ptmax",&ptmax);
+  tr->SetBranchAddress("ymin",&ymin);
+  tr->SetBranchAddress("ymax",&ymax);
+  tr->SetBranchAddress("centmin",&centmin);
+  tr->SetBranchAddress("centmax",&centmax);
+  tr->SetBranchAddress("collSystem",collSystem);
+  if (string(varname1)=="nll" || string(varname1)=="chi2" || string(varname1)=="normchi2" || string(varname1) == "chi2prob") {
+    tr->SetBranchAddress(varname1,&val1);
+    tr->SetBranchAddress(varname2,&val2);
+  } else if (string(varname1).find("npar") != string::npos) {
+    tr->SetBranchAddress(varname1,&val1);
+    tr->SetBranchAddress(varname2,&val2);
+  } else {
+    tr->SetBranchAddress(Form("%s_val",varname1),&val1);
+    tr->SetBranchAddress(Form("%s_val",varname2),&val2);
+  }
+  if (plotErr)
+  {
+    tr->SetBranchAddress(Form("%s_err",varname1),&val_err1);
+    tr->SetBranchAddress(Form("%s_err",varname2),&val_err2);
+  }
+  
+  map<anabinc,float> vals1;
+  map<anabinc,float> errs1;
+  
+  map<anabinc,float> vals2;
+  map<anabinc,float> errs2;
+  
+  for (int i=0; i<tr->GetEntries(); i++) {
+    tr->GetEntry(i);
+    anabinc thebin(anabin(ymin,ymax,ptmin,ptmax,centmin,centmax), collSystem);
+    if ((string(collTag) == "" || string(collTag) == collSystem) && binok(thebin.first,xaxis)) {
+      vals1[thebin] = val1;
+      errs1[thebin] = val_err1;
+      
+      vals2[thebin] = val2;
+      errs2[thebin] = val_err2;
+      
+      if (binmap.find(thebin) == binmap.end()) {
+        binmap[thebin] = ibin;
+        ibin++;
+      }
+    }
+  }
+  
+  delete f;
+  
+  int nbins = binmap.size();
+  TCanvas *c1 = new TCanvas("c1", "",139,267,1265,537);
+  c1->Range(-2.920651,-1.349463,34.28077,6.101919);
+  c1->SetFillColor(0);
+  c1->SetBorderMode(0);
+  c1->SetBorderSize(2);
+  c1->SetTickx(1);
+  c1->SetTicky(1);
+  c1->SetLeftMargin(0.07850912);
+  c1->SetRightMargin(0.1419508);
+  c1->SetTopMargin(0.03543307);
+  c1->SetBottomMargin(0.1811024);
+  c1->SetFrameFillStyle(0);
+  c1->SetFrameBorderMode(0);
+  c1->SetFrameFillStyle(0);
+  c1->SetFrameBorderMode(0);
+  
+//  TLegend *tleg = new TLegend(0.18,0.73,0.52,0.89);
+//  tleg->SetBorderSize(0);
+  
+//  TH1F *h1 = new TH1F("h1",Form(";;%s",varname1),nbins,0,nbins);
+  TH1F *h1 = new TH1F("h1",Form(";;%s/%s",varname1,varname2),nbins,0,nbins);
+  h1->SetLineColor(1);
+  h1->SetMarkerColor(1);
+  h1->SetMarkerStyle(20);
+  h1->SetMarkerSize(1.5);
+  h1->GetYaxis()->SetTitleOffset(0.5);
+  h1->GetXaxis()->SetLabelSize(0.04);
+  
+  TH1F *h2 = new TH1F("h2",Form(";;%s",varname2),nbins,0,nbins);
+  h2->SetLineColor(2);
+  h2->SetMarkerColor(2);
+  h2->SetMarkerStyle(20);
+  h2->SetMarkerSize(1.5);
+  
+  
+  map<anabinc,float>::const_iterator itv1=vals1.begin(),ite1=errs1.begin();
+  for (;itv1!=vals1.end();itv1++,ite1++) {
+    anabinc thebinc = itv1->first;
+    anabin thebin = thebinc.first;
+    h1->SetBinContent(binmap[thebinc],itv1->second);
+    h1->SetBinError(binmap[thebinc],ite1->second);
+    h1->GetXaxis()->SetBinLabel(binmap[thebinc],Form("%s-Pt[%.1f-%.1f]-Y[%.1f-%.1f]-C[%i-%i]",thebinc.second.c_str(),
+                                                     thebin.ptbin().low(),thebin.ptbin().high(),
+                                                     thebin.rapbin().low(),thebin.rapbin().high(),
+                                                     thebin.centbin().low(),thebin.centbin().high()));
+  }
+  
+  map<anabinc,float>::const_iterator itv2=vals2.begin(),ite2=errs2.begin();
+  for (;itv2!=vals2.end();itv2++,ite2++) {
+    anabinc thebinc = itv2->first;
+    anabin thebin = thebinc.first;
+    h2->SetBinContent(binmap[thebinc],itv2->second);
+//    h2->SetBinError(binmap[thebinc],ite2->second);
+    h2->SetBinError(binmap[thebinc],0.);
+    h2->GetXaxis()->SetBinLabel(binmap[thebinc],Form("%s-Pt[%.1f-%.1f]-Y[%.1f-%.1f]-C[%i-%i]",thebinc.second.c_str(),
+                                                     thebin.ptbin().low(),thebin.ptbin().high(),
+                                                     thebin.rapbin().low(),thebin.rapbin().high(),
+                                                     thebin.centbin().low(),thebin.centbin().high()));
+  }
+  
+  
+  h1->Divide(h2);
+  
+  double vmin = h1->GetMinimum();
+  double vmax = h1->GetMaximum();
+  h1->GetYaxis()->SetRangeUser(0.,vmax+vmax*0.1);
+  
+//  tleg->AddEntry(h1,varname1,"l");
+//  tleg->AddEntry(h2,varname2,"l");
+  TLine* l1 = new TLine(0.,1.,h1->GetXaxis()->GetXmax(),1.);
+  l1->SetLineWidth(3);
+  
+  h1->GetListOfFunctions()->Add(l1);
+  
+  h1->Draw();
+//  h2->Draw("same");
+//  tleg->Draw("same");
+  gSystem->mkdir(Form("Output/%s/plot/RESULT/root/", workDirName), kTRUE);
+  c1->SaveAs(Form("Output/%s/plot/RESULT/root/comparison_%s_%s.root",workDirName, varname1, varname2));
+  gSystem->mkdir(Form("Output/%s/plot/RESULT/pdf/", workDirName), kTRUE);
+  c1->SaveAs(Form("Output/%s/plot/RESULT/pdf/comparison_%s_%s.pdf",workDirName, varname1, varname2));
 }
 
 bool binok(anabin thebin, const char* xaxis) {

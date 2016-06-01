@@ -503,6 +503,17 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
          mResultFileName += name;
       }
 
+      TString sCL(Form("_%.3f",optHTInv.confLevel));
+      sCL.Remove(sCL.First('_')+1,sCL.First('.'));
+      bool isroot = false;
+      if ( mResultFileName.Contains(".root") )
+      {
+         isroot = true;
+         mResultFileName.ReplaceAll(".root","");
+      }
+      mResultFileName += sCL.Data();
+      if ( isroot ) mResultFileName += ".root";
+     
       // get (if existing) rebuilt UL distribution
       TString uldistFile = "RULDist.root";
       TObject * ulDist = 0;

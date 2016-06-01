@@ -23,6 +23,7 @@
 #include "RooWorkspace.h"
 #include "TSystemDirectory.h"
 #include "TSystemFile.h"
+#include "TArrow.h"
 
 using namespace std;
 
@@ -37,10 +38,13 @@ const char* poiname = "RFrac2Svs1S";
 const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
 const bool  doratio       = true;  // true -> look for separate PP and PbPb files, false -> input files are with simultaneous pp-PbPb fits
 const bool  plot12007     = false; // compare with 12-007
-const bool  promptonly    = true;  // plot the prompt only double ratio
-const bool  nonpromptonly = false;  // plot the non-prompt only double ratio
-const char* normalCutsDir="nominal";
-const char* invCutsDir="nonprompt";
+const bool  fiterrors     = true;  // statistical errors are from the fit
+const bool  FCerrors      = false; // statistical errors are from the Feldman-Cousins intervals ("limits")
+const bool  promptonly    = false; // plot the prompt only double ratio
+const bool  nonpromptonly = false; // plot the non-prompt only double ratio
+#define normalCutsDir "nominal"
+#define invCutsDir "nonprompt"
+const char* nameTag="";            // can put here e.g. "_prompt", "_nonprompt", ...
 
 
 ///////////////
@@ -59,8 +63,8 @@ RooRealVar* poiFromFile(const char* filename, const char* token="");
 void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsymmErrors*> theGraphs_syst, string xaxis, string outputDir, map<anabin, syst> gsyst);
 void plot(vector<anabin> thecats, string xaxis, string workDirName);
 void centrality2npart(TGraphAsymmErrors* tg, bool issyst=false, bool isMB=false, double xshift=0.);
-void plotLimits(vector<anabin> theCats, string xaxis);
-void drawArrow(double x, double y, double dx, Color_t color);
+void plotLimits(vector<anabin> theCats, string xaxis, const char* filename="../Limits/csv/Limits_95.csv", double xshift=0, bool ULonly=true, bool isInclusive=false);
+void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color);
 
 
 
@@ -187,6 +191,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       syst_PP = combineSyst(all_PP,"statsyst_PP");
    }
    map<anabin, syst> syst_PbPb = readSyst_all("PbPb");
+   map<anabin, syst> syst_PbPb_NP_add = readSyst("Systematics/csv/syst_PbPb_bhad_add.csv");
 
    // make TGraphAsymmErrors
    int cnt=0;
@@ -231,12 +236,27 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
             // exsyst = !isMB ? 5 : 5./(1.-xfrac);
             exsyst = exl;
             eysyst = syst_PbPb[thebin].value; // only PbPb syst: the PP one will go to a dedicated box
-            // also add
          }
          y = theVarsBinned[*it][i]->getVal();
-         eyl = fabs(theVarsBinned[*it][i]->getErrorLo());
-         eyh = theVarsBinned[*it][i]->getErrorHi();
+         if (fiterrors) {
+            eyl = fabs(theVarsBinned[*it][i]->getErrorLo());
+            eyh = theVarsBinned[*it][i]->getErrorHi();
+         } else {
+            map<anabin, limits> maplim = readLimits("../Limits/csv/Limits_68.csv");
+            if (maplim.find(*it) != maplim.end()) {
+               limits lim = maplim[*it];
+               eyl = lim.val.first;
+               eyh = lim.val.second;
+            } else {
+               eyl = fabs(theVarsBinned[*it][i]->getErrorLo());
+               eyh = theVarsBinned[*it][i]->getErrorHi();
+            }
+         }
+
          eysyst = y*eysyst;
+         // add the additive part of the NP contamination syst
+         if (syst_PbPb_NP_add.find(thebin) != syst_PbPb_NP_add.end()) eysyst = sqrt(pow(syst_PbPb_NP_add[thebin].value,2) + pow(eysyst,2)); 
+
          theGraphs[*it]->SetPoint(i,x,y);
          theGraphs[*it]->SetPointError(i,exl,exh,eyl,eyh);
          theGraphs_syst[*it]->SetPoint(i,x,y);
@@ -340,7 +360,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    // prepare for the printing of the result tables
    const char* xname = (xaxis=="cent") ? "Centrality" : "\\pt";
    gSystem->mkdir(Form("Output/%s/tex/", outputDir.c_str()), kTRUE); 
-   char texname[2048]; sprintf(texname, "Output/%s/tex/result_%s.tex",outputDir.c_str(),xaxis.c_str());
+   char texname[2048]; sprintf(texname, "Output/%s/tex/result_%s%s.tex",outputDir.c_str(),xaxis.c_str(),nameTag);
    string yname("\\doubleRatio");
    inittex(texname, xname, yname);
 
@@ -373,6 +393,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          tg_syst->SetFillColorAlpha(kGreen, 0.5);
       }
       tg->SetMarkerSize(1.5);
+      tg->SetLineWidth(tg->GetLineWidth()*2);
 
       if (xaxis=="cent") {
          if (thebin.centbin().low()<=0 && thebin.centbin().high()<=0) padr->cd();
@@ -382,7 +403,9 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          prune(tg, tg_syst);
       }
       tg_syst->Draw("2");      
-      tg->Draw("P");      
+      gStyle->SetEndErrorSize(5);
+      tg->Draw("P");
+      // tg->Draw("[]");
 
       TString raplabel = Form("%.1f < |y| < %.1f, ",it->first.rapbin().low(),it->first.rapbin().high());
       TString otherlabel = "BWAA";
@@ -479,7 +502,15 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       padl->cd();
    }
 
-   plotLimits(theCats,xaxis);
+   plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv",0);
+   if (fiterrors && FCerrors) plotLimits(theCats,xaxis,"../Limits/csv/Limits_68_testnofix.csv",xaxis=="cent" ? 5 : 1, false);
+
+   // limits for inclusive
+   if (xaxis=="cent") {
+      padr->cd();
+      plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv", 0 , true, true);
+      padl->cd();
+   }
 
    if (xaxis=="cent") padl->cd();
    tleg->Draw();
@@ -492,11 +523,11 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    c1->Update();
    c1->RedrawAxis();
    gSystem->mkdir(Form("Output/%s/plot/RESULT/root/", outputDir.c_str()), kTRUE); 
-   c1->SaveAs(Form("Output/%s/plot/RESULT/root/result_%s%s.root",outputDir.c_str(), xaxis.c_str(), plot12007 ? "_12007" : ""));
+   c1->SaveAs(Form("Output/%s/plot/RESULT/root/result_%s%s%s.root",outputDir.c_str(), xaxis.c_str(), nameTag, plot12007 ? "_12007" : ""));
    gSystem->mkdir(Form("Output/%s/plot/RESULT/png/", outputDir.c_str()), kTRUE);
-   c1->SaveAs(Form("Output/%s/plot/RESULT/png/result_%s%s.png",outputDir.c_str(), xaxis.c_str(), plot12007 ? "_12007" : ""));
+   c1->SaveAs(Form("Output/%s/plot/RESULT/png/result_%s%s%s.png",outputDir.c_str(), xaxis.c_str(), nameTag, plot12007 ? "_12007" : ""));
    gSystem->mkdir(Form("Output/%s/plot/RESULT/pdf/", outputDir.c_str()), kTRUE);
-   c1->SaveAs(Form("Output/%s/plot/RESULT/pdf/result_%s%s.pdf",outputDir.c_str(), xaxis.c_str(), plot12007 ? "_12007" : ""));
+   c1->SaveAs(Form("Output/%s/plot/RESULT/pdf/result_%s%s%s.pdf",outputDir.c_str(), xaxis.c_str(), nameTag, plot12007 ? "_12007" : ""));
 
    delete tleg;
    delete haxes; delete haxesr;
@@ -533,18 +564,22 @@ void centrality2npart(TGraphAsymmErrors* tg, bool issyst, bool isMB, double xshi
    }
 }
 
-void plotLimits(vector<anabin> theCats, string xaxis) {
-   map<anabin,limits> maplim = readLimits("../Limits/csv/Limits_95.csv");
+void plotLimits(vector<anabin> theCats, string xaxis, const char* filename, double xshift, bool ULonly, bool isInclusive) {
+   map<anabin,limits> maplim = readLimits(filename);
 
    map<anabin,limits>::const_iterator it;
    for (it=maplim.begin(); it!=maplim.end(); it++) {
       anabin thebin = it->first;
       if (!binok(theCats,xaxis,thebin,false)) continue;
       limits lim = it->second;
-      if (lim.val.first>0) continue; // only draw upper limits, ie interval which lower limit is 0
+      if (ULonly && lim.val.first>0) continue; // only draw upper limits, ie interval which lower limit is 0
+      bool isInclusiveBin = (xaxis=="cent" && thebin.centbin()==binI(0,200));
+      if (isInclusiveBin && !isInclusive) continue;
+      if (!isInclusiveBin && isInclusive) continue;
       // draw arrow in the right place and with the right color...
       Color_t color=kBlack;
       double x=0, y=0, dx=0;
+      double ylow = lim.val.first;
       y = lim.val.second;
       if (xaxis=="pt") {
          double low= thebin.ptbin().low();
@@ -554,23 +589,25 @@ void plotLimits(vector<anabin> theCats, string xaxis) {
       } else if (xaxis=="cent") {
          double low= thebin.centbin().low();
          double high = thebin.centbin().high();
-         x = HI::findNpartAverage(low,high);
-         dx = 10;
+         x = isInclusive ? 150 + (150./1.6)*thebin.rapbin().low(): HI::findNpartAverage(low,high);
+         dx = isInclusive ? 10./(1.-xfrac) : 10;
       }
       if (thebin.rapbin() == binF(0.,1.6)) {
          color = kBlue;
       } else if (thebin.rapbin() == binF(1.6,2.4)) {
          color = kRed;
       }
-      drawArrow(x, y, dx, color);
+      drawArrow(x+xshift, ylow, y, dx, color);
    }
 }
 
-void drawArrow(double x, double y, double dx, Color_t color) {
-   TArrow *arrow = new TArrow(x,y,x,0.05,0.03);
+void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color) {
+   TArrow *arrow = new TArrow(x,yhigh,x,ylow<=0. ? 0.05 : ylow,0.03,ylow<=0. ? ">" : "<>");
    arrow->SetLineColor(color);
    arrow->Draw();
-   TLine *line = new TLine(x-dx,y,x+dx,y);
-   line->SetLineColor(color);
-   line->Draw();
+   if (ylow<=0.) {
+      TLine *line = new TLine(x-dx,yhigh,x+dx,yhigh);
+      line->SetLineColor(color);
+      line->Draw();
+   }
 }

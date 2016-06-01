@@ -18,7 +18,6 @@ bool isFitAlreadyFound(RooArgSet *newpars, string outputDir, string plotLabel, s
 bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2);
 bool loadPreviousFitResult(RooWorkspace& myws, string outputDir, string plotLabel, string DSTAG, struct KinCuts cut, bool isPbPb=true, bool doSimulFit=false);
 
-
 bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the input RooDatasets
 		   struct KinCuts cut,            // Variable containing all kinematic cuts
 		   map<string, string>  parIni,   // Variable containing all initial parameters
@@ -34,7 +33,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
                    bool cutCtau     = false,      // Apply prompt ctau cuts
                    bool doSimulFit  = false,      // Do simultaneous fit
                    bool wantPureSMC = false,      // Flag to indicate if we want to fit pure signal MC
-                   int  numCores    = 2,          // Number of cores used for fitting
+		   int  numCores    = 2,          // Number of cores used for fitting
                    // Select the drawing options
                    bool setLogScale = true,       // Draw plot with log scale
                    bool incSS       = false,      // Include Same Sign data
@@ -43,18 +42,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
                    bool getMeanPT   = false       // Compute the mean PT (NEED TO FIX)
 		   )  
 {
-
-  // Check if input dataset is MC
-  bool isMC = false;
-  if (DSTAG.find("MC")!=std::string::npos) {
-    if (incJpsi && incPsi2S) { 
-      cout << "[ERROR] We can only fit one type of signal using MC" << endl; return false; 
-    }
-    isMC = true;
-  }
-  if (isMC && wantPureSMC) wantPureSMC=true;
-  else wantPureSMC=false;
-
+   
   // Define the mass range
   if (cut.dMuon.M.Max==5 && cut.dMuon.M.Min==2) { 
     // Default mass values, means that the user did not specify a mass range
@@ -86,6 +74,22 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
   if (cutCtau) { setCtauCuts(cut, isPbPb); }  
 
 
+  // Check if input dataset is MC
+  bool isMC = false;
+  if (DSTAG.find("MC")!=std::string::npos) {
+    if (incJpsi && incPsi2S) { 
+      cout << "[ERROR] We can only fit one type of signal using MC" << endl; return false; 
+    }
+    isMC = true;
+  }
+  if (isMC && wantPureSMC) wantPureSMC=true;
+  else wantPureSMC=false;
+
+  bool applyWeight_AccEff = false;
+  if (DSTAG.find("AccEff")!=std::string::npos) applyWeight_AccEff = true;
+  else applyWeight_AccEff = false;
+    
+
   struct InputOpt opt; setOptions(&opt);
   
   string plotLabelPbPb,  plotLabelPP;
@@ -102,6 +106,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
     // Import the local datasets
     string label = Form("%s_%s", DSTAG.c_str(), "PP");
     if (wantPureSMC) label = Form("%s_%s_NoBkg", DSTAG.c_str(), "PP");
+    if(applyWeight_AccEff) label = Form("%s", DSTAG.c_str());
     string dsName = Form("dOS_%s", label.c_str());
     int importID = importDataset(myws, inputWorkspace, cut, label);
     if (importID<0) { return false; }
@@ -123,6 +128,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
     // Import the local datasets
     string label = Form("%s_%s", DSTAG.c_str(), "PbPb");
     if (wantPureSMC) label = Form("%s_%s_NoBkg", DSTAG.c_str(), "PbPb");
+    if(applyWeight_AccEff) label = Form("%s", DSTAG.c_str());
     string dsName = Form("dOS_%s", label.c_str());
     int importID = importDataset(myws, inputWorkspace, cut, label);
     if (importID<0) { return false; }
@@ -180,6 +186,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
         string pdfName = "pdfMASS_Tot_PbPb";
         string dsName = Form("dOS_%s_PbPb", DSTAG.c_str());
         if (wantPureSMC) dsName = Form("dOS_%s_PbPb_NoBkg", DSTAG.c_str());
+	if(applyWeight_AccEff) dsName = Form("dOS_%s", DSTAG.c_str());
 
         // check if we have already done this fit. If yes, do nothing and return true.
         RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(*(myws.var("invMass")));
@@ -188,7 +195,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
           cout << "[INFO] This fit was already done, so I'll just go to the next one." << endl;
           return true;
         }
-        
+
         bool isWeighted = myws.data(dsName.c_str())->isWeighted();
 
         if (incPsi2S && ! incJpsi) {
@@ -212,7 +219,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
           }  
         } else {
           RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBand1,SideBand2"), NumCPU(numCores), Save());
-          fitResult->Print();
+          fitResult->Print("v");
           myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
         }
         
@@ -225,7 +232,8 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
         
         string pdfName = "pdfMASS_Tot_PP";
         string dsName = Form("dOS_%s_PP", DSTAG.c_str());
-        if (wantPureSMC) dsName = Form("dOS_%s_PP_NoBkg", DSTAG.c_str());
+	if (wantPureSMC) dsName = Form("dOS_%s_PP_NoBkg", DSTAG.c_str());
+	if(applyWeight_AccEff) dsName = Form("dOS_%s", DSTAG.c_str());
         
         // check if we have already done this fit. If yes, do nothing and return true.
         RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(*(myws.var("invMass")));
@@ -247,16 +255,22 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
 
         // Fit the Datasets
         if (incJpsi || incPsi2S) {
-          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(numCores), Save());
-          fitResult->Print("v"); 
-          myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
-        } else {
+	  if (isWeighted) {
+            RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(kTRUE), Range("MassWindow"), NumCPU(numCores), Save());
+            fitResult->Print("v"); 
+            myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
+          } else {
+            RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(numCores), Save());
+            fitResult->Print("v");
+            myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
+          }  
+	} else {
           RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBand1,SideBand2"), NumCPU(numCores), Save());
           fitResult->Print("v");
           myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
         }
-        
-        // Draw the mass plot
+       
+	// Draw the mass plot
         drawMassPlot(myws, outputDir, opt, cut, wantPureSMC ? (plotLabelPP+"_NoBkg") : plotLabelPP, DSTAG, false, incJpsi, incPsi2S, incBkg, cutCtau, doSimulFit, wantPureSMC, setLogScale, incSS, zoomPsi, nBins, getMeanPT);
       }
     }
