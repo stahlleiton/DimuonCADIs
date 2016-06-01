@@ -4,6 +4,7 @@
 #include "Utilities/initClasses.h"
 #include "buildCharmoniaMassModel.C"
 #include "drawMassPlot.C"
+#include <boost/algorithm/string/replace.hpp>
 
 #include <algorithm>
 
@@ -189,7 +190,15 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
         }
         
         bool isWeighted = myws.data(dsName.c_str())->isWeighted();
-        
+
+        if (incPsi2S && ! incJpsi) {
+          string outDir = "/home/llr/cms/stahl/DimuonCADIs/HIN-16-004/Fitter/Output/BkgStudyCheb_ptCtauCut_JPSIONLY_Alpha_n_rSigmaPbPb_Jpsifixed/";
+          string plotLabel = Form("_Jpsi_%s", parIni["Model_Psi2S_PbPb"].c_str()); 
+          plotLabel = plotLabel + Form("_Bkg_%s", parIni["Model_Bkg_PbPb"].c_str());
+          if ( !loadPreviousFitResult(myws, outDir, plotLabel, DSTAG, cut, true, false) ) { cout << " PROBLEM IN PBPB " << endl; return false; }
+          myws.pdf("pdfMASS_Psi2S_PbPb")->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
+        }
+
         // Fit the Datasets
         if (incJpsi || incPsi2S) {
           if (isWeighted) {
@@ -228,6 +237,14 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
         
         bool isWeighted = myws.data(dsName.c_str())->isWeighted();
         
+        if (incPsi2S && ! incJpsi) {
+          string outDir = "/home/llr/cms/stahl/DimuonCADIs/HIN-16-004/Fitter/Output/BkgStudyCheb_ptCtauCut_JPSIONLY_Alpha_n_rSigmaPbPb_Jpsifixed/";
+          string plotLabel = Form("_Jpsi_%s", parIni["Model_Psi2S_PP"].c_str()); 
+          plotLabel = plotLabel + Form("_Bkg_%s", parIni["Model_Bkg_PP"].c_str());
+          if ( !loadPreviousFitResult(myws, outDir, plotLabel, DSTAG, cut, false, false) ) { cout << " PROBLEM IN PP " << endl; return false; }
+          myws.pdf("pdfMASS_Psi2S_PP")->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
+        }
+
         // Fit the Datasets
         if (incJpsi || incPsi2S) {
           RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(numCores), Save());
@@ -250,13 +267,14 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
 
 void setCtauCuts(struct KinCuts& cut, bool isPbPb) 
 {
+  /*
   if (cut.dMuon.AbsRap.Max<=1.6) {
     cut.dMuon.ctauCut = "( ctau < (0.012 + (0.23/pt)) )";
   }
   if (cut.dMuon.AbsRap.Min>=1.6) {
     cut.dMuon.ctauCut = "( ctau < (0.014 + (0.28/pt)) )";
   }
-/*
+  */
   if (cut.dMuon.AbsRap.Max<=1.6 && isPbPb) {
     cut.dMuon.ctauCut = "( ctau < (0.013 + (0.22/pt)) )";
   }
@@ -269,7 +287,6 @@ void setCtauCuts(struct KinCuts& cut, bool isPbPb)
   if (cut.dMuon.AbsRap.Min>=1.6 && !isPbPb) {
     cut.dMuon.ctauCut = "( ctau < (0.013 + (0.29/pt)) )";
   }
-*/
 };
 
 
@@ -512,7 +529,20 @@ bool loadPreviousFitResult(RooWorkspace& myws, string outputDir, string plotLabe
     if (myws.var(name.c_str())) { 
       print = print + Form("  %s: %.5f->%.5f  ", name.c_str(), myws.var(name.c_str())->getValV(), ws->var(name.c_str())->getValV()) ;
       myws.var(name.c_str())->setVal  ( ws->var(name.c_str())->getValV()  );
-      myws.var(name.c_str())->setError( ws->var(name.c_str())->getError() );
+      myws.var(name.c_str())->setError( 0.0 );
+    } else {
+      Double_t MassRatio = (Mass.Psi2S/Mass.JPsi);
+      string reName = name.c_str();
+      boost::replace_all(reName, "Jpsi", "Psi2S");
+      if (myws.var(reName.c_str())) {
+        Double_t value = 0.0;
+        if ( (reName==Form("sigma1_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ) { value = ws->var(name.c_str())->getValV() * MassRatio; }
+        else if ( (reName==Form("m_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ) { value = ws->var(name.c_str())->getValV() * MassRatio; }
+        else { value = ws->var(name.c_str())->getValV(); }
+        print = print + Form("  %s: %.5f->%.5f  ", reName.c_str(), myws.var(reName.c_str())->getValV(), value) ;
+        myws.var(reName.c_str())->setVal  ( value );
+        myws.var(reName.c_str())->setError( 0.0 );
+      }
     }
   }
   cout << print << endl;
