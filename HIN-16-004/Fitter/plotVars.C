@@ -35,17 +35,17 @@ using namespace std;
 
 // will plot the dependence of varname in workDirName, as a function of pt, centrality or rapidity. 
 // collTag should be PP or PbPb. If collTag="", then both PP and PbPb are plotted.
-void plotPt(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, const char* DSTag="DATA");
-void plotCent(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, const char* DSTag="DATA");
-void plotRap(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, const char* DSTag="DATA");
+void plotPt(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, const char* DSTag="DATA", bool doSig=false);
+void plotCent(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, const char* DSTag="DATA", bool doSig=false);
+void plotRap(const char* workDirName, const char* varname, const char* collTag="", bool plotErr=true, const char* DSTag="DATA", bool doSig=false);
 
 // will plot the dependence of varname as a function to xaxis (=pt, cent or rap) for the file in workDirNames (of the form "dir1,dir2,dir3,...")
 void plotFiles(const char* workDirNames, const char* varname, const char* xaxis, float rapmin, float rapmax, float ptmin, float ptmax, int centmin, int centmax, 
-      const char* collTag="PP", bool plotErr=true, const char* DSTag="DATA");
+      const char* collTag="PP", bool plotErr=true, const char* DSTag="DATA", bool doSig=false);
 
 // will plot the dependence of varname as a function of the analysis bin (scanning all analysis bins)
 // if xaxis=="", all bins are plotted. Otherwise only bins differential in xaxis are shown.
-void plotFiles(const char* workDirNames, const char* varname, const char* xaxis="", const char* collTag="PP", bool plotErr=true, const char* DSTag="DATA");
+void plotFiles(const char* workDirNames, const char* varname, const char* xaxis="", const char* collTag="PP", bool plotErr=true, const char* DSTag="DATA", bool doSig=false);
 
 // will plot the dependence of varname1 and varname2 (from the same file) as a function of the analysis bin (scanning all analysis bins)
 // if xaxis=="", all bins are plotted. Otherwise only bins differential in xaxis are shown.
@@ -55,9 +55,9 @@ void plotComparisonVars(const char* workDirName, const char* varname1, const cha
 // OTHER DECLARATIONS //
 ////////////////////////
 
-TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxis, string collTag, bool plotErr=true);
-vector<TGraphErrors*> plotVar(TTree *tr, const char* varname, vector<anabin> theBin, string xaxis, string collTag, bool plotErr=true);
-TGraphErrors* plotVar(const char* filename, const char* varname, anabin theBin, string xaxis, string collTag, bool plotErr=true);
+TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxis, string collTag, bool plotErr=true, bool doSig=false);
+vector<TGraphErrors*> plotVar(TTree *tr, const char* varname, vector<anabin> theBin, string xaxis, string collTag, bool plotErr=true, bool doSig=false);
+TGraphErrors* plotVar(const char* filename, const char* varname, anabin theBin, string xaxis, string collTag, bool plotErr=true, bool doSig=false);
 void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* workDirName, string collTag="", const char* basename="");
 bool binok(anabin thebin, const char* xaxis);
 
@@ -67,7 +67,7 @@ bool binok(anabin thebin, const char* xaxis);
 // IMPLEMENTATION //
 ////////////////////
 
-void plotPt(const char* workDirName, const char* varname, const char* collTag, bool plotErr, const char* DSTag) {
+void plotPt(const char* workDirName, const char* varname, const char* collTag, bool plotErr, const char* DSTag, bool doSig) {
    string xaxis = "pt";
    vector<anabin> theCats;
    theCats.push_back(anabin(0,1.6,6.5,30,0,200));
@@ -83,11 +83,11 @@ void plotPt(const char* workDirName, const char* varname, const char* collTag, b
    if (!tr) return;
 
    vector<TGraphErrors*> tg;
-   if (string(collTag) != "") tg = plotVar(tr, varname, theCats, xaxis, collTag, plotErr);
+   if (string(collTag) != "") tg = plotVar(tr, varname, theCats, xaxis, collTag, plotErr, doSig);
    else {
       // plot for pp and pbpb and concatenate the results to tg
-      vector<TGraphErrors*> tgpp =  plotVar(tr, varname, theCats, xaxis, "PP", plotErr);
-      vector<TGraphErrors*> tgpbpb =  plotVar(tr, varname, theCats, xaxis, "PbPb", plotErr);
+     vector<TGraphErrors*> tgpp =  plotVar(tr, varname, theCats, xaxis, "PP", plotErr, doSig);
+     vector<TGraphErrors*> tgpbpb =  plotVar(tr, varname, theCats, xaxis, "PbPb", plotErr, doSig);
       tg.insert(tg.end(), tgpp.begin(), tgpp.end());
       tg.insert(tg.end(), tgpbpb.begin(), tgpbpb.end());
    }
@@ -114,7 +114,7 @@ void plotPt(const char* workDirName, const char* varname, const char* collTag, b
    plotGraphs(tg, tags, workDirName, collTag);
 }
 
-void plotCent(const char* workDirName, const char* varname, const char* collTag, bool plotErr, const char* DSTag) {
+void plotCent(const char* workDirName, const char* varname, const char* collTag, bool plotErr, const char* DSTag, bool doSig) {
    string xaxis = "cent";
    vector<anabin> theCats;
 
@@ -132,11 +132,11 @@ void plotCent(const char* workDirName, const char* varname, const char* collTag,
    if (!tr) return;
 
    vector<TGraphErrors*> tg;
-   if (string(collTag) != "") tg = plotVar(tr, varname, theCats, xaxis, collTag, plotErr);
+   if (string(collTag) != "") tg = plotVar(tr, varname, theCats, xaxis, collTag, plotErr, doSig);
    else {
       // plot for pp and pbpb and concatenate the results to tg
-      vector<TGraphErrors*> tgpp =  plotVar(tr, varname, theCats, xaxis, "PP", plotErr);
-      vector<TGraphErrors*> tgpbpb =  plotVar(tr, varname, theCats, xaxis, "PbPb", plotErr);
+     vector<TGraphErrors*> tgpp =  plotVar(tr, varname, theCats, xaxis, "PP", plotErr, doSig);
+     vector<TGraphErrors*> tgpbpb =  plotVar(tr, varname, theCats, xaxis, "PbPb", plotErr, doSig);
       tg.insert(tg.end(), tgpp.begin(), tgpp.end());
       tg.insert(tg.end(), tgpbpb.begin(), tgpbpb.end());
    }
@@ -163,7 +163,7 @@ void plotCent(const char* workDirName, const char* varname, const char* collTag,
    plotGraphs(tg, tags, workDirName, collTag);
 }
 
-void plotRap(const char* workDirName, const char* varname, const char* collTag, bool plotErr, const char* DSTag) {
+void plotRap(const char* workDirName, const char* varname, const char* collTag, bool plotErr, const char* DSTag, bool doSig) {
    string xaxis = "rap";
    vector<anabin> theCats;
    theCats.push_back(anabin(0,1.6,6.5,30,0,-200));
@@ -179,11 +179,11 @@ void plotRap(const char* workDirName, const char* varname, const char* collTag, 
    if (!tr) return;
 
    vector<TGraphErrors*> tg;
-   if (string(collTag) != "") tg = plotVar(tr, varname, theCats, xaxis, collTag, plotErr);
+   if (string(collTag) != "") tg = plotVar(tr, varname, theCats, xaxis, collTag, plotErr, doSig);
    else {
       // plot for pp and pbpb and concatenate the results to tg
-      vector<TGraphErrors*> tgpp =  plotVar(tr, varname, theCats, xaxis, "PP", plotErr);
-      vector<TGraphErrors*> tgpbpb =  plotVar(tr, varname, theCats, xaxis, "PbPb", plotErr);
+     vector<TGraphErrors*> tgpp =  plotVar(tr, varname, theCats, xaxis, "PP", plotErr, doSig);
+     vector<TGraphErrors*> tgpbpb =  plotVar(tr, varname, theCats, xaxis, "PbPb", plotErr, doSig);
       tg.insert(tg.end(), tgpp.begin(), tgpp.end());
       tg.insert(tg.end(), tgpbpb.begin(), tgpbpb.end());
    }
@@ -211,7 +211,7 @@ void plotRap(const char* workDirName, const char* varname, const char* collTag, 
 }
 
 void plotFiles(const char* workDirNames, const char* varname, const char* xaxis, float rapmin, float rapmax, float ptmin, float ptmax, int centmin, int centmax, 
-      const char* collTag, bool plotErr, const char* DSTag) {
+               const char* collTag, bool plotErr, const char* DSTag, bool doSig) {
 
    vector<TGraphErrors*> tg;
    vector<string> tags;
@@ -220,10 +220,10 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
    TString workDirNamesStr(workDirNames);
    TString workDirName; Int_t from = 0;
    while (workDirNamesStr.Tokenize(workDirName, from , ",")) {
-      TGraphErrors *tgg = plotVar(treeFileName(workDirName,DSTag), varname, theBin, xaxis, collTag, plotErr);
+     TGraphErrors *tgg = plotVar(treeFileName(workDirName,DSTag), varname, theBin, xaxis, collTag, plotErr, doSig);
       if (!tgg) {
          results2tree(workDirName,DSTag);
-         tgg = plotVar(treeFileName(workDirName,DSTag), varname, theBin, xaxis, collTag, plotErr);
+         tgg = plotVar(treeFileName(workDirName,DSTag), varname, theBin, xaxis, collTag, plotErr, doSig);
       }
       if (tgg) {
          tg.push_back(tgg);
@@ -237,7 +237,7 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
    if (tg.size()>0) plotGraphs(tg, tags, tags[0].c_str(), collTag, oss.str().c_str());
 }
 
-TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxis, string collTag, bool plotErr) {
+TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxis, string collTag, bool plotErr, bool doSig) {
    if (!tr) return NULL;
    vector<double> x, ex, y, ey;
    float ptmin, ptmax, ymin, ymax, centmin, centmax;
@@ -251,6 +251,7 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
    tr->SetBranchAddress("ymax",&ymax);
    tr->SetBranchAddress("centmin",&centmin);
    tr->SetBranchAddress("centmax",&centmax);
+
    if (string(varname)=="nll" || string(varname)=="chi2" || string(varname)=="normchi2" || string(varname) == "chi2prob") {
       tr->SetBranchAddress(varname,&val);
    } else if (string(varname).find("npar") != string::npos) {
@@ -280,7 +281,12 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
          RooRealVar bfracvar = bfrac(normalCutsDir,invCutsDir,trbin,Form("%s_%s",varname,collTag.c_str()));
          val = bfracvar.getVal();
          val_err = bfracvar.getError();
-      } 
+      }
+      if (doSig) {
+        val = val / val_err;
+        val_err = 0.0;
+      }
+
 
       if (xaxis=="pt") {
          x.push_back((ptmin+ptmax)/2.);
@@ -325,6 +331,7 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
    haxes->GetYaxis()->SetLimits(valmin, valmax);
    haxes->GetYaxis()->SetRangeUser(valmin, valmax);
    haxes->GetYaxis()->SetTitleOffset(1.4);
+   if (doSig) haxes->GetYaxis()->SetTitle((string(varname)+ " Significance").c_str());
    ans->SetHistogram(haxes);
 
    ans->Sort();
@@ -332,23 +339,23 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
    return ans;
 }
 
-vector<TGraphErrors*> plotVar(TTree *tr, const char* varname, vector<anabin> theBin, string xaxis, string collTag, bool plotErr) {
+vector<TGraphErrors*> plotVar(TTree *tr, const char* varname, vector<anabin> theBin, string xaxis, string collTag, bool plotErr, bool doSig) {
    vector<TGraphErrors*> ans;
 
    vector<anabin>::const_iterator it;
    for (it=theBin.begin(); it!=theBin.end(); it++) {
-      ans.push_back(plotVar(tr, varname, *it, xaxis, collTag, plotErr));
+     ans.push_back(plotVar(tr, varname, *it, xaxis, collTag, plotErr, doSig));
    }
 
    return ans;
 }
 
-TGraphErrors* plotVar(const char* filename, const char* varname, anabin theBin, string xaxis, string collTag, bool plotErr) {
+TGraphErrors* plotVar(const char* filename, const char* varname, anabin theBin, string xaxis, string collTag, bool plotErr, bool doSig) {
    TFile *f = new TFile(filename);
    if (!f) return NULL;
    TTree *tr = (TTree*) f->Get("fitresults");
    if (!tr) return NULL;
-   return plotVar(tr, varname, theBin, xaxis, collTag, plotErr);
+   return plotVar(tr, varname, theBin, xaxis, collTag, plotErr, doSig);
 }
 
 void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* workDirName, string collTag, const char* basename) {
@@ -447,7 +454,7 @@ void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* w
    cout << "It is advised that you check the contents of " << texname << " as it may not compile nicely as is." << endl;
 }
 
-void plotFiles(const char* workDirNames, const char* varname, const char* xaxis, const char* collTag, bool plotErr, const char* DSTag) {
+void plotFiles(const char* workDirNames, const char* varname, const char* xaxis, const char* collTag, bool plotErr, const char* DSTag, bool doSig) {
    setTDRStyle();
 
    typedef pair<anabin,string> anabinc;
@@ -617,6 +624,7 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
       } else {
          cratio->cd();
          TH1F *hratio = (TH1F*) h->Clone(Form("%s_ratio",h->GetName()));
+         if (doSig) hratio->GetYaxis()->SetTitle((string(varname)+ " Significance").c_str());
          hratio->GetYaxis()->SetTitleOffset(0.5);
          hratio->GetXaxis()->SetLabelSize(0.04);
          hratio->Divide(hden);
