@@ -63,12 +63,12 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    ws->factory( "Gaussian::constr_syst(beta_syst,glob_syst[0,-5,5],1)" );
   
    ws->factory( Form("kappa_syst_add[%f]",systValAdd) );
-   ws->factory( "Gaussian::alpha_syst_add(beta_syst_add[0,-5,5],0,kappa_syst_add)");
-   ws->factory( "Gaussian::constr_syst_add(beta_syst_add,glob_syst_add[0,-5,5],1)" );
+   ws->factory( "Gaussian::constr_syst_add(beta_syst_add[0,-5,5],glob_syst_add[0,-5,5],kappa_syst_add)" );
 
    // add systematics into the double ratio
 //   ws->factory( "expr::N_Psi2S_PbPb_syst('@0*@1',N_Psi2S_PbPb,alpha_syst)" );
-   ws->factory( "expr::N_Psi2S_PbPb_syst('@0*@1+@2',N_Psi2S_PbPb,alpha_syst,alpha_syst_add)" );
+   ws->factory( "expr::RFrac2Svs1S_PbPbvsPP_syst('@0*@1+@2',RFrac2Svs1S_PbPbvsPP,alpha_syst,beta_syst_add)" );
+   ws->factory( "expr::N_Psi2S_PbPb_syst('@0*@1*@2',RFrac2Svs1S_PbPbvsPP_syst,N_Jpsi_PbPb,RFrac2Svs1S_PP)" );
    // build the pbpb pdf
    ws->factory( "SUM::pdfMASS_Tot_PbPb_syst(N_Jpsi_PbPb * pdfMASS_Jpsi_PbPb, N_Psi2S_PbPb_syst * pdfMASS_Psi2S_PbPb, N_Bkg_PbPb * pdfMASS_Bkg_PbPb)" );
 //   ws->factory( "PROD::pdfMASS_Tot_PbPb_constr(pdfMASS_Tot_PbPb_syst,constr_syst)" );
