@@ -456,8 +456,10 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
    vector<map<anabinc, float> > vals;
    vector<map<anabinc, float> > errs;
    map<anabinc,int> binmap;
-   TH1F *hpull = new TH1F("hpull","Pull distribution;Pull;Entries",20,-5,5);
-   hpull->Sumw2(kFALSE); hpull->SetBinErrorOption(TH1::kPoisson);
+
+   float pull=0, pullmin=0, pullmax=0;
+   TTree *tpull = new TTree("tpull","tpull");
+   tpull->Branch("pull",&pull,"pull/F");
 
    float ptmin, ptmax, ymin, ymax, centmin, centmax;
    char collSystem[5];
@@ -516,9 +518,46 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
    }
 
    int nbins = binmap.size();
-   TCanvas  *c1 = new TCanvas("c1","c1",600,600);
+   TCanvas *c1 = new TCanvas("c1", "",139,267,1265,537);
+   c1->Range(-2.920651,-1.349463,34.28077,6.101919);
+   c1->SetFillColor(0);
+   c1->SetBorderMode(0);
+   c1->SetBorderSize(2);
+   c1->SetTickx(1);
+   c1->SetTicky(1);
+   c1->SetLeftMargin(0.07850912);
+   c1->SetRightMargin(0.1419508);
+   c1->SetTopMargin(0.03543307);
+   c1->SetBottomMargin(0.1811024);
+   c1->SetFrameFillStyle(0);
+   c1->SetFrameBorderMode(0);
+   c1->SetFrameFillStyle(0);
+   c1->SetFrameBorderMode(0);
    TLegend *tleg = new TLegend(0.18,0.73,0.52,0.89);
    tleg->SetBorderSize(0);
+
+   // for the ratios
+   TCanvas *cratio = new TCanvas("cratio", "",139,267,1265,537);
+   cratio->Range(-2.920651,-1.349463,34.28077,6.101919);
+   cratio->SetFillColor(0);
+   cratio->SetBorderMode(0);
+   cratio->SetBorderSize(2);
+   cratio->SetTickx(1);
+   cratio->SetTicky(1);
+   cratio->SetLeftMargin(0.07850912);
+   cratio->SetRightMargin(0.1419508);
+   cratio->SetTopMargin(0.03543307);
+   cratio->SetBottomMargin(0.1811024);
+   cratio->SetFrameFillStyle(0);
+   cratio->SetFrameBorderMode(0);
+   cratio->SetFrameFillStyle(0);
+   cratio->SetFrameBorderMode(0);
+   cratio->SetGridy();
+   TH1F *hden = new TH1F("hden",";;ratio",nbins,0,nbins);
+   TLegend *tleg_ratio = new TLegend(0.18,0.73,0.52,0.89);
+   tleg_ratio->SetBorderSize(0);
+
+   c1->cd();
 
    map<anabinc,float> vals0 = vals[0];
    map<anabinc,float> errs0 = errs[0];
@@ -529,7 +568,7 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
       map<anabinc,float> valsi = vals[i];
       map<anabinc,float> errsi = errs[i];
       string tagi = tags[i];
-      TH1F *h = new TH1F(Form("h%i",i),Form(";Bin;%s",varname),nbins,0,nbins);
+      TH1F *h = new TH1F(Form("h%i",i),Form(";;%s",varname),nbins,0,nbins);
       if (i==0) haxes=h;
       h->SetLineColor((i<4) ? 1+i : 2+i); // skip yellow
       h->SetMarkerColor((i<4) ? 1+i : 2+i);
@@ -550,12 +589,16 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
 
          // pulls
          if (i>1 && i%2==0 && plotErr && ite->second != 0) {
-            float pull = (itv->second-vals[i-1][thebinc]) / sqrt(pow(ite->second,2) + pow(errs[i-1][thebinc],2));
-            hpull->Fill(pull);
+            pull = (itv->second-vals[i-1][thebinc]) / sqrt(pow(ite->second,2) + pow(errs[i-1][thebinc],2));
+            // hpull->Fill(pull);
+            tpull->Fill(); 
+            pullmin = min(pullmin,pull); pullmax = max(pullmax,pull);
          }
          if (i==1 && vals.size()==2) {
-            float pull = (itv->second-vals[0][thebinc]) / sqrt(pow(ite->second,2) + pow(errs[0][thebinc],2));
-            hpull->Fill(pull);
+            pull = (itv->second-vals[0][thebinc]) / sqrt(pow(ite->second,2) + pow(errs[0][thebinc],2));
+            // hpull->Fill(pull);
+            tpull->Fill(); 
+            pullmin = min(pullmin,pull); pullmax = max(pullmax,pull);
          }
       }
 
@@ -564,11 +607,27 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
       vmin = min(vmin,h->GetBinContent(binmin)-1.2*h->GetBinError(binmin));
       vmax = max(vmax,h->GetBinContent(binmax)+1.2*h->GetBinError(binmax));
 
+      c1->cd();
       h->Draw(i==0 ? "" : "same");
       tleg->AddEntry(h,tagi.c_str(),"l");
+
+      // ratios
+      if (i==0) {
+         hden = h;
+      } else {
+         cratio->cd();
+         TH1F *hratio = (TH1F*) h->Clone(Form("%s_ratio",h->GetName()));
+         hratio->GetYaxis()->SetTitleOffset(0.5);
+         hratio->GetXaxis()->SetLabelSize(0.04);
+         hratio->Divide(hden);
+         hratio->Draw(i == 1 ? "" : "same");
+         tleg_ratio->AddEntry(hratio,Form("%s / %s",tagi.c_str(),tags[0].c_str()),"l");
+         c1->cd();
+      }
    }
 
    if (haxes) haxes->GetYaxis()->SetRangeUser(vmin,vmax);
+   c1->cd();
    tleg->Draw();
    int iPos = 33;
    int ilumi = 106;
@@ -586,7 +645,30 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
    gSystem->mkdir(Form("Output/%s/plot/RESULT/pdf/", tags[0].c_str()), kTRUE);
    c1->SaveAs(Form("Output/%s/plot/RESULT/pdf/plot_%s_%s_vs_%s.pdf",tags[0].c_str(), collTag, varname, xaxis));
 
+   // ratios
+   cratio->cd();
+   tleg_ratio->Draw();
+   CMS_lumi( (TPad*) gPad, ilumi, iPos, "" );
+
+   cratio->cd();
+   cratio->Update();
+   cratio->RedrawAxis();
+   cratio->SaveAs(Form("Output/%s/plot/RESULT/root/ratio_%s_%s_vs_%s.root",tags[0].c_str(), collTag, varname, xaxis));
+   cratio->SaveAs(Form("Output/%s/plot/RESULT/png/ratio_%s_%s_vs_%s.png",tags[0].c_str(), collTag, varname, xaxis));
+   cratio->SaveAs(Form("Output/%s/plot/RESULT/pdf/ratio_%s_%s_vs_%s.pdf",tags[0].c_str(), collTag, varname, xaxis));
+
+   // pulls
    TCanvas *cpull = new TCanvas("cpull","cpull",600,600); cpull->cd();
+
+   // find plotting range
+   float pullmaxplot = ((int) (max(fabs(pullmin),fabs(pullmax)))) + 1;
+   TH1F *hpull = new TH1F("hpull","Pull distribution;Pull;Entries",10,-pullmaxplot,pullmaxplot);
+   hpull->Sumw2(kFALSE); hpull->SetBinErrorOption(TH1::kPoisson);
+   for (int i=0; i<tpull->GetEntries(); i++) {
+   tpull->GetEntry(i);
+   hpull->Fill(pull);
+   }
+
    hpull->Draw("E");
    auto r = hpull->Fit("gaus","LES");
    double chi2_BC =  2.* r->MinFcnValue(); 
@@ -599,6 +681,7 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
    cpull->SaveAs(Form("Output/%s/plot/RESULT/root/pull_%s_%s_vs_%s.root",tags[0].c_str(), collTag, varname, xaxis));
    cpull->SaveAs(Form("Output/%s/plot/RESULT/png/pull_%s_%s_vs_%s.png",tags[0].c_str(), collTag, varname, xaxis));
    cpull->SaveAs(Form("Output/%s/plot/RESULT/pdf/pull_%s_%s_vs_%s.pdf",tags[0].c_str(), collTag, varname, xaxis));
+
 }
 
 void plotComparisonVars(const char* workDirName, const char* varname1, const char* varname2, const char* xaxis, const char* collTag, bool plotErr, const char* DSTag) {
