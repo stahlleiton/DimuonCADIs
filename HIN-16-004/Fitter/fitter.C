@@ -23,7 +23,7 @@ void fitter(
             // Select the type of datasets to fit
             bool fitData     = true,         // Fits Data if true, otherwise fits MC
             bool fitPbPb     = true,         // Fits PbPb datasets
-            bool fitPP       = false,         // Fits PP datasets
+            bool fitPP       = true,         // Fits PP datasets
             // Select the type of object to fit
             bool incJpsi     = true,         // Includes Jpsi model
             bool incPsi2S    = true,         // Includes Psi(2S) model
@@ -32,7 +32,7 @@ void fitter(
             bool cutCtau     = true,        // Apply prompt ctau cuts
             bool doSimulFit  = false,        // Do simultaneous fit
             bool wantPureSMC = false,        // Flag to indicate if we want to fit pure signal MC
-	    bool applyAccEff  = true,         // Apply weight to data for Acceptance & Eff correction
+	    bool applyAccEff  = false,         // Apply weight to data for Acceptance & Eff correction
             int  numCores    = 16,            // Number of cores used for fitting
             // Select the drawing options
             bool setLogScale = true,         // Draw plot with log scale

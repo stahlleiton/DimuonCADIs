@@ -4,6 +4,7 @@
 #include "Utilities/initClasses.h"
 #include "buildCharmoniaMassModel.C"
 #include "drawMassPlot.C"
+#include <boost/algorithm/string/replace.hpp>
 
 #include <algorithm>
 
@@ -15,6 +16,7 @@ void setOptions(struct InputOpt* opt);
 
 bool isFitAlreadyFound(RooArgSet *newpars, string outputDir, string plotLabel, string TAG, struct KinCuts cut, bool isPbPb, bool doSimulFit);
 bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2);
+bool loadPreviousFitResult(RooWorkspace& myws, string outputDir, string plotLabel, string DSTAG, struct KinCuts cut, bool isPbPb=true, bool doSimulFit=false);
 
 bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the input RooDatasets
 		   struct KinCuts cut,            // Variable containing all kinematic cuts
@@ -40,17 +42,27 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
                    bool getMeanPT   = false       // Compute the mean PT (NEED TO FIX)
 		   )  
 {
-
+   
   // Define the mass range
   if (cut.dMuon.M.Max==5 && cut.dMuon.M.Min==2) { 
     // Default mass values, means that the user did not specify a mass range
     if ( incJpsi && !incPsi2S) {
-      cut.dMuon.M.Min = 2.2;
-      cut.dMuon.M.Max = 4.0;
+      if (isMC){
+        cut.dMuon.M.Min = 2.2;
+        cut.dMuon.M.Max = 4.0;
+      } else {
+        cut.dMuon.M.Min = 2.2;
+        cut.dMuon.M.Max = 3.4;
+      }
     }
     else if ( !incJpsi && incPsi2S) {
-      cut.dMuon.M.Min = 2.8;
-      cut.dMuon.M.Max = 4.6;
+      if(isMC) {
+        cut.dMuon.M.Min = 2.8;
+        cut.dMuon.M.Max = 4.6;
+      } else {
+        cut.dMuon.M.Min = 3.4;
+        cut.dMuon.M.Max = 4.5;
+      }
     }
     else {
       cut.dMuon.M.Min = 2.2;
@@ -60,8 +72,6 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
   parIni["invMassNorm"] = Form("RooFormulaVar::%s('( -1.0 + 2.0*( @0 - @1 )/( @2 - @1) )', {%s, mMin[%.6f], mMax[%.6f]})", "invMassNorm", "invMass", cut.dMuon.M.Min, cut.dMuon.M.Max );
   // Apply the ctau cuts to reject non-prompt charmonia
   if (cutCtau) { setCtauCuts(cut, isPbPb); }  
-
-  
 
 
   // Check if input dataset is MC
@@ -151,11 +161,14 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
                                              Import("PbPb", *((RooDataSet*)myws.data("dOS_DATA_PbPb"))),
                                              Import("PP",   *((RooDataSet*)myws.data("dOS_DATA_PP")))
                                              );
+      myws.import(*sample);
+
       RooSimultaneous* simPdf = new RooSimultaneous("simPdf", "simultaneous pdf", *sample);
       simPdf->addPdf(*myws.pdf("pdfMASS_Tot_PbPb"), "PbPb"); simPdf->addPdf(*myws.pdf("pdfMASS_Tot_PP"), "PP");
-      
+      myws.import(*simPdf);
+
       // Do the simultaneous fit
-      RooFitResult* fitResult = simPdf->fitTo(*combData, Offset(kTRUE), Extended(kTRUE), NumCPU(numCores), Range("MassWindow"), Save(), Minimizer("Minuit2","Migrad"));
+      RooFitResult* fitResult = simPdf->fitTo(*combData, Offset(kTRUE), Extended(kTRUE), NumCPU(numCores), Range("MassWindow"), Save()); //, Minimizer("Minuit2","Migrad")
       fitResult->Print();
       myws.import(*fitResult, Form("fitResult_%s", "simPdf")); 
 
@@ -182,23 +195,31 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
           cout << "[INFO] This fit was already done, so I'll just go to the next one." << endl;
           return true;
         }
-	
+
         bool isWeighted = myws.data(dsName.c_str())->isWeighted();
-        
+
+        if (incPsi2S && ! incJpsi) {
+          string outDir = "/home/llr/cms/stahl/DimuonCADIs/HIN-16-004/Fitter/Output/BkgStudyCheb_ptCtauCut_JPSIONLY_Alpha_n_rSigmaPbPb_Jpsifixed/";
+          string plotLabel = Form("_Jpsi_%s", parIni["Model_Psi2S_PbPb"].c_str()); 
+          plotLabel = plotLabel + Form("_Bkg_%s", parIni["Model_Bkg_PbPb"].c_str());
+          if ( !loadPreviousFitResult(myws, outDir, plotLabel, DSTAG, cut, true, false) ) { cout << " PROBLEM IN PBPB " << endl; return false; }
+          myws.pdf("pdfMASS_Psi2S_PbPb")->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
+        }
+
         // Fit the Datasets
         if (incJpsi || incPsi2S) {
           if (isWeighted) {
             RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(kTRUE), Range("MassWindow"), NumCPU(numCores), Save());
-            fitResult->Print(); 
+            fitResult->Print("v"); 
             myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
           } else {
             RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(numCores), Save());
-            fitResult->Print();
+            fitResult->Print("v");
             myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
           }  
         } else {
           RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBand1,SideBand2"), NumCPU(numCores), Save());
-          fitResult->Print();
+          fitResult->Print("v");
           myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
         }
         
@@ -221,23 +242,31 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
           cout << "[INFO] This fit was already done, so I'll just go to the next one." << endl;
           return true;
         }
-
+        
         bool isWeighted = myws.data(dsName.c_str())->isWeighted();
-	
+        
+        if (incPsi2S && ! incJpsi) {
+          string outDir = "/home/llr/cms/stahl/DimuonCADIs/HIN-16-004/Fitter/Output/BkgStudyCheb_ptCtauCut_JPSIONLY_Alpha_n_rSigmaPbPb_Jpsifixed/";
+          string plotLabel = Form("_Jpsi_%s", parIni["Model_Psi2S_PP"].c_str()); 
+          plotLabel = plotLabel + Form("_Bkg_%s", parIni["Model_Bkg_PP"].c_str());
+          if ( !loadPreviousFitResult(myws, outDir, plotLabel, DSTAG, cut, false, false) ) { cout << " PROBLEM IN PP " << endl; return false; }
+          myws.pdf("pdfMASS_Psi2S_PP")->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
+        }
+
         // Fit the Datasets
         if (incJpsi || incPsi2S) {
 	  if (isWeighted) {
             RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(kTRUE), Range("MassWindow"), NumCPU(numCores), Save());
-            fitResult->Print(); 
+            fitResult->Print("v"); 
             myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
           } else {
             RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(numCores), Save());
-            fitResult->Print();
+            fitResult->Print("v");
             myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
           }  
 	} else {
           RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBand1,SideBand2"), NumCPU(numCores), Save());
-          fitResult->Print();
+          fitResult->Print("v");
           myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
         }
        
@@ -250,9 +279,16 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
   return true;
 };
 
-
 void setCtauCuts(struct KinCuts& cut, bool isPbPb) 
 {
+  /*
+  if (cut.dMuon.AbsRap.Max<=1.6) {
+    cut.dMuon.ctauCut = "( ctau < (0.012 + (0.23/pt)) )";
+  }
+  if (cut.dMuon.AbsRap.Min>=1.6) {
+    cut.dMuon.ctauCut = "( ctau < (0.014 + (0.28/pt)) )";
+  }
+  */
   if (cut.dMuon.AbsRap.Max<=1.6 && isPbPb) {
     cut.dMuon.ctauCut = "( ctau < (0.013 + (0.22/pt)) )";
   }
@@ -470,5 +506,63 @@ bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2) {
 
   return true;
 }
+
+bool loadPreviousFitResult(RooWorkspace& myws, string outputDir, string plotLabel, string DSTAG, struct KinCuts cut, bool isPbPb, bool doSimulFit)
+{
+  string FileName = "";
+  if (doSimulFit) {
+    FileName = Form("%sresult/%s/FIT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), DSTAG.c_str(), DSTAG.c_str(), "Psi2SJpsi", "COMB", plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
+  } else {
+    FileName = Form("%sresult/%s/FIT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), DSTAG.c_str(), DSTAG.c_str(), "Psi2SJpsi", (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
+  }
+ 
+  if (gSystem->AccessPathName(FileName.c_str())) {
+    cout << "[INFO] Results not found for: " << FileName << endl;
+    return false; // File was not found
+  }
+ 
+  TFile *file = new TFile(FileName.c_str());
+  if (!file) return false;
+
+  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  if (!ws) {
+    file->Close(); delete file;
+    return false;
+  }
+
+  cout <<  "[INFO] Loading variables from: " << FileName << endl;
+  RooArgSet listVar = ws->allVars();
+  TIterator* parIt = listVar.createIterator();
+  string print = "[INFO] Variables loaded: ";
+  for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
+    string name = it->GetName();
+    if ( name=="invMass" || name=="ctau" || name=="ctauErr" || 
+         name=="ctauTrue" || name=="pt" || name=="cent" || 
+         name=="rap" || name=="One" ) continue;
+    if ( (DSTAG.find("MC")!=std::string::npos) && (name.find("N_")!=std::string::npos) ) continue; 
+    if (myws.var(name.c_str())) { 
+      print = print + Form("  %s: %.5f->%.5f  ", name.c_str(), myws.var(name.c_str())->getValV(), ws->var(name.c_str())->getValV()) ;
+      myws.var(name.c_str())->setVal  ( ws->var(name.c_str())->getValV()  );
+      myws.var(name.c_str())->setError( 0.0 );
+    } else {
+      Double_t MassRatio = (Mass.Psi2S/Mass.JPsi);
+      string reName = name.c_str();
+      boost::replace_all(reName, "Jpsi", "Psi2S");
+      if (myws.var(reName.c_str())) {
+        Double_t value = 0.0;
+        if ( (reName==Form("sigma1_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ) { value = ws->var(name.c_str())->getValV() * MassRatio; }
+        else if ( (reName==Form("m_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ) { value = ws->var(name.c_str())->getValV() * MassRatio; }
+        else { value = ws->var(name.c_str())->getValV(); }
+        print = print + Form("  %s: %.5f->%.5f  ", reName.c_str(), myws.var(reName.c_str())->getValV(), value) ;
+        myws.var(reName.c_str())->setVal  ( value );
+        myws.var(reName.c_str())->setError( 0.0 );
+      }
+    }
+  }
+  cout << print << endl;
+ 
+  return true;
+};
+
 
 #endif // #ifndef fitCharmonia_C
