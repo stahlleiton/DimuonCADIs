@@ -507,6 +507,10 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
          tr->GetEntry(i);
          anabinc thebin(anabin(ymin,ymax,ptmin,ptmax,centmin,centmax), collSystem);
          if ((string(collTag) == "" || string(collTag) == collSystem) && binok(thebin.first,xaxis)) {
+            if (doSig) {
+               val = val/val_err;
+               val_err=0;
+            }
             vals0[thebin] = val;
             errs0[thebin] = val_err;
 
@@ -624,7 +628,7 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
       } else {
          cratio->cd();
          TH1F *hratio = (TH1F*) h->Clone(Form("%s_ratio",h->GetName()));
-         if (doSig) hratio->GetYaxis()->SetTitle((string(varname)+ " Significance").c_str());
+         if (doSig) hratio->GetYaxis()->SetTitle((string(varname)+ "_Significance").c_str());
          hratio->GetYaxis()->SetTitleOffset(0.5);
          hratio->GetXaxis()->SetLabelSize(0.04);
          hratio->Divide(hden);
