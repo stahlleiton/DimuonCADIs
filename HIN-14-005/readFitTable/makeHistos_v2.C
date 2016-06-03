@@ -42,9 +42,9 @@ void makeHistos_v2(int nDphiBins   = 4,
                   ) 
 {
   const char* whichSetting[1]       = {"20160304"};
-//  string whichSample[]              = {"v2noW","v2W","v2W_muIDTrig","v2W_const","v2W_maxVar","v2W_minVar","v2W_MLAR","v2W_polFunct","v2W_prof","v2W_resOpt2","v2W_signalCB3WN"};
-  string whichSample[]              = {"v2noW","v2W","v2W_noTnPSF","v2W_muIDTrig","v2W_const","v2W_maxVar","v2W_minVar","v2W_MLAR","v2W_polFunct","v2W_ctau1mm","v2W_resOpt2","v2W_signalCB3WN"};
+//  string whichSample[]              = {"v2W_5dphibins","v2noW_5dphibins"};
 //  string whichSample[]              = {"v2noW","v2W"};
+  string whichSample[]              = {"v2noW","v2W","v2W_noTnPSF","v2W_muIDTrig","v2W_const","v2W_maxVar","v2W_minVar","v2W_MLAR","v2W_polFunct","v2W_ctau2mm","v2W_resOpt2","v2W_signalCB3WN"};
   const char* outputHistDataFile[1] = {"histsV2Yields"};
 
   double PI = TMath::Pi();
@@ -68,6 +68,7 @@ void makeHistos_v2(int nDphiBins   = 4,
     TH1F *hBkg[300];
     TH1F *hPrp[300];
     TH1F *hNPrp[300];
+    TH1::SetDefaultSumw2();
 
     double x[300];
     double prpt[300], prptErr[300], nprpt[300], nprptErr[300];
@@ -112,92 +113,33 @@ void makeHistos_v2(int nDphiBins   = 4,
     // Make histograms
     pfOutput->cd();
     
-    for(int j = 0; j < nline/(nDphiBins+1); j++)
+    const int nDB_p1 = nDphiBins+1;
+    for(int j = 0; j < nline/nDB_p1; j++)
     {
-      if(nDphiBins==4)
-      {
-        // bkg histograms
-        TString histBkg(Form("Rap_%0.1f%0.1f_pT_%0.1f%0.1f_Cent_%d%d_Bkg",rap1[5*j],rap2[5*j],pT1[5*j],pT2[5*j],cent1[5*j],cent2[5*j]));
-        histBkg.ReplaceAll(".","");
-        hBkg[j] = new TH1F(histBkg,";#Delta #phi;",4,0,PI/2);
-        
-        hBkg[j]->Sumw2();
-        hBkg[j]->SetBinContent(1, bkg[5*j]);
-        hBkg[j]->SetBinContent(2, bkg[5*j+2]);
-        hBkg[j]->SetBinContent(3, bkg[5*j+3]);
-        hBkg[j]->SetBinContent(4, bkg[5*j+4]);
-        hBkg[j]->SetBinError(1, bkgErr[5*j]);
-        hBkg[j]->SetBinError(2, bkgErr[5*j+2]);
-        hBkg[j]->SetBinError(3, bkgErr[5*j+3]);
-        hBkg[j]->SetBinError(4, bkgErr[5*j+4]);
-        //cout<<tmp<<endl;
-        
-        //prompt histograms
-        TString histPrompt(Form("Rap_%0.1f%0.1f_pT_%0.1f%0.1f_Cent_%d%d_Prp",rap1[5*j],rap2[5*j],pT1[5*j],pT2[5*j],cent1[5*j],cent2[5*j]));
-        histPrompt.ReplaceAll(".","");
-        hPrp[j] = new TH1F(histPrompt,";#Delta #phi;",4,0,PI/2);
-        hPrp[j]->SetBinContent(1, prpt[5*j]);
-        hPrp[j]->SetBinContent(2, prpt[5*j+2]);
-        hPrp[j]->SetBinContent(3, prpt[5*j+3]);
-        hPrp[j]->SetBinContent(4, prpt[5*j+4]);
-        hPrp[j]->SetBinError(1, prptErr[5*j]);
-        hPrp[j]->SetBinError(2, prptErr[5*j+2]);
-        hPrp[j]->SetBinError(3, prptErr[5*j+3]);
-        hPrp[j]->SetBinError(4, prptErr[5*j+4]);
-        //cout<<tmp<<endl;
-        
-        //non-prompt histograms
-        TString histNonPrompt(Form("Rap_%0.1f%0.1f_pT_%0.1f%0.1f_Cent_%d%d_NPrp",rap1[5*j],rap2[5*j],pT1[5*j],pT2[5*j],cent1[5*j],cent2[5*j]));
-        histNonPrompt.ReplaceAll(".","");
-        hNPrp[j] = new TH1F(histNonPrompt,";#Delta #phi;",4,0,PI/2);
-        hNPrp[j]->SetBinContent(1, nprpt[5*j]);
-        hNPrp[j]->SetBinContent(2, nprpt[5*j+2]);
-        hNPrp[j]->SetBinContent(3, nprpt[5*j+3]);
-        hNPrp[j]->SetBinContent(4, nprpt[5*j+4]);
-        hNPrp[j]->SetBinError(1, nprptErr[5*j]);
-        hNPrp[j]->SetBinError(2, nprptErr[5*j+2]);
-        hNPrp[j]->SetBinError(3, nprptErr[5*j+3]);
-        hNPrp[j]->SetBinError(4, nprptErr[5*j+4]);
-        //cout<<tmp<<endl;
+      // bkg histograms
+      TString histBkg(Form("Rap_%0.1f%0.1f_pT_%0.1f%0.1f_Cent_%d%d_Bkg",rap1[nDB_p1*j],rap2[nDB_p1*j],pT1[nDB_p1*j],pT2[nDB_p1*j],cent1[nDB_p1*j],cent2[nDB_p1*j]));
+      histBkg.ReplaceAll(".","");
+      hBkg[j] = new TH1F(histBkg,";#Delta #phi;",nDphiBins,0,PI/2);
+      //prompt histograms
+      TString histPrompt(Form("Rap_%0.1f%0.1f_pT_%0.1f%0.1f_Cent_%d%d_Prp",rap1[nDB_p1*j],rap2[nDB_p1*j],pT1[nDB_p1*j],pT2[nDB_p1*j],cent1[nDB_p1*j],cent2[nDB_p1*j]));
+      histPrompt.ReplaceAll(".","");
+      hPrp[j] = new TH1F(histPrompt,";#Delta #phi;",nDphiBins,0,PI/2);
+      //non-prompt histograms
+      TString histNonPrompt(Form("Rap_%0.1f%0.1f_pT_%0.1f%0.1f_Cent_%d%d_NPrp",rap1[nDB_p1*j],rap2[nDB_p1*j],pT1[nDB_p1*j],pT2[nDB_p1*j],cent1[nDB_p1*j],cent2[nDB_p1*j]));
+      histNonPrompt.ReplaceAll(".","");
+      hNPrp[j] = new TH1F(histNonPrompt,";#Delta #phi;",nDphiBins,0,PI/2);
+      for (int k=0; k<nDphiBins; k++) {
+        //0-1.571 bin needs to be skipped! (2nd in the array)
+        int kidx = k;
+        if (k>=1) kidx = k+1;
+        hBkg[j]->SetBinContent(k+1, bkg[nDB_p1*j+kidx]);
+        hBkg[j]->SetBinError(k+1, bkgErr[nDB_p1*j+kidx]);
+        hPrp[j]->SetBinContent(k+1, prpt[nDB_p1*j+kidx]);
+        hPrp[j]->SetBinError(k+1, prptErr[nDB_p1*j+kidx]);
+        hNPrp[j]->SetBinContent(k+1, nprpt[nDB_p1*j+kidx]);
+        hNPrp[j]->SetBinError(k+1, nprptErr[nDB_p1*j+kidx]);
       }
-      
-      if(nDphiBins==2)
-      {
-        // background histograms
-        TString histBkg(Form("Rap_%0.1f%0.1f_pT_%0.1f%0.1f_Cent_%d%d_Bkg",rap1[3*j],rap2[3*j],pT1[3*j],pT2[3*j],cent1[3*j],cent2[3*j]));
-        histBkg.ReplaceAll(".","");
-        hBkg[j] = new TH1F(histBkg,";#Delta #phi;",2,0,PI/2);
-        
-        hBkg[j]->Sumw2();
-        hBkg[j]->SetBinContent(1, bkg[3*j]);
-        hBkg[j]->SetBinContent(2, bkg[3*j+2]);
-        hBkg[j]->SetBinError(1, bkgErr[3*j]);
-        hBkg[j]->SetBinError(2, bkgErr[3*j+2]);
-
-        //cout<<tmp<<endl;
-        
-        //prompt histograms
-        TString histPrompt(Form("Rap_%0.1f%0.1f_pT_%0.1f%0.1f_Cent_%d%d_Prp",rap1[3*j],rap2[3*j],pT1[3*j],pT2[3*j],cent1[3*j],cent2[3*j]));
-        histPrompt.ReplaceAll(".","");
-        hPrp[j] = new TH1F(histPrompt,";#Delta #phi;",2,0,PI/2);
-        hPrp[j]->SetBinContent(1, prpt[3*j]);
-        hPrp[j]->SetBinContent(2, prpt[3*j+2]);
-        hPrp[j]->SetBinError(1, prptErr[3*j]);
-        hPrp[j]->SetBinError(2, prptErr[3*j+2]);
-        //cout<<tmp<<endl;
-        
-        //non-prompt histograms
-        TString histNonPrompt(Form("Rap_%0.1f%0.1f_pT_%0.1f%0.1f_Cent_%d%d_NPrp",rap1[3*j],rap2[3*j],pT1[3*j],pT2[3*j],cent1[3*j],cent2[3*j]));
-        histNonPrompt.ReplaceAll(".","");
-        hNPrp[j] = new TH1F(histNonPrompt,";#Delta #phi;",2,0,PI/2);
-        hNPrp[j]->SetBinContent(1, nprpt[3*j]);
-        hNPrp[j]->SetBinContent(2, nprpt[3*j+2]);
-        hNPrp[j]->SetBinError(1, nprptErr[3*j]);
-        hNPrp[j]->SetBinError(2, nprptErr[3*j+2]);
-        //cout<<tmp<<endl;
-        
-      }
-      
+//      cout<< "j: " << j << " " << histBkg << endl;
     }
     
     pfOutput->Write();
