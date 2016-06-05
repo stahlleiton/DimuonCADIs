@@ -30,7 +30,7 @@ bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<stri
     if (doSimulFit && isPbPb) {
 
       // Fix mean, alpha and n parameters in PbPb to PP values 
-      fixPbPbtoPP(parIni);
+      // fixPbPbtoPP(parIni);
 
       // create parameters related to the double ratio
       ws.factory( parIni["RFrac2Svs1S_PbPbvsPP"].c_str() );                     // Double Ratio
@@ -836,14 +836,14 @@ bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<st
 
 void fixPbPbtoPP(map<string, string>& parIni)
 {
-  parIni["m_Jpsi_PbPb"]  = Form("RooFormulaVar::%s('@0',{%s})", "m_Jpsi_PbPb", "m_Jpsi_PP");
+  //parIni["m_Jpsi_PbPb"]  = Form("RooFormulaVar::%s('@0',{%s})", "m_Jpsi_PbPb", "m_Jpsi_PP");
   //parIni["sigma1_Jpsi_PbPb"]  = Form("RooFormulaVar::%s('@0',{%s})", "sigma1_Jpsi_PbPb", "sigma1_JpsiPP");
   //parIni["sigma1_Psi2S_PbPb"] = Form("RooFormulaVar::%s('@0',{%s})", "sigma1_Psi2S_PbPb", "sigma1_Psi2SPP");
-  if (parIni.count("rSigma21_Jpsi_PbPb")!=0 && parIni.count("rSigma21_Jpsi_PP")!=0) {
-    parIni["sigma2_Jpsi_PbPb"] = Form("RooFormulaVar::%s('@0*@1',{%s,%s})", "sigma2_Jpsi_PbPb", "sigma1_Jpsi_PbPb", "rSigma21_Jpsi_PP");
-  }
-  parIni["alpha_Jpsi_PbPb"]  = Form("RooFormulaVar::%s('@0',{%s})", "alpha_Jpsi_PbPb", "alpha_Jpsi_PP");
-  parIni["n_Jpsi_PbPb"] = Form("RooFormulaVar::%s('@0',{%s})", "n_Jpsi_PbPb", "n_Jpsi_PP");
+  // if (parIni.count("rSigma21_Jpsi_PbPb")!=0 && parIni.count("rSigma21_Jpsi_PP")!=0) {
+  //   parIni["sigma2_Jpsi_PbPb"] = Form("RooFormulaVar::%s('@0*@1',{%s,%s})", "sigma2_Jpsi_PbPb", "sigma1_Jpsi_PbPb", "rSigma21_Jpsi_PP");
+  // }
+  // parIni["alpha_Jpsi_PbPb"]  = Form("RooFormulaVar::%s('@0',{%s})", "alpha_Jpsi_PbPb", "alpha_Jpsi_PP");
+  // parIni["n_Jpsi_PbPb"] = Form("RooFormulaVar::%s('@0',{%s})", "n_Jpsi_PbPb", "n_Jpsi_PP");
   //parIni["f_Jpsi_PbPb"] = Form("RooFormulaVar::%s('@0',{%s})", "f_Jpsi_PbPb", "f_Jpsi_PP");
   //parIni["f_Psi2S_PbPb"] = Form("RooFormulaVar::%s('@0',{%s})", "f_Psi2S_PbPb", "f_Jpsi_PP");  
 };
