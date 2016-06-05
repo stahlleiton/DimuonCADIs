@@ -128,7 +128,7 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
         //if ( !createCtauErrPDF(ws, dsName, Form("pdfCTAUERR_Jpsi_%s", (isPbPb?"PbPb":"PP")), Form("hCtauErr_Tot_%s", (isPbPb?"PbPb":"PP"))) ) { return false; }
         RooProdPdf pdfJpsiPR(Form("pdfCTAU_JpsiPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_Jpsi_%s", (isPbPb?"PbPb":"PP"))),
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
-                       ); 
+                       );
         ws.import(pdfJpsiPR);
         RooProdPdf pdfJpsiNoPR(Form("pdfCTAU_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_Jpsi_%s", (isPbPb?"PbPb":"PP"))),
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
