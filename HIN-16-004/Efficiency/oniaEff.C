@@ -91,7 +91,6 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
    if (fChain == 0) return;
 
    Long64_t nentries = fChain->GetEntriesFast();
-
    TFile *f = new TFile(fname, "RECREATE");
    f->cd();
 
@@ -119,6 +118,7 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
    TH2F *hnum2d = new TH2F("hnum2d","hnum2d",48,0,2.4,150,0,30);
    TH2F *hden2d = new TH2F("hden2d","hden2d",48,0,2.4,150,0,30);
 
+   //nentries = 200;
    Long64_t nbytes = 0, nb = 0;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
       Long64_t ientry = LoadTree(jentry);
@@ -149,6 +149,31 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
       if (!gen_inbin) continue;
 
       double weight = ispbpb ? fChain->GetWeight()*findNcoll(Centrality) : 1.;
+      
+      //TFile *fileFwd_PbPb,*fileMid_PbPb; 
+      //TF1 *funcMid, funcFwd;
+      //if(fabs(tlvgenqq->Rapidity())<1.6){
+      //fileMid_PbPb = new TFile("files/Ratiopbpb_pt_mid_ptdepcut_.root");
+      //funcMid = (TF1*)fileMid_PbPb->Get("FitFn");
+      // }
+      //if(fabs(tlvgenqq->Rapidity())>1.6){
+      //fileFwd_PbPb = new TFile("files/Ratiopbpb_pt_fwd_ptdepcut_.root");
+      //funcFwd = (TF1*)fileMid_PbPb->Get("FitFn");
+      // }
+      
+      double weight_DataMC = 0.0;
+      if(fabs(tlvgenqq->Rapidity())<1.6){
+	//weight_DataMC = 1.983 - 0.133*genpt + 0.0036*genpt*genpt; //PbPb
+	weight_DataMC = 2.07 - 0.137*genpt + 0.0032*genpt*genpt;
+      }
+      if(fabs(tlvgenqq->Rapidity())>1.6){
+	//weight_DataMC = 1.239 - 0.0298*genpt; //PbPb
+	weight_DataMC = 1.474 - 0.0464*genpt;
+      }
+      
+      //weight_DataMC = ispbpb ? weight_DataMC : 1.0;
+      //weight = weight*weight_DataMC;
+      //cout<<"weight  "<<weight<<" weight_DataMC  "<<weight_DataMC<<endl;
       
       TF1 *wfunt = new TF1("wfunt","[0] + [1]*x",0.0,30.0);
       wfunt->SetParameters(1.3, -0.02); 
@@ -189,6 +214,8 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
          // mass cut
          double mass = ((TLorentzVector*) Reco_QQ_4mom->At(i))->M();
          double mass0 = isPsip ? masspsip : massjpsi;
+	 double massdown = isPsip ? 0.5 : 0.6;
+	 double massup = isPsip ? 0.5 : 0.4;
          if (mass<(mass0-massdown) || mass>(mass0+massup)) continue;
          // check that the dimuon is inside the analysis bins
          bool rec_inbin = false;

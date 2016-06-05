@@ -41,6 +41,11 @@ void computeLimits(
 {
   // list of files
   vector<TString> theFiles = combFileList(ACTag, doSyst ? "wSyst" : "woSyst");
+  if ( theFiles.empty() )
+  {
+    cout << "# [Error]: No combined workspaces found" << endl;
+    return;
+  }
   
   // bin edges
   float ptmin, ptmax, ymin, ymax, centmin, centmax;

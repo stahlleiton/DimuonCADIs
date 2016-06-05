@@ -17,7 +17,8 @@ void createPPPbPbWorkspaces(
                    const char* workDirName, // workDirName: usual tag where to look for files in Output
                    bool doSyst=false,
                    const char* DSTag="DATA", // Data Set tag can be: "DATA","MCPSI2SP", "MCJPSIP" ...
-                   const char* ACTag="Nominal" // Analysis Case tag (e.g. Nominal fits = "Nominal")
+                   const char* ACTag="Nominal", // Analysis Case tag (e.g. Nominal fits = "Nominal")
+                   int nCPU=2
 )
 {
   // list of files
@@ -30,12 +31,27 @@ void createPPPbPbWorkspaces(
   }
   
   map<anabin, syst> syst_PbPb;
+  map<anabin, syst> syst_PP;
+  map<anabin, syst> syst_PbPb_add;
   if ( doSyst )
   {
     syst_PbPb = readSyst_all("PbPb","../Fitter");
     if ( syst_PbPb.empty() )
     {
-      cout << "#[Error]: No systematics files found" << endl;
+      cout << "#[Error]: No PbPb systematics files found" << endl;
+      return;
+    }
+    syst_PbPb_add = readSyst("../Fitter/Systematics/csv/syst_PbPb_bhad_add.csv");
+    if ( syst_PbPb_add.empty() )
+    {
+      cout << "#[Error]: No additive PbPb systematics files found" << endl;
+      return;
+    }
+    
+    syst_PP = readSyst_all("PP","../Fitter");
+    if ( syst_PP.empty() )
+    {
+      cout << "#[Error]: No PP systematics files found" << endl;
       return;
     }
   }
@@ -48,10 +64,12 @@ void createPPPbPbWorkspaces(
     cout << "PbPb workspace " << cnt << " / " << theFiles_PbPb.size() << ": " << *it_PbPb << endl;
     
     double systVal(0.);
+    double systValAdd(0.);
     if ( doSyst )
     {
-      anabin thebin = binFromFile(*it_PbPb);
-      systVal = syst_PbPb[thebin].value;
+      anabin thebinPbPb = binFromFile(*it_PbPb);
+      systVal = syst_PbPb[thebinPbPb].value;
+      systValAdd = syst_PbPb_add[thebinPbPb].value;
     }
     
     bool foundPPws = false;
@@ -64,6 +82,12 @@ void createPPPbPbWorkspaces(
         cout << "PP workspace " << cnt << " / " << theFiles_PP.size() << ": " << *it_PP << endl;
         cout << endl;
         
+        if ( doSyst )
+        {
+          anabin thebinPP = binFromFile(*it_PP);
+          systVal = sqrt( pow(systVal,2.) + pow(syst_PP[thebinPP].value,2.) );
+        }
+        
         TString binName(*it_PbPb);
         binName.Remove(0,binName.Last('/')+1);
         binName.Remove(0,binName.Index("_pt")+1);
@@ -71,14 +95,14 @@ void createPPPbPbWorkspaces(
         if ( doSyst ) binName.Prepend("wSyst_");
         else  binName.Prepend("woSyst_");
         
-        combinedWorkspace(*it_PbPb, *it_PP, Form("combined_PbPbPP_workspace_%s.root",binName.Data()), systVal, ACTag);
+        combinedWorkspace(*it_PbPb, *it_PP, Form("combined_PbPbPP_workspace_%s.root",binName.Data()), systVal, systValAdd, ACTag, nCPU);
         
         cout << ">>>>>>>> Combined workspace created for bin " << binName.Data() << endl;
       }
       else continue;
     }
     
-    if ( !foundPPws ) cout << "# [Error]: No PP workspae found for " << *it_PbPb << endl;
+    if ( !foundPPws ) cout << "# [Error]: No PP workspace found for " << *it_PbPb << endl;
     
     cnt++;
   } // loop on the files

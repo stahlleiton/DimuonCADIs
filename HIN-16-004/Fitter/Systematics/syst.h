@@ -113,18 +113,22 @@ map<anabin, syst> readSyst_all(const char* token, const char* prependPath, bool 
    // token should be PP or PbPb
 
    vector< map<anabin, syst> > systmap_all;
+   vector< map<anabin, syst> > systmap_all_toprint;
    vector<TString> filelist = fileList_syst(token,prependPath);
 
    for (vector<TString>::const_iterator it=filelist.begin(); it!=filelist.end(); it++) {
       cout << "Reading file " << *it << endl;
       map<anabin,syst> systmap = readSyst(it->Data());
+      systmap_all_toprint.push_back(systmap);
+      if (it->Index("_add") != kNPOS) continue; // do not combine nor return additive systematics (NP contamination)
       systmap_all.push_back(systmap);
    }
 
    map<anabin,syst> ans = combineSyst(systmap_all,token);
    systmap_all.push_back(ans);
+   systmap_all_toprint.push_back(ans);
 
-   if (doPrintTex) printTex(systmap_all, texName, true);
+   if (doPrintTex) printTex(systmap_all_toprint, texName, true);
 
    return ans;
 };
