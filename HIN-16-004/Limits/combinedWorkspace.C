@@ -19,6 +19,7 @@
 #include "RooStats/SimpleInterval.h"
 #include "TAxis.h"
 #include <iostream>
+#include <sstream>
 #include <TString.h>
 #include <TH1F.h>
 #include <TTree.h>
@@ -34,6 +35,7 @@
 #include "TMath.h"
 #include "TF1.h"
 #include "RooFitResult.h"
+#include "TSystem.h"
 
 #include "test_combine.C"
 
@@ -42,6 +44,10 @@ using namespace RooStats;
 
 void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root", const float systval = 0., const float systValAdd = 0., const char* subDirName ="wsTest", int nCPU=2){
    // subdir: Directory to save workspaces under currentPATH/CombinedWorkspaces/subDir/
+
+   // set things silent
+   gErrorIgnoreLevel=kError;
+   RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
   
    bool dosyst = (systval > 0.);
 
