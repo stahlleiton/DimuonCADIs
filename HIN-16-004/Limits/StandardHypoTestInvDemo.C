@@ -80,7 +80,7 @@ bool noSystematics = false;              // force all systematics to be off (i.e
                                          // to their nominal values)
 double nToysRatio = 2;                   // ratio Ntoys S+b/ntoysB
 double maxPOI = -1;                      // max value used of POI (in case of auto scan)
-bool useProof = false;                   // use Proof Lite when using toys (for freq or hybrid)
+bool useProof = true;                    // use Proof Lite when using toys (for freq or hybrid)
 int nworkers = 0;                        // number of worker for ProofLite (default use all available cores)
 bool enableDetailedOutput = false;       // enable detailed output with all fit information for each toys (output will be written in result file)
 bool rebuild = false;                    // re-do extra toys for computing expected limits and rebuild test stat

@@ -13,6 +13,8 @@
 
 using namespace std;
 
+const bool usebatch=true;
+
 void computeLimits(
                    const char* ACTag, // ACTag: where to look for combined workspaces in Limits/CombinedWorkspaces/
                    bool doSyst= false,
@@ -81,14 +83,33 @@ void computeLimits(
     cout << ">>>>>>> Computing " << CL*100 << "% " << "limits for analysis bin " << cnt << endl;
     cout << "Using combined PbPb-PP workspace " << cnt << " / " << theFiles.size() << ": " << *it << endl;
     
-    pair<double,double> lims = runLimit_RaaNS_Workspace(*it, "RFrac2Svs1S_PbPbvsPP", "simPdf", "workspace", "dOS_DATA", CL, calculatorType, testStatType, useCLs);
-    
-    anabin thebin = binFromFile(*it);
-    
-    file << thebin.rapbin().low() << ", " << thebin.rapbin().high() << ", "
-    << thebin.ptbin().low() << ", " << thebin.ptbin().high() << ", "
-    << thebin.centbin().low() << ", " << thebin.centbin().high() << ", "
-    << lims.first << ", " << lims.second << endl;
+    if (!usebatch) {
+       pair<double,double> lims = runLimit_RaaNS_Workspace(*it, "RFrac2Svs1S_PbPbvsPP", "simPdf", "workspace", "dOS_DATA", CL, calculatorType, testStatType, useCLs);
+
+       anabin thebin = binFromFile(*it);
+
+       file << thebin.rapbin().low() << ", " << thebin.rapbin().high() << ", "
+          << thebin.ptbin().low() << ", " << thebin.ptbin().high() << ", "
+          << thebin.centbin().low() << ", " << thebin.centbin().high() << ", "
+          << lims.first << ", " << lims.second << endl;
+    } else {
+       TString exports;
+       exports += Form("export it=%s; ",it->Data());
+       exports += Form("export CL=%f; ",CL);
+       exports += Form("export calculatorType=%i; ",calculatorType);
+       exports += Form("export testStatType=%i; ",testStatType);
+       exports += Form("export useCLs=%i; ",useCLs);
+       exports += Form("export pwd_=%s; ", gSystem->pwd());
+       TString command("qsub -k oe -q cms@llrt3 ");
+       command += Form("-N limits_bin%i ",cnt);
+       command += "-V ";
+       command += Form("-o %s ", gSystem->pwd());
+       command += Form("-v it,CL,calculatorType,testStatType,useCLs,pwd_ ");
+       command += "runbatch_limits.sh";
+       TString command_full = exports + command;
+       cout << command_full.Data() << endl;
+       system(command_full.Data());
+    }
     
     cnt++;
   } // loop on the files

@@ -222,9 +222,7 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
 
    ws->Delete(); ws_pp->Delete(); f->Delete(); f_pp->Delete();
 
-   // simPdf.fitTo(data_combo); // crashes sometimes but not always?? adding Range("MassWindow") or NumCPU(2) improves stability
-   // simPdf.fitTo(data_combo,NumCPU(nCPU), Extended(kTRUE), Minimizer("Minuit2","Migrad"));
-  //, NumCPU(numCores), Range("MassWindow"), Save()
+   simPdf.fitTo(data_combo,NumCPU(nCPU), Extended(kTRUE), Minimizer("Minuit2","Migrad"));
 
    // wcombo->writeToFile("fitresult_combo.root");
    return wcombo;
