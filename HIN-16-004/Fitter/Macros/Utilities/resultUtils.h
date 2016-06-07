@@ -14,6 +14,7 @@
 #include "TCanvas.h"
 #include "TGraphErrors.h"
 #include "TGraphAsymmErrors.h"
+#include "RooFitResult.h"
 
 #include <string>
 #include <vector>
