@@ -6,12 +6,18 @@
 
 #include <vector>
 #include <map>
+#include <cstdlib>
+#include <iostream>
+#include <sstream>
 
 #include "../Fitter/Macros/Utilities/resultUtils.h"
 #include "../Fitter/Systematics/syst.h"
 #include "combinedWorkspace.C"
 
 using namespace std;
+
+// use the LLR batch system?
+const bool usebatch=true;
 
 void createPPPbPbWorkspaces(
                    const char* workDirName, // workDirName: usual tag where to look for files in Output
@@ -95,7 +101,28 @@ void createPPPbPbWorkspaces(
         if ( doSyst ) binName.Prepend("wSyst_");
         else  binName.Prepend("woSyst_");
         
-        combinedWorkspace(*it_PbPb, *it_PP, Form("combined_PbPbPP_workspace_%s.root",binName.Data()), systVal, systValAdd, ACTag, nCPU);
+        if (!usebatch) {
+           combinedWorkspace(*it_PbPb, *it_PP, Form("combined_PbPbPP_workspace_%s.root",binName.Data()), systVal, systValAdd, ACTag, nCPU);
+        } else {
+           TString exports;
+           exports += Form("export it_PbPb=%s; ",it_PbPb->Data());
+           exports += Form("export it_PP=%s; ",it_PP->Data());
+           exports += Form("export binName=%s; ", binName.Data());
+           exports += Form("export systVal=%f; ", systVal);
+           exports += Form("export systValAdd=%f; ", systValAdd);
+           exports += Form("export ACTag=%s; ", ACTag);
+           exports += Form("export nCPU=%i; ", nCPU);
+           exports += Form("export pwd_=%s; ", gSystem->pwd());
+           TString command("qsub -k oe -q cms@llrt3 ");
+           command += "-N ${binName} ";
+           command += "-V ";
+           command += Form("-o %s ", gSystem->pwd());
+           command += Form("-v it_PbPb,it_PP,binName,systVal,systValAdd,ACTag,nCPU,pwd_ ");
+           command += "runbatch_workspace.sh";
+           TString command_full = exports + command;
+           cout << command_full.Data() << endl;
+           system(command_full.Data());
+        }
         
         cout << ">>>>>>>> Combined workspace created for bin " << binName.Data() << endl;
       }

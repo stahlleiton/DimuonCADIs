@@ -10,7 +10,7 @@ pair<double,double> runLimit_RaaNS_Workspace(const char *filename="TRIAL.root", 
 using namespace std;
 using namespace RooStats;
 
-pair<double,double> runLimit_RaaNS_Workspace(const char *filename, const char *poiname, const char *pdfname, const char *wsname, const char* dataname, double CI, int calculatorType, int testStatType,  bool useCLs)
+pair<double,double> runLimit_RaaNS_Workspace(const char *filename, const char *poiname, const char *pdfname, const char *wsname, const char* dataname, const char* ACTag, double CI, int calculatorType, int testStatType,  bool useCLs)
 {
    // RooMsgService::instance().addStream(RooFit::MsgLevel::DEBUG); 
    RooRealVar *theVar; RooDataSet *data; RooAbsPdf *pdf;
@@ -127,7 +127,8 @@ pair<double,double> runLimit_RaaNS_Workspace(const char *filename, const char *p
          1000,
          false,
          0,
-         CI);
+         CI,
+         ACTag);
 
    pair<double,double> lims;
    lims.first = r->LowerLimit();

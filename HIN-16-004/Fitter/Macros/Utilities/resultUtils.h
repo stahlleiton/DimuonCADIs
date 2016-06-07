@@ -15,8 +15,11 @@
 #include "TGraphErrors.h"
 #include "TGraphAsymmErrors.h"
 #include "RooFitResult.h"
+<<<<<<< HEAD
 #include "TFitResult.h"
 
+=======
+>>>>>>> 913d0f1f4609242f7bdf142e6c9a8147f168a8c3
 
 #include <string>
 #include <vector>
