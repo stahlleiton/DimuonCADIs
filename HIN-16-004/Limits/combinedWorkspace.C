@@ -139,6 +139,10 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
 //            && varname != "sample"
 //            )
 //         theVar->setConstant();
+     if ( varname == "f_Jpsi_PP" || varname == "f_Jpsi_PbPb" || varname == "rSigma21_Jpsi_PP" || varname == "m_Jpsi_PP" || varname == "m_Jpsi_PbPb" || varname == "sigma1_Jpsi_PP" || varname == "sigma1_Jpsi_PbPb" || (varname.Contains("lambda") /*&& varname.Contains("PP")*/)  )
+         {
+           theVar->setConstant();
+         }
       if (varname=="glob_syst"
             || varname=="beta_syst"
             || varname=="glob_syst_add"
