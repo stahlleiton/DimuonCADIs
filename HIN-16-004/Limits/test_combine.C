@@ -39,6 +39,7 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
       RooRealVar *theVarCopy = new RooRealVar(theVar->GetName(),theVar->GetTitle(),theVar->getVal(),theVar->getMin(),theVar->getMax());
       theVarCopy->setConstant(theVar->isConstant());
       theVarCopy->setError(theVar->getError());
+      if ( (theVar->getMin() == theVar->getMax()) || theVar->getError() == 0. ) theVarCopy->setConstant();
       wcombo->import(*theVarCopy);
       theVar = (RooRealVar*) it->Next();
    }
