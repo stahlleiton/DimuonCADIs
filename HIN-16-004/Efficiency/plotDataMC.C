@@ -23,36 +23,14 @@ void fixCentPp(TH1F *hist);
 TH1F* integrateHist(TH1F *hist);
 
 void plotDataMC() {
-  TFile *fjpsi_pp = new TFile("files/histos_jpsi_pp.root");
-  TFile *fpsi2s_pp = new TFile("files/histos_psi2s_pp.root");
-  TFile *fnpjpsi_pp = new TFile("files/histos_npjpsi_pp.root");
-  TFile *fjpsi_pbpb = new TFile("files/histos_jpsi_pbpb.root");
-  TFile *fpsi2s_pbpb = new TFile("files/histos_psi2s_pbpb.root");
-  TFile *fnpjpsi_pbpb = new TFile("files/histos_npjpsi_pbpb.root");
-  
-  ofstream file_nocut_PbPb("files/syst_PbPb_eff_MCstat_nocut.csv");
-  ofstream file_ctaucut_PbPb("files/syst_PbPb_eff_MCstat_ctaucut.csv");
-  ofstream file_ctauptdepcut_PbPb("files/syst_PbPb_eff_MCstat_ctauptdepcut.csv");
-  file_nocut_PbPb << "MC statistics in PbPb efficiency (no ctau cut)" << endl;
-  file_ctaucut_PbPb << "MC statistics in PbPb efficiency (with ctau pt-independent cut)" << endl;
-  file_ctauptdepcut_PbPb << "MC statistics in PbPb efficiency (with ctau pt-dependent cut)" << endl;
 
-  /*ofstream file_nocut_pp("files/syst_PP_eff_MCstat_nocut.csv");
-  ofstream file_ctaucut_pp("files/syst_PP_eff_MCstat_ctaucut.csv");
-  ofstream file_ctauptdepcut_pp("files/syst_PP_eff_MCstat_ctauptdepcut.csv");
-  file_nocut_pp << "MC statistics in pp efficiency (no ctau cut)" << endl;
-  file_ctaucut_pp << "MC statistics in pp efficiency (with ctau pt-independent cut)" << endl;
-  file_ctauptdepcut_pp << "MC statistics in pp efficiency (with ctau pt-dependent cut)" << endl;*/
-  
-  // first, let's draw simple efficiencies
-  // we'll draw on the same plot the efficiencies for prompt and non-prompt J/psi, and psi(2S)
-  // both for pp and pbpb, and both for the pp and centrality dependences, and both for midrapidity and forward rapidities, and both with and without ctau cut (2*2*2*3 = 24 plots)
-  
+  //plot Data_MC comparison, data points from the fits
+
   TString colltag, deptag, raptag, cuttag, objtag;
   for (int icoll=0; icoll<1; icoll++) {
     colltag = (icoll==0) ? "pp" : "pbpb";
     
-    for (int iobj=0; iobj<2; iobj++) {
+    for (int iobj=0; iobj<1; iobj++) {
       objtag = (iobj==0) ? "jpsi" : "psi2s";
       
       TString name = "files/histos_" + objtag + "_" + colltag + ".root";
@@ -104,9 +82,6 @@ void plotDataMC() {
 	      hjpsiFwd = new TH1F("hjpsiFwd","hjpsiFwd",nbins_ptfwd,bins_ptfwd);
 	    
 	    nbins = (irap==0) ? 5 : 3;
-	    //double ptFwd[nbins], ptFwdErr[nbins];
-	    //std::vector<int> array = {1,3,34,5,6};
-	    
 	    std::vector<double> ptMid = {58653.734,49509.714,18024.597,8912.3154,3088.4191}; // pp data Jpsi
 	    std::vector<double> ptMidErr = {250.80012,230.37362,137.7950,97.365753,57.877162};
 	    
@@ -129,6 +104,14 @@ void plotDataMC() {
 	      ptFwdErr = {172.92077,115.03877,38.281230};
 	    }
 	    
+	    if(icoll == 1 && iobj==1){
+	      ptMid = {104.72235,119.38916,61.021923,28.467804,10.201046}; // PbPb data jpsi
+	      ptMidErr = {47.020084,26.660514,13.654704,9.0622406,5.9582667};
+	      
+	      ptFwd = {63.292587,119.99708,36.432670,};
+	      ptFwdErr = {118.25901,53.776134,12.202820};
+	    }
+	    
 	    for (int i=0; i<nbins; i++) {
 	      if(irap==0){
 		hjpsiMid->SetBinContent(i+1,ptMid[i]);
@@ -148,13 +131,8 @@ void plotDataMC() {
 	    //number of entries, mean, rms, integral, overflow and underflow                                     
 	    gStyle->SetOptFit(1);
 	    
-	    //TH1F *hjpsinumDp = (TH1F*)hjpsinum->Clone();
-	    //hjpsinumDp->SetDirectory(0);
-	    //hjpsinumDp->SetName("hjpsinumDp");
-	    
 	    hjpsinum->Sumw2();
-	    
-	    TLatex tl; TString cname;
+ 	    TLatex tl; TString cname;
 	    TString Compame = "DataMC";
 	    TCanvas *c2 = new TCanvas();
 	    
@@ -191,9 +169,7 @@ void plotDataMC() {
 	    tleg->AddEntry(hjpsinum,Form("MC: %s", iobj==0 ? "J/#psi" : "#psi(2S)"),"lp");
 	    tleg->Draw();
 	    
-	    tl.DrawLatex(5.2,1.3, colltag);
-	    //tl.DrawLatex((irap==0) ? 9.4 : 5.2,1.3, colltag + TString(", ") + ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1 || icut==3) ? "cut #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
-	    
+	    tl.DrawLatex((irap==0) ? 9.4 : 5.2,1.3, colltag + TString(", ") + ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1 || icut==3) ? "cut #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));	    
 	    c2->SaveAs(cname + ".root");
 	    c2->SaveAs(cname + ".png");
 	    c2->SaveAs(cname + ".pdf");
@@ -220,17 +196,13 @@ void plotDataMC() {
 	    TLegend *tlegR = new TLegend(0.6,0.667,0.92,0.78);
 	    tlegR->SetBorderSize(0);
 	    if(irap==0)
-	      tlegR->AddEntry(hjpsiMid,"Data:MC Ratio","p");
+	      tlegR->AddEntry(hjpsiMid,Form("Data/MC Ratio: %s", iobj==0 ? "J/#psi" : "#psi(2S)"),"p");
 	    if(irap==1)
-	      tlegR->AddEntry(hjpsiFwd,"Data:MC Ratio","p");
+	      tlegR->AddEntry(hjpsiFwd,Form("Data/MC Ratio: %s", iobj==0 ? "J/#psi" : "#psi(2S)"),"p");
 	    tlegR->Draw();
 	    
 	    tl.DrawLatex((irap==0) ? 9.4 : 5.2,1.3, colltag + TString(", ") + ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1 || icut==3) ? "cut #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
-	    //TF1 *FitFn = new TF1(Form("FitFn_%s", (irap==0) ? "Mid" : "Fwd"),(irap==0) ? Pol2 : Exp,0.0,30.0,(irap==0) ? 3 : 2);
 	    TF1 *FitFn = new TF1("FitFn",(irap==0) ? Pol2 : Pol1,0.0,30.0,(irap==0) ? 3 : 2); 
-	    //TF1 *FitFn = new TF1("FitFn",(irap==0) ? Pol2 : Exp,0.0,30.0,(irap==0) ? 3 : 2); //Pol2 : Exp for PbPb
-	    //FitFn->SetParNames("C","a");
-	    //FitFn->SetParNames("C","a","b");
 	    FitFn->SetLineWidth(2.0);
 	    FitFn->SetLineColor(2);
 	    hjpsiDataPbPb->Fit("FitFn","", "",(irap==0) ? 6.5 : 3.0,30.0);
@@ -251,9 +223,9 @@ void plotDataMC() {
 	    //delete c1;  
 	    //delete c2;  
 	    //delete c3;  
-	    delete hjpsiDataPbPb;
-	    delete hjpsinum;    
-	    delete FitFn;
+	    //delete hjpsiDataPbPb;
+	    //delete hjpsinum;    
+	    //delete FitFn;
 	    //delete hjpsiMid;
 	    //delete hjpsiFwd;
 	    
@@ -263,8 +235,6 @@ void plotDataMC() {
     }
   } // icoll loop (pp / pbpb)
   
-  file_nocut_PbPb.close();
-  file_ctaucut_PbPb.close();
 }
 
 void setErr(TH1F *hist) {

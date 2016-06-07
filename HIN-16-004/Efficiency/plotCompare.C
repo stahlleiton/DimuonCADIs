@@ -37,23 +37,7 @@ void plotCompare() {
   TFile *fpsi2s_pbpb_Wt = new TFile("filesDataMC/histos_psi2s_pbpb.root");
   TFile *fnpjpsi_pbpb_Wt = new TFile("filesDataMC/histos_npjpsi_pbpb.root");
   
-  ofstream file_nocut_PbPb("files/syst_PbPb_eff_MCstat_nocut.csv");
-  ofstream file_ctaucut_PbPb("files/syst_PbPb_eff_MCstat_ctaucut.csv");
-  ofstream file_ctauptdepcut_PbPb("files/syst_PbPb_eff_MCstat_ctauptdepcut.csv");
-  file_nocut_PbPb << "MC statistics in PbPb efficiency (no ctau cut)" << endl;
-  file_ctaucut_PbPb << "MC statistics in PbPb efficiency (with ctau pt-independent cut)" << endl;
-  file_ctauptdepcut_PbPb << "MC statistics in PbPb efficiency (with ctau pt-dependent cut)" << endl;
-
-  /*ofstream file_nocut_pp("files/syst_PP_eff_MCstat_nocut.csv");
-  ofstream file_ctaucut_pp("files/syst_PP_eff_MCstat_ctaucut.csv");
-  ofstream file_ctauptdepcut_pp("files/syst_PP_eff_MCstat_ctauptdepcut.csv");
-  file_nocut_pp << "MC statistics in pp efficiency (no ctau cut)" << endl;
-  file_ctaucut_pp << "MC statistics in pp efficiency (with ctau pt-independent cut)" << endl;
-  file_ctauptdepcut_pp << "MC statistics in pp efficiency (with ctau pt-dependent cut)" << endl;*/
-  
-  // first, let's draw simple efficiencies
-  // we'll draw on the same plot the efficiencies for prompt and non-prompt J/psi, and psi(2S)
-  // both for pp and pbpb, and both for the pp and centrality dependences, and both for midrapidity and forward rapidities, and both with and without ctau cut (2*2*2*3 = 24 plots)
+  // compare two efficiencies, one nominal and other weighted MC efficiency
   
   TString colltag, deptag, raptag, cuttag;
   for (int icoll=0; icoll<1; icoll++) {
@@ -75,7 +59,7 @@ void plotCompare() {
     
     for (int idep=1; idep<2; idep++) { // idep=2 -> integrated                                                                              
       deptag = (idep==0) ? "pt" : "cent";
-
+      
       for (int irap=0; irap<2; irap++) {
         raptag = (irap==0) ? "mid" : "fwd";
 
@@ -89,128 +73,16 @@ void plotCompare() {
 	  
 	  TString hname;
 	  TString hname_Wt;
-	  /*
-	  hname = "hnum" + cuttag + deptag + raptag;
-	  TH1F *hjpsinum = (TH1F*) fjpsi->Get(hname);
-	  TH1F *hpsi2snum = (TH1F*) fpsi2s->Get(hname);
-	  TH1F *hnpjpsinum = (TH1F*) fnpjpsi->Get(hname);
-	  hname = (icut<3) ? "hden_" + deptag + raptag : "hnum_" + deptag + raptag;
-	  TH1F *hjpsiden = (TH1F*) fjpsi->Get(hname);
-	  TH1F *hpsi2sden = (TH1F*) fpsi2s->Get(hname);
-	  TH1F *hnpjpsiden = (TH1F*) fnpjpsi->Get(hname);
 	  
-	  hname_Wt = "hnum" + cuttag + deptag + raptag;
-	  TH1F *hjpsinum_Wt = (TH1F*) fjpsi_Wt->Get(hname_Wt);
-	  TH1F *hpsi2snum_Wt = (TH1F*) fpsi2s_Wt->Get(hname_Wt);
-	  TH1F *hnpjpsinum_Wt = (TH1F*) fnpjpsi_Wt->Get(hname_Wt);
-	  hname_Wt = (icut<3) ? "hden_" + deptag + raptag : "hnum_" + deptag + raptag;
-	  TH1F *hjpsiden_Wt = (TH1F*) fjpsi_Wt->Get(hname_Wt);
-	  TH1F *hpsi2sden_Wt = (TH1F*) fpsi2s_Wt->Get(hname_Wt);
-	  TH1F *hnpjpsiden_Wt = (TH1F*) fnpjpsi_Wt->Get(hname_Wt);
-	  
-	  if (idep==2) {
-	    hjpsinum = integrateHist(hjpsinum);
-	    hpsi2snum = integrateHist(hpsi2snum);
-	    hnpjpsinum = integrateHist(hnpjpsinum);
-	    hjpsiden = integrateHist(hjpsiden);
-	    hpsi2sden = integrateHist(hpsi2sden);
-	    hnpjpsiden = integrateHist(hnpjpsiden);
-	  }
-	  
-	  if (icoll==0 && idep==1) { // centrality for pp... fill all the bins
-	    fixCentPp(hjpsinum);
-	    fixCentPp(hpsi2snum);
-	    fixCentPp(hnpjpsinum);
-	    fixCentPp(hjpsiden);
-	    fixCentPp(hpsi2sden);
-	    fixCentPp(hnpjpsiden);
-	  }
-	  
-	  
-	  if (idep==2) {
-	    hjpsinum_Wt = integrateHist(hjpsinum_Wt);
-	    hpsi2snum_Wt = integrateHist(hpsi2snum_Wt);
-	    hnpjpsinum_Wt = integrateHist(hnpjpsinum_Wt);
-	    hjpsiden_Wt = integrateHist(hjpsiden_Wt);
-	    hpsi2sden_Wt = integrateHist(hpsi2sden_Wt);
-	    hnpjpsiden_Wt = integrateHist(hnpjpsiden_Wt);
-	  }
-	  
-	  if (icoll==0 && idep==1) { // centrality for pp... fill all the bins
-	    fixCentPp(hjpsinum_Wt);
-	    fixCentPp(hpsi2snum_Wt);
-	    fixCentPp(hnpjpsinum_Wt);
-	    fixCentPp(hjpsiden_Wt);
-	    fixCentPp(hpsi2sden_Wt);
-	    fixCentPp(hnpjpsiden_Wt);
-	  }
-
-	  hjpsinum->Sumw2(true); hjpsiden->Sumw2(true);
-	  hpsi2snum->Sumw2(true); hpsi2sden->Sumw2(true);
-	  hnpjpsinum->Sumw2(true); hnpjpsiden->Sumw2(true);
-
-	  hjpsinum_Wt->Sumw2(true); hjpsiden_Wt->Sumw2(true);
-	  hpsi2snum_Wt->Sumw2(true); hpsi2sden_Wt->Sumw2(true);
-	  hnpjpsinum_Wt->Sumw2(true); hnpjpsiden_Wt->Sumw2(true);
-
-	  hjpsinum->Divide(hjpsinum,hjpsiden,1,1,"B");
-	  hpsi2snum->Divide(hpsi2snum,hpsi2sden,1,1,"B");
-	  hnpjpsinum->Divide(hnpjpsinum,hnpjpsiden,1,1,"B");
-
-	  hjpsinum_Wt->Divide(hjpsinum_Wt,hjpsiden_Wt,1,1,"B");
-	  hpsi2snum_Wt->Divide(hpsi2snum_Wt,hpsi2sden_Wt,1,1,"B");
-	  hnpjpsinum_Wt->Divide(hnpjpsinum_Wt,hnpjpsiden_Wt,1,1,"B");
-
-	  //hjpsinum->Divide(hjpsinum_Wt);
-	  //hpsi2snum->Divide(hpsi2snum_Wt);
-	  //hnpjpsinum->Divide(hnpjpsinum_Wt);
-	  
-	  cout<<"============ok1======================================"<<endl;
-	  */
 	  TCanvas *c1 = new TCanvas();
 	  TLatex tl; TString cname;
 	  TString effname = (icut<3) ? "singleff_" : "ctaucuteff_";
 	  cname = "files/Comp/" + effname + colltag + "_" + deptag + "_" + raptag + "_" + cuttag;
 	  
-	  if (idep<2) {
-	    // plot
-	    /*
-	    //TH1F *haxes = new TH1F("haxes","haxes",1,0,(idep==1) ? 100 : 30);
-	    hjpsinum->GetYaxis()->SetTitle("Efficeincy");
-	    hjpsinum->GetYaxis()->SetRangeUser(0.8,1.2);
-	    //->SetBinContent(1,1);
-	    hjpsinum->GetXaxis()->SetTitle((idep==1) ? "Centrality bin" : "p_{T}");
-	    hjpsinum->Draw();
-	    hjpsinum_Wt->Draw("E1 same");
-	    
-	    double yshift =0; if (icoll==1 && irap==1) yshift=0.3;
-	    if (icut>=3) yshift=0;
-	    TLegend *tleg = new TLegend(0.5,0.26+yshift,0.88,0.46+yshift);
-	    tleg->SetBorderSize(0);
-	    tleg->AddEntry(hjpsinum,"J/#psi unweighted","lp");
-	    tleg->AddEntry(hjpsinum_Wt,"J/#psi weighted","lp");
-	    tleg->Draw();
-	    
-	    tl.DrawLatex((idep==0) ? 1.5 : 10, (icut<3) ? 0.9 : 0.7, colltag + TString(", ") 
-			 + ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
-			 + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1 || icut==3) ? "cut #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
-	    
-	    
-	    c1->SaveAs(cname + ".root");
-	    c1->SaveAs(cname + ".png");
-	    c1->SaveAs(cname + ".pdf");
-	    
-	    //delete haxes;
-	    */
-	  }
-
-	  
 	  gStyle->SetOptTitle(0); // at least most of the time                                                                                
           gStyle->SetOptStat(0); // most of the time, sometimes "nemriou" might be useful to display name,                                  
           //number of entries, mean, rms, integral, overflow and underflow                                                                   
           gStyle->SetOptFit(0);
-
-	  cout<<"============ok4======================================"<<endl;
 
 	  // now, let's draw simple ratios of efficiencies: psi(2S)/J/psi
 	  // but do it only once
@@ -279,7 +151,6 @@ void plotCompare() {
 	  hpsi2spp->Sumw2(true); hpsi2sdenpp->Sumw2(true);
 	  hjpsipp->Divide(hjpsipp,hjpsidenpp,1,1,"B");
 	  hpsi2spp->Divide(hpsi2spp,hpsi2sdenpp,1,1,"B");
-	  //hpsi2spp->Divide(hpsi2sdenpp);
 	  hjpsipbpb->Divide(hjpsipbpb,hjpsidenpbpb,1,1,"B");
 	  hpsi2spbpb->Divide(hpsi2spbpb,hpsi2sdenpbpb,1,1,"B");
 	  
@@ -295,67 +166,6 @@ void plotCompare() {
 	  hjpsipbpb_Wt->Divide(hjpsipbpb_Wt,hjpsidenpbpb_Wt,1,1,"B");
 	  hpsi2spbpb_Wt->Divide(hpsi2spbpb_Wt,hpsi2sdenpbpb_Wt,1,1,"B");
 	  
-	  if (idep<2) {
-	    // plot
-	    /*
-	    //TH1F *haxes = new TH1F("haxes","haxes",1,0,(idep==1) ? 100 : 30);
-	    hjpsipp->GetYaxis()->SetTitle("Efficeincy");
-	    hjpsipp->GetYaxis()->SetRangeUser(0.0,1.2);
-	    //->SetBinContent(1,1);
-	    hjpsipp->GetXaxis()->SetTitle((idep==1) ? "Centrality bin" : "p_{T}");
-	    
-	    hjpsipp->SetMarkerColor(kBlack);
-	    hjpsipp->SetLineColor(kBlack);
-	    hjpsipp->Draw();
-	    hjpsipp_Wt->SetMarkerColor(kRed);
-	    hjpsipp_Wt->SetLineColor(kRed);
-	    hjpsipp_Wt->Draw("E1 same");
-	    
-	    hjpsipbpb->SetMarkerColor(kBlue);
-	    hjpsipbpb->SetLineColor(kBlue);
-	    hjpsipbpb->Draw("E1 same");
-	    hjpsipbpb_Wt->SetMarkerColor(kGreen);
-	    hjpsipbpb_Wt->SetLineColor(kGreen);
-	    hjpsipbpb_Wt->Draw("E1 same");
-	    
-	    double yshift =0; if (icoll==1 && irap==1) yshift=0.3;
-	    if (icut>=3) yshift=0;
-	    TLegend *tleg = new TLegend(0.5,0.26+yshift,0.88,0.46+yshift);
-	    tleg->SetBorderSize(0);
-	    tleg->AddEntry(hjpsipp,"pp: J/#psi","lp");
-	    tleg->AddEntry(hjpsipp_Wt,"pp: J/#psi weighted","lp");
-	    tleg->AddEntry(hjpsipbpb,"pbpb: J/#psi","lp");
-	    tleg->AddEntry(hjpsipbpb_Wt,"pbpb: J/#psi weighted","lp");
-	    tleg->Draw();
-	    
-	    tl.DrawLatex((idep==0) ? 1.5 : 10, (icut<3) ? 0.9 : 0.7, colltag + TString(", ") 
-			 + ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
-			 + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1 || icut==3) ? "cut #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
-	    
-	    
-	    c1->SaveAs(cname + ".root");
-	    c1->SaveAs(cname + ".png");
-	    c1->SaveAs(cname + ".pdf");
-	    */
-	    //delete haxes;
-	  }
-	  
-	  /*TH1F *hpsi2sppDp = (TH1F*)hpsi2spp->Clone();
-          hpsi2sppDp->SetDirectory(0);
-          hpsi2sppDp->SetName("hpsi2sppDp");
-
-	  TH1F *hpsi2spbpbDp = (TH1F*)hpsi2spbpb->Clone();
-          hpsi2spbpbDp->SetDirectory(0);
-          hpsi2spbpbDp->SetName("hpsi2spbpbDp");
-
-	  TH1F *hpsi2sppDp_Wt = (TH1F*)hpsi2spp_Wt->Clone();
-          hpsi2sppDp_Wt->SetDirectory(0);
-          hpsi2sppDp_Wt->SetName("hpsi2sppDp_Wt");
-
-	  TH1F *hpsi2spbpbDp_Wt = (TH1F*)hpsi2spbpb_Wt->Clone();
-          hpsi2spbpbDp_Wt->SetDirectory(0);
-          hpsi2spbpbDp_Wt->SetName("hpsi2spbpbDp_Wt");*/
-
 	  hpsi2spp->Divide(hjpsipp);
 	  hpsi2spbpb->Divide(hjpsipbpb);
 	  hpsi2spp_Wt->Divide(hjpsipp_Wt);
@@ -384,8 +194,6 @@ void plotCompare() {
             haxes->GetYaxis()->SetRangeUser(0.5,1.5);
             haxes->SetBinContent(1,1);
             haxes->Draw();
-	    //hpsi2spp->GetYaxis()->SetTitle("Eff(#psi(2S)) / Eff(J/#psi)");
-	    //hpsi2spp->GetYaxis()->SetRangeUser(0.5,1.5);
 	    haxes->GetXaxis()->SetTitle((idep==1) ? "Centrality bin" : "p_{T}");
 	    hpsi2spp->Draw("E1 same");
 	    hpsi2spp_Wt->Draw("E1 same");
@@ -409,8 +217,7 @@ void plotCompare() {
 
 	    delete haxes;
 	  }
-	  //delete c2;
-
+	  
 	  // at last, the double ratio
 	  hpsi2spbpb->Divide(hpsi2spp);
 	  hpsi2spbpb_Wt->Divide(hpsi2spp_Wt);
@@ -420,18 +227,11 @@ void plotCompare() {
 	  hpsi2spbpb_Wt->SetMarkerColor(kRed);
 	  hpsi2spbpb_Wt->SetLineColor(kRed);
           
-
-	  //hpsi2spbpb->Divide(hpsi2spbpb_Wt);
 	  cname = "files/Comp/doubleratio_" + deptag + "_" + raptag + "_" + cuttag;
-	  
 	  TCanvas *c3 = new TCanvas();
-	  //TGraphAsymmErrors *tg_DRatio = new TGraphAsymmErrors(hpsi2spbpb,hpsi2spbpb_Wt,(icoll==0) ? "" : "norm");
-	  //tg_DRatio->SetMarkerColor(kBlack);
-	  //tg_DRatio->SetLineColor(kBlack);
-	  
+	  	  
 	  if (idep<2) {
 	    // plot
-	    
 	    TH1F *haxes = new TH1F("haxes","haxes",1,0,(idep==1) ? 100 : 30);
             haxes->GetYaxis()->SetTitle("[Eff(#psi(2S)) / Eff(J/#psi)]_{PbPb} / [Eff(#psi(2S)) / Eff(J/#psi)]_{pp}");
             haxes->GetYaxis()->SetRangeUser(0.5,1.5);
@@ -454,7 +254,8 @@ void plotCompare() {
 	    c3->SaveAs(cname + ".root");
 	    c3->SaveAs(cname + ".png");
 	    c3->SaveAs(cname + ".pdf");
-	    //delete haxes;
+	    
+	    delete haxes;
 	    
 	  }
 	  
@@ -474,8 +275,6 @@ void plotCompare() {
     } // idep loop (pt / centrality)
   } // icoll loop (pp / pbpb)
   
-  file_nocut_PbPb.close();
-  file_ctaucut_PbPb.close();
 }
 
 void setErr(TH1F *hist) {

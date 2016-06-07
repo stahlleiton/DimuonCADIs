@@ -134,8 +134,10 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
       b_Gen_QQ_mumi_4mom->GetEntry(ientry); //read only this branch
       TLorentzVector *tlvgenpl = (TLorentzVector*) Gen_QQ_mupl_4mom->At(0);
       TLorentzVector *tlvgenmi = (TLorentzVector*) Gen_QQ_mumi_4mom->At(0);
-      if (!isGlobalMuonInAccept2015(tlvgenpl) || !isGlobalMuonInAccept2015(tlvgenmi)) continue;
-
+      //if (!isGlobalMuonInAccept2015(tlvgenpl) || !isGlobalMuonInAccept2015(tlvgenmi)) continue;
+      bool isgenok = true;
+      if (!isGlobalMuonInAccept2015(tlvgenpl) || !isGlobalMuonInAccept2015(tlvgenmi)) isgenok=false;
+      
       // fill denominators
       b_Gen_QQ_4mom->GetEntry(ientry); //read only this branch
       TLorentzVector *tlvgenqq = (TLorentzVector*) Gen_QQ_4mom->At(0);
@@ -146,50 +148,44 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
       bool gen_inbin = false;
       if (fabs(tlvgenqq->Rapidity())<1.6 && tlvgenqq->Pt()>6.5 && tlvgenqq->Pt()<30.) gen_inbin = true;
       if (fabs(tlvgenqq->Rapidity())>1.6 && fabs(tlvgenqq->Rapidity())<2.4 && tlvgenqq->Pt()>3. && tlvgenqq->Pt()<30.) gen_inbin = true;
-      if (!gen_inbin) continue;
-
+      //if (!gen_inbin) continue;
+      if (!gen_inbin) isgenok=false;
+      
       double weight = ispbpb ? fChain->GetWeight()*findNcoll(Centrality) : 1.;
-      
-      //TFile *fileFwd_PbPb,*fileMid_PbPb; 
-      //TF1 *funcMid, funcFwd;
-      //if(fabs(tlvgenqq->Rapidity())<1.6){
-      //fileMid_PbPb = new TFile("files/Ratiopbpb_pt_mid_ptdepcut_.root");
-      //funcMid = (TF1*)fileMid_PbPb->Get("FitFn");
-      // }
-      //if(fabs(tlvgenqq->Rapidity())>1.6){
-      //fileFwd_PbPb = new TFile("files/Ratiopbpb_pt_fwd_ptdepcut_.root");
-      //funcFwd = (TF1*)fileMid_PbPb->Get("FitFn");
-      // }
-      
       double weight_DataMC = 0.0;
       if(fabs(tlvgenqq->Rapidity())<1.6){
-	//weight_DataMC = 1.983 - 0.133*genpt + 0.0036*genpt*genpt; //PbPb
-	weight_DataMC = 2.07 - 0.137*genpt + 0.0032*genpt*genpt;
+	weight_DataMC = 1.659 - 0.0844*genpt + 0.0019*genpt*genpt;
+	if(ispbpb && !isPsip) weight_DataMC = 1.88 - 0.120*genpt + 0.0033*genpt*genpt; 
+	if(!ispbpb && isPsip) weight_DataMC = 1.059 + 0.0001*genpt - 0.0005*genpt*genpt;
+	if(ispbpb && isPsip) weight_DataMC = 0.254 + 0.109*genpt - 0.0033*genpt*genpt;
+	
       }
       if(fabs(tlvgenqq->Rapidity())>1.6){
-	//weight_DataMC = 1.239 - 0.0298*genpt; //PbPb
-	weight_DataMC = 1.474 - 0.0464*genpt;
+	weight_DataMC = 1.155 - 0.0197*genpt;
+	if(ispbpb && !isPsip) weight_DataMC = 1.168 - 0.0223*genpt;
+	if(!ispbpb && isPsip) weight_DataMC = 0.814 + 0.0453*genpt - 0.0021*genpt*genpt;
+	if(ispbpb && isPsip) weight_DataMC = 0.721 + 0.0507*genpt; 
+	
       }
       
-      //weight_DataMC = ispbpb ? weight_DataMC : 1.0;
       //weight = weight*weight_DataMC;
-      //cout<<"weight  "<<weight<<" weight_DataMC  "<<weight_DataMC<<endl;
-      
       TF1 *wfunt = new TF1("wfunt","[0] + [1]*x",0.0,30.0);
       wfunt->SetParameters(1.3, -0.02); 
       //weight = weight*wfunt->Eval(genpt);
       
       hcentfine->Fill(Centrality,weight);
       hden2d->Fill(fabs(tlvgenqq->Rapidity()),genpt,weight);
-
-      if (fabs(tlvgenqq->Rapidity()) < 1.6) {
-         hden_centmid->Fill(Centrality/2,weight);
-         hden_ptmid->Fill(genpt,weight);
-      } else if (fabs(tlvgenqq->Rapidity()) < 2.4) {
-         hden_centfwd->Fill(Centrality/2,weight);
-         hden_ptfwd->Fill(genpt,weight);
-      } else continue;
-
+      
+      if(isgenok==true){
+	if (fabs(tlvgenqq->Rapidity()) < 1.6) {
+	  hden_centmid->Fill(Centrality/2,weight);
+	  hden_ptmid->Fill(genpt,weight);
+	} else if (fabs(tlvgenqq->Rapidity()) < 2.4) {
+	  hden_centfwd->Fill(Centrality/2,weight);
+	  hden_ptfwd->Fill(genpt,weight);
+	} //else continue;
+      }
+      
       // is there at least one reco dimuon?
       b_Reco_QQ_size->GetEntry(ientry);
       if (Reco_QQ_size==0) continue;
@@ -217,34 +213,42 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
 	 double massdown = isPsip ? 0.5 : 0.6;
 	 double massup = isPsip ? 0.5 : 0.4;
          if (mass<(mass0-massdown) || mass>(mass0+massup)) continue;
-         // check that the dimuon is inside the analysis bins
+         
+	 // check that the dimuon is inside the analysis bins
          bool rec_inbin = false;
          TLorentzVector *tlvrecqq = (TLorentzVector*) Reco_QQ_4mom->At(i);
-         if (fabs(tlvrecqq->Rapidity())<1.6 && tlvrecqq->Pt()>6.5 && tlvrecqq->Pt()<30.) rec_inbin = true;
+	 if (fabs(tlvrecqq->Rapidity())<1.6 && tlvrecqq->Pt()>6.5 && tlvrecqq->Pt()<30.) rec_inbin = true;
          if (fabs(tlvrecqq->Rapidity())>1.6 && fabs(tlvrecqq->Rapidity())<2.4 && tlvrecqq->Pt()>3. && tlvrecqq->Pt()<30.) rec_inbin = true;
          if (!rec_inbin) continue;
-         // gen-reco matching
+	 
+	 // gen-reco matching
          TLorentzVector *tlvrecpl = (TLorentzVector*) Reco_QQ_mupl_4mom->At(i);
          TLorentzVector *tlvrecmi = (TLorentzVector*) Reco_QQ_mumi_4mom->At(i);
-	 double recMuPlpt = tlvrecpl->Pt();
-	 double recMuPlEta = tlvrecpl->Eta();
-	 double recMuMipt = tlvrecmi->Pt();
-	 double recMuMiEta = tlvrecmi->Eta();
-	 
 	 double dr = max(tlvrecpl->DeltaR(*tlvgenpl),tlvrecmi->DeltaR(*tlvgenmi));
          if (dr<mindr) {
-            mindr = dr;
-            ibestqq = i;
-         }
-      } // Reco_QQ loop
+	   mindr = dr;
+	   ibestqq = i;
+	 }
 
+      } // Reco_QQ loop
+      
       if (ibestqq<0) continue;
       
-      //tnp_weight = tnp_weight_sta_pbpb(recMuPlpt, recMuPlEta, 0)*tnp_weight_sta_pbpb(recMuMipt, recMuMiEta, 0)*tnp_weight_muidtrg_pbpb(recMuPlpt, recMuPlEta, 0) * tnp_weight_muidtrg_pbpb(recMuMipt, recMuMiEta, 0);
+      TLorentzVector *tlvrecqq = (TLorentzVector*) Reco_QQ_4mom->At(ibestqq);
+      double recopt = tlvrecqq->Pt();
+      
+      TLorentzVector *tlvrecpl = (TLorentzVector*) Reco_QQ_mupl_4mom->At(ibestqq);
+      TLorentzVector *tlvrecmi = (TLorentzVector*) Reco_QQ_mumi_4mom->At(ibestqq);
+      double recMuPlpt = tlvrecpl->Pt();
+      double recMuPlEta = tlvrecpl->Eta();
+      double recMuMipt = tlvrecmi->Pt();
+      double recMuMiEta = tlvrecmi->Eta();
+      
+      tnp_weight = tnp_weight_sta_pbpb(recMuPlpt, recMuPlEta, 0)*tnp_weight_sta_pbpb(recMuMipt, recMuMiEta, 0)*tnp_weight_muidtrg_pbpb(recMuPlpt, recMuPlEta, 0) * tnp_weight_muidtrg_pbpb(recMuMipt, recMuMiEta, 0);
       //weight = weight*tnp_weight;
       
       // fill the numerators
-      if (fabs(tlvgenqq->Rapidity()) < 1.6) {
+      if (fabs(tlvrecqq->Rapidity()) < 1.6) {
 	hnum_centmid->Fill(Centrality/2,weight);
 	hnum_ptmid->Fill(genpt,weight);
       } else {
@@ -254,46 +258,46 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
       
       // apply ctau3D cut
       bool ctaucutok = false;
-      TLorentzVector *tlvrecqq = (TLorentzVector*) Reco_QQ_4mom->At(ibestqq);
       if (ispbpb) {
-         if (fabs(tlvrecqq->Rapidity()) < 1.6) {
-            ctaucutok = (Reco_QQ_ctau3D[ibestqq] < ctaucutmid_pbpb);
-         } else {
-            ctaucutok = (Reco_QQ_ctau3D[ibestqq] < ctaucutfwd_pbpb);
-         }
+	if (fabs(tlvrecqq->Rapidity()) < 1.6) {
+	  ctaucutok = (Reco_QQ_ctau3D[ibestqq] < ctaucutmid_pbpb);
+	} else {
+	  ctaucutok = (Reco_QQ_ctau3D[ibestqq] < ctaucutfwd_pbpb);
+	}
       } else {
-         if (fabs(tlvrecqq->Rapidity()) < 1.6) {
-            ctaucutok = (Reco_QQ_ctau3D[ibestqq] < ctaucutmid_pp);
-         } else {
-            ctaucutok = (Reco_QQ_ctau3D[ibestqq] < ctaucutfwd_pp);
-         }
+	if (fabs(tlvrecqq->Rapidity()) < 1.6) {
+	  ctaucutok = (Reco_QQ_ctau3D[ibestqq] < ctaucutmid_pp);
+	} else {
+	  ctaucutok = (Reco_QQ_ctau3D[ibestqq] < ctaucutfwd_pp);
+	}
       }
-
+      
       if (ctaucutok) {
-         if (fabs(tlvgenqq->Rapidity()) < 1.6) {
-            hnumcut_centmid->Fill(Centrality/2,weight);
-            hnumcut_ptmid->Fill(genpt,weight);
-         } else {
-            hnumcut_centfwd->Fill(Centrality/2,weight);
-            hnumcut_ptfwd->Fill(genpt,weight);
-         }
+	if (fabs(tlvrecqq->Rapidity()) < 1.6) {
+	  hnumcut_centmid->Fill(Centrality/2,weight);
+	  hnumcut_ptmid->Fill(genpt,weight);
+	} else {
+	  hnumcut_centfwd->Fill(Centrality/2,weight);
+	  hnumcut_ptfwd->Fill(genpt,weight);
+	}
       }
-
+      
       bool ctauptdepcutok = ctaucut(Reco_QQ_ctau3D[ibestqq], tlvrecqq->Rapidity(), tlvrecqq->Pt(), ispbpb);
-
+      
       if (ctauptdepcutok) {
-         if (fabs(tlvgenqq->Rapidity()) < 1.6) {
-            hnumptdepcut_centmid->Fill(Centrality/2,weight);
-            hnumptdepcut_ptmid->Fill(genpt,weight);
-         } else {
-            hnumptdepcut_centfwd->Fill(Centrality/2,weight);
-            hnumptdepcut_ptfwd->Fill(genpt,weight);
-         }
+	if (fabs(tlvrecqq->Rapidity()) < 1.6) {
+	  hnumptdepcut_centmid->Fill(Centrality/2,weight);
+	  hnumptdepcut_ptmid->Fill(genpt,weight);
+	} else {
+	  hnumptdepcut_centfwd->Fill(Centrality/2,weight);
+	  hnumptdepcut_ptfwd->Fill(genpt,weight);
+	}
       }
-
+      
       hnum2d->Fill(fabs(tlvrecqq->Rapidity()),tlvrecqq->Pt(),weight);
+      
    } // event loop
-
+   
    f->Write();
    f->Close();
 }

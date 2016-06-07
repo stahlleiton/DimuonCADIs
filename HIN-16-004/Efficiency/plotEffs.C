@@ -15,375 +15,338 @@
 using namespace std;
 
 void setErr(TH1F *hist);
-void setErrWt(TH1F *hist1, TH1F *hist2);
 void fixCentPp(TH1F *hist);
 TH1F* integrateHist(TH1F *hist);
 
 void plotEffs() {
-  TFile *fjpsi_pp = new TFile("files/histos_jpsi_pp.root");
-  TFile *fpsi2s_pp = new TFile("files/histos_psi2s_pp.root");
-  TFile *fnpjpsi_pp = new TFile("files/histos_npjpsi_pp.root");
-  TFile *fjpsi_pbpb = new TFile("files/histos_jpsi_pbpb.root");
-  TFile *fpsi2s_pbpb = new TFile("files/histos_psi2s_pbpb.root");
-  TFile *fnpjpsi_pbpb = new TFile("files/histos_npjpsi_pbpb.root");
-  
-  ofstream file_nocut_PbPb("files/syst_PbPb_eff_MCstat_nocut.csv");
-  ofstream file_ctaucut_PbPb("files/syst_PbPb_eff_MCstat_ctaucut.csv");
-  ofstream file_ctauptdepcut_PbPb("files/syst_PbPb_eff_MCstat_ctauptdepcut.csv");
-  file_nocut_PbPb << "MC statistics in PbPb efficiency (no ctau cut)" << endl;
-  file_ctaucut_PbPb << "MC statistics in PbPb efficiency (with ctau pt-independent cut)" << endl;
-  file_ctauptdepcut_PbPb << "MC statistics in PbPb efficiency (with ctau pt-dependent cut)" << endl;
+   TFile *fjpsi_pp = new TFile("files/histos_jpsi_pp.root");
+   TFile *fpsi2s_pp = new TFile("files/histos_psi2s_pp.root");
+   TFile *fnpjpsi_pp = new TFile("files/histos_npjpsi_pp.root");
+   TFile *fjpsi_pbpb = new TFile("files/histos_jpsi_pbpb.root");
+   TFile *fpsi2s_pbpb = new TFile("files/histos_psi2s_pbpb.root");
+   TFile *fnpjpsi_pbpb = new TFile("files/histos_npjpsi_pbpb.root");
 
-  ofstream file_nocut_pp("files/syst_PP_eff_MCstat_nocut.csv");
-  ofstream file_ctaucut_pp("files/syst_PP_eff_MCstat_ctaucut.csv");
-  ofstream file_ctauptdepcut_pp("files/syst_PP_eff_MCstat_ctauptdepcut.csv");
-  file_nocut_pp << "MC statistics in pp efficiency (no ctau cut)" << endl;
-  file_ctaucut_pp << "MC statistics in pp efficiency (with ctau pt-independent cut)" << endl;
-  file_ctauptdepcut_pp << "MC statistics in pp efficiency (with ctau pt-dependent cut)" << endl;
-  
-  // first, let's draw simple efficiencies
-  // we'll draw on the same plot the efficiencies for prompt and non-prompt J/psi, and psi(2S)
-  // both for pp and pbpb, and both for the pp and centrality dependences, and both for midrapidity and forward rapidities, and both with and without ctau cut (2*2*2*3 = 24 plots)
-  
-  TString colltag, deptag, raptag, cuttag;
-  for (int icoll=0; icoll<2; icoll++) {
-    colltag = (icoll==0) ? "pp" : "pbpb";
-    TString name = "files/histos_jpsi_" + colltag + ".root";
-    TFile *fjpsi = new TFile(name);
-    name = "files/histos_psi2s_" + colltag + ".root";
-    TFile *fpsi2s = new TFile(name);
-    name = "files/histos_npjpsi_" + colltag + ".root";
-    TFile *fnpjpsi = new TFile(name);
-    
-    for (int idep=0; idep<3; idep++) { // idep=2 -> integrated
-      deptag = (idep==0) ? "pt" : "cent";
-      
-      for (int irap=0; irap<2; irap++) {
-	raptag = (irap==0) ? "mid" : "fwd";
-	
-	for (int icut=0; icut<5; icut++) { // icut=3 -> pt-integrated cut efficiency, icut=4 -> pt-dep cut efficiency
-	  if(icut==0) cuttag = "_";
-	  else if (icut==1 || icut==3) cuttag = "cut_";
-	  else cuttag = "ptdepcut_";
-	  
-	  setTDRStyle();
-	  gStyle->SetEndErrorSize(3);
-	  TCanvas *c1 = new TCanvas();
-	  
-	  TString hname;
-	  hname = "hnum" + cuttag + deptag + raptag;
-	  TH1F *hjpsinum = (TH1F*) fjpsi->Get(hname);
-	  TH1F *hpsi2snum = (TH1F*) fpsi2s->Get(hname);
-	  TH1F *hnpjpsinum = (TH1F*) fnpjpsi->Get(hname);
-	  hname = (icut<3) ? "hden_" + deptag + raptag : "hnum_" + deptag + raptag;
-	  TH1F *hjpsiden = (TH1F*) fjpsi->Get(hname);
-	  TH1F *hpsi2sden = (TH1F*) fpsi2s->Get(hname);
-	  TH1F *hnpjpsiden = (TH1F*) fnpjpsi->Get(hname);
-	  
-	  if (idep==2) {
-	    hjpsinum = integrateHist(hjpsinum);
-	    hpsi2snum = integrateHist(hpsi2snum);
-	    hnpjpsinum = integrateHist(hnpjpsinum);
-	    hjpsiden = integrateHist(hjpsiden);
-	    hpsi2sden = integrateHist(hpsi2sden);
-	    hnpjpsiden = integrateHist(hnpjpsiden);
-	  }
-	  
-	  if (icoll==0 && idep==1) { // centrality for pp... fill all the bins
-	    fixCentPp(hjpsinum);
-	    fixCentPp(hpsi2snum);
-	    fixCentPp(hnpjpsinum);
-	    fixCentPp(hjpsiden);
-	    fixCentPp(hpsi2sden);
-	    fixCentPp(hnpjpsiden);
-	  }
-	  
-	  
-	  TGraphAsymmErrors *tg_jpsi = new TGraphAsymmErrors(hjpsinum,hjpsiden,(icoll==0) ? "" : "norm");
-	  tg_jpsi->SetMarkerColor(kBlack);
-	  tg_jpsi->SetLineColor(kBlack);
-	  TGraphAsymmErrors *tg_psi2s = new TGraphAsymmErrors(hpsi2snum,hpsi2sden,(icoll==0) ? "" : "norm");
-	  tg_psi2s->SetMarkerColor(kRed);
-	  tg_psi2s->SetLineColor(kRed);
-	  TGraphAsymmErrors *tg_npjpsi = new TGraphAsymmErrors(hnpjpsinum,hnpjpsiden,(icoll==0) ? "" : "norm");
-	  tg_npjpsi->SetMarkerColor(kBlue);
-	  tg_npjpsi->SetLineColor(kBlue);
-	  
-	  TH1F *haxes = new TH1F("haxes","haxes",1,0,(idep==1) ? 100 : 30);
-	  haxes->GetYaxis()->SetTitle("Efficiency");
-	  if (icut>=3) haxes->GetYaxis()->SetTitle("#font[12]{l}_{J/#psi}^{3D} cut efficiency");
-	  haxes->GetXaxis()->SetTitle((idep==1) ? "Centrality bin" : "p_{T}");
-	  TLatex tl; TString cname;
-	  TString effname = (icut<3) ? "singleff_" : "ctaucuteff_";
-	  cname = "files/" + effname + colltag + "_" + deptag + "_" + raptag + "_" + cuttag;
-	  TString texname = cname + ".tex";
-	  
-	  if (idep<2) {
-	    // plot
-	    haxes->Draw();
-	    tg_jpsi->Draw("P");
-	    tg_psi2s->Draw("P");
-	    tg_npjpsi->Draw("P");
-	    
-	    double yshift =0; if (icoll==1 && irap==1) yshift=0.3;
-	    if (icut>=3) yshift=0;
-	    TLegend *tleg = new TLegend(0.5,0.26+yshift,0.88,0.46+yshift);
-	    tleg->SetBorderSize(0);
-	    tleg->AddEntry(tg_jpsi,"J/#psi (prompt)","lp");
-	    tleg->AddEntry(tg_psi2s,"#psi(2S)","lp");
-	    tleg->AddEntry(tg_npjpsi,"J/#psi (non-prompt)","lp");
-	    tleg->Draw();
-	    
-	    tl.DrawLatex((idep==0) ? 1.5 : 10, (icut<3) ? 0.9 : 0.7, colltag + TString(", ") 
-			 + ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
-			 + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1 || icut==3) ? "cut #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
-	    
-	    
-	    c1->SaveAs(cname + ".root");
-	    c1->SaveAs(cname + ".png");
-	    c1->SaveAs(cname + ".pdf");
-	    
-	    // print tex
-	    vector<string> yname;
-	    yname.push_back("prompt \\Jpsi");
-	    yname.push_back("\\psiP");
-	    yname.push_back("non-prompt \\Jpsi");
-	    vector<TGraphAsymmErrors*> tgs;
-	    tgs.push_back(tg_jpsi); tgs.push_back(tg_psi2s); tgs.push_back(tg_npjpsi);
-	    inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality bin", yname);
-	    printGraph(tgs, texname.Data());
-	    if (idep==0) closetex(texname.Data());
-	  } else {
-	    vector<TGraphAsymmErrors*> tgs;
-	    tgs.push_back(tg_jpsi); tgs.push_back(tg_psi2s); tgs.push_back(tg_npjpsi);
-	    printGraph(tgs, texname.Data());
-	    closetex(texname.Data());
-	  }
-	  
-	  
-	  // now, let's draw simple ratios of efficiencies: psi(2S)/J/psi
-	  // but do it only once
-	  if (icoll>0 || icut>=3) {
-	    delete haxes;
-	    delete c1;
-	    delete tg_jpsi; delete tg_psi2s; delete tg_npjpsi;
-	    continue;
-	  }
-	  
-	  hname = "hnum" + cuttag + deptag + raptag;
-	  TH1F *hjpsipp = (TH1F*) fjpsi_pp->Get(hname); hjpsipp->SetName(TString(hjpsipp->GetName()) + "_jpsipp");
-	  TH1F *hpsi2spp = (TH1F*) fpsi2s_pp->Get(hname); hpsi2spp->SetName(TString(hpsi2spp->GetName()) + "_psi2spp");
-	  TH1F *hjpsipbpb = (TH1F*) fjpsi_pbpb->Get(hname); hjpsipbpb->SetName(TString(hjpsipbpb->GetName()) + "_jpsipbpb");
-	  TH1F *hpsi2spbpb = (TH1F*) fpsi2s_pbpb->Get(hname); hpsi2spbpb->SetName(TString(hpsi2spbpb->GetName()) + "_psi2spbpb");
-	  hname = "hden_" + deptag + raptag;
-	  TH1F *hjpsidenpp = (TH1F*) fjpsi_pp->Get(hname); hjpsidenpp->SetName(TString(hjpsidenpp->GetName()) + "_jpsidenpp");
-	  TH1F *hpsi2sdenpp = (TH1F*) fpsi2s_pp->Get(hname); hpsi2sdenpp->SetName(TString(hpsi2sdenpp->GetName()) + "_psi2sdenpp");
-	  TH1F *hjpsidenpbpb = (TH1F*) fjpsi_pbpb->Get(hname); hjpsipbpb->SetName(TString(hjpsidenpbpb->GetName()) + "_jpsidenpbpb");
-	  TH1F *hpsi2sdenpbpb = (TH1F*) fpsi2s_pbpb->Get(hname); hpsi2sdenpbpb->SetName(TString(hpsi2sdenpbpb->GetName()) + "_psi2sdenpbpb");
-	  
-	  if (idep==2) {
-	    hjpsipp = integrateHist(hjpsipp);
-	    hpsi2spp = integrateHist(hpsi2spp);
-	    hjpsipbpb = integrateHist(hjpsipbpb);
-	    hpsi2spbpb = integrateHist(hpsi2spbpb);
-	    hjpsidenpp = integrateHist(hjpsidenpp);
-	    hpsi2sdenpp = integrateHist(hpsi2sdenpp);
-	    hjpsidenpbpb = integrateHist(hjpsidenpbpb);
-	    hpsi2sdenpbpb = integrateHist(hpsi2sdenpbpb);
-	  }
-	  
-	  if (idep==1) { // centrality for pp... fill all the bins
-	    fixCentPp(hjpsipp);
-	    fixCentPp(hpsi2spp);
-	    fixCentPp(hjpsidenpp);
-	    fixCentPp(hpsi2sdenpp);
-	  }
-	  
-	  hjpsipp->Sumw2(true); hjpsidenpp->Sumw2(true);
-	  hpsi2spp->Sumw2(true); hpsi2sdenpp->Sumw2(true);
-	  // setErr(hjpsipp); setErr(hjpsidenpp); 
-	  hjpsipp->Divide(hjpsipp,hjpsidenpp,1,1,"B");
-	  // setErr(hpsi2spp); setErr(hpsi2sdenpp); 
-	  //setErrWt(hjpsipp,hjpsidenpp);
-	  hpsi2spp->Divide(hpsi2spp,hpsi2sdenpp,1,1,"B");
-	  hjpsipbpb->Divide(hjpsipbpb,hjpsidenpbpb,1,1,"B");
-	  hpsi2spbpb->Divide(hpsi2spbpb,hpsi2sdenpbpb,1,1,"B");
-	  hpsi2spp->Divide(hjpsipp);
-	  
-	  hpsi2spp->SetMarkerColor(kBlack);
-	  hpsi2spp->SetLineColor(kBlack);
-	  hpsi2spbpb->Divide(hjpsipbpb);
-	  hpsi2spbpb->SetMarkerColor(kRed);
-	  hpsi2spbpb->SetLineColor(kRed);
-	  
-	  cname = "files/simpleratio_" + deptag + "_" + raptag + "_" + cuttag;
-	  texname = cname + ".tex";
-	  
-	  if (idep<2) {
-	    // plot
-	    haxes->GetYaxis()->SetTitle("Eff(#psi(2S)) / Eff(J/#psi)");
-	    haxes->GetYaxis()->SetRangeUser(0.5,1.5);
-	    haxes->SetBinContent(1,1);
-	    haxes->Draw();
-	    hpsi2spp->Draw("E1 same");
-	    hpsi2spbpb->Draw("E1 same");
-	    
-	    TLegend *tleg2 = new TLegend(0.7,0.17,0.89,0.31);
-	    tleg2->SetBorderSize(0);
-	    tleg2->AddEntry(hpsi2spp,"pp","lp");
-	    tleg2->AddEntry(hpsi2spbpb,"pbpb","lp");
-	    tleg2->Draw();
-	    
-	    tl.DrawLatex((idep==0) ? 1.5 : 10, 1.4, ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
-			 + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1) ? "cut #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
-	    
-	    c1->SaveAs(cname + ".root");
-	    c1->SaveAs(cname + ".png");
-	    c1->SaveAs(cname + ".pdf");
-	    
-	    // print tex
-	    vector<string> yname;
-	    yname.push_back("\\pp");
-	    yname.push_back("\\pbpb");
-	    vector<TH1F*> ths;
-	    ths.push_back(hpsi2spp); ths.push_back(hpsi2spbpb);
-	    inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality bin", yname);
-	    printHist(ths, texname.Data());
-	    if (idep==0) closetex(texname.Data());
-	  } else {
-	    vector<TH1F*> ths;
-	    ths.push_back(hpsi2spp); ths.push_back(hpsi2spbpb);
-	    printHist(ths, texname.Data());
-	    closetex(texname.Data());
-	  }
-	  
-	  
-	  
-	  // at last, the double ratio
-	  hpsi2spbpb->Divide(hpsi2spp);
-	  cname = "files/doubleratio_" + deptag + "_" + raptag + "_" + cuttag;
-	  texname = cname + ".tex";
-	  
-	  if (idep<2) {
-	    // plot
-	    haxes->GetYaxis()->SetTitle("[Eff(#psi(2S)) / Eff(J/#psi)]_{PbPb} / [Eff(#psi(2S)) / Eff(J/#psi)]_{pp}");
-	    haxes->GetYaxis()->SetTitleSize(0.04);
-	    haxes->GetYaxis()->SetTitleOffset(2);
-	    haxes->GetYaxis()->SetRangeUser(0.5,1.5);
-	    haxes->Draw();
-	    hpsi2spbpb->Draw("E1 same");
-	    tl.DrawLatex((idep==0) ? 1.5 : 10, 1.4, ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
-			 + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1) ? "cut #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
-	    c1->SaveAs(cname + ".root");
-	    c1->SaveAs(cname + ".png");
-	    c1->SaveAs(cname + ".pdf");
-	    
-	    // print tex
-	    vector<string> yname;
-	    yname.push_back("Double ratio of efficiencies");
-	    vector<TH1F*> ths;
-	    ths.push_back(hpsi2spbpb);
-	    inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality bin", yname);
-	    printHist(ths, texname.Data());
-	    if (idep==0) closetex(texname.Data());
-	  } else {
-	    vector<TH1F*> ths;
-	    ths.push_back(hpsi2spbpb);
-	    printHist(ths, texname.Data());
-	    closetex(texname.Data());
-	  }
-	  
-	  // print the uncertainty values to the csv
-	  ofstream *file = NULL;
-	  //if(icoll==0){
-	  //if (icut==0) file = &file_nocut_pp;
-	  //else if (icut==1) file = &file_ctaucut_pp;
-	  //else file = &file_ctauptdepcut_pp;
-	  //}
-	  
-	  //if(icoll==1){
-	  if (icut==0) file = &file_nocut_PbPb;
-	  else if (icut==1) file = &file_ctaucut_PbPb;
-	  else file = &file_ctauptdepcut_PbPb;
-	  //}
-	  double rapmin, rapmax, ptmin, ptmax, centmin, centmax, value, valueErr;
-	  rapmin = (irap==0) ? 0 : 1.6;
-	  rapmax = (irap==0) ? 1.6 : 2.4;
-	  if (idep==0) {
-	    centmin = 0;
-	    centmax = 100;
-	    for (int ibin=1; ibin<hpsi2spbpb->GetNbinsX()+1; ibin++) {
-	      ptmin = hpsi2spbpb->GetXaxis()->GetBinLowEdge(ibin);
-	      ptmax = hpsi2spbpb->GetXaxis()->GetBinUpEdge(ibin);
-	      // value = hpsi2spbpb->GetBinError(ibin);
-	      value = hpsi2spbpb->GetBinContent(ibin);
-	      valueErr = max(fabs(hpsi2spbpb->GetBinContent(ibin)-1),hpsi2spbpb->GetBinError(ibin));
-	      *file << rapmin << ", " << rapmax << ", " << ptmin << ", " << ptmax << ", " << centmin << ", " << centmax << ", " << value << ", " << valueErr << endl;
-	    }
-	  } else if (idep==1) {
-	    ptmin = (irap==0) ? 6.5 : 3;
-	    ptmax = 30;
-	    for (int ibin=1; ibin<hpsi2spbpb->GetNbinsX()+1; ibin++) {
-	      centmin = hpsi2spbpb->GetXaxis()->GetBinLowEdge(ibin);
-	      centmax = hpsi2spbpb->GetXaxis()->GetBinUpEdge(ibin);
-	      value = hpsi2spbpb->GetBinContent(ibin);
-	      valueErr = hpsi2spbpb->GetBinError(ibin);
-	      *file << rapmin << ", " << rapmax << ", " << ptmin << ", " << ptmax << ", " << centmin << ", " << centmax << ", " << value << ", " << valueErr << endl;
-	    }
-	  }
-	  else {
-	    ptmin = (irap==0) ? 6.5 : 3;
-	    ptmax = 30;
-	    centmin = 0;
-	    centmax = 100;
-	    value = hpsi2spbpb->GetBinContent(1);
-	    valueErr = hpsi2spbpb->GetBinError(1);
-	    *file << rapmin << ", " << rapmax << ", " << ptmin << ", " << ptmax << ", " << centmin << ", " << centmax << ", " << value << ", " << valueErr << endl;
-	  }
-	  
-	  // clean behind ourselves
-	  delete c1;
-	  delete tg_jpsi; delete tg_psi2s; delete tg_npjpsi;
-	  delete haxes;
-	  //delete hjpsinum;	       
-	  //delete hpsi2snum; 	    
-	  //delete hnpjpsinum;
-	  //delete hjpsiden;
-	  //delete hpsi2sden; 
-	  //delete hnpjpsiden;	       
-	  //delete hname;
+   ofstream file_nocut("files/syst_PbPb_eff_MCstat_nocut.csv");
+   ofstream file_ctaucut("files/syst_PbPb_eff_MCstat_ctaucut.csv");
+   ofstream file_ctauptdepcut("files/syst_PbPb_eff_MCstat_ctauptdepcut.csv");
+   file_nocut << "MC statistics in efficiency (no ctau cut)" << endl;
+   file_ctaucut << "MC statistics in efficiency (with ctau pt-independent cut)" << endl;
+   file_ctauptdepcut << "MC statistics in efficiency (with ctau pt-dependent cut)" << endl;
 
-	} // icut loop (without / with ctau cut)
-      } // irap loop (mid / fwd)
-    } // idep loop (pt / centrality)
-  } // icoll loop (pp / pbpb)
-  
-  file_nocut_PbPb.close();
-  file_ctaucut_PbPb.close();
+   // first, let's draw simple efficiencies
+   // we'll draw on the same plot the efficiencies for prompt and non-prompt J/psi, and psi(2S)
+   // both for pp and pbpb, and both for the pp and centrality dependences, and both for midrapidity and forward rapidities, and both with and without ctau cut (2*2*2*3 = 24 plots)
+
+   TString colltag, deptag, raptag, cuttag;
+   for (int icoll=0; icoll<2; icoll++) {
+      colltag = (icoll==0) ? "pp" : "pbpb";
+      TString name = "files/histos_jpsi_" + colltag + ".root";
+      TFile *fjpsi = new TFile(name);
+      name = "files/histos_psi2s_" + colltag + ".root";
+      TFile *fpsi2s = new TFile(name);
+      name = "files/histos_npjpsi_" + colltag + ".root";
+      TFile *fnpjpsi = new TFile(name);
+
+      for (int idep=0; idep<3; idep++) { // idep=2 -> integrated
+         deptag = (idep==0) ? "pt" : "cent";
+
+         for (int irap=0; irap<2; irap++) {
+            raptag = (irap==0) ? "mid" : "fwd";
+
+            for (int icut=0; icut<5; icut++) { // icut=3 -> pt-integrated cut efficiency, icut=4 -> pt-dep cut efficiency
+               if(icut==0) cuttag = "_";
+               else if (icut==1 || icut==3) cuttag = "cut_";
+               else cuttag = "ptdepcut_";
+
+               setTDRStyle();
+               gStyle->SetEndErrorSize(3);
+               TCanvas *c1 = new TCanvas();
+
+               TString hname;
+               hname = "hnum" + cuttag + deptag + raptag;
+               TH1F *hjpsinum = (TH1F*) fjpsi->Get(hname);
+               TH1F *hpsi2snum = (TH1F*) fpsi2s->Get(hname);
+               TH1F *hnpjpsinum = (TH1F*) fnpjpsi->Get(hname);
+               hname = (icut<3) ? "hden_" + deptag + raptag : "hnum_" + deptag + raptag;
+               TH1F *hjpsiden = (TH1F*) fjpsi->Get(hname);
+               TH1F *hpsi2sden = (TH1F*) fpsi2s->Get(hname);
+               TH1F *hnpjpsiden = (TH1F*) fnpjpsi->Get(hname);
+
+               if (idep==2) {
+                  hjpsinum = integrateHist(hjpsinum);
+                  hpsi2snum = integrateHist(hpsi2snum);
+                  hnpjpsinum = integrateHist(hnpjpsinum);
+                  hjpsiden = integrateHist(hjpsiden);
+                  hpsi2sden = integrateHist(hpsi2sden);
+                  hnpjpsiden = integrateHist(hnpjpsiden);
+               }
+
+               if (icoll==0 && idep==1) { // centrality for pp... fill all the bins
+                  fixCentPp(hjpsinum);
+                  fixCentPp(hpsi2snum);
+                  fixCentPp(hnpjpsinum);
+                  fixCentPp(hjpsiden);
+                  fixCentPp(hpsi2sden);
+                  fixCentPp(hnpjpsiden);
+               }
+
+               TGraphAsymmErrors *tg_jpsi = new TGraphAsymmErrors(hjpsinum,hjpsiden,(icoll==0) ? "" : "norm");
+               tg_jpsi->SetMarkerColor(kBlack);
+               tg_jpsi->SetLineColor(kBlack);
+               TGraphAsymmErrors *tg_psi2s = new TGraphAsymmErrors(hpsi2snum,hpsi2sden,(icoll==0) ? "" : "norm");
+               tg_psi2s->SetMarkerColor(kRed);
+               tg_psi2s->SetLineColor(kRed);
+               TGraphAsymmErrors *tg_npjpsi = new TGraphAsymmErrors(hnpjpsinum,hnpjpsiden,(icoll==0) ? "" : "norm");
+               tg_npjpsi->SetMarkerColor(kBlue);
+               tg_npjpsi->SetLineColor(kBlue);
+
+               TH1F *haxes = new TH1F("haxes","haxes",1,0,(idep==1) ? 100 : 30);
+               haxes->GetYaxis()->SetTitle("Efficiency");
+               if (icut>=3) haxes->GetYaxis()->SetTitle("#font[12]{l}_{J/#psi}^{3D} cut efficiency");
+               haxes->GetXaxis()->SetTitle((idep==1) ? "Centrality bin" : "p_{T}");
+               TLatex tl; TString cname;
+               TString effname = (icut<3) ? "singleff_" : "ctaucuteff_";
+               cname = "files/" + effname + colltag + "_" + deptag + "_" + raptag + "_" + cuttag;
+               TString texname = cname + ".tex";
+
+               if (idep<2) {
+                  // plot
+                  haxes->Draw();
+                  tg_jpsi->Draw("P");
+                  tg_psi2s->Draw("P");
+                  tg_npjpsi->Draw("P");
+
+                  double yshift =0; if (icoll==1 && irap==1) yshift=0.3;
+                  if (icut>=3) yshift=0;
+                  TLegend *tleg = new TLegend(0.5,0.26+yshift,0.88,0.46+yshift);
+                  tleg->SetBorderSize(0);
+                  tleg->AddEntry(tg_jpsi,"J/#psi (prompt)","lp");
+                  tleg->AddEntry(tg_psi2s,"#psi(2S)","lp");
+                  tleg->AddEntry(tg_npjpsi,"J/#psi (non-prompt)","lp");
+                  tleg->Draw();
+
+                  tl.DrawLatex((idep==0) ? 1.5 : 10, (icut<3) ? 0.9 : 0.7, colltag + TString(", ") 
+                        + ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
+                        + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1 || icut==3) ? "cst #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
+
+
+                  c1->SaveAs(cname + ".root");
+                  c1->SaveAs(cname + ".png");
+                  c1->SaveAs(cname + ".pdf");
+
+                  // print tex
+                  vector<string> yname;
+                  yname.push_back("prompt \\Jpsi");
+                  yname.push_back("\\psiP");
+                  yname.push_back("non-prompt \\Jpsi");
+                  vector<TGraphAsymmErrors*> tgs;
+                  tgs.push_back(tg_jpsi); tgs.push_back(tg_psi2s); tgs.push_back(tg_npjpsi);
+                  inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality bin", yname);
+                  printGraph(tgs, texname.Data());
+                  if (idep==0) closetex(texname.Data());
+               } else {
+                  vector<TGraphAsymmErrors*> tgs;
+                  tgs.push_back(tg_jpsi); tgs.push_back(tg_psi2s); tgs.push_back(tg_npjpsi);
+                  printGraph(tgs, texname.Data());
+                  closetex(texname.Data());
+               }
+
+
+               // now, let's draw simple ratios of efficiencies: psi(2S)/J/psi
+               // but do it only once
+               if (icoll>0 || icut>=3) {
+                  delete haxes;
+                  delete c1;
+                  delete tg_jpsi; delete tg_psi2s; delete tg_npjpsi;
+                  continue;
+               }
+
+               hname = "hnum" + cuttag + deptag + raptag;
+               TH1F *hjpsipp = (TH1F*) fjpsi_pp->Get(hname); hjpsipp->SetName(TString(hjpsipp->GetName()) + "_jpsipp");
+               TH1F *hpsi2spp = (TH1F*) fpsi2s_pp->Get(hname); hpsi2spp->SetName(TString(hpsi2spp->GetName()) + "_psi2spp");
+               TH1F *hjpsipbpb = (TH1F*) fjpsi_pbpb->Get(hname); hjpsipbpb->SetName(TString(hjpsipbpb->GetName()) + "_jpsipbpb");
+               TH1F *hpsi2spbpb = (TH1F*) fpsi2s_pbpb->Get(hname); hpsi2spbpb->SetName(TString(hpsi2spbpb->GetName()) + "_psi2spbpb");
+               hname = "hden_" + deptag + raptag;
+               TH1F *hjpsidenpp = (TH1F*) fjpsi_pp->Get(hname); hjpsidenpp->SetName(TString(hjpsidenpp->GetName()) + "_jpsidenpp");
+               TH1F *hpsi2sdenpp = (TH1F*) fpsi2s_pp->Get(hname); hpsi2sdenpp->SetName(TString(hpsi2sdenpp->GetName()) + "_psi2sdenpp");
+               TH1F *hjpsidenpbpb = (TH1F*) fjpsi_pbpb->Get(hname); hjpsipbpb->SetName(TString(hjpsidenpbpb->GetName()) + "_jpsidenpbpb");
+               TH1F *hpsi2sdenpbpb = (TH1F*) fpsi2s_pbpb->Get(hname); hpsi2sdenpbpb->SetName(TString(hpsi2sdenpbpb->GetName()) + "_psi2sdenpbpb");
+
+               if (idep==2) {
+                  hjpsipp = integrateHist(hjpsipp);
+                  hpsi2spp = integrateHist(hpsi2spp);
+                  hjpsipbpb = integrateHist(hjpsipbpb);
+                  hpsi2spbpb = integrateHist(hpsi2spbpb);
+                  hjpsidenpp = integrateHist(hjpsidenpp);
+                  hpsi2sdenpp = integrateHist(hpsi2sdenpp);
+                  hjpsidenpbpb = integrateHist(hjpsidenpbpb);
+                  hpsi2sdenpbpb = integrateHist(hpsi2sdenpbpb);
+               }
+
+               if (idep==1) { // centrality for pp... fill all the bins
+                  fixCentPp(hjpsipp);
+                  fixCentPp(hpsi2spp);
+                  fixCentPp(hjpsidenpp);
+                  fixCentPp(hpsi2sdenpp);
+               }
+
+               hjpsipp->Sumw2(true); hjpsidenpp->Sumw2(true);
+               hpsi2spp->Sumw2(true); hpsi2sdenpp->Sumw2(true);
+               // setErr(hjpsipp); setErr(hjpsidenpp); 
+               hjpsipp->Divide(hjpsipp,hjpsidenpp,1,1,"B");
+               // setErr(hpsi2spp); setErr(hpsi2sdenpp); 
+               hpsi2spp->Divide(hpsi2spp,hpsi2sdenpp,1,1,"B");
+               hjpsipbpb->Divide(hjpsipbpb,hjpsidenpbpb,1,1,"B");
+               hpsi2spbpb->Divide(hpsi2spbpb,hpsi2sdenpbpb,1,1,"B");
+               hpsi2spp->Divide(hjpsipp);
+               hpsi2spp->SetMarkerColor(kBlack);
+               hpsi2spp->SetLineColor(kBlack);
+               hpsi2spbpb->Divide(hjpsipbpb);
+               hpsi2spbpb->SetMarkerColor(kRed);
+               hpsi2spbpb->SetLineColor(kRed);
+
+               cname = "files/simpleratio_" + deptag + "_" + raptag + "_" + cuttag;
+               texname = cname + ".tex";
+
+               if (idep<2) {
+                  // plot
+                  haxes->GetYaxis()->SetTitle("Eff(#psi(2S)) / Eff(J/#psi)");
+                  haxes->GetYaxis()->SetRangeUser(0.5,1.5);
+                  haxes->SetBinContent(1,1);
+                  haxes->Draw();
+                  hpsi2spp->Draw("E1 same");
+                  hpsi2spbpb->Draw("E1 same");
+
+                  TLegend *tleg2 = new TLegend(0.7,0.17,0.89,0.31);
+                  tleg2->SetBorderSize(0);
+                  tleg2->AddEntry(hpsi2spp,"pp","lp");
+                  tleg2->AddEntry(hpsi2spbpb,"pbpb","lp");
+                  tleg2->Draw();
+
+                  tl.DrawLatex((idep==0) ? 1.5 : 10, 1.4, ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
+                        + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1) ? "cst #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
+
+                  c1->SaveAs(cname + ".root");
+                  c1->SaveAs(cname + ".png");
+                  c1->SaveAs(cname + ".pdf");
+
+                  // print tex
+                  vector<string> yname;
+                  yname.push_back("\\pp");
+                  yname.push_back("\\pbpb");
+                  vector<TH1F*> ths;
+                  ths.push_back(hpsi2spp); ths.push_back(hpsi2spbpb);
+                  inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality bin", yname);
+                  printHist(ths, texname.Data());
+                  if (idep==0) closetex(texname.Data());
+               } else {
+                  vector<TH1F*> ths;
+                  ths.push_back(hpsi2spp); ths.push_back(hpsi2spbpb);
+                  printHist(ths, texname.Data());
+                  closetex(texname.Data());
+               }
+
+
+
+               // at last, the double ratio
+               hpsi2spbpb->Divide(hpsi2spp);
+               cname = "files/doubleratio_" + deptag + "_" + raptag + "_" + cuttag;
+               texname = cname + ".tex";
+
+               if (idep<2) {
+                  // plot
+                  haxes->GetYaxis()->SetTitle("[Eff(#psi(2S)) / Eff(J/#psi)]_{PbPb} / [Eff(#psi(2S)) / Eff(J/#psi)]_{pp}");
+                  haxes->GetYaxis()->SetTitleSize(0.04);
+                  haxes->GetYaxis()->SetTitleOffset(2);
+                  haxes->GetYaxis()->SetRangeUser(0.5,1.5);
+                  haxes->Draw();
+                  hpsi2spbpb->Draw("E1 same");
+                  tl.DrawLatex((idep==0) ? 1.5 : 10, 1.4, ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
+                        + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1) ? "cst #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
+                  c1->SaveAs(cname + ".root");
+                  c1->SaveAs(cname + ".png");
+                  c1->SaveAs(cname + ".pdf");
+
+                  // print tex
+                  vector<string> yname;
+                  yname.push_back("Double ratio of efficiencies");
+                  vector<TH1F*> ths;
+                  ths.push_back(hpsi2spbpb);
+                  inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality bin", yname);
+                  printHist(ths, texname.Data());
+                  if (idep==0) closetex(texname.Data());
+               } else {
+                  vector<TH1F*> ths;
+                  ths.push_back(hpsi2spbpb);
+                  printHist(ths, texname.Data());
+                  closetex(texname.Data());
+               }
+
+               // print the uncertainty values to the csv
+               ofstream *file = NULL;
+               if (icut==0) file = &file_nocut;
+               else if (icut==1) file = &file_ctaucut;
+               else file = &file_ctauptdepcut;
+               double rapmin, rapmax, ptmin, ptmax, centmin, centmax, value, valueErr;
+               rapmin = (irap==0) ? 0 : 1.6;
+               rapmax = (irap==0) ? 1.6 : 2.4;
+               if (idep==0) {
+		 centmin = 0;
+		 centmax = 100;
+		 for (int ibin=1; ibin<hpsi2spbpb->GetNbinsX()+1; ibin++) {
+		   ptmin = hpsi2spbpb->GetXaxis()->GetBinLowEdge(ibin);
+		   ptmax = hpsi2spbpb->GetXaxis()->GetBinUpEdge(ibin);
+		   value = hpsi2spbpb->GetBinContent(ibin);
+		   valueErr = max(fabs(hpsi2spbpb->GetBinContent(ibin)-1),hpsi2spbpb->GetBinError(ibin));
+		   *file << rapmin << ", " << rapmax << ", " << ptmin << ", " << ptmax << ", " << centmin << ", " << centmax << ", " << value << ", " << valueErr << endl;
+		 }
+               } else if (idep==1) {
+		 ptmin = (irap==0) ? 6.5 : 3;
+		 ptmax = 30;
+		 for (int ibin=1; ibin<hpsi2spbpb->GetNbinsX()+1; ibin++) {
+		   centmin = hpsi2spbpb->GetXaxis()->GetBinLowEdge(ibin);
+		   centmax = hpsi2spbpb->GetXaxis()->GetBinUpEdge(ibin);
+		   value = hpsi2spbpb->GetBinContent(ibin);
+		   valueErr = hpsi2spbpb->GetBinError(ibin);
+		   *file << rapmin << ", " << rapmax << ", " << ptmin << ", " << ptmax << ", " << centmin << ", " << centmax << ", " << value << ", " << valueErr << endl;
+		 }
+               }
+               else {
+		 ptmin = (irap==0) ? 6.5 : 3;
+		 ptmax = 30;
+		 centmin = 0;
+		 centmax = 100;
+		 value = hpsi2spbpb->GetBinContent(1);
+		 valueErr = hpsi2spbpb->GetBinError(1);
+		 *file << rapmin << ", " << rapmax << ", " << ptmin << ", " << ptmax << ", " << centmin << ", " << centmax << ", " << value << ", " << valueErr << endl;
+	       }
+	       
+               // clean behind ourselves
+               delete c1;
+               delete tg_jpsi; delete tg_psi2s; delete tg_npjpsi;
+               delete haxes;
+	       //delete hjpsinum;
+	       //delete hpsi2snum;
+	       //delete hnpjpsinum;
+	       //delete hjpsiden;
+	       //delete hpsi2sden;
+	       //delete hnpjpsiden;
+	       //delete hname;
+            } // icut loop (without / with ctau cut)
+         } // irap loop (mid / fwd)
+      } // idep loop (pt / centrality)
+   } // icoll loop (pp / pbpb)
+
+   file_nocut.close();
+   file_ctaucut.close();
+   file_ctauptdepcut.close();
 }
 
 void setErr(TH1F *hist) {
-  int nbins = hist->GetNbinsX();
-  for (int i=1; i<nbins+1; i++) {
-    hist->SetBinError(i,sqrt(hist->GetBinContent(i)));
-  }
-}
-
-void setErrWt(TH1F *h1, TH1F *h2) {
-  // for details see https://root.cern.ch/root/html532/src/TH1.cxx.html#2643
-  Double_t b1,b2,w,ErrWt;
-  int nbins = h1->GetNbinsX();
-  for (int i=1; i<nbins+1; i++) {
-    
-    b1  = h1->GetBinContent(i);
-    b2  = h2->GetBinContent(i);
-    w = b1/b2;
-    
-    Double_t e1 = h1->GetBinError(i);
-    Double_t e2 = h2->GetBinError(i);
-    ErrWt = TMath::Abs( ( (1-2*w)*e1*e1 + w*w*e2*e2 )/(b2*b2) );
-    h1->SetBinError(i,ErrWt);
-  }
+   int nbins = hist->GetNbinsX();
+   for (int i=1; i<nbins+1; i++) {
+      hist->SetBinError(i,sqrt(hist->GetBinContent(i)));
+   }
 }
 
 void fixCentPp(TH1F *hist) {
