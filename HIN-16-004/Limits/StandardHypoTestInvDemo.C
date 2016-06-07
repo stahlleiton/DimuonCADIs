@@ -140,7 +140,8 @@ namespace RooStats {
                      int testStatType,
                      bool useCLs,
                      int npoints,
-                     const char * fileNameBase = 0);
+                     const char * fileNameBase = 0,
+                     const char* subDirName="");
 
       void SetParameter(const char * name, const char * value);
       void SetParameter(const char * name, bool value);
@@ -291,7 +292,8 @@ StandardHypoTestInvDemo(const char * infile = 0,
                         int ntoys=1000,
                         bool useNumberCounting = false,
                         const char * nuisPriorName = 0,
-                        double CL = 0.95){
+                        double CL = 0.95,
+                        const char* ACTag = ""){
 /*
 
   Other Parameter to pass in tutorial
@@ -427,7 +429,7 @@ StandardHypoTestInvDemo(const char * infile = 0,
       }
    }
 
-   calc.AnalyzeResult( r, calculatorType, testStatType, useCLs, npoints, infile);
+   calc.AnalyzeResult( r, calculatorType, testStatType, useCLs, npoints, infile, ACTag);
   
    return r;
 }
@@ -440,10 +442,26 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
                                           int testStatType,
                                           bool useCLs,
                                           int npoints,
-                                          const char * fileNameBase){
+                                          const char * fileNameBase,
+                                          const char* subDirName){
 
    // analyze result produced by the inverter, optionally save it in a file
-
+  
+  // define mainDIR to save files
+  string mainDIR = gSystem->ExpandPathName(gSystem->pwd());
+  string wsDIR = mainDIR + "/Output/";
+  string ssubDirName="";
+  if (subDirName) ssubDirName.append(subDirName);
+  string subDIR = wsDIR + ssubDirName;
+  
+  void * dirp = gSystem->OpenDirectory(wsDIR.c_str());
+  if (dirp) gSystem->FreeDirectory(dirp);
+  else gSystem->mkdir(wsDIR.c_str(), kTRUE);
+  
+  void * dirq = gSystem->OpenDirectory(subDIR.c_str());
+  if (dirq) gSystem->FreeDirectory(dirq);
+  else gSystem->mkdir(subDIR.c_str(), kTRUE);
+  
 
    double lowerLimit = 0;
    double llError = 0;
@@ -557,9 +575,9 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
 
    plot->Draw("CLb 2CL");  // plot all and Clb
 
-   c1->SaveAs(c1Name + ".pdf");
-   c1->SaveAs(c1Name + ".png");
-   c1->SaveAs(c1Name + ".root");
+   c1->SaveAs(Form("%s/%s",subDIR.c_str(),(c1Name + ".pdf").Data()));
+   c1->SaveAs(Form("%s/%s",subDIR.c_str(),(c1Name + ".png").Data()));
+   c1->SaveAs(Form("%s/%s",subDIR.c_str(),(c1Name + ".root").Data()));
 
    // if (useCLs)
    //    plot->Draw("CLb 2CL");  // plot all and Clb
@@ -585,9 +603,9 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
       TString c2Name = mResultFileName;
       c2Name.ReplaceAll(".root","");
       c2Name += "_Distribs";
-      c2->SaveAs(c2Name + ".root");
-      c2->SaveAs(c2Name + ".png");
-      c2->SaveAs(c2Name + ".pdf");
+      c2->SaveAs(Form("%s/%s",subDIR.c_str(),(c2Name + ".root").Data()));
+      c2->SaveAs(Form("%s/%s",subDIR.c_str(),(c2Name + ".png").Data()));
+      c2->SaveAs(Form("%s/%s",subDIR.c_str(),(c2Name + ".pdf").Data()));
    }
    gPad = c1; 
 

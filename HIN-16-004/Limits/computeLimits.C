@@ -81,7 +81,7 @@ void computeLimits(
     cout << ">>>>>>> Computing " << CL*100 << "% " << "limits for analysis bin " << cnt << endl;
     cout << "Using combined PbPb-PP workspace " << cnt << " / " << theFiles.size() << ": " << *it << endl;
     
-    pair<double,double> lims = runLimit_RaaNS_Workspace(*it, "RFrac2Svs1S_PbPbvsPP", "simPdf", "workspace", "dOS_DATA", CL, calculatorType, testStatType, useCLs);
+    pair<double,double> lims = runLimit_RaaNS_Workspace(*it, "RFrac2Svs1S_PbPbvsPP", "simPdf", "workspace", "dOS_DATA", ACTag, CL, calculatorType, testStatType, useCLs);
     
     anabin thebin = binFromFile(*it);
     
