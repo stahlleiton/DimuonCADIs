@@ -65,8 +65,8 @@ void v2_cent_plotter(
  
   // Reminder for TGraphAssymError: gr = new TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);// n,x,y,err_x, err_y
   unsigned int nBins          =  nCentBins_pr;
-  if(!bAddCent010) nBins = nBins-1; // if you want to skip 0-10% bin
   if(jpsiCategory==2) nBins   =  nCentBins_np;
+  if(!bAddCent010) nBins = nBins-1; // if you want to skip 0-10% bin
   
   cout<<" !!!!! Number of cent bins: "<< nBins<<endl;
   

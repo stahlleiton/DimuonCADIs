@@ -42,8 +42,6 @@ void makeHistos_v2(int nDphiBins   = 4,
                   ) 
 {
   const char* whichSetting[1]       = {"20160304"};
-//  string whichSample[]              = {"v2W_5dphibins","v2noW_5dphibins"};
-//  string whichSample[]              = {"v2noW","v2W"};
   string whichSample[]              = {"v2noW","v2W","v2W_noTnPSF","v2W_muIDTrig","v2W_const","v2W_maxVar","v2W_minVar","v2W_MLAR","v2W_polFunct","v2W_ctau2mm","v2W_resOpt2","v2W_signalCB3WN"};
   const char* outputHistDataFile[1] = {"histsV2Yields"};
 
