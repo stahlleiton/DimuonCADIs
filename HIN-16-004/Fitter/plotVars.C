@@ -14,7 +14,12 @@
 #include "TLegend.h"
 #include "TCanvas.h"
 #include "TSystem.h"
+<<<<<<< HEAD
+#include "RooFitResult.h" 
+#include "TFitResult.h" 
+=======
 #include "TLine.h"
+>>>>>>> 976c0efcb78e93a70cd8c5295b8d5196e8a61c39
 
 #include <vector>
 #include <string>

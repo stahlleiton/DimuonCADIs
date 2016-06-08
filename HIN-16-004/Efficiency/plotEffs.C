@@ -287,42 +287,51 @@ void plotEffs() {
                if (icut==0) file = &file_nocut;
                else if (icut==1) file = &file_ctaucut;
                else file = &file_ctauptdepcut;
-               double rapmin, rapmax, ptmin, ptmax, centmin, centmax, value;
+               double rapmin, rapmax, ptmin, ptmax, centmin, centmax, value, valueErr;
                rapmin = (irap==0) ? 0 : 1.6;
                rapmax = (irap==0) ? 1.6 : 2.4;
                if (idep==0) {
-                  centmin = 0;
-                  centmax = 100;
-                  for (int ibin=1; ibin<hpsi2spbpb->GetNbinsX()+1; ibin++) {
-                     ptmin = hpsi2spbpb->GetXaxis()->GetBinLowEdge(ibin);
-                     ptmax = hpsi2spbpb->GetXaxis()->GetBinUpEdge(ibin);
-                     // value = hpsi2spbpb->GetBinError(ibin);
-                     value = max(fabs(hpsi2spbpb->GetBinContent(ibin)-1),hpsi2spbpb->GetBinError(ibin));
-                     *file << rapmin << ", " << rapmax << ", " << ptmin << ", " << ptmax << ", " << centmin << ", " << centmax << ", " << value << endl;
-                  }
+		 centmin = 0;
+		 centmax = 100;
+		 for (int ibin=1; ibin<hpsi2spbpb->GetNbinsX()+1; ibin++) {
+		   ptmin = hpsi2spbpb->GetXaxis()->GetBinLowEdge(ibin);
+		   ptmax = hpsi2spbpb->GetXaxis()->GetBinUpEdge(ibin);
+		   value = hpsi2spbpb->GetBinContent(ibin);
+		   valueErr = max(fabs(hpsi2spbpb->GetBinContent(ibin)-1),hpsi2spbpb->GetBinError(ibin));
+		   *file << rapmin << ", " << rapmax << ", " << ptmin << ", " << ptmax << ", " << centmin << ", " << centmax << ", " << value << ", " << valueErr << endl;
+		 }
                } else if (idep==1) {
-                  ptmin = (irap==0) ? 6.5 : 3;
-                  ptmax = 30;
-                  for (int ibin=1; ibin<hpsi2spbpb->GetNbinsX()+1; ibin++) {
-                     centmin = hpsi2spbpb->GetXaxis()->GetBinLowEdge(ibin);
-                     centmax = hpsi2spbpb->GetXaxis()->GetBinUpEdge(ibin);
-                     value = hpsi2spbpb->GetBinError(ibin);
-                     *file << rapmin << ", " << rapmax << ", " << ptmin << ", " << ptmax << ", " << centmin << ", " << centmax << ", " << value << endl;
-                  }
+		 ptmin = (irap==0) ? 6.5 : 3;
+		 ptmax = 30;
+		 for (int ibin=1; ibin<hpsi2spbpb->GetNbinsX()+1; ibin++) {
+		   centmin = hpsi2spbpb->GetXaxis()->GetBinLowEdge(ibin);
+		   centmax = hpsi2spbpb->GetXaxis()->GetBinUpEdge(ibin);
+		   value = hpsi2spbpb->GetBinContent(ibin);
+		   valueErr = hpsi2spbpb->GetBinError(ibin);
+		   *file << rapmin << ", " << rapmax << ", " << ptmin << ", " << ptmax << ", " << centmin << ", " << centmax << ", " << value << ", " << valueErr << endl;
+		 }
                }
                else {
-                  ptmin = (irap==0) ? 6.5 : 3;
-                  ptmax = 30;
-                  centmin = 0;
-                  centmax = 100;
-                  value = hpsi2spbpb->GetBinError(1);
-                  *file << rapmin << ", " << rapmax << ", " << ptmin << ", " << ptmax << ", " << centmin << ", " << centmax << ", " << value << endl;
-               }
-
+		 ptmin = (irap==0) ? 6.5 : 3;
+		 ptmax = 30;
+		 centmin = 0;
+		 centmax = 100;
+		 value = hpsi2spbpb->GetBinContent(1);
+		 valueErr = hpsi2spbpb->GetBinError(1);
+		 *file << rapmin << ", " << rapmax << ", " << ptmin << ", " << ptmax << ", " << centmin << ", " << centmax << ", " << value << ", " << valueErr << endl;
+	       }
+	       
                // clean behind ourselves
                delete c1;
                delete tg_jpsi; delete tg_psi2s; delete tg_npjpsi;
                delete haxes;
+	       //delete hjpsinum;
+	       //delete hpsi2snum;
+	       //delete hnpjpsinum;
+	       //delete hjpsiden;
+	       //delete hpsi2sden;
+	       //delete hnpjpsiden;
+	       //delete hname;
             } // icut loop (without / with ctau cut)
          } // irap loop (mid / fwd)
       } // idep loop (pt / centrality)
@@ -330,6 +339,7 @@ void plotEffs() {
 
    file_nocut.close();
    file_ctaucut.close();
+   file_ctauptdepcut.close();
 }
 
 void setErr(TH1F *hist) {
