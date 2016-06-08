@@ -3,7 +3,7 @@
 #include "RooStats/LikelihoodIntervalPlot.h"
 #include "TLatex.h"
 
-pair<double,double> runLimit_RaaNS_Workspace(const char *filename="TRIAL.root", const char *poiname="raa3", const char *pdfname="joint", const char *wsname="wcombo", const char* dataname="dOS_DATA", double CI = 0.95, int calculatorType = 2, int testStatType = 2,  bool useCLs = false);
+pair<double,double> runLimit_RaaNS_Workspace(const char *filename="TRIAL.root", const char *poiname="raa3", const char *pdfname="joint", const char *wsname="wcombo", const char* dataname="dOS_DATA", const char* ACTag="", double CI = 0.95, int calculatorType = 2, int testStatType = 2,  bool useCLs = false);
 
 #include "StandardHypoTestInvDemo.C"
 

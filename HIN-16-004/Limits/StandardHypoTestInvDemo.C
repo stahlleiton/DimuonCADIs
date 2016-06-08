@@ -130,7 +130,8 @@ namespace RooStats {
                   bool useCLs,
                   int npoints, double poimin, double poimax, int ntoys,
                   bool useNumberCounting = false,
-                  const char * nuisPriorName = 0);
+                  const char * nuisPriorName = 0,
+                  const char* subDirPath="");
 
 
 
@@ -141,7 +142,7 @@ namespace RooStats {
                      bool useCLs,
                      int npoints,
                      const char * fileNameBase = 0,
-                     const char* subDirName="");
+                     const char* subDirPath="");
 
       void SetParameter(const char * name, const char * value);
       void SetParameter(const char * name, bool value);
@@ -339,6 +340,22 @@ StandardHypoTestInvDemo(const char * infile = 0,
 
 
 */
+  
+  // define directory to save files
+  string mainDIR = gSystem->ExpandPathName(gSystem->pwd());
+  string wsDIR = mainDIR + "/Output/";
+  string ssubDirName="";
+  if (ACTag) ssubDirName.append(ACTag);
+  string subDIR = wsDIR + ssubDirName;
+  
+  void * dirp = gSystem->OpenDirectory(wsDIR.c_str());
+  if (dirp) gSystem->FreeDirectory(dirp);
+  else gSystem->mkdir(wsDIR.c_str(), kTRUE);
+  
+  void * dirq = gSystem->OpenDirectory(subDIR.c_str());
+  if (dirq) gSystem->FreeDirectory(dirq);
+  else gSystem->mkdir(subDIR.c_str(), kTRUE);
+  
 
   optHTInv.confLevel = CL;
 
@@ -411,7 +428,7 @@ StandardHypoTestInvDemo(const char * infile = 0,
       r = calc.RunInverter(w, modelSBName, modelBName,
                            dataName, calculatorType, testStatType, useCLs,
                            npoints, poimin, poimax,
-                           ntoys, useNumberCounting, nuisPriorName );
+                           ntoys, useNumberCounting, nuisPriorName, subDIR.c_str());
       if (!r) {
          std::cerr << "Error running the HypoTestInverter - Exit " << std::endl;
          return NULL;          
@@ -429,7 +446,7 @@ StandardHypoTestInvDemo(const char * infile = 0,
       }
    }
 
-   calc.AnalyzeResult( r, calculatorType, testStatType, useCLs, npoints, infile, ACTag);
+   calc.AnalyzeResult( r, calculatorType, testStatType, useCLs, npoints, infile, subDIR.c_str());
   
    return r;
 }
@@ -443,25 +460,9 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
                                           bool useCLs,
                                           int npoints,
                                           const char * fileNameBase,
-                                          const char* subDirName){
+                                          const char* subDirPath){
 
    // analyze result produced by the inverter, optionally save it in a file
-  
-  // define mainDIR to save files
-  string mainDIR = gSystem->ExpandPathName(gSystem->pwd());
-  string wsDIR = mainDIR + "/Output/";
-  string ssubDirName="";
-  if (subDirName) ssubDirName.append(subDirName);
-  string subDIR = wsDIR + ssubDirName;
-  
-  void * dirp = gSystem->OpenDirectory(wsDIR.c_str());
-  if (dirp) gSystem->FreeDirectory(dirp);
-  else gSystem->mkdir(wsDIR.c_str(), kTRUE);
-  
-  void * dirq = gSystem->OpenDirectory(subDIR.c_str());
-  if (dirq) gSystem->FreeDirectory(dirq);
-  else gSystem->mkdir(subDIR.c_str(), kTRUE);
-  
 
    double lowerLimit = 0;
    double llError = 0;
@@ -541,7 +542,8 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
          if (fileULDist) ulDist= fileULDist->Get("RULDist");
       }
 
-
+     
+      mResultFileName.Prepend(Form("%s/",subDirPath));
       TFile * fileOut = new TFile(mResultFileName,"RECREATE");
       r->Write();
       if (ulDist) ulDist->Write();
@@ -575,9 +577,9 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
 
    plot->Draw("CLb 2CL");  // plot all and Clb
 
-   c1->SaveAs(Form("%s/%s",subDIR.c_str(),(c1Name + ".pdf").Data()));
-   c1->SaveAs(Form("%s/%s",subDIR.c_str(),(c1Name + ".png").Data()));
-   c1->SaveAs(Form("%s/%s",subDIR.c_str(),(c1Name + ".root").Data()));
+   c1->SaveAs((c1Name + ".pdf").Data());
+   c1->SaveAs((c1Name + ".png").Data());
+   c1->SaveAs((c1Name + ".root").Data());
 
    // if (useCLs)
    //    plot->Draw("CLb 2CL");  // plot all and Clb
@@ -603,9 +605,9 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
       TString c2Name = mResultFileName;
       c2Name.ReplaceAll(".root","");
       c2Name += "_Distribs";
-      c2->SaveAs(Form("%s/%s",subDIR.c_str(),(c2Name + ".root").Data()));
-      c2->SaveAs(Form("%s/%s",subDIR.c_str(),(c2Name + ".png").Data()));
-      c2->SaveAs(Form("%s/%s",subDIR.c_str(),(c2Name + ".pdf").Data()));
+      c2->SaveAs((c2Name + ".root").Data());
+      c2->SaveAs((c2Name + ".png").Data());
+      c2->SaveAs((c2Name + ".pdf").Data());
    }
    gPad = c1; 
 
@@ -621,7 +623,8 @@ RooStats::HypoTestInvTool::RunInverter(RooWorkspace * w,
                                        bool useCLs, int npoints, double poimin, double poimax,
                                        int ntoys,
                                        bool useNumberCounting,
-                                       const char * nuisPriorName ){
+                                       const char * nuisPriorName,
+                                       const char* subDirPath){
 
    std::cout << "Running HypoTestInverter on the workspace " << w->GetName() << std::endl;
 
@@ -1097,7 +1100,7 @@ RooStats::HypoTestInvTool::RunInverter(RooWorkspace * w,
 
          /// save result in a file
          limDist->SetName("RULDist");
-         TFile * fileOut = new TFile("RULDist.root","RECREATE");
+         TFile * fileOut = new TFile(Form("%s/RULDist.root",subDirPath),"RECREATE");
          limDist->Write();
          fileOut->Close();
 
