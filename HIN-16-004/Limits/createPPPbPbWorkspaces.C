@@ -114,6 +114,7 @@ void createPPPbPbWorkspaces(
            exports += Form("export nCPU=%i; ", nCPU);
            exports += Form("export pwd_=%s; ", gSystem->pwd());
            TString command("qsub -k oe -q cms@llrt3 ");
+           command += Form("-l nodes=1:ppn=%i ", nCPU);
            command += "-N ${binName} ";
            command += "-V ";
            command += Form("-o %s ", gSystem->pwd());
