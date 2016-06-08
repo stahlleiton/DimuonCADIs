@@ -40,12 +40,13 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
       double newmin=theVar->getMin(), newmax=theVar->getMax();
       double val=theVar->getVal();
       double err=theVar->getError();
-      if (TString(theVar->GetName()) != "invMass") {
+      TString varName(theVar->GetName());
+      if ( (varName != "invMass") && (varName != "pt") && (varName != "rap") && (varName != "cent")) {
          newmin = max(val-5.*fabs(err), newmin);
          newmax = min(val+5.*fabs(err), newmax);
       }
 
-      RooRealVar *theVarCopy = new RooRealVar(theVar->GetName(),theVar->GetTitle(),val,newmin,newmax);
+      RooRealVar *theVarCopy = new RooRealVar(varName.Data(),theVar->GetTitle(),val,newmin,newmax);
       theVarCopy->setConstant(theVar->isConstant());
       theVarCopy->setError(err);
       if ( (theVar->getMin() == theVar->getMax()) || theVar->getError() == 0. ) theVarCopy->setConstant();
