@@ -33,7 +33,9 @@ using namespace std;
 
 #ifndef poiname_check
 #define poiname_check
-const char* poiname = "RFrac2Svs1S";
+const char* poiname = "RFrac2Svs1S"; // for double ratios
+// const char* poiname = "N_Jpsi"; // for RAA (will correct automatically for efficiency)
+// const char* poiname = "N_Psi2S"; // for RAA (will correct automatically for efficiency)
 #endif
 const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
 const bool  doratio       = true;  // true -> look for separate PP and PbPb files, false -> input files are with simultaneous pp-PbPb fits
@@ -42,6 +44,8 @@ const bool  fiterrors     = true;  // statistical errors are from the fit
 const bool  FCerrors      = false; // statistical errors are from the Feldman-Cousins intervals ("limits")
 const bool  promptonly    = false; // plot the prompt only double ratio
 const bool  nonpromptonly = false; // plot the non-prompt only double ratio
+const bool  plotlimits95  = true;  // display 95% CL limits (when the lower limit is 0)
+const bool  plotsysts     = true;  // display systematics
 #define normalCutsDir "nominal"
 #define invCutsDir "nonprompt"
 const char* nameTag="";            // can put here e.g. "_prompt", "_nonprompt", ...
@@ -52,7 +56,9 @@ const char* nameTag="";            // can put here e.g. "_prompt", "_nonprompt",
 ///////////////
 
 const double xfrac = 0.8; // for the 2-panel plot for the centrality dependence.
-
+const double lumipp = 27.7e6;
+const double lumipbpb_ABCD = 351;
+const double lumipbpb_peri = 464;
 
 //////////////////
 // DECLARATIONS //
@@ -222,7 +228,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
             exh = (high-low)/2.;
             exl = (high-low)/2.;
             exsyst = 0.5;
-            eysyst = sqrt(pow(syst_PP[thebin].value,2) + pow(syst_PbPb[thebin].value,2)); // quadratic sum of PP and PbPb systs
+            eysyst = plotsysts ? sqrt(pow(syst_PP[thebin].value,2) + pow(syst_PbPb[thebin].value,2)) : 0; // quadratic sum of PP and PbPb systs
          }
          if (xaxis=="cent") {
             low= thebin.centbin().low();
@@ -235,7 +241,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
             exl = (high-low)/2./2.;
             // exsyst = !isMB ? 5 : 5./(1.-xfrac);
             exsyst = exl;
-            eysyst = syst_PbPb[thebin].value; // only PbPb syst: the PP one will go to a dedicated box
+            eysyst = plotsysts ? syst_PbPb[thebin].value : 0; // only PbPb syst: the PP one will go to a dedicated box
          }
          y = theVarsBinned[*it][i]->getVal();
          if (fiterrors) {
@@ -255,14 +261,14 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
 
          eysyst = y*eysyst;
          // add the additive part of the NP contamination syst
-         if (syst_PbPb_NP_add.find(thebin) != syst_PbPb_NP_add.end()) eysyst = sqrt(pow(syst_PbPb_NP_add[thebin].value,2) + pow(eysyst,2)); 
+         if (plotsysts && syst_PbPb_NP_add.find(thebin) != syst_PbPb_NP_add.end()) eysyst = sqrt(pow(syst_PbPb_NP_add[thebin].value,2) + pow(eysyst,2)); 
 
          theGraphs[*it]->SetPoint(i,x,y);
          theGraphs[*it]->SetPointError(i,exl,exh,eyl,eyh);
          theGraphs_syst[*it]->SetPoint(i,x,y);
          // theGraphs_syst[*it]->SetPointError(i,exsyst,exsyst,eysyst,eysyst);
          theGraphs_syst[*it]->SetPointError(i,exsyst,exsyst,eysyst,eysyst);
-         cout << x << " " << y << " " << eyl << " " << eyh << " " << eysyst << endl;
+         // cout << x << " " << y << " " << eyl << " " << eyh << " " << eysyst << endl;
 
          // theGraphs[*it]->Sort();
          // theGraphs_syst[*it]->Sort();
@@ -278,7 +284,54 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
 }
 
 RooRealVar* poiFromFile(const char* filename, const char* token) {
-   return poiFromFile(filename,token,poiname);
+   RooRealVar *ans = poiFromFile(filename,token,poiname);
+   
+   // case of N_Jpsi and N_Psi2S: we want the correct normalization because we'll make a RAA
+   bool isjpsi = (TString(poiname) == "N_Jpsi");
+   bool ispsip = (TString(poiname) == "N_Psi2S");
+   if (isjpsi || ispsip) {
+      bool isPP = (TString(token).Index("PP") != kNPOS);
+      double normfactor = 1.;
+      anabin thebin = binFromFile(filename);
+
+      // luminosity and Ncoll
+      if (isPP) {
+         normfactor = 1./lumipp;
+      } else {
+         if (thebin.centbin().low()>=60) normfactor = 1./lumipbpb_peri;
+         else normfactor = 1./lumipbpb_ABCD;
+         normfactor *= 1./(208.*208.*(HI::findNcollAverage(thebin.centbin().low(),thebin.centbin().high())/HI::findNcollAverage(0,200)));
+         normfactor *= 200./(thebin.centbin().high()-thebin.centbin().low());
+      }
+
+      // efficiency
+      TFile *f = TFile::Open(Form("../Efficiency/files/histos_%s_%s.root", isjpsi ? "jpsi" : "psi2s", isPP ? "pp" : "pbpb"));
+      bool ismid = (thebin.rapbin().low() < 1.);
+      bool isptdep = (thebin.centbin() == binI(0,200));
+      TH1F *hnum = (TH1F*) f->Get(Form("hnumptdepcut_%s%s", isptdep ? "pt" : "cent", ismid ? "mid" : "fwd"));
+      TH1F *hden = (TH1F*) f->Get(Form("hden_%s%s", isptdep ? "pt" : "cent", ismid ? "mid" : "fwd"));
+      double numval, numerr, denval, denerr;
+      bool isintegrated = (isptdep && ((thebin.rapbin()==binF(0,1.6)&&thebin.ptbin()==binF(6.5,30)) || (thebin.rapbin()==binF(1.6,2.4)&&thebin.ptbin()==binF(3,30))));
+      if (isintegrated) {
+         numval = hnum->IntegralAndError(1,hnum->GetNbinsX(),numerr);
+         denval = hden->IntegralAndError(1,hden->GetNbinsX(),denerr);
+      } else {
+         int ibin = hnum->FindBin((thebin.centbin().low()+thebin.centbin().high())/4.);
+         if (isptdep) ibin = hnum->FindBin((thebin.ptbin().low()+thebin.ptbin().high())/2.);
+         numval = hnum->GetBinContent(ibin);
+         numerr = hnum->GetBinError(ibin);
+         denval = hden->GetBinContent(ibin);
+         denerr = hden->GetBinError(ibin);
+      }
+      double efficiency = numval / denval;
+      normfactor = normfactor / efficiency;
+      delete f;
+
+      ans->setVal(ans->getVal()*normfactor);
+      ans->setError(ans->getError()*normfactor);
+   }
+
+   return ans;
 }
 
 
@@ -502,13 +555,13 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       padl->cd();
    }
 
-   plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv",0);
-   if (fiterrors && FCerrors) plotLimits(theCats,xaxis,"../Limits/csv/Limits_68_testnofix.csv",xaxis=="cent" ? 5 : 1, false);
+   if (plotlimits95) plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv",0);
+   if (fiterrors && FCerrors) plotLimits(theCats,xaxis,"../Limits/csv/Limits_68.csv",xaxis=="cent" ? 5 : 1, false);
 
    // limits for inclusive
    if (xaxis=="cent") {
       padr->cd();
-      plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv", 0 , true, true);
+      if (plotlimits95) plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv", 0 , true, true);
       padl->cd();
    }
 

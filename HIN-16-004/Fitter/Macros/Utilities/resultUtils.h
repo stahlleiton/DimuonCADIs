@@ -72,10 +72,10 @@ RooRealVar* poiFromWS(RooWorkspace* ws, const char* token, const char* thepoinam
    RooRealVar *ans = (RooRealVar*) ws->var(poiname_and_token);
    if (!ans && TString(thepoiname) == "N_Psi2S") { // we want the number of psi2S but it's not in the ws, let's compute it
       RooRealVar *njpsi = (RooRealVar*) ws->var(Form("N_Jpsi%s",token));
-      cout << Form("N_Jpsi%s",token) << endl;
+      // cout << Form("N_Jpsi%s",token) << endl;
       if (!njpsi) return ans;
       RooRealVar *rfrac = (RooRealVar*) ws->var(Form("RFrac2Svs1S%s",token));
-      cout << Form("RFrac2Svs1S%s",token) << endl;
+      // cout << Form("RFrac2Svs1S%s",token) << endl;
       if (!rfrac) return ans;
       RooFitResult *fr = (RooFitResult*) ws->obj(Form("fitResult_pdfMASS_Tot%s", token));
       double corr=0;
