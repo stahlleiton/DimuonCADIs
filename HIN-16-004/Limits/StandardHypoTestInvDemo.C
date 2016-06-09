@@ -68,6 +68,8 @@ using namespace RooFit;
 using namespace RooStats;
 using namespace std;
 
+TString proofstring = ""; //gSystem->GetFromPipe("pod-info -c"); // config string for Proof
+
 // structure defining the options 
 struct HypoTestInvOptions { 
 
@@ -1018,7 +1020,8 @@ RooStats::HypoTestInvTool::RunInverter(RooWorkspace * w,
 
    // can speed up using proof-lite
    if (mUseProof) {
-      ProofConfig pc(*w, mNWorkers, "", kFALSE);
+      // ProofConfig pc(*w, mNWorkers, "", kFALSE);
+      ProofConfig pc(*w, mNWorkers, proofstring.Data(), kFALSE);
       toymcs->SetProofConfig(&pc);    // enable proof
    }
 

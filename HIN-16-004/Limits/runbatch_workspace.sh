@@ -43,7 +43,7 @@ echo '#  \___/ \___/|_.__/  |___/\__\__,_|_|   \__| #'
 echo '###############################################'
                                                       
 
-echo nice root -l -b -q combinedWorkspace.C+'("'${it_PbPb}'", "'${it_PP}'", "combined_PbPbPP_workspace_'${binName}'.root", '${systVal}', '${systValAdd}', "'${ACTag}'", '${nCPU}')'
+echo root -l -b -q combinedWorkspace.C+'("'${it_PbPb}'", "'${it_PP}'", "combined_PbPbPP_workspace_'${binName}'.root", '${systVal}', '${systValAdd}', "'${ACTag}'", '${nCPU}')'
 time root -l -b -q combinedWorkspace.C+'("'${it_PbPb}'", "'${it_PP}'", "combined_PbPbPP_workspace_'${binName}'.root", '${systVal}', '${systValAdd}', "'${ACTag}'", '${nCPU}')'
 
 echo "ok, I'm done"
