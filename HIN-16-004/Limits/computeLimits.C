@@ -9,8 +9,6 @@
 #include "../Fitter/Macros/Utilities/resultUtils.h"
 #include "runLimit_RaaNS_Workspace.C"
 
-#include "RooStats/HypoTestInverterResult.h"
-
 using namespace std;
 
 const bool usebatch=true;
@@ -48,9 +46,6 @@ void computeLimits(
     cout << "# [Error]: No combined workspaces found" << endl;
     return;
   }
-  
-  // bin edges
-  float ptmin, ptmax, ymin, ymax, centmin, centmax;
   
   // File to save results
   ostringstream strs;
