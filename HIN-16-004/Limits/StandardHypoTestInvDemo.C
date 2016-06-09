@@ -45,6 +45,7 @@
 #include "TROOT.h"
 #include "TSystem.h"
 #include "TString.h"
+#include <sstream>
 
 #include "RooStats/AsymptoticCalculator.h"
 #include "RooStats/HybridCalculator.h"
@@ -346,7 +347,16 @@ StandardHypoTestInvDemo(const char * infile = 0,
   string wsDIR = mainDIR + "/Output/";
   string ssubDirName="";
   if (ACTag) ssubDirName.append(ACTag);
-  string subDIR = wsDIR + ssubDirName;
+  ostringstream strs;
+  strs << CL;
+  string str = strs.str();
+  TString sCL(str);
+  sCL.Remove(0,sCL.First('.')+1);
+  string subDIR = wsDIR + ssubDirName + "_CL" + string(sCL);
+  if ( calculatorType == 0 ) subDIR = subDIR + "_Freq";
+  else if ( calculatorType == 1 ) subDIR = subDIR + "_Hybr";
+  else if ( calculatorType == 2 ) subDIR = subDIR + "_Asym";
+  else if ( calculatorType == 3 ) subDIR = subDIR + "_AsymAsi";
   
   void * dirp = gSystem->OpenDirectory(wsDIR.c_str());
   if (dirp) gSystem->FreeDirectory(dirp);
