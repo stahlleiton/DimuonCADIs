@@ -25,7 +25,7 @@ void check1SLimits(
 )
 {
   TString slFileName(lFileName);
-  if ( dosyst && !slFileName.Contains("wSyst") )
+  if ( dosyst && !slFileName.Contains("wSys") )
   {
     cout << "Comparison requires systematics but limits file does not contain them" << endl;
     return;
@@ -211,6 +211,8 @@ void check1SLimits(
   c->SetBottomMargin(0.1630648);
   c->SetFrameBorderMode(0);
   c->SetFrameBorderMode(0);
+  gPad->SetGridx();
+  gPad->SetGridy();
   hCL->Draw("p");
   
   c->Write("cOneSigmaCLComparison", TObject::kOverwrite | TObject::kSingleKey);

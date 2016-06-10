@@ -9,8 +9,6 @@
 #include "../Fitter/Macros/Utilities/resultUtils.h"
 #include "runLimit_RaaNS_Workspace.C"
 
-#include "RooStats/HypoTestInverterResult.h"
-
 using namespace std;
 
 const bool usebatch=true;
@@ -48,9 +46,6 @@ void computeLimits(
     cout << "# [Error]: No combined workspaces found" << endl;
     return;
   }
-  
-  // bin edges
-  float ptmin, ptmax, ymin, ymax, centmin, centmax;
   
   // File to save results
   ostringstream strs;
@@ -95,20 +90,22 @@ void computeLimits(
     } else {
        TString exports;
        exports += Form("export it=%s; ",it->Data());
+       exports += Form("export ACTag=%s; ",ACTag);
        exports += Form("export CL=%f; ",CL);
        exports += Form("export calculatorType=%i; ",calculatorType);
        exports += Form("export testStatType=%i; ",testStatType);
        exports += Form("export useCLs=%i; ",useCLs);
        exports += Form("export pwd_=%s; ", gSystem->pwd());
-       TString command("qsub -k oe -q cms@llrt3 ");
+       TString command("qsub -k oe -q cms@llrt3 -l nodes=1:ppn=23 ");
        command += Form("-N limits_bin%i ",cnt);
        command += "-V ";
        command += Form("-o %s ", gSystem->pwd());
-       command += Form("-v it,CL,calculatorType,testStatType,useCLs,pwd_ ");
+       command += Form("-v it,ACTag,CL,calculatorType,testStatType,useCLs,pwd_ ");
        command += "runbatch_limits.sh";
        TString command_full = exports + command;
        cout << command_full.Data() << endl;
        system(command_full.Data());
+       system("sleep 1");
     }
     
     cnt++;
