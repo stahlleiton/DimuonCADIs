@@ -60,11 +60,11 @@ void plotSyst_all(
   int iVar_tnp = 4;
   int iVar_fit = 5;
   const char* v2InFileDirs[nFiles] = {"histsV2Yields_20160304_v2W_dPhiBins4",  //0
-              "histsV2Yields_20160304_v2W_ctau1mm_dPhiBins4",//1
+              "histsV2Yields_20160304_v2W_ctau2mm_dPhiBins4",//1
               "histsV2Yields_20160304_v2W_minVar_dPhiBins4",//2
               "histsV2Yields_20160304_v2W_maxVar_dPhiBins4", //3
               "histsV2Yields_20160304_v2W_noTnPSF_dPhiBins4",//4
-              "histsV2Yields_20160304_v2W_signalCB3WN_dPhiBins4",//5
+              "histsV2Yields_20160304_v2W_sigG1G2_dPhiBins4",//5
               "histsV2Yields_20160304_v2W_polFunct_dPhiBins4",//6
               "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",//7
               "histsV2Yields_20160304_v2W_MLAR_dPhiBins4",//8
@@ -76,7 +76,7 @@ const char* legendSyst[] = {"",
           "3DEff_min",
           "3DEff_max",
           "no_TnP", 
-          "signal_CB3WN",
+          "signal_2Gaus",
           "bkg_polFunct",
           "signal_resOpt2", 
           "bFrac_MLAR",

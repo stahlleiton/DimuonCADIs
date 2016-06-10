@@ -528,6 +528,7 @@ void makeRaa_cent( bool bSavePlots=1,
   {
     c1->SaveAs(Form("%s/pdf/PrJpsi_vsCent_%s.pdf",outputDir,sample[whichSample]));
     c1->SaveAs(Form("%s/png/PrJpsi_vsCent_%s.png",outputDir,sample[whichSample]));
+    c1->SaveAs(Form("%s/PrJpsi_vsCent_%s.root",outputDir,sample[whichSample]));
   }
   
   //------------------- (pt, y) dependence
@@ -591,9 +592,11 @@ void makeRaa_cent( bool bSavePlots=1,
 
     c11a->SaveAs(Form("%s/pdf/PrJpsi_vsCent_yHighPt_%s.pdf",outputDir,sample[whichSample]));
     c11a->SaveAs(Form("%s/png/PrJpsi_vsCent_yHighPt_%s.png",outputDir,sample[whichSample]));
+    c11a->SaveAs(Form("%s/PrJpsi_vsCent_yHighPt_%s.root",outputDir,sample[whichSample]));
 
     c11b->SaveAs(Form("%s/pdf/PrJpsi_vsCent_yLowPt_%s.pdf",outputDir,sample[whichSample]));
     c11b->SaveAs(Form("%s/png/PrJpsi_vsCent_yLowPt_%s.png",outputDir,sample[whichSample]));
+    c11b->SaveAs(Form("%s/PrJpsi_vsCent_yLowPt_%s.root",outputDir,sample[whichSample]));
 
   }
 
@@ -623,6 +626,7 @@ void makeRaa_cent( bool bSavePlots=1,
   {
     c2->SaveAs(Form("%s/pdf/nonPrJpsi_vsCent_%s.pdf",outputDir,sample[whichSample]));
     c2->SaveAs(Form("%s/png/nonPrJpsi_vsCent_%s.png",outputDir,sample[whichSample]));
+    c2->SaveAs(Form("%s/nonPrJpsi_vsCent_%s.root",outputDir,sample[whichSample]));
   }
 
   //------------------- (pt, y) dependence
@@ -684,9 +688,11 @@ void makeRaa_cent( bool bSavePlots=1,
   {
     c21a->SaveAs(Form("%s/pdf/NonPrJpsi_vsCent_yHighPt_%s.pdf",outputDir,sample[whichSample]));
     c21a->SaveAs(Form("%s/png/NonPrJpsi_vsCent_yHighPt_%s.png",outputDir,sample[whichSample]));
+    c21a->SaveAs(Form("%s/NonPrJpsi_vsCent_yHighPt_%s.root",outputDir,sample[whichSample]));
     
     c21b->SaveAs(Form("%s/pdf/NonPrJpsi_vsCent_yLowPt_%s.pdf",outputDir,sample[whichSample]));
     c21b->SaveAs(Form("%s/png/NonPrJpsi_vsCent_yLowPt_%s.png",outputDir,sample[whichSample]));
+    c21b->SaveAs(Form("%s/NonPrJpsi_vsCent_yLowPt_%s.root",outputDir,sample[whichSample]));
   }
  
   systFile->Close();
