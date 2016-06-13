@@ -54,7 +54,7 @@ void writeLimits2File(
     }
     
     sCL.Prepend("0.");
-    file << sCL.Data() << endl;
+    if (cnt == 1) file << sCL.Data() << endl;
     
     cout << ">>>>>>> Writting " << Form("%.2f",sCL.Atof()*100) << "% " << "limits on " << limitsFileName.c_str() << " for analysis bin " << cnt << endl;
     
@@ -87,12 +87,15 @@ void writeLimits2File(
     sRap.Remove(sRap.First('_'),sRap.Sizeof());
     sRap.ReplaceAll("rap","");
     
+    sSize = sRap.Sizeof();
+    if (sRap.Index("0") == 0) nPos = 1;
+    else if (sSize == 5) nPos = 2;
     TString sRapMin(sRap);
-    sRapMin.Remove(2,sRapMin.Sizeof());
+    sRapMin.Remove(nPos,sRapMin.Sizeof());
     TString sRapMax(sRap);
-    sRapMax.Remove(0,2);
+    sRapMax.Remove(0,nPos);
     
-    sRapMin.Insert(sRapMin.Sizeof()-2,'.');
+    sRapMin.Insert(sRapMin.Sizeof()-2, nPos == 1 ? "0." : ".");
     sRapMax.Insert(sRapMax.Sizeof()-2,'.');
     
     

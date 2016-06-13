@@ -42,7 +42,7 @@ void makeHistos_raa_syst(int sample   = 1,// 0=PbPb,     1= pp
 {
   const char* whichSample[2]              = {"20160304_PbPb",      "20160304_pp"};
   const int nVariations = 7; 
-  const char* whichVariation[nVariations] = {"MLAR","const","polFunct","resOpt2","signalCB3WN","weighted_prof", "weighted_noTnPSF"};
+  const char* whichVariation[nVariations] = {"MLAR","const","polFunct","resOpt2","sigG1G2","weighted_prof", "weighted_noTnPSF"};
 
   const char* outputHistDataFile[1] = {"histsRaaYields"};
 

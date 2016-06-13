@@ -5,6 +5,7 @@ void fixPbPbtoPP(map<string, string>& parIni);
 void setDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries);
 bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<string,string> parIni, bool isPbPb); 
 bool addBackgroundMassModel(RooWorkspace& ws, string object, MassModel model, map<string,string> parIni, bool isPbPb);
+void setFixedVarsToContantVars(RooWorkspace& ws);
 
 
 bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<string, string>  parIni, 
@@ -137,6 +138,8 @@ bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<stri
   }
   ws.import(*themodel);
   ws.pdf(pdfName.c_str())->setNormRange("MassWindow");
+
+  setFixedVarsToContantVars(ws);
 
   // save the initial values of the model we've just created
   RooRealVar *x = ws.var("invMass");
@@ -1017,3 +1020,12 @@ void setDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEn
   }
  
 };
+
+void setFixedVarsToContantVars(RooWorkspace& ws)
+{
+  RooArgSet listVar = ws.allVars();
+  TIterator* parIt = listVar.createIterator();
+  for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
+    if ( it->getMin()==it->getMax() ) it->setConstant(kTRUE);
+  }
+}

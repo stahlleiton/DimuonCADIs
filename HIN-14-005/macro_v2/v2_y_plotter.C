@@ -58,7 +58,6 @@ void v2_y_plotter(
 
   // input files: prompt and non-prompt ones
   const char* v2InFileDirs[1] = {"histsV2Yields_20160304_v2W_dPhiBins4"};
-//  const char* legend[4]       = {"","Prompt J/#psi","Non-prompt J/#psi","Background"}; // This is already defined in v2_dataNumbers_2015.h file
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
  
   // Reminder for TGraphAssymError: gr = new TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);// n,x,y,err_x, err_y

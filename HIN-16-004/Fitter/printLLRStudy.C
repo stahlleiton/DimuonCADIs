@@ -53,7 +53,7 @@ void printLLRStudy(
   
   vector<string> fileNames;
   //string dirPath = Form("./Output/%s/result/DATA/",dirLabel.c_str());
-  string dirPath = Form("./Output/%s/result/DATA_PP_AccEff/",dirLabel.c_str());
+  string dirPath = Form("./Output/%s/result/DATA/",dirLabel.c_str());
   if (!findFiles(dirPath, fileNames)) { return; } 
   cout << "[INFO] Creating " << ((type=="Bkg")?"Background":"Signal") << " Study summary!" << endl;
   

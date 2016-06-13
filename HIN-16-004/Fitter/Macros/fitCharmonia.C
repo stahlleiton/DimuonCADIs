@@ -42,6 +42,18 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
                    bool getMeanPT   = false       // Compute the mean PT (NEED TO FIX)
 		   )  
 {
+
+  // Check if input dataset is MC
+  bool isMC = false;
+  if (DSTAG.find("MC")!=std::string::npos) {
+    if (incJpsi && incPsi2S) { 
+      cout << "[ERROR] We can only fit one type of signal using MC" << endl; return false; 
+    }
+    isMC = true;
+  }
+  if (isMC && wantPureSMC) wantPureSMC=true;
+  else wantPureSMC=false;
+
    
   // Define the mass range
   if (cut.dMuon.M.Max==5 && cut.dMuon.M.Min==2) { 
@@ -73,17 +85,6 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
   // Apply the ctau cuts to reject non-prompt charmonia
   if (cutCtau) { setCtauCuts(cut, isPbPb); }  
 
-
-  // Check if input dataset is MC
-  bool isMC = false;
-  if (DSTAG.find("MC")!=std::string::npos) {
-    if (incJpsi && incPsi2S) { 
-      cout << "[ERROR] We can only fit one type of signal using MC" << endl; return false; 
-    }
-    isMC = true;
-  }
-  if (isMC && wantPureSMC) wantPureSMC=true;
-  else wantPureSMC=false;
 
   bool applyWeight_AccEff = false;
   if (DSTAG.find("AccEff")!=std::string::npos) applyWeight_AccEff = true;
@@ -215,7 +216,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
           } else {
             RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(numCores), Save());
             fitResult->Print("v");
-            myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
+            myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str()));
           }  
         } else {
           RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBand1,SideBand2"), NumCPU(numCores), Save());
