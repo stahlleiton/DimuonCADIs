@@ -25,19 +25,20 @@ const char* poiname = "RFrac2Svs1S";
 //////////////////
 
 // methods for computing the systematic
-double rms(vector<double> v);
-double maxdiff(vector<double> v);
+double rms(vector<double> v, bool isrelative);
+double maxdiff(vector<double> v, bool isrelative);
 
 ///////////////////
 // MAIN FUNCTION //
 ///////////////////
 
-void results2syst(const char* workDirNames, const char* systFileName, const char* systHeader, int method, const char* collTag="") {
+void results2syst(const char* workDirNames, const char* systFileName, const char* systHeader, int method, const char* collTag="", bool relativeSyst=false) {
 // workDirNames: of the form "dir1,dir2,dir3,..."
 // systFileName: "syst_blabla.csv" (do NOT specify the full path, it will be assigned automatically to Systematics/csv/)
-// systHeader: this will be the header of the systematics file. A few words describing what this systematic is.
-// method: 0 -> RMS, 1 -> max difference to the first work dir (= nominal)
-// collTag: can be "PP", "PbPb" or "" (for the ratio PbPb/PP)
+// systHeader:   this will be the header of the systematics file. A few words describing what this systematic is.
+// method:       0 -> RMS, 1 -> max difference to the first work dir (= nominal)
+// collTag:      can be "PP", "PbPb" or "" (for the ratio PbPb/PP)
+// relativeSyst: does the uncertainty scale with the central value? (false -> no, true -> yes)
 
    map<anabin, vector<double> > mapvals, mapchi2;
    map<anabin, vector<int> > mapndof;
@@ -115,8 +116,8 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
       anabin thebin = it->first;
       vector<double> v = it->second;
       double value;
-      if (method==0) value=rms(v);
-      else if (method==1) value=maxdiff(v);
+      if (method==0) value=rms(v, relativeSyst);
+      else if (method==1) value=maxdiff(v, relativeSyst);
       else value=0;
       file << thebin.rapbin().low() << ", " << thebin.rapbin().high() << ", " 
          << thebin.ptbin().low() << ", " << thebin.ptbin().high() << ", " 
@@ -195,22 +196,27 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
    cout << "Closed " << texName << endl;
 }
 
-double rms(vector<double> v) {
+double rms(vector<double> v, bool isrelative) {
    if (v.size()==0 || v[0]==0) return 0;
     double s=0,s2=0;
     for (unsigned int i=0; i<v.size(); i++) {
        s+=v[i];
        s2+=v[i]*v[i];
     }
-    return sqrt(s2-(s*s))/v[0];
+    double ans = sqrt(s2-(s*s));
+    if (isrelative) ans = ans/v[0];
+    return ans;
  }
 
-double maxdiff(vector<double> v) {
+double maxdiff(vector<double> v, bool isrelative) {
    if (v.size()==0 || v[0]==0) return 0;
    double maxdiff=0;
     for (unsigned int i=1; i<v.size(); i++) {
        maxdiff=max(maxdiff,fabs(v[i]-v[0]));
     }
-    return maxdiff/v[0];
+    double ans = maxdiff;
+    double ans = sqrt(s2-(s*s));
+    if (isrelative) ans = ans/v[0];
+    return ans;
 }
 
