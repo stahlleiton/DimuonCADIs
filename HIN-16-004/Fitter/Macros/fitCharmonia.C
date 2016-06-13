@@ -76,10 +76,10 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
       cut.dMuon.M.Max = 4.2;
     }
     else {
-      //cut.dMuon.M.Min = 2.1;
-      //cut.dMuon.M.Max = 4.7;
-      cut.dMuon.M.Min = 3.4;
-      cut.dMuon.M.Max = 4.2;
+      cut.dMuon.M.Min = 2.1;
+      cut.dMuon.M.Max = 4.7;
+      //cut.dMuon.M.Min = 3.4;
+      //cut.dMuon.M.Max = 4.2;
       
       cut.dMuon.ctauErr.Min = 0.0001; 
       cut.dMuon.ctauErr.Max = 0.4;
