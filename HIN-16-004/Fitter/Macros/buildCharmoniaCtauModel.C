@@ -32,10 +32,11 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
   bool fitMass = false;
   if ( ws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP"))) ) { fitMass = true; } 
 
-  string pdfName     = "pdfCTAU";
-  if (fitMass) { pdfName = "pdfCTAUMASS"; }
   bool isMC = (dsName.find("MC")!=std::string::npos);
   bool incCtauErrPDF = ( !isMC );
+  string pdfName     = "pdfCTAU";
+  if (fitMass) { pdfName = "pdfCTAUMASS"; }
+  //if(!incCtauErrPDF) pdfName = "pdfCTAUCOND";
 
   if (fitMass && !isMC) {
     if (incBkg) {
@@ -89,26 +90,32 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
       if (incCtauErrPDF) {
         if ( !createCtauErrPDF(ws, dsName, Form("pdfCTAUERR_JpsiPR_%s", (isPbPb?"PbPb":"PP")), Form("hCtauErr_Tot_%s", (isPbPb?"PbPb":"PP"))) ) { return false; }
         RooProdPdf pdfJpsi(Form("pdfCTAU_JpsiPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_JpsiPR_%s", (isPbPb?"PbPb":"PP"))),
-                       Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
-                       ); 
+			   Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )); 
         ws.import(pdfJpsi);
-      }
-      if ( ws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))) ){
+      } 
+      
+      if (ws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))) ){
         ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_JpsiPR_%s", (isPbPb?"PbPb":"PP")),
                         Form("%s_JpsiPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
                         Form("pdfMASS_Jpsi_%s",(isPbPb?"PbPb":"PP"))
                         ));
       }
+      //ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_JpsiPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
+      //Form("%s_JpsiPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
+      //              Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))
+      //              ));
+      
       ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_JpsiPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
-                      Form("%s_JpsiPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
-                      Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))
+		      Form("%s_JpsiPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
+		      Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))
                       ));
+      
     }
     if (!incPrompt && incNonPrompt) {
       if (incCtauErrPDF) {
         if ( !createCtauErrPDF(ws, dsName, Form("pdfCTAUERR_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")), Form("hCtauErr_Tot_%s", (isPbPb?"PbPb":"PP"))) ) { return false; }
         RooProdPdf pdfJpsi(Form("pdfCTAU_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))),
-                       Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
+			   Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfJpsi);
       }
