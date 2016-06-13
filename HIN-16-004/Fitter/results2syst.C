@@ -215,7 +215,6 @@ double maxdiff(vector<double> v, bool isrelative) {
        maxdiff=max(maxdiff,fabs(v[i]-v[0]));
     }
     double ans = maxdiff;
-    double ans = sqrt(s2-(s*s));
     if (isrelative) ans = ans/v[0];
     return ans;
 }
