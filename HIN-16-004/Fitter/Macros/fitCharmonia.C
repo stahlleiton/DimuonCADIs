@@ -459,7 +459,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
           drawCtauPlot(myws, outputDir, opt, cut, (wantPureSMC ? (plotLabel+"_NoBkg") : plotLabel), DSTAG, true, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins);
           double width = (myws.var("ctauErr")->getMax() - myws.var("ctauErr")->getMin()) / 100.0;
           nBins = min(int( round( (cut.dMuon.ctauErr.Max - cut.dMuon.ctauErr.Min)/width )), 1000);
-          drawCtauErrorPlot(myws, outputDir, opt, cut, DSTAG, true, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins);
+          if (!isMC) drawCtauErrorPlot(myws, outputDir, opt, cut, DSTAG, true, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins);
           saveWorkSpace(myws, outputDir, plotLabel, DSTAG, cut, fitMass, fitCtau, false, false, true, cutSideBand);
           myws.saveSnapshot(Form("%s_parFit", pdfName.c_str()),*newpars,kTRUE) ;
         }
@@ -632,7 +632,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
           drawCtauPlot(myws, outputDir, opt, cut, (wantPureSMC ? (plotLabel+"_NoBkg") : plotLabel), DSTAG, false, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins);
           double width = (myws.var("ctauErr")->getMax() - myws.var("ctauErr")->getMin()) / 100.0;
           nBins = min(int( round( (cut.dMuon.ctauErr.Max - cut.dMuon.ctauErr.Min)/width )), 1000);
-          drawCtauErrorPlot(myws, outputDir, opt, cut, DSTAG, false, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins);
+          if (!isMC) drawCtauErrorPlot(myws, outputDir, opt, cut, DSTAG, false, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins);
           saveWorkSpace(myws, outputDir, plotLabel, DSTAG, cut, fitMass, fitCtau, false, false, false, cutSideBand);
           myws.saveSnapshot(Form("%s_parFit", pdfName.c_str()),*newpars,kTRUE) ;
         }
