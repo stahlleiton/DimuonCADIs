@@ -92,6 +92,10 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfJpsi);
+      } else {
+        ws.factory(Form("SUM::%s(%s)", Form("pdfCTAU_JpsiPR_%s", (isPbPb?"PbPb":"PP")),
+                        Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))
+                        ));
       }
       if ( ws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))) ){
         ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_JpsiPR_%s", (isPbPb?"PbPb":"PP")),
@@ -111,6 +115,10 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfJpsi);
+      } else {
+        ws.factory(Form("SUM::%s(%s)", Form("pdfCTAU_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")),
+                        Form("pdfCTAUCOND_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))
+                        ));
       }
       if ( ws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))) ){
         ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")),
@@ -134,6 +142,13 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfJpsiNoPR);
+      } else {
+        ws.factory(Form("SUM::%s(%s)", Form("pdfCTAU_JpsiPR_%s", (isPbPb?"PbPb":"PP")),
+                        Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))
+                        ));
+        ws.factory(Form("SUM::%s(%s)", Form("pdfCTAU_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")),
+                        Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))
+                        ));
       }
       ws.factory( parIni[Form("b_Jpsi_%s", (isPbPb?"PbPb":"PP"))].c_str() );
       if (incCtauErrPDF) {
@@ -177,6 +192,10 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfPsi2S);
+      } else {
+        ws.factory(Form("SUM::%s(%s)", Form("pdfCTAU_Psi2SPR_%s", (isPbPb?"PbPb":"PP")),
+                        Form("pdfCTAUCOND_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))
+                        ));
       }
       if ( ws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ){
         ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_Psi2SPR_%s", (isPbPb?"PbPb":"PP")),
@@ -196,6 +215,10 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfPsi2S);
+      } else {
+        ws.factory(Form("SUM::%s(%s)", Form("pdfCTAU_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")),
+                        Form("pdfCTAUCOND_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))
+                        ));
       }
       if ( ws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ){
         ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")),
@@ -219,6 +242,13 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfPsi2SNoPR);
+      } else {
+        ws.factory(Form("SUM::%s(%s)", Form("pdfCTAU_Psi2SPR_%s", (isPbPb?"PbPb":"PP")),
+                        Form("pdfCTAUCOND_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))
+                        ));
+        ws.factory(Form("SUM::%s(%s)", Form("pdfCTAU_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")),
+                        Form("pdfCTAUCOND_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))
+                        ));
       }
       ws.factory( parIni[Form("b_Psi2S_%s", (isPbPb?"PbPb":"PP"))].c_str() );
       if (incCtauErrPDF) {
