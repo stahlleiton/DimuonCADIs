@@ -42,14 +42,14 @@
 using namespace RooFit;
 using namespace RooStats;
 
-void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root", const float systval = 0., const float systValAdd = 0., const char* subDirName ="wsTest", int nCPU=2){
+void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_PP="fitresult_PP.root", const char* name_out="fitresult_combo.root", const float systvalMult = 0., const float systValAdd2R = 0., const float systValAddRPP = 0., const float systValAddRPbPb = 0., const char* subDirName ="wsTest", int nCPU=2){
    // subdir: Directory to save workspaces under currentPATH/CombinedWorkspaces/subDir/
 
    // set things silent
    gErrorIgnoreLevel=kError;
    RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
   
-   bool dosyst = (systval > 0.);
+   bool dosyst = (systvalMult > 0.);
 
    TString nameOut(name_out);
   
@@ -64,26 +64,42 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    ws->factory( "Uniform::flat(RFrac2Svs1S_PbPbvsPP)" );
 
    // systematics
-   if (dosyst) {
-      ws->factory( Form("kappa_syst[%f]",1.+systval) );
+  if (dosyst) {
+      ws->factory( Form("kappa_syst[%f]",1.+systvalMult) );
       ws->factory( "expr::alpha_syst('pow(kappa_syst,beta_syst)',kappa_syst,beta_syst[0,-5,5])" );
       ws->factory( "Gaussian::constr_syst(beta_syst,glob_syst[0,-5,5],1)" );
-
-      ws->factory( Form("kappa_syst_add[%f]",systValAdd) );
-      ws->factory( "Gaussian::constr_syst_add(beta_syst_add[0,-5,5],glob_syst_add[0,-5,5],kappa_syst_add)" );
-
-      // add systematics into the double ratio
+    
+      ws->factory( Form("kappa_syst_add2R[%f]",systValAdd2R) );
+      ws->factory( "Gaussian::constr_syst_add2R(beta_syst_add2R[0,-5,5],glob_syst_add2R[0,-5,5],kappa_syst_add2R)" );
+    
+      ws->factory( Form("kappa_syst_addRPP[%f]",systValAddRPP) );
+      ws->factory( "Gaussian::constr_syst_addRPP(beta_syst_addRPP[0,-5,5],glob_syst_addRPP[0,-5,5],kappa_syst_addRPP)" );
+    
+      ws->factory( Form("kappa_syst_addRPbPb[%f]",systValAddRPbPb) );
+      ws->factory( "Gaussian::constr_syst_addRPbPb(beta_syst_addRPbPb[0,-5,5],glob_syst_addRPbPb[0,-5,5],kappa_syst_addRPbPb)" );
+    
+      // add systematics into the double and single ratios
       //   ws->factory( "expr::N_Psi2S_PbPb_syst('@0*@1',N_Psi2S_PbPb,alpha_syst)" );
-      ws->factory( "expr::RFrac2Svs1S_PbPbvsPP_syst('@0*@1+@2',RFrac2Svs1S_PbPbvsPP,alpha_syst,beta_syst_add)" );
-      ws->factory( "expr::N_Psi2S_PbPb_syst('@0*@1*@2',RFrac2Svs1S_PbPbvsPP_syst,N_Jpsi_PbPb,RFrac2Svs1S_PP)" );
+      ws->factory( "expr::RFrac2Svs1S_PP_syst('@0+@1',RFrac2Svs1S_PP,beta_syst_addRPP)" );
+      ws->factory( "expr::RFrac2Svs1S_PbPb_syst('@0+@1',RFrac2Svs1S_PbPb,beta_syst_addRPbPb)" );
+      ws->factory( "expr::RFrac2Svs1S_PbPbvsPP_syst('@0*@1+@2',RFrac2Svs1S_PbPbvsPP,alpha_syst,beta_syst_add2R)" );
+    
       // build the pbpb pdf
+      ws->factory( "expr::N_Psi2S_PbPb_syst('@0*@1*@2',RFrac2Svs1S_PP_syst,N_Jpsi_PbPb,RFrac2Svs1S_PbPbvsPP_syst)" );
       ws->factory( "SUM::pdfMASS_Tot_PbPb_syst(N_Jpsi_PbPb * pdfMASS_Jpsi_PbPb, N_Psi2S_PbPb_syst * pdfMASS_Psi2S_PbPb, N_Bkg_PbPb * pdfMASS_Bkg_PbPb)" );
       //   ws->factory( "PROD::pdfMASS_Tot_PbPb_constr(pdfMASS_Tot_PbPb_syst,constr_syst)" );
-      ws->factory( "PROD::constr_syst_tot(constr_syst,constr_syst_add)" );
+      ws->factory( "PROD::constr_syst_tot0(constr_syst,constr_syst_add2R)" );
+      ws->factory( "PROD::constr_syst_tot(constr_syst_tot0,constr_syst_addRPbPb)" );
       ws->factory( "PROD::pdfMASS_Tot_PbPb_constr(pdfMASS_Tot_PbPb_syst,constr_syst_tot)" );
+    
+      // build the pp pdf
+      ws->factory( "expr::N_Psi2S_PP_syst('@0*@1/@2',RFrac2Svs1S_PbPb_syst,N_Jpsi_PP,RFrac2Svs1S_PbPbvsPP_syst)" );
+      ws->factory( "SUM::pdfMASS_Tot_PP_syst(N_Jpsi_PP * pdfMASS_Jpsi_PP, N_Psi2S_PP_syst * pdfMASS_Psi2S_PP, N_Bkg_PP * pdfMASS_Bkg_PP)" );
+      ws->factory( "PROD::pdfMASS_Tot_PP_constr(pdfMASS_Tot_PP_syst,constr_syst_addRPP)" );
 
       // build the combined pdf
-      ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb_constr,PP=pdfMASS_Tot_PP)");
+      //ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb_constr,PP=pdfMASS_Tot_PP)");
+      ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb_constr,PP=pdfMASS_Tot_PP_constr)");
       // ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP)");
    } else {
       ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP)");
@@ -93,7 +109,9 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
 
    if (dosyst) {
       ws->var("beta_syst")->setConstant(kFALSE);
-      ws->var("beta_syst_add")->setConstant(kFALSE);
+      ws->var("beta_syst_add2R")->setConstant(kFALSE);
+      ws->var("beta_syst_addRPP")->setConstant(kFALSE);
+      ws->var("beta_syst_addRPbPb")->setConstant(kFALSE);
    }
 
 
@@ -106,12 +124,16 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
 
    if (dosyst) {
       ws->var("glob_syst")->setConstant(true);
-      ws->var("glob_syst_add")->setConstant(true);
+      ws->var("glob_syst_add2R")->setConstant(true);
+      ws->var("glob_syst_addRPP")->setConstant(true);
+      ws->var("glob_syst_addRPbPb")->setConstant(true);
    }
    RooArgSet globalObs("global_obs");
    if (dosyst) {
       globalObs.add( *ws->var("glob_syst") );
-      globalObs.add( *ws->var("glob_syst_add") );
+      globalObs.add( *ws->var("glob_syst_add2R") );
+      globalObs.add( *ws->var("glob_syst_addRPP") );
+      globalObs.add( *ws->var("glob_syst_addRPbPb") );
    }
 
    // ws->Print();
@@ -125,7 +147,9 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
    RooArgSet nuis("nuis");
    if (dosyst) {
       nuis.add( *ws->var("beta_syst") );
-      nuis.add( *ws->var("beta_syst_add") );
+      nuis.add( *ws->var("beta_syst_add2R") );
+      nuis.add( *ws->var("beta_syst_addRPP") );
+      nuis.add( *ws->var("beta_syst_addRPbPb") );
    }
 
    // set parameters constant
@@ -145,8 +169,12 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
          }
       if (varname=="glob_syst"
             || varname=="beta_syst"
-            || varname=="glob_syst_add"
-            || varname=="beta_syst_add"
+            || varname=="glob_syst_add2R"
+            || varname=="beta_syst_add2R"
+            || varname=="glob_syst_addRPP"
+            || varname=="beta_syst_addRPP"
+            || varname=="glob_syst_addRPbPb"
+            || varname=="beta_syst_addRPbPb"
          ) {
          cout << varname << endl;
          theVar->setConstant(!dosyst);
