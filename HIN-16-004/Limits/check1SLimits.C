@@ -182,7 +182,12 @@ void check1SLimits(
     RooRealVar* doubleRatio = ratioVar(singleR_PbPb,singleR_PP,1);
     double sigmaDoubleR = doubleRatio->getError();
     double doubleR = doubleRatio->getVal();
-    if ( dosyst ) sigmaDoubleR = sqrt( pow(sigmaDoubleR,2.) + pow(systvalMult*doubleR,2.) + pow(systValAdd2R,2.) + pow(systValAddRPbPb,2.) + pow(systValAddRPP,2.) ); // quadratic sum of all systematics
+    if ( dosyst )
+    {
+      double sysAddSingleR_rel = sqrt( pow(systValAddRPbPb/singleR_PbPb->getVal(),2.) + pow(systValAddRPP/singleR_PP->getVal(),2.) );
+      sigmaDoubleR = sqrt( pow(sigmaDoubleR,2.) + pow(systvalMult*doubleR,2.) + pow(systValAdd2R,2.) + pow(sysAddSingleR_rel*doubleR,2.) ); // quadratic sum of all systematics
+    }
+    
 
     // Get limits from file
     map<anabin,limits> maplim = readLimits(Form("csv/%s",slFileName.Data()));
