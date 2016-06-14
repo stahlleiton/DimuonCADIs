@@ -133,6 +133,7 @@ void createPPPbPbWorkspaces(
            exports += Form("export pwd_=%s; ", gSystem->pwd());
            TString command("qsub -k oe -q cms@llrt3 ");
            command += Form("-l nodes=1:ppn=%i ", nCPU);
+           command += "-l walltime=1:0:0 "; // 1h is enough and should make jobs run faster?
            command += "-N ${binName} ";
            command += "-V ";
            command += Form("-o %s ", gSystem->pwd());
