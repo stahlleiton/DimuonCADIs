@@ -107,7 +107,7 @@ void writeLimits2File(
     TString sCentMax(sCent);
     sSize = sCent.Sizeof();
     if (sCent.Index("0") == 0) nPos = 1;
-    else if (sSize == 6) nPos = 2;
+    else if (sSize == 6 || sSize == 5) nPos = 2;
     else if (sSize == 7) nPos = 3;
     sCentMin.Remove(nPos,sCentMin.Sizeof());
     sCentMax.Remove(0,nPos);
