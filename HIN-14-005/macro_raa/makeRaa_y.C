@@ -379,6 +379,7 @@ void makeRaa_y(bool bSavePlots=1,
   {
     c1->SaveAs(Form("%s/pdf/PrJpsi_vsY_%s.pdf",outputDir,sample[whichSample]));
     c1->SaveAs(Form("%s/png/PrJpsi_vsY_%s.png",outputDir,sample[whichSample]));
+    c1->SaveAs(Form("%s/PrJpsi_vsY_%s.root",outputDir,sample[whichSample]));
   }
   
   //-------------------minbias dependence
@@ -407,6 +408,7 @@ void makeRaa_y(bool bSavePlots=1,
   {
     c11b->SaveAs(Form("%s/pdf/PrJpsi_vsY_mb_%s.pdf",outputDir,sample[whichSample]));
     c11b->SaveAs(Form("%s/png/PrJpsi_vsY_mb_%s.png",outputDir,sample[whichSample]));
+    c11b->SaveAs(Form("%s/PrJpsi_vsY_mb_%s.root",outputDir,sample[whichSample]));
   }
 
   
@@ -433,6 +435,7 @@ void makeRaa_y(bool bSavePlots=1,
   {
     c2->SaveAs(Form("%s/pdf/nonPrJpsi_vsY_%s.pdf",outputDir,sample[whichSample]));
     c2->SaveAs(Form("%s/png/nonPrJpsi_vsY_%s.png",outputDir,sample[whichSample]));
+    c2->SaveAs(Form("%s/nonPrJpsi_vsY_%s.root",outputDir,sample[whichSample]));
   }
   
   //-------------------minbias dependence
@@ -460,6 +463,7 @@ void makeRaa_y(bool bSavePlots=1,
   {
     c22b->SaveAs(Form("%s/pdf/nonPrJpsi_vsY_mb_%s.pdf",outputDir,sample[whichSample]));
     c22b->SaveAs(Form("%s/png/nonPrJpsi_vsY_mb_%s.png",outputDir,sample[whichSample]));
+    c22b->SaveAs(Form("%s/nonPrJpsi_vsY_mb_%s.root",outputDir,sample[whichSample]));
   }
 
   systFile->Close();

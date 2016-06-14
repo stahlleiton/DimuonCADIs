@@ -100,11 +100,11 @@ void makeSyst_cent( bool bSavePlots     = 1,
   string centbins_6bins_str[] = {"50100","4050","3040","2030","1020","010"};
   ofstream outputData_pr(Form("%s/data/raaSystUncert_cent_pr.dat",outputDir));
   if (!outputData_pr.good()) {cout << "######### Fail to open data/*.dat file.##################" << endl;}
-  outputData_pr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Syst_tot\t" << "contrib_muID_trig\t" 
+  outputData_pr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Stat_tot\t" << "Syst_tot\t" << "contrib_muID_trig\t" 
              << "contrib_sta\t" << "contrib_3d\t" << "contrib_4d\t" << "contrib_fit\t" << "global_uncertainty\n";
   ofstream outputData_npr(Form("%s/data/raaSystUncert_cent_npr.dat",outputDir));
   if (!outputData_npr.good()) {cout << "######### Fail to open data/*.dat file.##################" << endl;}
-  outputData_npr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Syst_tot\t" << "contrib_muID_trig\t" 
+  outputData_npr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Stat_tot\t" << "Syst_tot\t" << "contrib_muID_trig\t" 
              << "contrib_sta\t" << "contrib_3d\t" << "contrib_4d\t" << "contrib_fit\t" << "global_uncertainty\n";
     
   for(int ih=0; ih<nInHist;ih++)// for each kinematic range
@@ -305,14 +305,18 @@ void makeSyst_cent( bool bSavePlots     = 1,
 
       //nominal prompt and non-prompt yield ratios
       const double yield_aa_pr  = phCorr_pr_aa->GetBinContent(ibin);
-      double yield_aa_npr=0;
+      const double yielderr_aa_pr  = phCorr_pr_aa->GetBinError(ibin);
+      double yield_aa_npr=0, yielderr_aa_npr=0;
       if(ibin <= nBinsNpart6) { // out-of-range bins will be discarded for np
         yield_aa_npr = phCorr_npr_aa->GetBinContent(ibin);
+        yielderr_aa_npr = phCorr_npr_aa->GetBinError(ibin);
       }
       
       // the pp yields are the same for all centrality bins
       const double yield_pp_pr  = phCorr_pr_pp->GetBinContent(1);
       const double yield_pp_npr = phCorr_npr_pp->GetBinContent(1);
+      const double yielderr_pp_pr  = phCorr_pr_pp->GetBinContent(1);
+      const double yielderr_pp_npr = phCorr_npr_pp->GetBinContent(1);
 
       const double scaleFactor      = ppLumi/nMbEvents;
 
@@ -329,8 +333,10 @@ void makeSyst_cent( bool bSavePlots     = 1,
       if(bDoDebug) cout << "###### Taa uncert: bin6= " << taa6_relerr << "\tbin12= " << taa12_relerr << endl;
 
       double yieldRatio_pr  = yield_aa_pr/yield_pp_pr * scaleFactor * scale_cent;
-      double yieldRatio_npr = 0;
-      if (ibin<=nBinsNpart6) yieldRatio_npr = yield_aa_npr/yield_pp_npr * scaleFactor * scale_cent6;
+      double yieldRatio_npr=0;
+      if (ibin<=nBinsNpart6) {
+        yieldRatio_npr = yield_aa_npr/yield_pp_npr * scaleFactor * scale_cent6;
+      }
       
       if(bDoDebug) cout << "################ Bin " <<ibin << endl
                         << "  Nominal yields are (prompt_aa & nonPr_aa ; prompt_pp & nonPr_pp): " 

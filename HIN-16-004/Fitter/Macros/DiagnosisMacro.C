@@ -47,13 +47,16 @@ int DiagnosisMacro(int Nbins = 10, int Nsigma = 10, int CPUused = 1, TString Fil
 
 	// Retrieve x,model and data from workspace
 	RooRealVar* x = w->var("invMass");
-	RooAbsPdf* model = w->pdf("pdfMASS_Tot_PP");
+	RooAbsPdf* model = w->pdf("simPdf_syst");
+	if (model == 0){ model = w->pdf("simPdf"); }
+	if (model == 0){ model = w->pdf("pdfMASS_Tot_PP"); }
 	if (model == 0){ model = w->pdf("pdfMASS_Tot_PbPb"); }
 	if (model == 0){
 		cout << "[ERROR] pdf failed to load from the workspace" << endl; return false;
 	}
 
-	RooAbsData* data = w->data("dOS_DATA_PP");
+	RooAbsData* data = w->data("dOS_DATA");
+	if (data == 0){ data = w->data("dOS_DATA_PP"); }
 	if (data == 0){ data = w->data("dOS_DATA_PbPb"); }
 	if (data == 0){
 		cout << "[ERROR] data failed to load from the workspace" << endl; return false;

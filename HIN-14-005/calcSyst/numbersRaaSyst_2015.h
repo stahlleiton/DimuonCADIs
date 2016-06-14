@@ -9,7 +9,7 @@ const int nEff4DVariations = 1;
 const int nEffTnPVariation = 3; 
 //pp
 const char* yieldHistFile_pp_systSgnBkg[nFitVariations] = {
-  "histsRaaYields_20160304_pp_signalCB3WN.root",
+  "histsRaaYields_20160304_pp_sigG1G2.root",
   "histsRaaYields_20160304_pp_polFunct.root",
   "histsRaaYields_20160304_pp_resOpt2.root",
   "histsRaaYields_20160304_pp_MLAR.root", 
@@ -29,7 +29,7 @@ const char* yieldHistFile_pp_systTnP[nEffTnPVariation] = {
 //-----------------
 // pbpb
 const char* yieldHistFile_aa_systSgnBkg[nFitVariations]   = {
-  "histsRaaYields_20160304_PbPb_signalCB3WN.root",
+  "histsRaaYields_20160304_PbPb_sigG1G2.root",
   "histsRaaYields_20160304_PbPb_polFunct.root",
   "histsRaaYields_20160304_PbPb_resOpt2.root", 
   "histsRaaYields_20160304_PbPb_MLAR.root", 
@@ -49,7 +49,7 @@ const char* yieldHistFile_aa_systTnP[nEffTnPVariation] = {
 //------------------
 // legend or systm variation
 const char* legendSyst[] = {
-  "signal_CB3WN",
+  "signal_2Gaus",
   "bkg_polFunct",
   "signal_resOpt2", 
   "bFrac_MLAR", 
