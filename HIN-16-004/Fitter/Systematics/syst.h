@@ -5,6 +5,8 @@
 #include "TString.h"
 #include "TSystemFile.h"
 #include "TSystemDirectory.h"
+#include "TCollection.h"
+#include "TList.h"
 #include <map>
 #include <string>
 #include <fstream>
