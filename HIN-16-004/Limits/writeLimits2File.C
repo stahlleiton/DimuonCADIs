@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <sstream>
+#include <fstream>
 
 #include "../Fitter/Macros/Utilities/resultUtils.h"
 
