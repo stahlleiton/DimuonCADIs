@@ -41,28 +41,41 @@ void check1SLimits(
   }
   
   // systematic uncertainties for fit
-  map<anabin, syst> syst_PbPb;
-  map<anabin, syst> syst_PP;
-  map<anabin, syst> syst_PbPb_add;
+  map<anabin, syst> syst_PbPb_eff;
+  map<anabin, syst> syst_PbPb_fit;
+  map<anabin, syst> syst_PbPb_bhad;
+  map<anabin, syst> syst_PbPb_bhad_add;
+  map<anabin, syst> syst_PP_fit;
   if ( dosyst )
   {
-    syst_PbPb = readSyst_all("PbPb","../Fitter");
-    if ( syst_PbPb.empty() )
+    syst_PbPb_eff = readSyst_all("PbPb_eff","../Fitter");
+    if ( syst_PbPb_eff.empty() )
     {
-      cout << "#[Error]: No PbPb systematics files found" << endl;
+      cout << "#[Error]: No PbPb efficiency systematics files found" << endl;
       return;
     }
-    syst_PbPb_add = readSyst("../Fitter/Systematics/csv/syst_PbPb_bhad_add.csv");
-    if ( syst_PbPb_add.empty() )
+    syst_PbPb_fit = readSyst_all("PbPb_fit","../Fitter");
+    if ( syst_PbPb_fit.empty() )
     {
-      cout << "#[Error]: No additive PbPb systematics files found" << endl;
+      cout << "#[Error]: No PbPb fit systematics files found" << endl;
       return;
     }
-    
-    syst_PP = readSyst_all("PP","../Fitter");
-    if ( syst_PP.empty() )
+    syst_PbPb_bhad = readSyst("../Fitter/Systematics/csv/syst_PbPb_bhad.csv");
+    if ( syst_PbPb_bhad.empty() )
     {
-      cout << "#[Error]: No PP systematics files found" << endl;
+      cout << "#[Error]: No PbPb bhad systematics files found" << endl;
+      return;
+    }
+    syst_PbPb_bhad_add = readSyst("../Fitter/Systematics/csv/syst_PbPb_bhad_add.csv");
+    if ( syst_PbPb_bhad_add.empty() )
+    {
+      cout << "#[Error]: No PbPb bhad additive systematics files found" << endl;
+      return;
+    }
+    syst_PP_fit = readSyst_all("PP_fit","../Fitter");
+    if ( syst_PP_fit.empty() )
+    {
+      cout << "#[Error]: No PP fit systematics files found" << endl;
       return;
     }
   }
@@ -118,14 +131,16 @@ void check1SLimits(
     centmax = thebin.centbin().high();
     
     // Get PbPb systematics for bin
-    double systVal(0.);
-    double systValPP(0.);
-    double systValAdd(0.);
+    double systvalMult(0.);
+    double systValAdd2R(0.);
+    double systValAddRPbPb(0.);
+    double systValAddRPP(0.);
     if ( dosyst )
     {
       anabin thebinPbPb = binFromFile(*it_PbPb);
-      systVal = syst_PbPb[thebinPbPb].value;
-      systValAdd = syst_PbPb_add[thebinPbPb].value;
+      systvalMult = sqrt( pow(syst_PbPb_eff[thebinPbPb].value,2.) + pow(syst_PbPb_bhad[thebinPbPb].value,2.));
+      systValAdd2R = syst_PbPb_bhad_add[thebinPbPb].value;
+      systValAddRPbPb = syst_PbPb_fit[thebinPbPb].value;
     }
     
     bool foundPPws = false; // Find corresponding PP workspace
@@ -157,7 +172,7 @@ void check1SLimits(
         if ( dosyst) // Get PP systematics
         {
           anabin thebinPP = binFromFile(*it_PP);
-          systValPP = syst_PP[thebinPP].value;
+          systValAddRPP = syst_PP_fit[thebinPP].value;
         }
       }
       else continue;
@@ -167,7 +182,7 @@ void check1SLimits(
     RooRealVar* doubleRatio = ratioVar(singleR_PbPb,singleR_PP,1);
     double sigmaDoubleR = doubleRatio->getError();
     double doubleR = doubleRatio->getVal();
-    if ( dosyst ) sigmaDoubleR = sqrt( pow(sigmaDoubleR,2.) + pow(systVal*doubleR,2.) + pow(systValPP*doubleR,2.) + pow(systValAdd,2.) ); // quadratic sum of all systematics
+    if ( dosyst ) sigmaDoubleR = sqrt( pow(sigmaDoubleR,2.) + pow(systvalMult*doubleR,2.) + pow(systValAdd2R,2.) + pow(systValAddRPbPb,2.) + pow(systValAddRPP,2.) ); // quadratic sum of all systematics
 
     // Get limits from file
     map<anabin,limits> maplim = readLimits(Form("csv/%s",slFileName.Data()));
