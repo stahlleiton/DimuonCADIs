@@ -113,6 +113,8 @@ map<anabin, syst> readSyst(const char* systfile, const char* workDirName, const 
       else if (sfile.Contains("PP_fit")) thesyst.value_dR = value*doubleR/singleRPP;
      
       thesyst.value_dR_rel = thesyst.value_dR/doubleR;
+       
+      delete wsPbPb; delete wsPP; delete doubleRatio;
       }
       else
       {
@@ -123,6 +125,8 @@ map<anabin, syst> readSyst(const char* systfile, const char* workDirName, const 
       ans[thebin] = thesyst;
    }
 
+   file.close();
+  
    return ans;
 };
 
@@ -298,8 +302,10 @@ RooWorkspace* getWorkspaceFromBin(anabin thebin, const char* workDirName, const 
     cout << "#[Error]: Unable to retrieve workspace" << endl;
     return 0x0;
   }
-
-  return ws;
+  
+  RooWorkspace* wsClone = (RooWorkspace*)(ws->Clone());
+  f->Close(); delete f;
+  return wsClone;
 }
 
 #endif // ifndef syst_h

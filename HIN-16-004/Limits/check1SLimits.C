@@ -225,6 +225,9 @@ void check1SLimits(
     if ( !foundLims ) cout << "# [Error]: No CL found for " << *it_PbPb << endl;
     
     cnt++;
+    
+    delete doubleRatio;
+    f->Close(); delete f;
   } // loop on the files
 
   TFile* fSave = new TFile("oneSigmaCLComparison.root","RECREATE");
