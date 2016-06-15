@@ -27,7 +27,7 @@ using namespace std;
 
 vector<TString> fileList_syst(const char* token, const char* prependPath="");
 map<anabin, syst> readSyst(const char* systfile, const char* workDirName="", const char* path2Fitter="");
-map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name="Total");
+map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name="Total", bool isdRSyst=false);
 map<anabin, syst> readSyst_all(const char* token, const char* prependPath="", const char* workDirName="", bool doPrintTex=false, const char* texName="Systematics/systs.tex");
 void printTex(vector< map<anabin, syst> > theSysts, const char* texName="Systematics/systs.tex", bool isLastTotal=false);
 map<anabin, vector<syst> > vm2mv(vector< map<anabin,syst> > v);
@@ -130,7 +130,7 @@ map<anabin, syst> readSyst(const char* systfile, const char* workDirName, const 
    return ans;
 };
 
-map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name) {
+map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name, bool isdRSyst) {
    map<anabin, syst> ans;
 
    vector< map<anabin, syst> >::const_iterator it;
@@ -142,7 +142,15 @@ map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name)
          thesyst.name = name;
 
          // if we already have a syst for this bin, sum quadractically the existing syst and the new syst
-         if (ans.find(thebin) != ans.end()) thesyst.value_dR = sqrt(pow(thesyst.value_dR,2) + pow(ans[thebin].value_dR,2));
+         if (ans.find(thebin) != ans.end())
+         {
+           if (isdRSyst)
+           {
+           thesyst.value_dR = sqrt(pow(thesyst.value_dR,2) + pow(ans[thebin].value_dR,2));
+           thesyst.value_dR_rel = sqrt(pow(thesyst.value_dR_rel,2) + pow(ans[thebin].value_dR_rel,2));
+           }
+           else thesyst.value = sqrt(pow(thesyst.value,2) + pow(ans[thebin].value,2));
+         }
          ans[thebin] = thesyst;
       }
    }
@@ -152,7 +160,10 @@ map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name)
 
 map<anabin, syst> readSyst_all(const char* token, const char* prependPath, const char* workDirName, bool doPrintTex, const char* texName) {
    // token should be PP or PbPb
-
+  
+   bool isdRSyst(false); // wether the systematic unc is referred to double ratio or not
+   if (strcmp(workDirName,"")) isdRSyst = true;
+  
    vector< map<anabin, syst> > systmap_all;
    vector< map<anabin, syst> > systmap_all_toprint;
    vector<TString> filelist = fileList_syst(token,prependPath);
@@ -161,11 +172,11 @@ map<anabin, syst> readSyst_all(const char* token, const char* prependPath, const
       cout << "Reading file " << *it << endl;
       map<anabin,syst> systmap = readSyst(it->Data(),workDirName,prependPath);
       systmap_all_toprint.push_back(systmap);
-      if ( !strcmp(workDirName,"") && (it->Index("_add") != kNPOS) ) continue; // do not combine nor return additive systematics (NP contamination)
+      if ( !isdRSyst && (it->Index("_add") != kNPOS) ) continue; // do not combine nor return additive systematics (NP contamination)
       systmap_all.push_back(systmap);
    }
 
-   map<anabin,syst> ans = combineSyst(systmap_all,token);
+   map<anabin,syst> ans = combineSyst(systmap_all,token,isdRSyst);
    systmap_all.push_back(ans);
    systmap_all_toprint.push_back(ans);
 
