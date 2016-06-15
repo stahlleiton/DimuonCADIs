@@ -128,6 +128,7 @@ vector<TString> fileList(const char* input, const char* token, const char* DSTag
       }
    }
 
+   delete files;
    return ans;
 }
 
@@ -154,6 +155,7 @@ vector<TString> combFileList(const char* input, const char* token, const char* p
     }
   }
   
+  delete files;
   return ans;
 }
 
@@ -180,6 +182,7 @@ vector<TString> limitsFileList(const char* input, const char* token, const char*
     }
   }
   
+  delete files;
   return ans;
 }
 

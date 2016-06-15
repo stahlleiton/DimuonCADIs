@@ -46,6 +46,7 @@ void check1SLimits(
   map<anabin, syst> syst_PbPb_bhad;
   map<anabin, syst> syst_PbPb_bhad_add;
   map<anabin, syst> syst_PP_fit;
+  map<anabin, syst> syst_All;
   if ( dosyst )
   {
     syst_PbPb_eff = readSyst_all("PbPb_eff","../Fitter");
@@ -78,6 +79,8 @@ void check1SLimits(
       cout << "#[Error]: No PP fit systematics files found" << endl;
       return;
     }
+    
+    syst_All = readSyst_all("", "../Fitter",workDirName);
   }
   
   // bin edges
@@ -135,12 +138,16 @@ void check1SLimits(
     double systValAdd2R(0.);
     double systValAddRPbPb(0.);
     double systValAddRPP(0.);
+    double systAll_Old(0.);
+    double systAll(0.);
     if ( dosyst )
     {
       anabin thebinPbPb = binFromFile(*it_PbPb);
       systvalMult = sqrt( pow(syst_PbPb_eff[thebinPbPb].value,2.) + pow(syst_PbPb_bhad[thebinPbPb].value,2.));
       systValAdd2R = syst_PbPb_bhad_add[thebinPbPb].value;
       systValAddRPbPb = syst_PbPb_fit[thebinPbPb].value;
+      
+      systAll = syst_All[thebinPbPb].value_dR;
     }
     
     bool foundPPws = false; // Find corresponding PP workspace
@@ -186,9 +193,10 @@ void check1SLimits(
     {
       double sysAddSingleR_rel = sqrt( pow(systValAddRPbPb/singleR_PbPb->getVal(),2.) + pow(systValAddRPP/singleR_PP->getVal(),2.) );
       sigmaDoubleR = sqrt( pow(sigmaDoubleR,2.) + pow(systvalMult*doubleR,2.) + pow(systValAdd2R,2.) + pow(sysAddSingleR_rel*doubleR,2.) ); // quadratic sum of all systematics
+      systAll_Old =  sqrt( pow(systvalMult*doubleR,2.) + pow(systValAdd2R,2.) + pow(sysAddSingleR_rel*doubleR,2.) );
     }
     
-
+    cout << systAll_Old << " ; " << systAll << endl;
     // Get limits from file
     map<anabin,limits> maplim = readLimits(Form("csv/%s",slFileName.Data()));
     
@@ -217,6 +225,9 @@ void check1SLimits(
     if ( !foundLims ) cout << "# [Error]: No CL found for " << *it_PbPb << endl;
     
     cnt++;
+    
+    delete doubleRatio;
+    f->Close(); delete f;
   } // loop on the files
 
   TFile* fSave = new TFile("oneSigmaCLComparison.root","RECREATE");

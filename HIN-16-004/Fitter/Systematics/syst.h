@@ -2,6 +2,7 @@
 #define syst_h
 
 #include "../Macros/Utilities/bin.h"
+#include "../Macros/Utilities/resultUtils.h"
 #include "TString.h"
 #include "TSystemFile.h"
 #include "TSystemDirectory.h"
@@ -12,19 +13,25 @@
 #include <fstream>
 #include <iostream>
 
+#include "RooWorkspace.h"
+#include "RooRealVar.h"
+
 struct syst {
    string name;
    double value;
+   double value_dR;
+   double value_dR_rel;
 };
 
 using namespace std;
 
 vector<TString> fileList_syst(const char* token, const char* prependPath="");
-map<anabin, syst> readSyst(const char* systfile);
-map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name="Total");
-map<anabin, syst> readSyst_all(const char* token, const char* prependPath="", bool doPrintTex=false, const char* texName="Systematics/systs.tex");
+map<anabin, syst> readSyst(const char* systfile, const char* workDirName="", const char* path2Fitter="");
+map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name="Total", bool isdRSyst=false);
+map<anabin, syst> readSyst_all(const char* token, const char* prependPath="", const char* workDirName="", bool doPrintTex=false, const char* texName="Systematics/systs.tex");
 void printTex(vector< map<anabin, syst> > theSysts, const char* texName="Systematics/systs.tex", bool isLastTotal=false);
 map<anabin, vector<syst> > vm2mv(vector< map<anabin,syst> > v);
+RooWorkspace* getWorkspaceFromBin(anabin thebin, const char* workDirName, const char* token="", const char* path2Fitter="");
 
 vector<TString> fileList_syst(const char* token, const char* prependPath) {
    vector<TString> ans;
@@ -52,7 +59,7 @@ vector<TString> fileList_syst(const char* token, const char* prependPath) {
 };
 
 
-map<anabin, syst> readSyst(const char* systfile) {
+map<anabin, syst> readSyst(const char* systfile, const char* workDirName, const char* path2Fitter) {
    map<anabin, syst> ans;
 
    ifstream file(systfile);
@@ -85,13 +92,45 @@ map<anabin, syst> readSyst(const char* systfile) {
       }
       anabin thebin(rapmin, rapmax, ptmin, ptmax, centmin, centmax);
       syst thesyst; thesyst.value = value; thesyst.name = systname;
+     
+     if ( strcmp(workDirName,"") )
+     {
+      RooWorkspace* wsPbPb = getWorkspaceFromBin(thebin,workDirName,"PbPb",path2Fitter);
+      RooRealVar* singleR_PbPb = wsPbPb->var("RFrac2Svs1S_PbPb");
+      double singleRPbPb = singleR_PbPb->getVal();
+     
+      RooWorkspace* wsPP = getWorkspaceFromBin(thebin,workDirName,"PP",path2Fitter);
+      RooRealVar* singleR_PP = wsPP->var("RFrac2Svs1S_PP");
+      double singleRPP = singleR_PP->getVal();
+     
+      RooRealVar* doubleRatio = ratioVar(singleR_PbPb,singleR_PP,1);
+      double doubleR = doubleRatio->getVal();
+
+      TString sfile(systfile);
+      if (sfile.Contains("bhad_add")) thesyst.value_dR = value;
+      else if (sfile.Contains("bhad") || sfile.Contains("eff_MCstat")) thesyst.value_dR = value*doubleR;
+      else if (sfile.Contains("PbPb_fit")) thesyst.value_dR = value*doubleR/singleRPbPb;
+      else if (sfile.Contains("PP_fit")) thesyst.value_dR = value*doubleR/singleRPP;
+     
+      thesyst.value_dR_rel = thesyst.value_dR/doubleR;
+       
+      delete wsPbPb; delete wsPP; delete doubleRatio;
+      }
+      else
+      {
+        thesyst.value_dR = -99.;
+        thesyst.value_dR_rel = -99.;
+      }
+     
       ans[thebin] = thesyst;
    }
 
+   file.close();
+  
    return ans;
 };
 
-map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name) {
+map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name, bool isdRSyst) {
    map<anabin, syst> ans;
 
    vector< map<anabin, syst> >::const_iterator it;
@@ -103,7 +142,15 @@ map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name)
          thesyst.name = name;
 
          // if we already have a syst for this bin, sum quadractically the existing syst and the new syst
-         if (ans.find(thebin) != ans.end()) thesyst.value = sqrt(pow(thesyst.value,2) + pow(ans[thebin].value,2));
+         if (ans.find(thebin) != ans.end())
+         {
+           if (isdRSyst)
+           {
+           thesyst.value_dR = sqrt(pow(thesyst.value_dR,2) + pow(ans[thebin].value_dR,2));
+           thesyst.value_dR_rel = sqrt(pow(thesyst.value_dR_rel,2) + pow(ans[thebin].value_dR_rel,2));
+           }
+           else thesyst.value = sqrt(pow(thesyst.value,2) + pow(ans[thebin].value,2));
+         }
          ans[thebin] = thesyst;
       }
    }
@@ -111,22 +158,25 @@ map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name)
    return ans;
 };
 
-map<anabin, syst> readSyst_all(const char* token, const char* prependPath, bool doPrintTex, const char* texName) {
+map<anabin, syst> readSyst_all(const char* token, const char* prependPath, const char* workDirName, bool doPrintTex, const char* texName) {
    // token should be PP or PbPb
-
+  
+   bool isdRSyst(false); // wether the systematic unc is referred to double ratio or not
+   if (strcmp(workDirName,"")) isdRSyst = true;
+  
    vector< map<anabin, syst> > systmap_all;
    vector< map<anabin, syst> > systmap_all_toprint;
    vector<TString> filelist = fileList_syst(token,prependPath);
 
    for (vector<TString>::const_iterator it=filelist.begin(); it!=filelist.end(); it++) {
       cout << "Reading file " << *it << endl;
-      map<anabin,syst> systmap = readSyst(it->Data());
+      map<anabin,syst> systmap = readSyst(it->Data(),workDirName,prependPath);
       systmap_all_toprint.push_back(systmap);
-      if (it->Index("_add") != kNPOS) continue; // do not combine nor return additive systematics (NP contamination)
+      if ( !isdRSyst && (it->Index("_add") != kNPOS) ) continue; // do not combine nor return additive systematics (NP contamination)
       systmap_all.push_back(systmap);
    }
 
-   map<anabin,syst> ans = combineSyst(systmap_all,token);
+   map<anabin,syst> ans = combineSyst(systmap_all,token,isdRSyst);
    systmap_all.push_back(ans);
    systmap_all_toprint.push_back(ans);
 
@@ -210,6 +260,63 @@ map<anabin, vector<syst> > vm2mv(vector< map<anabin,syst> > v) {
    }
 
    return ans;
+}
+
+
+RooWorkspace* getWorkspaceFromBin(anabin thebin, const char* workDirName, const char* token, const char* path2Fitter){
+  
+  // List of files in workDirName
+  vector<TString> theFiles = fileList(workDirName,token,"DATA",path2Fitter);
+  if ( (theFiles.size() < 1) )
+  {
+    cout << "#[Error]: No files found in " << workDirName << endl;
+    return 0x0;
+  }
+  
+  if (!strcmp(token,"PP"))
+  {
+    bin<int> bincent(0,200);
+    thebin.setcentbin(bincent);
+  }
+  
+  // Find the name of the file containing the workspace
+  int cnt=1;
+  bool wsFound(false);
+  vector<TString>::const_iterator it;
+  for (it=theFiles.begin(); it!=theFiles.end(); it++)
+  {
+    anabin thebinTest = binFromFile(*it);
+    if (thebinTest==thebin)
+    {
+      wsFound = true;
+      break;
+    }
+  }
+  if (!wsFound)
+  {
+    cout << "No workspace root file found in " << workDirName << endl;
+    return 0x0;
+  }
+  
+  // Read file
+  TFile *f = TFile::Open(*it,"READ");
+  if (!f)
+  {
+    cout << "#[Error]: Unable to read file " << *it << endl;
+    return 0x0;
+  }
+  
+  // Retrieve workspace from file
+  RooWorkspace* ws = (RooWorkspace*) f->Get("workspace");
+  if (!ws)
+  {
+    cout << "#[Error]: Unable to retrieve workspace" << endl;
+    return 0x0;
+  }
+  
+  RooWorkspace* wsClone = (RooWorkspace*)(ws->Clone());
+  f->Close(); delete f;
+  return wsClone;
 }
 
 #endif // ifndef syst_h
