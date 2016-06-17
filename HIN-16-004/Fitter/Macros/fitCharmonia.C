@@ -63,7 +63,6 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
 
   //RooAbsPdf::defaultIntegratorConfig()->setEpsRel(1e-8) ;
   //RooAbsPdf::defaultIntegratorConfig()->setEpsAbs(1e-8) ;
-
   // Define the mass range
   if (cut.dMuon.M.Max==5 && cut.dMuon.M.Min==2) { 
     // Default mass values, means that the user did not specify a mass range
@@ -140,7 +139,6 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
 
   struct OniaModel model;
   RooWorkspace     myws("workspace", "local workspace");
-
   bool doFit = true;
   if (doSimulFit || !isPbPb) {
     
@@ -157,7 +155,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
     if (importID<0) { return false; }
     else if (importID==0) { doFit = false; }
     setGlobalParameterRange(myws, parIni, cut, label, fitCtau, fitCtauTrue, incJpsi, incPsi2S, incBkg);
-
+    
     // Build the Fit Model    
     double numEntries = myws.data(dsName.c_str())->sumEntries();
     if (fitMass)     { if (!buildCharmoniaMassModel(myws, model.PP, parIni, false, doSimulFit, incBkg, incJpsi, incPsi2S, numEntries))  { return false; } }
@@ -168,6 +166,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
       if (incPsi2S) { plotMassLabelPP = plotMassLabelPP + Form("_Psi2S_%s", parIni["Model_Psi2S_PP"].c_str()); }
       if (incBkg)   { plotMassLabelPP = plotMassLabelPP + Form("_Bkg_%s", parIni["Model_Bkg_PP"].c_str());     }
     }
+    
     if (fitCtau) {
       if (incJpsi  && incPrompt)    { plotCtauLabelPP = plotCtauLabelPP + Form("_JpsiPR_%s", parIni["Model_JpsiPR_PP"].c_str());      } 
       if (incJpsi  && incNonPrompt) { plotCtauLabelPP = plotCtauLabelPP + Form("_JpsiNoPR_%s", parIni["Model_JpsiNoPR_PP"].c_str());  }
@@ -176,6 +175,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
       if (incBkg && incPrompt)      { plotCtauLabelPP = plotCtauLabelPP + Form("_BkgPR_%s", parIni["Model_BkgPR_PP"].c_str());        } 
       if (incBkg && incNonPrompt)   { plotCtauLabelPP = plotCtauLabelPP + Form("_BkgNoPR_%s", parIni["Model_BkgNoPR_PP"].c_str());    }
     }
+    
     if (fitCtauTrue) {
       plotCtauTrueLabelPP = string("") + Form("_CtauTrueRes_%s", parIni["Model_CtauTrueRes_PP"].c_str()) + Form("_CtauTrue_%s", parIni["Model_CtauTrue_PP"].c_str());
     }
@@ -630,16 +630,15 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
             
           int nBins = min(int( round((cut.dMuon.ctau.Max - cut.dMuon.ctau.Min)/binWidth) ), 1000);
           drawCtauPlot(myws, outputDir, opt, cut, (wantPureSMC ? (plotLabel+"_NoBkg") : plotLabel), DSTAG, false, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins);
-          double width = (myws.var("ctauErr")->getMax() - myws.var("ctauErr")->getMin()) / 100.0;
+	  double width = (myws.var("ctauErr")->getMax() - myws.var("ctauErr")->getMin()) / 100.0;
           nBins = min(int( round( (cut.dMuon.ctauErr.Max - cut.dMuon.ctauErr.Min)/width )), 1000);
           if (!isMC) drawCtauErrorPlot(myws, outputDir, opt, cut, DSTAG, false, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, wantPureSMC, setLogScale, incSS, nBins);
-          saveWorkSpace(myws, outputDir, plotLabel, DSTAG, cut, fitMass, fitCtau, false, false, false, cutSideBand);
+	  saveWorkSpace(myws, outputDir, plotLabel, DSTAG, cut, fitMass, fitCtau, false, false, false, cutSideBand);
           myws.saveSnapshot(Form("%s_parFit", pdfName.c_str()),*newpars,kTRUE) ;
-        }
+	}
       }
     }
   }
-
   return true;
 };
 
@@ -955,7 +954,7 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts& cut
   }
   myws.import(*dataOS);
   delete dataOS;
-
+  
   if (label.find("NoBkg")==std::string::npos) // Don't try to find SS dataset if label contais NoBkg
   {
     if (!(inputWS.data(Form("dSS_%s", label.c_str())))){
@@ -969,7 +968,7 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts& cut
     myws.import(*dataSS);
     delete dataSS;
   }
-
+  
   const RooArgSet* rowOS = myws.data(Form("dOS_%s", label.c_str()))->get();
   ((RooRealVar*)rowOS->find("invMass"))->setMin(cut.dMuon.M.Min);        
   ((RooRealVar*)rowOS->find("invMass"))->setMax(cut.dMuon.M.Max);
@@ -987,6 +986,8 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts& cut
     ((RooRealVar*)rowOS->find("ctauTrue"))->setMin(cut.dMuon.ctauTrue.Min);      
     ((RooRealVar*)rowOS->find("ctauTrue"))->setMax(cut.dMuon.ctauTrue.Max);
   }
+  
+  /*
   const RooArgSet* rowSS = myws.data(Form("dSS_%s", label.c_str()))->get();
   ((RooRealVar*)rowSS->find("invMass"))->setMin(cut.dMuon.M.Min);        
   ((RooRealVar*)rowSS->find("invMass"))->setMax(cut.dMuon.M.Max);
@@ -1004,7 +1005,8 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts& cut
     ((RooRealVar*)rowSS->find("ctauTrue"))->setMin(cut.dMuon.ctauTrue.Min);      
     ((RooRealVar*)rowSS->find("ctauTrue"))->setMax(cut.dMuon.ctauTrue.Max);
   }
-
+  */
+  
   // Set the range of each global parameter in the local workspace
   myws.var("invMass")->setMin(cut.dMuon.M.Min);        
   myws.var("invMass")->setMax(cut.dMuon.M.Max);
@@ -1024,7 +1026,6 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts& cut
     myws.var("ctauTrue")->setMin(cut.dMuon.ctauTrue.Min);      
     myws.var("ctauTrue")->setMax(cut.dMuon.ctauTrue.Max);
   }
-
   cout << "[INFO] Analyzing bin: " << Form(
                                            "%.3f < pt < %.3f, %.3f < rap < %.3f, %d < cent < %d", 
                                            cut.dMuon.Pt.Min,

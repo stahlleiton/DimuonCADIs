@@ -185,8 +185,12 @@ void drawCtauTruePlot(RooWorkspace& myws,   // Local workspace
   gSystem->mkdir(Form("%splot/%s/ctauTrue/pdf/", outputDir.c_str(), DSTAG.c_str()), kTRUE);
   cFig->SaveAs(Form("%splot/%s/ctauTrue/pdf/%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.pdf", outputDir.c_str(), DSTAG.c_str(), DSTAG.c_str(), "Psi2SJpsi", (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End));
   
+  cout<<"=================ok1================================"<<endl;
+
   cFig->Clear();
+  cout<<"=================ok2================================"<<endl;
   cFig->Close();
+  cout<<"=================ok3================================"<<endl;
 
 }
 
