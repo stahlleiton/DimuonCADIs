@@ -4,6 +4,8 @@ const double ctaucut_a_fwd_pp = 0.013;
 const double ctaucut_b_mid_pp = 0.25;
 const double ctaucut_b_fwd_pp = 0.29;
 
+const bool datamc = false;
+
 void plot_ljpsi(const char* fdata, const char* fmc) {
    TFile *tfd = TFile::Open(fdata);
    TFile *tfm = TFile::Open(fmc);
@@ -17,7 +19,7 @@ void plot_ljpsi(const char* fdata, const char* fmc) {
    p1->SetBorderMode(0);
    p1->SetBorderSize(0);
    p1->SetGridy();
-   p1->Draw();
+   if (datamc) p1->Draw();
    TPad *p2 = new TPad("p2","",0,0.33,1,1);
    // p2->SetTopMargin(gStyle->GetPadTopMargin()/(1.-0.2));
    p2->SetBottomMargin(0);
@@ -25,8 +27,9 @@ void plot_ljpsi(const char* fdata, const char* fmc) {
    p2->SetBorderMode(0);
    p2->SetBorderSize(0);
    // p2->SetLogy();
-   p2->Draw();
+   if (datamc) p2->Draw();
    p1->cd();
+   if (!datamc) c1->cd();
 
    TF1 *dg = new TF1("f1","[0]*([1]*TMath::Gaus(x,[2],[3])+(1-[1])*TMath::Gaus(x,[4],[3]*[5]))",-0.2,0.04);
    dg->SetParLimits(0,0,1e15);
@@ -63,7 +66,7 @@ void plot_ljpsi(const char* fdata, const char* fmc) {
          tsubstr = TString(thname(pos1,pos2));
          float ptmax = atof(tsubstr.Data());
 
-         p2->cd();
+         if (datamc) p2->cd();
          hdata->Draw();
          hmc->SetLineColor(kRed);
          hmc->SetMarkerColor(kRed);
@@ -82,18 +85,20 @@ void plot_ljpsi(const char* fdata, const char* fmc) {
          tb->SetFillStyle(3003);
          tb->Draw();
 
-         p1->cd();
-         TH1F *hratio = (TH1F*) hdata->Clone("hratio");
-         hratio->Divide(hmc);
-         hratio->GetYaxis()->SetTitle("data/MC");
-         hratio->GetYaxis()->SetRangeUser(0.5,1.5);
-         hratio->GetXaxis()->SetLabelSize(2.*hratio->GetXaxis()->GetLabelSize());
-         hratio->GetXaxis()->SetTitleSize(2.*hratio->GetXaxis()->GetTitleSize());
-         hratio->GetYaxis()->SetLabelSize(2.*hratio->GetYaxis()->GetLabelSize());
-         hratio->GetYaxis()->SetTitleSize(2.*hratio->GetYaxis()->GetTitleSize());
-         hratio->Draw();
+         if (datamc) {
+            p1->cd();
+            TH1F *hratio = (TH1F*) hdata->Clone("hratio");
+            hratio->Divide(hmc);
+            hratio->GetYaxis()->SetTitle("data/MC");
+            hratio->GetYaxis()->SetRangeUser(0.5,1.5);
+            hratio->GetXaxis()->SetLabelSize(2.*hratio->GetXaxis()->GetLabelSize());
+            hratio->GetXaxis()->SetTitleSize(2.*hratio->GetXaxis()->GetTitleSize());
+            hratio->GetYaxis()->SetLabelSize(2.*hratio->GetYaxis()->GetLabelSize());
+            hratio->GetYaxis()->SetTitleSize(2.*hratio->GetYaxis()->GetTitleSize());
+            hratio->Draw();
 
-         p2->cd();
+            p2->cd();
+         }
 
          // dg->SetParameters(1000,0.8,1e-3,0.03,1e-4,2.);
          // dg->SetParameter(0,int_data);
@@ -113,15 +118,16 @@ void plot_ljpsi(const char* fdata, const char* fmc) {
          // double sigma_mc = dg->GetParameter(3);
          // double dsigma_mc = dg->GetParError(3);
 
-         TLegend *tleg = new TLegend(0.6,0.6,0.9,0.88);
+         TLegend *tleg = new TLegend(0.61,0.6,0.9,0.88);
          tleg->SetBorderSize(0);
-         TString header = isfwd ? "|y|<1.6" : "1.6<|y|<2.4";
-         header += Form(", %.1f<pt<%.1f",ptmin,ptmax);
+         TString header("#splitline{");
+         header += isfwd ? "1.6<|y|<2.4" : "|y|<1.6";
+         header += Form("}{%.1f<pt<%.1f GeV/c}",ptmin,ptmax);
          tleg->SetHeader(header);
          // tleg->AddEntry(hdata,Form("pp data (#sigma = %.3f +/- %.3f)",sigma_data,dsigma_data),"lp");
          // tleg->AddEntry(hmc,Form("pp prompt J/#psi mc (#sigma = %.3f +/- %.3f)",sigma_mc,dsigma_mc),"lp");
-         tleg->AddEntry(hdata,"pp data","lp");
-         tleg->AddEntry(hmc,"pp prompt J/#psi mc","lp");
+         tleg->AddEntry(hdata,"data","lp");
+         tleg->AddEntry(hmc,"prompt J/#psi mc","lp");
          tleg->Draw();
          c1->SaveAs(Form("%s.pdf",hdata->GetName()));
          c1->SaveAs(Form("%s.png",hdata->GetName()));
