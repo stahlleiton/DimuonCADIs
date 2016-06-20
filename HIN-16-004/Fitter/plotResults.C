@@ -164,6 +164,8 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
          syst thestat_PP;
          thestat_PP.name = "stat_PP";
          thestat_PP.value = den->getVal() != 0 ? den->getError()/den->getVal() : 0;
+         thestat_PP.value_dR = thestat_PP.value*theVars[thebin]->getVal(); 
+         thestat_PP.value_dR_rel = thestat_PP.value; 
          stat_PP[thebinpp] = thestat_PP;
 
          delete num; delete den;
@@ -189,15 +191,15 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
    }
 
    // systematics
-   map<anabin, syst> syst_PP = readSyst_all("PP");
+   map<anabin, syst> syst_PP = readSyst_all("PP","",outputDir.c_str());
    if (doratio && xaxis=="cent") { // put the PP stat error into the PP syst, that will go into a box at 1
       vector< map<anabin, syst> > all_PP;
       all_PP.push_back(syst_PP);
       all_PP.push_back(stat_PP);
       syst_PP = combineSyst(all_PP,"statsyst_PP");
    }
-   map<anabin, syst> syst_PbPb = readSyst_all("PbPb");
-   map<anabin, syst> syst_PbPb_NP_add = readSyst("Systematics/csv/syst_PbPb_bhad_add.csv");
+   map<anabin, syst> syst_PbPb = readSyst_all("PbPb","",outputDir.c_str());
+   // map<anabin, syst> syst_PbPb_NP_add = readSyst("Systematics/csv/syst_PbPb_bhad_add.csv");
 
    // make TGraphAsymmErrors
    int cnt=0;
@@ -228,7 +230,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
             exh = (high-low)/2.;
             exl = (high-low)/2.;
             exsyst = 0.5;
-            eysyst = plotsysts ? sqrt(pow(syst_PP[thebin].value,2) + pow(syst_PbPb[thebin].value,2)) : 0; // quadratic sum of PP and PbPb systs
+            eysyst = plotsysts ? sqrt(pow(syst_PP[thebin].value_dR,2) + pow(syst_PbPb[thebin].value_dR,2)) : 0; // quadratic sum of PP and PbPb systs
          }
          if (xaxis=="cent") {
             low= thebin.centbin().low();
@@ -241,7 +243,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
             exl = (high-low)/2./2.;
             // exsyst = !isMB ? 5 : 5./(1.-xfrac);
             exsyst = exl;
-            eysyst = plotsysts ? syst_PbPb[thebin].value : 0; // only PbPb syst: the PP one will go to a dedicated box
+            eysyst = plotsysts ? syst_PbPb[thebin].value_dR : 0; // only PbPb syst: the PP one will go to a dedicated box
          }
          y = theVarsBinned[*it][i]->getVal();
          if (fiterrors) {
@@ -259,9 +261,9 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
             }
          }
 
-         eysyst = y*eysyst;
+         // eysyst = y*eysyst;
          // add the additive part of the NP contamination syst
-         if (plotsysts && syst_PbPb_NP_add.find(thebin) != syst_PbPb_NP_add.end()) eysyst = sqrt(pow(syst_PbPb_NP_add[thebin].value,2) + pow(eysyst,2)); 
+         // if (plotsysts && syst_PbPb_NP_add.find(thebin) != syst_PbPb_NP_add.end()) eysyst = sqrt(pow(syst_PbPb_NP_add[thebin].value,2) + pow(eysyst,2)); 
 
          theGraphs[*it]->SetPoint(i,x,y);
          theGraphs[*it]->SetPointError(i,exl,exh,eyl,eyh);
@@ -495,7 +497,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
                it->first.ptbin().low(),
                it->first.ptbin().high(),
                0,200);
-         dy = gsyst[thebin].value;
+         dy = gsyst[thebin].value_dR_rel;
          cout << "global syst: " << dy << endl;
          TBox *tbox = new TBox(x-dx,y-dy,x+dx,y+dy);
          if (thebin.rapbin() == binF((float) 0.,1.6)) tbox->SetFillColorAlpha(kBlue, 0.5);

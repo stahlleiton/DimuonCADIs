@@ -29,7 +29,7 @@ vector<TString> fileList_syst(const char* token, const char* prependPath="");
 map<anabin, syst> readSyst(const char* systfile, const char* workDirName="", const char* path2Fitter="");
 map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name="Total", bool isdRSyst=false);
 map<anabin, syst> readSyst_all(const char* token, const char* prependPath="", const char* workDirName="", bool doPrintTex=false, const char* texName="Systematics/systs.tex");
-void printTex(vector< map<anabin, syst> > theSysts, const char* texName="Systematics/systs.tex", bool isLastTotal=false);
+void printTex(vector< map<anabin, syst> > theSysts, const char* texName="Systematics/systs.tex", bool isdRSyst=false);
 map<anabin, vector<syst> > vm2mv(vector< map<anabin,syst> > v);
 RooWorkspace* getWorkspaceFromBin(anabin thebin, const char* workDirName, const char* token="", const char* path2Fitter="");
 
@@ -176,16 +176,16 @@ map<anabin, syst> readSyst_all(const char* token, const char* prependPath, const
       systmap_all.push_back(systmap);
    }
 
-   map<anabin,syst> ans = combineSyst(systmap_all,token,isdRSyst);
+   map<anabin,syst> ans = combineSyst(systmap_all,isdRSyst ? "Total" : token,isdRSyst);
    systmap_all.push_back(ans);
    systmap_all_toprint.push_back(ans);
 
-   if (doPrintTex) printTex(systmap_all_toprint, texName, true);
+   if (doPrintTex) printTex(systmap_all_toprint, texName, isdRSyst);
 
    return ans;
 };
 
-void printTex(vector< map<anabin, syst> > theSysts, const char* texName, bool isLastTotal) {
+void printTex(vector< map<anabin, syst> > theSysts, const char* texName, bool isdRSyst) {
    unsigned int nsyst = theSysts.size();
 
    ofstream file(texName);
@@ -229,11 +229,13 @@ void printTex(vector< map<anabin, syst> > theSysts, const char* texName, bool is
       file << " & ";
       file.unsetf(ios::fixed);
       file << thebin.centbin().low()/2 << "-" << thebin.centbin().high()/2 << "\\% ";
-      file.precision(1);
+      if (isdRSyst) file.precision(3);
+      else file.precision(1);
       file.setf(ios::fixed);
 
       for (unsigned int i=0; i<nsyst; i++) {
-         file << " & " << 100.*v[i].value;
+         if (isdRSyst) file << " & " << v[i].value_dR;
+         else file << " & " << 100.*v[i].value;
       }
       file << " \\\\" << endl;
 

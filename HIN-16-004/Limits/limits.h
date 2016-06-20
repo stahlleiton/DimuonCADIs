@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include "../Fitter/Macros/Utilities/bin.h"
+#include "../Fitter/Systematics/syst.h"
 #include "../Fitter/Macros/Utilities/resultUtils.h"
 #include "TString.h"
 #include "TSystemFile.h"
@@ -21,9 +22,9 @@ using namespace std;
 
 vector<TString> fileList_lim(const char* prependPath="");
 map<anabin, limits> readLimits(const char* limitsfile);
-void printTex(vector< map<anabin, limits> > theLims, const char* texName="tex/limits.tex", bool isLastTotal=false);
+void printTex(vector< map<anabin, limits> > theLims, const char* texName="tex/limits.tex");
 void readLimits_all(const char* prependPath="", const char* texName="tex/limits.tex", const char* token="_68");
-void limitsFromFits(const char* workDir, const char* output="csv/Limits_68_fromfits.csv");
+void limitsFromFits(const char* workDir, const char* output="csv/Limits_68_fromfits.csv", bool withsyst=false);
 map<anabin, vector<limits> > vm2mv(vector< map<anabin,limits> > v);
 
 
@@ -106,10 +107,10 @@ void readLimits_all(const char* prependPath, const char* texName, const char* to
       limmap_all.push_back(limmap);
    }
 
-   printTex(limmap_all, texName, true);
+   printTex(limmap_all, texName);
 }
 
-void printTex(vector< map<anabin, limits> > theLims, const char* texName, bool isLastTotal) {
+void printTex(vector< map<anabin, limits> > theLims, const char* texName) {
    unsigned int nlimits = theLims.size();
 
    ofstream file(texName);
@@ -169,11 +170,14 @@ void printTex(vector< map<anabin, limits> > theLims, const char* texName, bool i
    cout << "Closed " << texName << endl;
 }
 
-void limitsFromFits(const char* workDir, const char* output) {
+void limitsFromFits(const char* workDir, const char* output, bool withsyst) {
    // list of files
    vector<TString> theFiles, theFiles2;
    theFiles = fileList(workDir,"PbPb", "DATA", "../Fitter/");
    theFiles2 = fileList(workDir,"PP", "DATA", "../Fitter/");
+
+   map<anabin, syst> systs_all;
+   if (withsyst) systs_all = readSyst_all("","../Fitter",workDir);
 
    ofstream file(output);
    file << "0.683" << endl;
@@ -207,8 +211,13 @@ void limitsFromFits(const char* workDir, const char* output) {
       RooRealVar *ratio = ratioVar(num,den,true); // if plotting the centrality dependence, do not put the pp stat
       file << thebin.rapbin().low() << ", " << thebin.rapbin().high() << ", "
          << thebin.ptbin().low() << ", " << thebin.ptbin().high() << ", "
-         << thebin.centbin().low() << ", " << thebin.centbin().high() << ", "
-         << ratio->getVal() + ratio->getErrorLo() << ", " << ratio->getVal() + ratio->getErrorHi() << endl;
+         << thebin.centbin().low() << ", " << thebin.centbin().high() << ", ";
+      if (!withsyst) {
+         file << ratio->getVal() + ratio->getErrorLo() << ", " << ratio->getVal() + ratio->getErrorHi() << endl;
+      } else {
+         file << ratio->getVal() - sqrt(pow(ratio->getErrorLo(),2) + pow(systs_all[thebin].value_dR,2)) << ", " 
+            << ratio->getVal() + sqrt(pow(ratio->getErrorHi(),2) + pow(systs_all[thebin].value_dR,2)) << endl;
+      }
       delete num; delete den;
    }
 
