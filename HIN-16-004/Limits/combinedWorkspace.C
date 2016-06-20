@@ -6,6 +6,9 @@
 #include "RooAbsReal.h"
 #include "RooCategory.h"
 #include "RooAddPdf.h"
+#include "RooProdPdf.h"
+#include "RooSimultaneous.h"
+#include "RooGaussian.h"
 #include "RooGenericPdf.h"
 #include "RooSimultaneous.h"
 #include "RooMinuit.h"
@@ -102,9 +105,16 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
       ws->factory( "PROD::pdfMASS_Tot_PP_constr(pdfMASS_Tot_PP_syst,constr_syst_addRPP)" );
 
       // build the combined pdf
-      //ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb_constr,PP=pdfMASS_Tot_PP)");
-      ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb_constr,PP=pdfMASS_Tot_PP_constr)");
-      // ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP)");
+      // ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb_constr,PP=pdfMASS_Tot_PP_constr)");
+      ws->factory("SIMUL::simPdf_syst_noconstr(sample,PbPb=pdfMASS_Tot_PbPb_syst,PP=pdfMASS_Tot_PP_syst)");
+      RooSimultaneous *simPdf = (RooSimultaneous*) ws->pdf("simPdf_syst_noconstr");
+      RooGaussian *constr_syst = (RooGaussian*) ws->pdf("constr_syst");
+      RooGaussian *constr_syst_add2R = (RooGaussian*) ws->pdf("constr_syst_add2R");
+      RooGaussian *constr_syst_addRPP = (RooGaussian*) ws->pdf("constr_syst_addRPP");
+      RooGaussian *constr_syst_addRPbPb = (RooGaussian*) ws->pdf("constr_syst_addRPbPb");
+      RooProdPdf *simPdf_constr = new RooProdPdf("simPdf_syst","simPdf_syst",RooArgSet(*simPdf,*constr_syst,*constr_syst_add2R,*constr_syst_addRPP,*constr_syst_addRPbPb));
+      ws->import(*simPdf_constr);
+
    } else {
       ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP)");
    }
