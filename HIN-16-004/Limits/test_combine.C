@@ -180,13 +180,21 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
 
    // build the double ratio
    RooRealVar *RFrac2Svs1S_PbPbvsPP = new RooRealVar("RFrac2Svs1S_PbPbvsPP","RFrac2Svs1S_PbPbvsPP",0.5,-10,10);
+   // help RooFit by telling it what to expect for the double ratio
+   RooRealVar *RFrac2Svs1S_PbPb = wcombo->var("RFrac2Svs1S_PbPb");
+   RooRealVar *RFrac2Svs1S_PP = wcombo->var("RFrac2Svs1S_PP");
+   RFrac2Svs1S_PbPbvsPP->setVal(RFrac2Svs1S_PbPb->getVal()/RFrac2Svs1S_PP->getVal());
+   RFrac2Svs1S_PbPbvsPP->setError(
+         sqrt(pow(RFrac2Svs1S_PbPb->getError()/RFrac2Svs1S_PbPb->getVal(),2) + 
+            pow(RFrac2Svs1S_PP->getError()/RFrac2Svs1S_PP->getVal(),2))
+         *RFrac2Svs1S_PbPbvsPP->getVal());
   
    // build the pp pdf
    RooAbsPdf *sig1S_PP = wcombo->pdf("pdfMASS_Jpsi_PP");
    RooAbsPdf *sig2S_PP = wcombo->pdf("pdfMASS_Psi2S_PP");
    RooAbsPdf *pdf_combinedbkgd_PP = wcombo->pdf("pdfMASS_Bkg_PP");
    RooRealVar *nsig1f_PP = wcombo->var("N_Jpsi_PP");
-   RooRealVar *RFrac2Svs1S_PP = wcombo->var("RFrac2Svs1S_PP");
+   // RooRealVar *RFrac2Svs1S_PP = wcombo->var("RFrac2Svs1S_PP");
    RooRealVar *nbkgd_PP = wcombo->var("N_Bkg_PP");
    RooFormulaVar *nsig2f_PP = new RooFormulaVar("N_Psi2S_PP","@0*@1",RooArgList(*RFrac2Svs1S_PP,*nsig1f_PP));
 //   RooFormulaVar *nsig2f_PP = (RooFormulaVar*) wcombo->function("N_Psi2S_PP");
