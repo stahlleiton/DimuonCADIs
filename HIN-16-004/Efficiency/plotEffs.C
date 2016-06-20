@@ -112,6 +112,13 @@ void plotEffs() {
                if (idep<2) {
                   // plot
                   haxes->Draw();
+                  if (icut==3 || icut==4) { // draw a line at 90%
+                     TLine *tl = new TLine(haxes->GetXaxis()->GetXmin(),0.9,haxes->GetXaxis()->GetXmax(),0.9);
+                     tl->SetLineStyle(3);
+                     tl->SetLineColor(kBlack);
+                     tl->SetLineWidth(5);
+                     tl->Draw();
+                  }
                   tg_jpsi->Draw("P");
                   tg_psi2s->Draw("P");
                   tg_npjpsi->Draw("P");

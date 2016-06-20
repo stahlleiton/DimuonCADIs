@@ -27,14 +27,14 @@ const double ctaucutmid_pbpb = 0.03;
 const double ctaucutfwd_pbpb = 0.05;
 
 // pt-dependent ctau cuts
-const double ctaucut_a_mid_pp = 0.010;
-const double ctaucut_a_fwd_pp = 0.013;
-const double ctaucut_a_mid_pbpb = 0.013;
-const double ctaucut_a_fwd_pbpb = 0.015;
-const double ctaucut_b_mid_pp = 0.25;
-const double ctaucut_b_fwd_pp = 0.29;
-const double ctaucut_b_mid_pbpb = 0.22;
-const double ctaucut_b_fwd_pbpb = 0.28;
+const double ctaucut_a_mid_pp = 0.012;//0.010;
+const double ctaucut_a_fwd_pp = 0.014;//0.013;
+const double ctaucut_a_mid_pbpb = 0.012;//0.013;
+const double ctaucut_a_fwd_pbpb = 0.014;//0.015;
+const double ctaucut_b_mid_pp = 0.23;//0.25;
+const double ctaucut_b_fwd_pp = 0.28;//0.29;
+const double ctaucut_b_mid_pbpb = 0.23;//0.22;
+const double ctaucut_b_fwd_pbpb = 0.28;//0.28;
 
 // other settings
 const double maxdr = 0.03;
