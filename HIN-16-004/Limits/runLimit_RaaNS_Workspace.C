@@ -2,13 +2,15 @@
 #include "RooStats/LikelihoodInterval.h"
 #include "RooStats/LikelihoodIntervalPlot.h"
 #include "TLatex.h"
+#include <utility>
+
+using namespace RooStats;
+using namespace std;
 
 pair<double,double> runLimit_RaaNS_Workspace(const char *filename="TRIAL.root", const char *poiname="raa3", const char *pdfname="joint", const char *wsname="wcombo", const char* dataname="dOS_DATA", const char* ACTag="", double CI = 0.95, int calculatorType = 2, int testStatType = 2,  bool useCLs = false);
 
 #include "StandardHypoTestInvDemo.C"
 
-using namespace std;
-using namespace RooStats;
 
 pair<double,double> runLimit_RaaNS_Workspace(const char *filename, const char *poiname, const char *pdfname, const char *wsname, const char* dataname, const char* ACTag, double CI, int calculatorType, int testStatType,  bool useCLs)
 {
