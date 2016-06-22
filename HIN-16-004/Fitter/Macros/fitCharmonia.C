@@ -219,7 +219,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
             myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str()));
           }  
         } else {
-          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBand1,SideBand2"), NumCPU(numCores), Save());
+          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBandBOT_FULL,SideBandMID_FULL,SideBandTOP_FULL"), NumCPU(numCores), Save());
           fitResult->Print("v");
           myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
         }
@@ -266,7 +266,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
             myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
           }  
 	} else {
-          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBand1,SideBand2"), NumCPU(numCores), Save());
+          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBandBOT_FULL,SideBandMID_FULL,SideBandTOP_FULL"), NumCPU(numCores), Save());
           fitResult->Print("v");
           myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
         }
@@ -282,14 +282,14 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
 
 void setCtauCuts(struct KinCuts& cut, bool isPbPb) 
 {
-  /*
+  
   if (cut.dMuon.AbsRap.Max<=1.6) {
     cut.dMuon.ctauCut = "( ctau < (0.012 + (0.23/pt)) )";
   }
   if (cut.dMuon.AbsRap.Min>=1.6) {
     cut.dMuon.ctauCut = "( ctau < (0.014 + (0.28/pt)) )";
   }
-  */
+  /*
   if (cut.dMuon.AbsRap.Max<=1.6 && isPbPb) {
     cut.dMuon.ctauCut = "( ctau < (0.013 + (0.22/pt)) )";
   }
@@ -302,6 +302,7 @@ void setCtauCuts(struct KinCuts& cut, bool isPbPb)
   if (cut.dMuon.AbsRap.Min>=1.6 && !isPbPb) {
     cut.dMuon.ctauCut = "( ctau < (0.013 + (0.29/pt)) )";
   }
+  */
 };
 
 
@@ -443,9 +444,14 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut,
    
   }
   else myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, cut.dMuon.M.Max);
-  
-  if (cut.dMuon.M.Min<2.8) { myws.var("invMass")->setRange("SideBand1",  cut.dMuon.M.Min, 2.8); }
-  if (cut.dMuon.M.Max>4.0) { myws.var("invMass")->setRange("SideBand2",  4.0, cut.dMuon.M.Max); }
+
+  myws.var("invMass")->setRange("SideBandMID_FULL",  ((cut.dMuon.M.Min<3.3)?3.3:cut.dMuon.M.Min), ((cut.dMuon.M.Max>3.5)?3.5:cut.dMuon.M.Max));
+  if (cut.dMuon.M.Min < 2.9) {
+    myws.var("invMass")->setRange("SideBandBOT_FULL", cut.dMuon.M.Min, 2.8);
+  }
+  if (cut.dMuon.M.Max > 3.9) {
+    myws.var("invMass")->setRange("SideBandTOP_FULL", 3.9, cut.dMuon.M.Max);
+  }
 
   return 1;
 };
