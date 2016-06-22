@@ -22,19 +22,19 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 void fitter(
             const string workDirName="Test", // Working directory
             // Select the type of datasets to fit
-            bool fitData      = false,        // Fits Data datasets
-            bool fitMC        = true,         // Fits MC datasets
+            bool fitData      = true,        // Fits Data datasets
+            bool fitMC        = false,         // Fits MC datasets
             bool fitPbPb      = false,         // Fits PbPb datasets
             bool fitPP        = true,        // Fits PP datasets
-            bool fitMass      = false,        // Fits invariant mass distribution
+            bool fitMass      = true,        // Fits invariant mass distribution
             bool fitCtau      = true,        // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
             // Select the type of object to fit
             bool incJpsi      = true,          // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
-            bool incBkg       = false,         // Includes Background model
+            bool incBkg       = true,         // Includes Background model
             bool incPrompt    = true,         // Includes Prompt ctau model
-            bool incNonPrompt = false,          // Includes Non Prompt ctau model 
+            bool incNonPrompt = true,          // Includes Non Prompt ctau model 
             // Select the fitting options
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
