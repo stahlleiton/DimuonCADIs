@@ -886,7 +886,7 @@ void setDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEn
     parIni[Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.10f,%.10f,%.10f]", Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")), numEntries, -2.0*numEntries, 2.0*numEntries);
   }
   if (parIni.count(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.10f,%.10f,%.10f]", Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")), numEntries, -2.0*numEntries, 2.0*numEntries);
+    parIni[Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.10f,%.10f,%.10f]", Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")), numEntries, 0.0, 2.0*numEntries);
   }
 
   // DEFAULT SIGNAL MASS MODEL PARAMETERS 
