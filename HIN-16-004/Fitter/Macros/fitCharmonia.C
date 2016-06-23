@@ -9,7 +9,7 @@
 #include <algorithm>
 
 void setCtauCuts(struct KinCuts& cut, bool isPbPb);
-int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut, string label);
+int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut, string label, bool fitSB=false);
 bool setModel( struct OniaModel& model, map<string, string>  parIni, bool isPbPb, bool incJpsi, bool incPsi2S, bool incBkg);
 
 void setOptions(struct InputOpt* opt);
@@ -109,7 +109,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
     if (wantPureSMC) label = Form("%s_%s_NoBkg", DSTAG.c_str(), "PP");
     if(applyWeight_AccEff) label = Form("%s", DSTAG.c_str());
     string dsName = Form("dOS_%s", label.c_str());
-    int importID = importDataset(myws, inputWorkspace, cut, label);
+    int importID = importDataset(myws, inputWorkspace, cut, label, (incBkg && !incJpsi && !incPsi2S));
     if (importID<0) { return false; }
     else if (importID==0) { doFit = false; }
     
@@ -131,7 +131,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
     if (wantPureSMC) label = Form("%s_%s_NoBkg", DSTAG.c_str(), "PbPb");
     if(applyWeight_AccEff) label = Form("%s", DSTAG.c_str());
     string dsName = Form("dOS_%s", label.c_str());
-    int importID = importDataset(myws, inputWorkspace, cut, label);
+    int importID = importDataset(myws, inputWorkspace, cut, label, (incBkg && !incJpsi && !incPsi2S));
     if (importID<0) { return false; }
     else if (importID==0) { doFit = false; }
     
@@ -219,7 +219,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
             myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str()));
           }  
         } else {
-          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBand1,SideBand2"), NumCPU(numCores), Save());
+          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBandBOT_FULL,SideBandMID_FULL,SideBandTOP_FULL"), NumCPU(numCores), Save());
           fitResult->Print("v");
           myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
         }
@@ -266,7 +266,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
             myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
           }  
 	} else {
-          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBand1,SideBand2"), NumCPU(numCores), Save());
+          RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("SideBandBOT_FULL,SideBandMID_FULL,SideBandTOP_FULL"), NumCPU(numCores), Save());
           fitResult->Print("v");
           myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
         }
@@ -282,14 +282,14 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
 
 void setCtauCuts(struct KinCuts& cut, bool isPbPb) 
 {
-  /*
+  
   if (cut.dMuon.AbsRap.Max<=1.6) {
     cut.dMuon.ctauCut = "( ctau < (0.012 + (0.23/pt)) )";
   }
   if (cut.dMuon.AbsRap.Min>=1.6) {
     cut.dMuon.ctauCut = "( ctau < (0.014 + (0.28/pt)) )";
   }
-  */
+  /*
   if (cut.dMuon.AbsRap.Max<=1.6 && isPbPb) {
     cut.dMuon.ctauCut = "( ctau < (0.013 + (0.22/pt)) )";
   }
@@ -302,6 +302,7 @@ void setCtauCuts(struct KinCuts& cut, bool isPbPb)
   if (cut.dMuon.AbsRap.Min>=1.6 && !isPbPb) {
     cut.dMuon.ctauCut = "( ctau < (0.013 + (0.29/pt)) )";
   }
+  */
 };
 
 
@@ -372,9 +373,10 @@ bool setModel( struct OniaModel& model, map<string, string>  parIni, bool isPbPb
 };
    
 
-int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut, string label)
+int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut, string label, bool fitSB)
 {
   string indMuonMass    = Form("(%.6f < invMass && invMass < %.6f)",       cut.dMuon.M.Min,       cut.dMuon.M.Max);
+  // if (fitSB) indMuonMass = indMuonMass + "&&" + "((2.0 < invMass && invMass < 2.7) || (3.3 < invMass && invMass < 3.45) || (3.9 < invMass && invMass < 5.0))";
   string indMuonRap     = Form("(%.6f <= abs(rap) && abs(rap) < %.6f)",    cut.dMuon.AbsRap.Min,  cut.dMuon.AbsRap.Max);
   string indMuonPt      = Form("(%.6f <= pt && pt < %.6f)",                cut.dMuon.Pt.Min,      cut.dMuon.Pt.Max);
   string indMuonCtau    = Form("(%.6f < ctau && ctau < %.6f)",             cut.dMuon.ctau.Min,    cut.dMuon.ctau.Max); 
@@ -443,9 +445,16 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut,
    
   }
   else myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, cut.dMuon.M.Max);
-  
-  if (cut.dMuon.M.Min<2.8) { myws.var("invMass")->setRange("SideBand1",  cut.dMuon.M.Min, 2.8); }
-  if (cut.dMuon.M.Max>4.0) { myws.var("invMass")->setRange("SideBand2",  4.0, cut.dMuon.M.Max); }
+
+  if (fitSB) {
+    myws.var("invMass")->setRange("SideBandMID_FULL",  ((cut.dMuon.M.Min<3.3)?3.3:cut.dMuon.M.Min), ((cut.dMuon.M.Max>3.5)?3.5:cut.dMuon.M.Max));
+    if (cut.dMuon.M.Min < 2.8) {
+      myws.var("invMass")->setRange("SideBandBOT_FULL", cut.dMuon.M.Min, 2.8);
+    }
+    if (cut.dMuon.M.Max > 3.9) {
+      myws.var("invMass")->setRange("SideBandTOP_FULL", 3.9, cut.dMuon.M.Max);
+    }
+  }
 
   return 1;
 };
