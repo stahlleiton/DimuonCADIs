@@ -36,9 +36,9 @@ The output root files of this macro, wich contains the histograms with the yield
 #include "dataBinning_2015.h"
 
 void makeHistos_raa(int sample    = 0,// 0=PbPb,     1= pp
-		    int weight    = 0,// 0=noWeight, 1=weight
-		    int isEffFile = 1,// 0=no, 1=making efficiency histograms, 2=3Deff uncertainties, 3=TnP uncertainties, 4=TnP_STA uncertainties
-		    const char* inputFitDataFileLocation = "../data/raa"
+        int weight    = 0,// 0=noWeight, 1=weight
+        int isEffFile = 0,// 0=no, 1=making efficiency histograms, 2=3Deff uncertainties, 3,4=TnP uncertainties(stat,syst), 5,6=TnP_STA uncertainties(stat,syst)
+        const char* inputFitDataFileLocation = "../data/raa"
                    ) 
 {
 
@@ -47,8 +47,10 @@ void makeHistos_raa(int sample    = 0,// 0=PbPb,     1= pp
   
   const char* effFileName[2]     = {"20160411_PbPb_newTnP","20160411_pp_newTnP"};
   const char* effFileName_3d[2]  = {"effSyst_201602_pbpb_3dEff","effSyst_201602_pp_3dEff"};
-  const char* effFileName_tnp[2] = {"effSyst_201602_pbpb_tnp","effSyst_201602_pp_tnp"};
-  const char* effFileName_sta[2] = {"effSyst_201602_pbpb_sta","effSyst_201602_pp_sta"};
+  const char* effFileName_idtrg_stat[2] = {"effSyst_20160622_pbpb_IdTrg_stat","effSyst_20160622_pp_IdTrg_stat"};
+  const char* effFileName_idtrg_syst[2] = {"effSyst_20160622_pbpb_IdTrg_syst","effSyst_20160622_pp_IdTrg_syst"};
+  const char* effFileName_sta_stat[2] = {"effSyst_20160622_pbpb_Sta_stat","effSyst_20160622_pp_Sta_stat"};
+  const char* effFileName_sta_syst[2] = {"effSyst_20160622_pbpb_Sta_syst","effSyst_20160622_pp_Sta_syst"};
 
   const char* outputHistDataFile[2] = {"histsRaaYields","histEff"};
 
@@ -82,15 +84,27 @@ void makeHistos_raa(int sample    = 0,// 0=PbPb,     1= pp
     }
     if (isEffFile==3)// these are the efficiency uncertainty files
     {
-      in.open(Form("%s/excel/%s.dat",inputFitDataFileLocation,effFileName_tnp[sample]));
-      pfOutput = new TFile(Form("%s_%s.root",outputHistDataFile[1],effFileName_tnp[sample]),"RECREATE");
-      cout <<"##### You are reading the TnP_systm efficiency files!" <<endl;
+      in.open(Form("%s/excel/%s.dat",inputFitDataFileLocation,effFileName_idtrg_stat[sample]));
+      pfOutput = new TFile(Form("%s_%s.root",outputHistDataFile[1],effFileName_idtrg_stat[sample]),"RECREATE");
+      cout <<"##### You are reading the TnP_IdTrg_stat_systm efficiency files!" <<endl;
     }
     if (isEffFile==4)// these are the efficiency uncertainty files
     {
-      in.open(Form("%s/excel/%s.dat",inputFitDataFileLocation,effFileName_sta[sample]));
-      pfOutput = new TFile(Form("%s_%s.root",outputHistDataFile[1],effFileName_sta[sample]),"RECREATE");
-      cout <<"##### You are reading the TnP_sta_systm efficiency files!" <<endl;
+      in.open(Form("%s/excel/%s.dat",inputFitDataFileLocation,effFileName_idtrg_syst[sample]));
+      pfOutput = new TFile(Form("%s_%s.root",outputHistDataFile[1],effFileName_idtrg_syst[sample]),"RECREATE");
+      cout <<"##### You are reading the TnP_IdTrg_syst_systm efficiency files!" <<endl;
+    }
+    if (isEffFile==5)// these are the efficiency uncertainty files
+    {
+      in.open(Form("%s/excel/%s.dat",inputFitDataFileLocation,effFileName_sta_stat[sample]));
+      pfOutput = new TFile(Form("%s_%s.root",outputHistDataFile[1],effFileName_sta_stat[sample]),"RECREATE");
+      cout <<"##### You are reading the TnP_sta_stat_systm efficiency files!" <<endl;
+    }
+    if (isEffFile==6)// these are the efficiency uncertainty files
+    {
+      in.open(Form("%s/excel/%s.dat",inputFitDataFileLocation,effFileName_sta_syst[sample]));
+      pfOutput = new TFile(Form("%s_%s.root",outputHistDataFile[1],effFileName_sta_syst[sample]),"RECREATE");
+      cout <<"##### You are reading the TnP_sta_syst_systm efficiency files!" <<endl;
     }
   }
   cout<<"!!!!!!!!!!!Got the input files!!!!"<<endl;
@@ -108,42 +122,42 @@ void makeHistos_raa(int sample    = 0,// 0=PbPb,     1= pp
   if( !in.good() ) cout<< "!!!!! You have a problem, the input file is not good" <<endl;
   while (in.good()) {
     if(!isEffFile) // yield files
-      {
-	in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7] >> x[8] >> x[9] >> x[10] >> x[11] >> x[12] >> x[13] >> x[14] >> x[15] >> x[16] >> x[17];
-	rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
-	pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
-	cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
-	// [6]&[7] is the phi interval
-	inc[nline]   = x[8];  incErr[nline]   = fabs(x[9]); // inclusive yield and error
-	//[10]&[11] is the bkg and bkg error
-	prpt[nline]  = x[12]; prptErr[nline]  = fabs(x[13]);// prompt yield and error
-	nprpt[nline] = x[14]; nprptErr[nline] = fabs(x[15]);// non-prompt yield and error
-	//[16]&[17] is the b-fraction
+    {
+      in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7] >> x[8] >> x[9] >> x[10] >> x[11] >> x[12] >> x[13] >> x[14] >> x[15] >> x[16] >> x[17];
+      rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
+      pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
+      cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
+      // [6]&[7] is the phi interval
+      inc[nline]   = x[8];  incErr[nline]   = fabs(x[9]); // inclusive yield and error
+      //[10]&[11] is the bkg and bkg error
+      prpt[nline]  = x[12]; prptErr[nline]  = fabs(x[13]);// prompt yield and error
+      nprpt[nline] = x[14]; nprptErr[nline] = fabs(x[15]);// non-prompt yield and error
+      //[16]&[17] is the b-fraction
 
-	cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[12] <<endl;
-      }
+      cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[12] <<endl;
+    }
     else if (isEffFile==1) // these are the traditional efficiency files
-      {
-	in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7];
-	rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
-	pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
-	cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
-	prpt[nline]  = x[6]; // prompt correction
-	nprpt[nline] = x[7]; // non-prompt correction
-	
-	cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[6] <<"\t NonPrompt: " << x[7] << endl;
-      }
+    {
+      in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7];
+      rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
+      pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
+      cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
+      prpt[nline]  = x[6]; // prompt correction
+      nprpt[nline] = x[7]; // non-prompt correction
+      
+      cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[6] <<"\t NonPrompt: " << x[7] << endl;
+    }
     else if (isEffFile>1) // these are the efficiency uncertainty files
-      {
-	in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7] >> x[8] >> x[9] >> x[10] >> x[11];
-	rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
-	pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
-	cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
-	prpt[nline]  = x[8]; // prompt correction
-	nprpt[nline] = x[11]; // non-prompt correction
-	
-	cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[12] <<endl;
-      }
+    {
+      in >> x[0] >> x[1] >> x[2] >> x[3] >> x[4] >> x[5] >> x[6] >> x[7] >> x[8] >> x[9] >> x[10] >> x[11];
+      rap1[nline]  = x[0];  rap2[nline]     = fabs(x[1]); // rapidity (second value comes with '-')
+      pT1[nline]   = x[2];  pT2[nline]      = fabs(x[3]); // pt (second value comes with '-')
+      cent1[nline] = x[4];  cent2[nline]    = fabs(x[5]); // centrlaity (second value comes with '-')
+      prpt[nline]  = x[8]; // prompt correction
+      nprpt[nline] = x[11]; // non-prompt correction
+
+      cout<<"nline= "<<nline<<" y= " <<x[0] <<"-"<< x[1] << "\t pt= "<<x[2] <<"-"<<x[3] <<"\t Cent.= "<< x[4] <<"-"<< x[5] <<"\tPrompt: " << x[8] <<"\t NonPrompt: " << x[11] << endl;
+    }
       
     nline++;
   }// while

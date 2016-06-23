@@ -6,7 +6,7 @@
 // systematics fits
 const int nFitVariations   = 5;
 const int nEff4DVariations = 1;
-const int nEffTnPVariation = 3; 
+const int nEffTnPVariation = 5; 
 //pp
 const char* yieldHistFile_pp_systSgnBkg[nFitVariations] = {
   "histsRaaYields_20160304_pp_sigG1G2.root",
@@ -22,8 +22,10 @@ const char* yieldHistFile_pp_syst4DCorr[nEff4DVariations] = {
 
 const char* yieldHistFile_pp_systTnP[nEffTnPVariation] = {
   "histEff_effSyst_201602_pp_3dEff.root",
-  "histEff_effSyst_201602_pp_tnp.root",
-  "histEff_effSyst_201602_pp_sta.root"
+  "histEff_effSyst_20160622_pp_IdTrg_stat.root",
+  "histEff_effSyst_20160622_pp_IdTrg_syst.root",
+  "histEff_effSyst_20160622_pp_Sta_stat.root",
+  "histEff_effSyst_20160622_pp_Sta_syst.root"
 };
 
 //-----------------
@@ -42,8 +44,10 @@ const char* yieldHistFile_aa_syst4DCorr[nEff4DVariations] = {
 
 const char* yieldHistFile_aa_systTnP[nEffTnPVariation] = {
   "histEff_effSyst_201602_pbpb_3dEff.root",
-  "histEff_effSyst_201602_pbpb_tnp.root",
-  "histEff_effSyst_201602_pbpb_sta.root"
+  "histEff_effSyst_20160622_pbpb_IdTrg_stat.root",
+  "histEff_effSyst_20160622_pbpb_IdTrg_syst.root",
+  "histEff_effSyst_20160622_pbpb_Sta_stat.root",
+  "histEff_effSyst_20160622_pbpb_Sta_syst.root"
 };
 
 //------------------
