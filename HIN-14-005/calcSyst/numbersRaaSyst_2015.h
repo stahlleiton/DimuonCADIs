@@ -61,8 +61,10 @@ const char* legendSyst[] = {
 //  "4DEff_profile", 
   "4DEff", 
   "3DEff_toy",
-  "TnP_trgMuID", 
-  "TnP_sta" 
+  "TnP_trgMuID_stat", 
+  "TnP_trgMuID_syst", 
+  "TnP_sta_stat" 
+  "TnP_sta_syst" 
 };
 
 // ######################################
