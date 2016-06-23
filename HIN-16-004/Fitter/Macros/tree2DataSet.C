@@ -363,7 +363,7 @@ double getAccEff(Double_t rapidity, Double_t pt)
       return 0;
     }
   
-  Int_t bin = AccEffHist->FindBin(rapidity, pt);
+  Int_t bin = AccEffHist->FindBin(fabs(rapidity), pt);
   Double_t accXeff = AccEffHist->GetBinContent(bin);
   if(accXeff<0.00001) accXeff=1.0;
   
