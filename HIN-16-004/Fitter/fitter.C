@@ -4,7 +4,7 @@
 
 
 bool checkSettings(bool fitData, bool fitPbPb, bool fitPP, bool incJpsi, bool incPsi2S, bool incBkg, bool cutCtau,  
-                   bool doSimulFit, bool wantPureSMC, bool applyAccEff, bool setLogScale, bool zoomPsi, bool incSS, int numCores, int nBins);
+                   bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores, int nBins);
 
 
 bool parseFile(string FileName, vector< map<string, string> >& data);
@@ -29,11 +29,11 @@ void fitter(
             bool incPsi2S    = true,         // Includes Psi(2S) model
             bool incBkg      = true,         // Includes Background model
             // Select the fitting options
-            bool cutCtau     = true,        // Apply prompt ctau cuts
+            bool cutCtau     = true,         // Apply prompt ctau cuts
             bool doSimulFit  = false,        // Do simultaneous fit
             bool wantPureSMC = false,        // Flag to indicate if we want to fit pure signal MC
-	    bool applyAccEff  = false,         // Apply weight to data for Acceptance & Eff correction
-            int  numCores    = 16,            // Number of cores used for fitting
+	          const char* applyCorr  = "",     // Apply weight to data for correction (Acceptance & Ef , l_J/psi eff...). No correction if empty variable.
+            int  numCores    = 16,           // Number of cores used for fitting
             // Select the drawing options
             bool setLogScale = true,         // Draw plot with log scale
             bool incSS       = false,        // Include Same Sign data
@@ -51,7 +51,7 @@ void fitter(
 	 |-> DataSet : Contain all the datasets (MC and Data)
   */
 
-  if (!checkSettings(fitData, fitPbPb, fitPP, incJpsi, incPsi2S, incBkg, cutCtau, doSimulFit, wantPureSMC, applyAccEff, setLogScale, zoomPsi, incSS, numCores, nBins)) { return; }
+  if (!checkSettings(fitData, fitPbPb, fitPP, incJpsi, incPsi2S, incBkg, cutCtau, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores, nBins)) { return; }
 
   map<string,string> DIR;
   if(!iniWorkEnv(DIR, workDirName)){ return; }
@@ -76,7 +76,7 @@ void fitter(
     string FILETAG = FileCollection->first;  
     string DSTAG   = FILETAG;
     if (FILETAG.size()) {
-      DSTAG.erase(DSTAG.find("_"));
+      if (doSimulFit) DSTAG.erase(DSTAG.find("_")); // if doSimulFit=true the workspace will be labeled symply as DSTAG, otherwise as DSTAG_COLL (to have PP and PbPb separated ws)
     } else {
       cout << "[ERROR] FILETAG is empty!" << endl;
     }
@@ -87,13 +87,13 @@ void fitter(
     if ( (FILETAG.find("DATA")!=std::string::npos) && fitData==true ) {
       if ( (FILETAG.find("PP")!=std::string::npos)   && !fitPP   ) continue; // If we find PP, check if the user wants PP
       if ( (FILETAG.find("PbPb")!=std::string::npos) && !fitPbPb ) continue; // If we find PbPb, check if the user wants PbPb
-      if(applyAccEff){
-	OutputFileName = DIR["dataset"] + "DATASET_" + FILETAG + "_AccEff" + ".root";
-	if(!tree2DataSet(Workspace[Form("%s_AccEff",FILETAG.c_str())], InputFileNames, Form("%s_AccEff",FILETAG.c_str()), OutputFileName)){ return; }
+      if(strcmp(applyCorr,"")){
+	      OutputFileName = DIR["dataset"] + "DATASET_" + FILETAG + "_" + string(applyCorr) + ".root";
+	      if(!tree2DataSet(Workspace[Form("%s_%s",DSTAG.c_str(),applyCorr)], InputFileNames, Form("%s_%s",FILETAG.c_str(),applyCorr), OutputFileName)){ return; }
       }
       else {
-	OutputFileName = DIR["dataset"] + "DATASET_" + FILETAG + ".root";
-	if(!tree2DataSet(Workspace[DSTAG], InputFileNames, FILETAG, OutputFileName)){ return; }
+	      OutputFileName = DIR["dataset"] + "DATASET_" + FILETAG + ".root";
+	      if(!tree2DataSet(Workspace[DSTAG], InputFileNames, FILETAG, OutputFileName)){ return; }
       }
       if (!aDSTAG->FindObject(DSTAG.c_str())) aDSTAG->Add(new TObjString(DSTAG.c_str()));
     }
@@ -179,11 +179,9 @@ void fitter(
     TObjString* soDSTAG(0x0);
     while ( (soDSTAG = static_cast<TObjString*>(nextDSTAG.Next())) )
     {
-      TString DSTAG   = static_cast<TString>(soDSTAG->GetString());
-      
-      const char* DataName = applyAccEff ? Form("%s_%s_AccEff",DSTAG.Data(),(fitPbPb?"PbPb":"PP")) : DSTAG.Data();
-      
-      if (Workspace.count(DataName)>0) {
+      TString DSTAG = static_cast<TString>(soDSTAG->GetString());
+
+      if (Workspace.count(DSTAG.Data())>0) {
         // DATA/MC datasets were loaded
         if (doSimulFit) {
           // If do simultaneous fits, then just fits once
@@ -199,7 +197,8 @@ void fitter(
                              cutCtau,         // Apply prompt ctau cuts
                              true,            // Do simultaneous fit
                              wantPureSMC,     // Flag to indicate if we want to fit pure signal MC
-			     numCores,        // Number of cores used for fitting
+                             applyCorr,       // Flag to indicate if we want corrected dataset and which correction
+			                       numCores,        // Number of cores used for fitting
                              // Select the drawing options
                              setLogScale,     // Draw plot with log scale
                              incSS,           // Include Same Sign data
@@ -213,99 +212,59 @@ void fitter(
           if ( DSTAG.Contains("MCJPSI")  ) { incJpsi = true;  incPsi2S = false; }
           if ( DSTAG.Contains("MCPSI2S") ) { incJpsi = false; incPsi2S = true;  }
 	  
-          if (fitPbPb) {
-            if (!fitCharmonia( Workspace[DataName], cutVector.at(i), parIniVector.at(i), outputDir,
-                               // Select the type of datasets to fit
-                               DataName,       //DSTAG.Data(),
-                               true,            // In this case we are fitting PbPb
-                               // Select the type of object to fit
-                               incJpsi,         // Includes Jpsi model
-                               incPsi2S,        // Includes Psi(2S) model
-                               incBkg,          // Includes Background model
-                               // Select the fitting options
-                               cutCtau,         // Apply prompt ctau cuts
-                               false,           // Do simultaneous fit
-                               false,     // Flag to indicate if we want to fit pure signal MC
-			       numCores,        // Number of cores used for fitting
-                               // Select the drawing options
-                               setLogScale,     // Draw plot with log scale
-                               incSS,           // Include Same Sign data
-                               zoomPsi,         // Zoom Psi(2S) peak on extra pad
-                               nBins,           // Number of bins used for plotting
-                               false            // Compute the mean PT (NEED TO FIX)
-                               )
+          TString wsName = "";
+          if (DSTAG.Contains("MC") && wantPureSMC) wsName = Form("%s_PureS",DSTAG.Data());
+          else if (DSTAG.Contains("DATA") && strcmp(applyCorr,"")) wsName = Form("%s_%s",DSTAG.Data(),applyCorr);
+          else wsName = DSTAG;
+          
+          if (fitPbPb && DSTAG.Contains("PbPb")) {
+            if (!fitCharmonia( Workspace[wsName.Data()], cutVector.at(i), parIniVector.at(i), outputDir,
+                              // Select the type of datasets to fit
+                              DSTAG.Data(),
+                              true,            // In this case we are fitting PbPb
+                              // Select the type of object to fit
+                              incJpsi,         // Includes Jpsi model
+                              incPsi2S,        // Includes Psi(2S) model
+                              incBkg,          // Includes Background model
+                              // Select the fitting options
+                              cutCtau,         // Apply prompt ctau cuts
+                              false,           // Do simultaneous fit
+                              (DSTAG.Contains("MC") && wantPureSMC),            // Flag to indicate if we want to fit pure signal MC
+                              applyCorr,       // Flag to indicate if we want corrected dataset and which correction
+                              numCores,        // Number of cores used for fitting
+                              // Select the drawing options
+                              setLogScale,     // Draw plot with log scale
+                              incSS,           // Include Same Sign data
+                              zoomPsi,         // Zoom Psi(2S) peak on extra pad
+                              nBins,           // Number of bins used for plotting
+                              false            // Compute the mean PT (NEED TO FIX)
+                              )
                 ) { return; }
-            if (DSTAG.Contains("MC") && wantPureSMC)
-            {
-              if (!fitCharmonia( Workspace[Form("%s_PureS",DSTAG.Data())], cutVector.at(i), parIniVector.at(i), outputDir,
-                                // Select the type of datasets to fit
-                                DSTAG.Data(),
-                                true,            // In this case we are fitting PbPb
-                                // Select the type of object to fit
-                                incJpsi,         // Includes Jpsi model
-                                incPsi2S,        // Includes Psi(2S) model
-                                incBkg,          // Includes Background model
-                                // Select the fitting options
-                                cutCtau,         // Apply prompt ctau cuts
-                                false,           // Do simultaneous fit
-                                true,            // Flag to indicate if we want to fit pure signal MC
-				 numCores,        // Number of cores used for fitting
-                                // Select the drawing options
-                                setLogScale,     // Draw plot with log scale
-                                incSS,           // Include Same Sign data
-                                zoomPsi,         // Zoom Psi(2S) peak on extra pad
-                                nBins,           // Number of bins used for plotting
-                                false            // Compute the mean PT (NEED TO FIX)
-                                )
-                  ) { return; }
-            }
+
           }
-          if (fitPP) {
-	    if (!fitCharmonia( Workspace[DataName], cutVector.at(i), parIniVector.at(i), outputDir,
-                               // Select the type of datasets to fit
-                               DataName, //DSTAG.Data(),
-                               false,           // In this case we are fitting PP
-                               // Select the type of object to fit
-                               incJpsi,         // Includes Jpsi model
-                               incPsi2S,        // Includes Psi(2S) model
-                               incBkg,          // Includes Background model
-                               // Select the fitting options
-                               cutCtau,         // Apply prompt ctau cuts
-                               false,           // Do simultaneous fit
-                               false,           // Flag to indicate if we want to fit pure signal MC
-			       numCores,        // Number of cores used for fitting
-                               // Select the drawing options
-                               setLogScale,     // Draw plot with log scale
-                               incSS,           // Include Same Sign data
-                               zoomPsi,         // Zoom Psi(2S) peak on extra pad
-                               nBins,           // Number of bins used for plotting
-                               false            // Compute the mean PT (NEED TO FIX)
-                               )
+          if (fitPP && DSTAG.Contains("PP")) {
+            if (!fitCharmonia( Workspace[wsName.Data()], cutVector.at(i), parIniVector.at(i), outputDir,
+                              // Select the type of datasets to fit
+                              DSTAG.Data(), //DSTAG.Data(),
+                              false,           // In this case we are fitting PP
+                              // Select the type of object to fit
+                              incJpsi,         // Includes Jpsi model
+                              incPsi2S,        // Includes Psi(2S) model
+                              incBkg,          // Includes Background model
+                              // Select the fitting options
+                              cutCtau,         // Apply prompt ctau cuts
+                              false,           // Do simultaneous fit
+                              (DSTAG.Contains("MC") && wantPureSMC),           // Flag to indicate if we want to fit pure signal MC
+                              applyCorr,       // Flag to indicate if we want corrected dataset and which correction
+                              numCores,        // Number of cores used for fitting
+                              // Select the drawing options
+                              setLogScale,     // Draw plot with log scale
+                              incSS,           // Include Same Sign data
+                              zoomPsi,         // Zoom Psi(2S) peak on extra pad
+                              nBins,           // Number of bins used for plotting
+                              false            // Compute the mean PT (NEED TO FIX)
+                              )
                 ) { return; }
-	    if (DSTAG.Contains("MC") && wantPureSMC)
-            {
-              if (!fitCharmonia( Workspace[Form("%s_PureS",DSTAG.Data())], cutVector.at(i), parIniVector.at(i), outputDir,
-                                // Select the type of datasets to fit
-                                DSTAG.Data(),
-                                false,           // In this case we are fitting PP
-                                // Select the type of object to fit
-                                incJpsi,         // Includes Jpsi model
-                                incPsi2S,        // Includes Psi(2S) model
-                                incBkg,          // Includes Background model
-                                // Select the fitting options
-                                cutCtau,         // Apply prompt ctau cuts
-                                false,           // Do simultaneous fit
-				true,            // Flag to indicate if we want to fit pure signal MC
-				 numCores,        // Number of cores used for fitting
-                                // Select the drawing options
-                                setLogScale,     // Draw plot with log scale
-                                incSS,           // Include Same Sign data
-                                zoomPsi,         // Zoom Psi(2S) peak on extra pad
-                                nBins,           // Number of bins used for plotting
-                                false            // Compute the mean PT (NEED TO FIX)
-                                )
-                  ) { return; }
-            }
           }
         }
       } else {
@@ -608,7 +567,7 @@ bool existDir(string dir)
 
 
 bool checkSettings(bool fitData, bool fitPbPb, bool fitPP, bool incJpsi, bool incPsi2S, bool incBkg, bool cutCtau, 
-                   bool doSimulFit, bool wantPureSMC, bool applyAccEff, bool setLogScale, bool zoomPsi, bool incSS, int numCores, int nBins)
+                   bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores, int nBins)
 { 
   cout << "[INFO] Checking user settings " << endl;
 
@@ -624,8 +583,8 @@ bool checkSettings(bool fitData, bool fitPbPb, bool fitPP, bool incJpsi, bool in
   if (fitData && wantPureSMC) {
     cout << "[WARNING] Pure signal MC will not be fitted since you have selected DATA!" << endl;
   }
-  if (!fitData && applyAccEff) {
-    cout << "[WARNING] Acceptance & Efficeincy correction only to Data, please make fitData = true" << endl; return false;
+  if (!fitData && strcmp(applyCorr,"")) {
+    cout << "[WARNING] Correction only to Data, please make fitData = true" << endl; return false;
   }
   if (wantPureSMC && (!incPsi2S && !incJpsi)) {
     cout << "[ERROR] Pure signal MC can only be fitted if at least one signal model is included, please fix your input settings!" << endl;
