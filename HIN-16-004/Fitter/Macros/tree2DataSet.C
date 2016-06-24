@@ -408,9 +408,10 @@ bool readCorrection(const char* file)
 double getCorr(Double_t rapidity, Double_t pt, Double_t mass, bool isPP)
 {
   const char* collName = "PbPb";
-  const char* massName = "Jpsi";
+  const char* massName = "Interp";
   if (isPP) collName = "PP";
-  if (mass>3.4) massName = "Psi2S";
+  if (mass>3.5) massName = "Psi2S";
+  else if (mass<3.3) massName = "Jpsi";
   
   if (!fcorrArray)
   {
@@ -418,16 +419,39 @@ double getCorr(Double_t rapidity, Double_t pt, Double_t mass, bool isPP)
     return 0;
   }
 
-  TH2* corrHisto = static_cast<TH2*>(fcorrArray->FindObject(Form("hcorr_%s_%s",massName,collName)));
-  if (!corrHisto)
+  Double_t corr = 1.;
+  if (!strcmp(massName,"Interp"))
   {
-    std::cout << "[Error] No histogram provided for correction of " << collName << " " << massName << ". Weight set to 1." << std::endl;
-    return 1.;
+    TH2* corrHistoJpsi = static_cast<TH2*>(fcorrArray->FindObject(Form("hcorr_Jpsi_%s",collName)));
+    TH2* corrHistoPsi2S = static_cast<TH2*>(fcorrArray->FindObject(Form("hcorr_Psi2S_%s",collName)));
+    if (!corrHistoJpsi || !corrHistoPsi2S)
+    {
+      std::cout << "[Error] No histogram provided for correction of " << collName << " " << massName << ". Weight set to 1." << std::endl;
+      return 1.;
+    }
+    
+    Int_t binJpsi = corrHistoJpsi->FindBin(fabs(rapidity), pt);
+    Double_t corrJpsi = corrHistoJpsi->GetBinContent(binJpsi);
+    
+    Int_t binPsi2S = corrHistoPsi2S->FindBin(fabs(rapidity), pt);
+    Double_t corrPsi2S = corrHistoPsi2S->GetBinContent(binPsi2S);
+    
+    corr = ((corrJpsi + corrPsi2S)/(3.5-3.3))*(mass-3.3) + corrJpsi;
+    
   }
-  
-  Int_t bin = corrHisto->FindBin(fabs(rapidity), pt);
-  Double_t corr = corrHisto->GetBinContent(bin);
+  else
+  {
+    TH2* corrHisto = static_cast<TH2*>(fcorrArray->FindObject(Form("hcorr_%s_%s",massName,collName)));
+    if (!corrHisto)
+    {
+      std::cout << "[Error] No histogram provided for correction of " << collName << " " << massName << ". Weight set to 1." << std::endl;
+      return 1.;
+    }
+    
+    Int_t bin = corrHisto->FindBin(fabs(rapidity), pt);
+    corr = corrHisto->GetBinContent(bin);
+  }
   if(corr<0.00001) corr=1.0;
-
+  
   return corr;
 }
