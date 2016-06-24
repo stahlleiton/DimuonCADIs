@@ -89,7 +89,7 @@ void fitter(
       if ( (FILETAG.find("PbPb")!=std::string::npos) && !fitPbPb ) continue; // If we find PbPb, check if the user wants PbPb
       if(strcmp(applyCorr,"")){
 	      OutputFileName = DIR["dataset"] + "DATASET_" + FILETAG + "_" + string(applyCorr) + ".root";
-	      if(!tree2DataSet(Workspace[Form("%s_%s",DSTAG.c_str(),applyCorr)], InputFileNames, Form("%s_%s",FILETAG.c_str(),applyCorr), OutputFileName)){ return; }
+	      if(!tree2DataSet(Workspace[Form("%s_%s",DSTAG.c_str(),applyCorr)], InputFileNames, FILETAG, OutputFileName)){ return; }
       }
       else {
 	      OutputFileName = DIR["dataset"] + "DATASET_" + FILETAG + ".root";
@@ -181,11 +181,16 @@ void fitter(
     {
       TString DSTAG = static_cast<TString>(soDSTAG->GetString());
 
-      if (Workspace.count(DSTAG.Data())>0) {
+      TString wsName = "";
+      if (DSTAG.Contains("MC") && wantPureSMC) wsName = Form("%s_PureS",DSTAG.Data());
+      else if (DSTAG.Contains("DATA") && strcmp(applyCorr,"")) wsName = Form("%s_%s",DSTAG.Data(),applyCorr);
+      else wsName = DSTAG;
+      
+      if (Workspace.count(wsName.Data())>0) {
         // DATA/MC datasets were loaded
         if (doSimulFit) {
           // If do simultaneous fits, then just fits once
-          if (!fitCharmonia( Workspace[DSTAG.Data()], cutVector.at(i), parIniVector.at(i), outputDir,
+          if (!fitCharmonia( Workspace[wsName.Data()], cutVector.at(i), parIniVector.at(i), outputDir,
                              // Select the type of datasets to fit
                              DSTAG.Data(),
                              false,           // dummy flag when fitting simultaneously since both PP and PbPb are used
@@ -211,11 +216,6 @@ void fitter(
           // If don't want simultaneous fits, then fit PbPb or PP separately
           if ( DSTAG.Contains("MCJPSI")  ) { incJpsi = true;  incPsi2S = false; }
           if ( DSTAG.Contains("MCPSI2S") ) { incJpsi = false; incPsi2S = true;  }
-	  
-          TString wsName = "";
-          if (DSTAG.Contains("MC") && wantPureSMC) wsName = Form("%s_PureS",DSTAG.Data());
-          else if (DSTAG.Contains("DATA") && strcmp(applyCorr,"")) wsName = Form("%s_%s",DSTAG.Data(),applyCorr);
-          else wsName = DSTAG;
           
           if (fitPbPb && DSTAG.Contains("PbPb")) {
             if (!fitCharmonia( Workspace[wsName.Data()], cutVector.at(i), parIniVector.at(i), outputDir,
@@ -268,7 +268,7 @@ void fitter(
           }
         }
       } else {
-        cout << "[ERROR] The workspace for " << DSTAG.Data() << " was not found!" << endl; return;
+        cout << "[ERROR] The workspace for " << wsName.Data() << " was not found!" << endl; return;
       }  
     }
   }

@@ -46,7 +46,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
     TString corrName = "";
     if (plotLabel.find("AccEff")!=std::string::npos) corrName = "AccEff";
     else if (plotLabel.find("_lJpsiEff")!=std::string::npos) corrName = "lJpsiEff";
-    dsOSName = Form("dOS_%s_%s", DSTAG.c_str(),corrName.Data());
+    dsOSName = Form("dOS_%s_%s_%s", DSTAG.c_str(),(isPbPb?"PbPb":"PP"),corrName.Data());
   }
 //  if(applyWeight_Corr) dsSSName = Form("dSS_%s", DSTAG.c_str());
 

@@ -405,8 +405,8 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut,
   }  
   myws.import(*dataOS);
   delete dataOS;
-
-  if (label.find("NoBkg")==std::string::npos) // Don't try to find SS dataset if label contais NoBkg
+  
+  if (label.find("NoBkg")==std::string::npos && label.find("AccEff")==std::string::npos && label.find("lJpsiEff")==std::string::npos) // Don't try to find SS dataset if label contais NoBkg or correction
   {
     if (!(inputWS.data(Form("dSS_%s", label.c_str())))){
       cout << "[ERROR] The dataset " <<  Form("dSS_%s", label.c_str()) << " was not found!" << endl;

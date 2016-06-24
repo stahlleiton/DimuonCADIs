@@ -57,6 +57,19 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
   if ( (OutputFileName.find("_AccEff")!=std::string::npos) || (OutputFileName.find("_lJpsiEff")!=std::string::npos) ) applyWeight_Corr = true;
   if(applyWeight == true) applyWeight_Corr = false;
   
+  TString corrName = "";
+  TString corrFileName = "";
+  if (OutputFileName.find("_AccEff")!=std::string::npos)
+  {
+    corrFileName = "correction_AccEff.root";
+    corrName = "AccEff";
+  }
+  else if (OutputFileName.find("_lJpsiEff")!=std::string::npos)
+  {
+    corrFileName = "correction_lJpsiEff.root";
+    corrName = "lJpsiEff";
+  }
+  
   if (gSystem->AccessPathName(OutputFileName.c_str()) || UpdateDS) {
     cout << "[INFO] Creating " << (isPureSDataset ? "pure signal " : "") << "RooDataSet for " << DSName << endl;
     TreeName = findMyTree(InputFileNames[0]); if(TreeName==""){return false;}
@@ -87,18 +100,6 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     else if (applyWeight_Corr)
     {
       cols   = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent, *weightCorr);
-      TString corrName = "";
-      TString corrFileName = "";
-      if (OutputFileName.find("_AccEff")!=std::string::npos)
-      {
-        corrFileName = "correction_AccEff.root";
-        corrName = "AccEff";
-      }
-      else if (OutputFileName.find("_lJpsiEff")!=std::string::npos)
-      {
-        corrFileName = "correction_lJpsiEff.root";
-        corrName = "lJpsiEff";
-      }
       if (!readCorrection(Form("%s/Input/%s",gSystem->ExpandPathName(gSystem->pwd()),corrFileName.Data()))){ return false; }
       dataOS = new RooDataSet(Form("dOS_%s_%s", DSName.c_str(),corrName.Data()), "dOS", *cols, WeightVar(*weightCorr), StoreAsymError(*mass));
       //      dataSS = new RooDataSet(Form("dSS_%s", DSName.c_str()), "dSS", *cols, WeightVar(*weightCorr), StoreAsymError(*mass));
@@ -184,7 +185,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     TFile *DBFile = TFile::Open(OutputFileName.c_str(),"RECREATE");
     DBFile->cd();
     if (isMC && isPureSDataset) dataOSNoBkg->Write(Form("dOS_%s_NoBkg", DSName.c_str()));
-    else if (applyWeight_Corr) dataOS->Write(Form("dOS_%s_Corr", DSName.c_str()));
+    else if (applyWeight_Corr) dataOS->Write(Form("dOS_%s_%s", DSName.c_str(),corrName.Data()));
     else
     {
       dataOS->Write(Form("dOS_%s", DSName.c_str()));
@@ -198,7 +199,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     
     TFile *DBFile = TFile::Open(OutputFileName.c_str(),"READ");
     if (isMC && isPureSDataset) dataOSNoBkg = (RooDataSet*)DBFile->Get(Form("dOS_%s_NoBkg", DSName.c_str()));
-    else if (applyWeight_Corr) dataOS = (RooDataSet*)DBFile->Get(Form("dOS_%s_Corr", DSName.c_str()));
+    else if (applyWeight_Corr) dataOS = (RooDataSet*)DBFile->Get(Form("dOS_%s_%s", DSName.c_str(),corrName.Data()));
     else
     {
       dataOS = (RooDataSet*)DBFile->Get(Form("dOS_%s", DSName.c_str()));
@@ -215,7 +216,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
   }
   else if (applyWeight_Corr)
   {
-    if(!dataOS) { cout << "[ERROR] " << DSName << "_Corr was not found" << endl; return false; }
+    if(!dataOS) { cout << "[ERROR] " << DSName << "_" << corrName.Data() << " was not found" << endl; return false; }
     Workspace.import(*dataOS);
   }
   else
