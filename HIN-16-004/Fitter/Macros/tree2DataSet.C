@@ -155,7 +155,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         {
           double Corr = getCorr(RecoQQ4mom->Rapidity(),RecoQQ4mom->Pt(),RecoQQ4mom->M(),isPP);
           double wCorr = 1/Corr;
-          weight->setVal(wCorr);
+          weightCorr->setVal(wCorr);
         }
         
         if (
@@ -166,12 +166,12 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         {
           if (Reco_QQ_sign[iQQ]==0) { // Opposite-Sign dimuons
             if (isMC && isPureSDataset && isMatchedRecoDiMuon(iQQ)) dataOSNoBkg->add(*cols, (applyWeight ? weight->getVal() : 1.0)); // Signal-only dimuons
-            else
-              dataOS->add(*cols, ( (applyWeight || applyWeight_Corr) ? weight->getVal() : 1.0)); //Signal and background dimuons
+            else if (applyWeight_Corr) dataOS->add(*cols,weightCorr->getVal()); //Signal and background dimuons
+            else dataOS->add(*cols, ( applyWeight ? weight->getVal() : 1.0)); //Signal and background dimuons
             
           }
           else { // Like-Sign dimuons
-            if (!isPureSDataset) dataSS->add(*cols, ( (applyWeight || applyWeight_Corr) ? weight->getVal() : 1.0));
+            if (!isPureSDataset && !applyWeight_Corr) dataSS->add(*cols, ( applyWeight  ? weight->getVal() : 1.0));
           }
         }
       }
@@ -398,7 +398,7 @@ bool readCorrection(const char* file)
     return false;
   }
   delete lcorr;
-  froot->Close(); delete froot;
+//  froot->Close(); delete froot;
   
   return true;
 }
@@ -410,6 +410,12 @@ double getCorr(Double_t rapidity, Double_t pt, Double_t mass, bool isPP)
   const char* massName = "Jpsi";
   if (isPP) collName = "PP";
   if (mass>3.4) massName = "Psi2S";
+  
+  if (!fcorrArray)
+  {
+    cout << "[ERROR] No correction array exist" << endl;
+    return 0;
+  }
 
   TH2* corrHisto = static_cast<TH2*>(fcorrArray->FindObject(Form("hcorr_%s_%s",massName,collName)));
   if (!corrHisto)
