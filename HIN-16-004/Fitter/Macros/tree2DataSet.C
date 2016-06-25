@@ -436,7 +436,7 @@ double getCorr(Double_t rapidity, Double_t pt, Double_t mass, bool isPP)
     Int_t binPsi2S = corrHistoPsi2S->FindBin(fabs(rapidity), pt);
     Double_t corrPsi2S = corrHistoPsi2S->GetBinContent(binPsi2S);
     
-    corr = ((corrJpsi + corrPsi2S)/(3.5-3.3))*(mass-3.3) + corrJpsi;
+    corr = ((corrPsi2S - corrJpsi)/(3.5-3.3))*(mass-3.3) + corrJpsi;
     
   }
   else
