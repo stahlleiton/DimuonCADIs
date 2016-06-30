@@ -284,9 +284,9 @@ TString treeFileName(const char* workDirName, const char* DSTag, const char* pre
    return outputFileName;
 }
 
-double poiFromBin(const char* workDirName, const char* theCollSystem, const char* thepoiname, anabin thebin, const char* DSTag="DATA", const char* prependPath="") {
+double poiFromBin(const char* workDirName, const char* theCollSystem, const char* thepoiname, anabin thebin, const char* DSTag, const char* prependPath) {
    TString tfname = treeFileName(workDirName, DSTag, prependPath);
-   TFile *f = TFile::Open(treeFileName(tfname));
+   TFile *f = TFile::Open(tfname);
    if (!f || !f->IsOpen()) {
       // results2tree(workDirName,DSTag,prependPath);
       // f = new TFile(treeFileName(tfname);
@@ -296,7 +296,7 @@ double poiFromBin(const char* workDirName, const char* theCollSystem, const char
    if (!tr) return -1e99;
 
    // fix centrality for pp
-   if (TString(theCollSystem) == "PP") thebin.centbin() = binI(0,200);
+   if (TString(theCollSystem) == "PP") thebin.setcentbin(binI(0,200));
 
    float ptmin, ptmax, ymin, ymax, centmin, centmax;
    float val=-999.;
@@ -319,9 +319,9 @@ double poiFromBin(const char* workDirName, const char* theCollSystem, const char
    return val;
 }
 
-double poiErrFromBin(const char* workDirName, const char* theCollSystem, const char* thepoiname, anabin thebin, const char* DSTag="DATA", const char* prependPath="") {
+double poiErrFromBin(const char* workDirName, const char* theCollSystem, const char* thepoiname, anabin thebin, const char* DSTag, const char* prependPath) {
    TString tfname = treeFileName(workDirName, DSTag, prependPath);
-   TFile *f = TFile::Open(treeFileName(tfname));
+   TFile *f = TFile::Open(tfname);
    if (!f || !f->IsOpen()) {
       // results2tree(workDirName,DSTag,prependPath);
       // f = new TFile(treeFileName(tfname);
@@ -331,7 +331,7 @@ double poiErrFromBin(const char* workDirName, const char* theCollSystem, const c
    if (!tr) return -1e99;
 
    // fix centrality for pp
-   if (TString(theCollSystem) == "PP") thebin.centbin() = binI(0,200);
+   if (TString(theCollSystem) == "PP") thebin.setcentbin(binI(0,200));
 
    float ptmin, ptmax, ymin, ymax, centmin, centmax;
    float err=0;

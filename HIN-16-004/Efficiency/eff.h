@@ -41,8 +41,8 @@ double ljpsieff(const char* part, const char* collSystem, anabin thebin, const c
    }
 
    double xval = 0.1 + (iscent ? thebin.centbin().low() : thebin.ptbin().low());
-   double numval = hnum->GetBinContent(hnum->FindBin(numval));
-   double denval = hden->GetBinContent(hden->FindBin(denval));
+   double numval = hnum->GetBinContent(hnum->FindBin(xval));
+   double denval = hden->GetBinContent(hden->FindBin(xval));
    double eff = numval / denval;
    f->Close(); delete f;
    return eff;

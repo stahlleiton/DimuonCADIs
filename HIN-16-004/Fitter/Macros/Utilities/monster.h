@@ -26,10 +26,10 @@ double doubleratio_pass(const double *xx);
 double doubleratio_prompt(const double *xx);
 double doubleratio_prompt(RooWorkspace *w, RooArgList vars);
 
-double doubleratio_pass_nominal(const char* workDir, anabin thebin, const char* prependPath);
-double doubleratio_pass_stat(const char* workDir, anabin thebin, const char* prependPath);
-double doubleratio_prompt_nominal(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath);
-double doubleratio_prompt_stat(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath);
+double doubleratio_pass_nominal(const char* workDir, anabin thebin, const char* prependPath="");
+double doubleratio_pass_stat(const char* workDir, anabin thebin, const char* prependPath="");
+double doubleratio_prompt_nominal(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="");
+double doubleratio_prompt_stat(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="");
 
 // simple function for quadratic sum
 double quadratic_sum(vector<double> v) {
@@ -62,8 +62,8 @@ double uncert(double (*f)(const double *xx), const double *val, const double *er
 
 // double ratio
 double doubleratio_pass(const double *xx) {
-   // if one the inputs is zero, exit immediately
-   for (int i=0; i<npar_pass; i++) if (fabs(xx[i])<1e-9) return -99;
+   // if one the inputs is zero (except the alphas), exit immediately
+   for (int i=0; i<4; i++) if (fabs(xx[i])<1e-9) return -99;
 
    int i=0;
    // yields from data
@@ -77,8 +77,8 @@ double doubleratio_pass(const double *xx) {
    double alpha_fitpbpb = xx[i]; i++;
    double alpha_Bhad_add = xx[i]; i++;
 
-   double rfrac_pbpb_pass_syst = rfrac_pbpb_pass_syst + alpha_fitpbpb;
-   double rfrac_pp_pass_syst = rfrac_pp_pass_syst + alpha_fitpp;
+   double rfrac_pbpb_pass_syst = rfrac_pbpb_pass + alpha_fitpbpb;
+   double rfrac_pp_pass_syst = rfrac_pp_pass + alpha_fitpp;
 
    double npsip_pbpb_pass = rfrac_pbpb_pass_syst * njpsi_pbpb_pass;
    double npsip_pp_pass = rfrac_pp_pass_syst * njpsi_pp_pass;
@@ -90,8 +90,8 @@ double doubleratio_pass(const double *xx) {
 
 // T H E   M O N S T E R   F U N C T I O N
 double doubleratio_prompt(const double *xx) {
-   // if one the inputs is zero, exit immediately
-   for (int i=0; i<npar_prompt; i++) if (fabs(xx[i])<1e-9) return -99;
+   // if one the inputs is zero (except the alphas), exit immediately
+   for (int i=0; i<11; i++) if (fabs(xx[i])<1e-9) return -99;
 
    int i=0;
    // yields from data
@@ -145,15 +145,14 @@ double doubleratio_prompt(const double *xx) {
    double fpass_jpsi_pp = njpsi_pp_pass/(njpsi_pp_pass+njpsi_pp_fail);
    double fpass_psip_pp = npsip_pp_pass/(npsip_pp_pass+npsip_pp_fail);
 
-   double fP_jpsi_pbpb = (effjpsi_pbpb_P_syst - fpass_jpsi_pbpb) / (effjpsi_pbpb_P_syst - effjpsi_pbpb_NP_syst);
-   double fP_psip_pbpb = (effpsip_pbpb_P_syst - fpass_psip_pbpb) / (effpsip_pbpb_P_syst - effpsip_pbpb_NP_syst);
-   double fP_jpsi_pp = (effjpsi_pp_P_syst - fpass_jpsi_pp) / (effjpsi_pp_P_syst - effjpsi_pp_NP_syst);
-   double fP_psip_pp = (effpsip_pp_P_syst - fpass_psip_pp) / (effpsip_pp_P_syst - effpsip_pp_NP_syst);
+   double fP_jpsi_pbpb = (fpass_jpsi_pbpb - effjpsi_pbpb_NP_syst) / (effjpsi_pbpb_P_syst - effjpsi_pbpb_NP_syst);
+   double fP_psip_pbpb = (fpass_psip_pbpb - effpsip_pbpb_NP_syst) / (effpsip_pbpb_P_syst - effpsip_pbpb_NP_syst);
+   double fP_jpsi_pp = (fpass_jpsi_pp - effjpsi_pp_NP_syst) / (effjpsi_pp_P_syst - effjpsi_pp_NP_syst);
+   double fP_psip_pp = (fpass_psip_pp - effpsip_pp_NP_syst) / (effpsip_pp_P_syst - effpsip_pp_NP_syst);
 
    double DR_fP = (fP_psip_pbpb / fP_jpsi_pbpb) / (fP_psip_pp / fP_jpsi_pp);
 
    double DR_P = DR_I * DR_fP * alpha_effDR;
-   cout << DR_P << " " << DR_I << " " << DR_fP << endl;
    return DR_P;
 }
 
@@ -212,10 +211,10 @@ double doubleratio_prompt(RooWorkspace *w, RooArgList vars) {
    RooFormulaVar *fpass_jpsi_pp = new RooFormulaVar("fpass_jpsi_pp","fpass_jpsi_pp","@0/(@0+@1)",RooArgList(*njpsi_pp_pass,*njpsi_pp_fail));
    RooFormulaVar *fpass_psip_pp = new RooFormulaVar("fpass_psip_pp","fpass_psip_pp","@0/(@0+@1)",RooArgList(*npsip_pp_pass,*npsip_pp_fail));
 
-   RooFormulaVar *fP_jpsi_pbpb = new RooFormulaVar("fP_jpsi_pbpb","fP_jpsi_pbpb","(@0-@1)/(@0-@2)",RooArgList(*effjpsi_pbpb_P_syst,*fpass_jpsi_pbpb,*effjpsi_pbpb_NP_syst));
+   RooFormulaVar *fP_jpsi_pbpb = new RooFormulaVar("fP_jpsi_pbpb","fP_jpsi_pbpb","(@1-@2)/(@0-@2)",RooArgList(*effjpsi_pbpb_P_syst,*fpass_jpsi_pbpb,*effjpsi_pbpb_NP_syst));
    // RooFormulaVar *fP_psip_pbpb = new RooFormulaVar("fP_psip_pbpb","fP_psip_pbpb","(@0-@1)/(@0-@2)",RooArgList(*effpsip_pbpb_P_syst,*fpass_psip_pbpb,*effpsip_pbpb_NP_syst));
-   RooFormulaVar *fP_jpsi_pp = new RooFormulaVar("fP_jpsi_pp","fP_jpsi_pp","(@0-@1)/(@0-@2)",RooArgList(*effjpsi_pp_P_syst,*fpass_jpsi_pp,*effjpsi_pp_NP_syst));
-   RooFormulaVar *fP_psip_pp = new RooFormulaVar("fP_psip_pp","fP_psip_pp","(@0-@1)/(@0-@2)",RooArgList(*effpsip_pp_P_syst,*fpass_psip_pp,*effpsip_pp_NP_syst));
+   RooFormulaVar *fP_jpsi_pp = new RooFormulaVar("fP_jpsi_pp","fP_jpsi_pp","(@1-@2)/(@0-@2)",RooArgList(*effjpsi_pp_P_syst,*fpass_jpsi_pp,*effjpsi_pp_NP_syst));
+   RooFormulaVar *fP_psip_pp = new RooFormulaVar("fP_psip_pp","fP_psip_pp","(@1-@2)/(@0-@2)",RooArgList(*effpsip_pp_P_syst,*fpass_psip_pp,*effpsip_pp_NP_syst));
 
    // RooFormulaVar *DR_fP = new RooFormulaVar("DR_fP","DR_fP","(@0/@1)/(@2/@3)",RooArgList(*fP_psip_pbpb,*fP_jpsi_pbpb,*fP_psip_pp,*fP_jpsi_pp));
 
@@ -233,9 +232,9 @@ double doubleratio_prompt(RooWorkspace *w, RooArgList vars) {
 }
 
 double doubleratio_pass_nominal(const char* workDir, anabin thebin, const char* prependPath) {
-   double njpsi_pbpb_pass = poiFromBin(workDir, "PbPb", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pbpb_pass = poiFromBin(workDir, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pbpb_pass = poiFromBin(workDir, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pp_pass = poiFromBin(workDir, "PP", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pp_pass = poiFromBin(workDir, "PP", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pp_pass = poiFromBin(workDir, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
 
    double *xx = new double[npar_pass];
@@ -251,14 +250,14 @@ double doubleratio_pass_nominal(const char* workDir, anabin thebin, const char* 
 }
 
 double doubleratio_pass_stat(const char* workDir, anabin thebin, const char* prependPath) {
-   double njpsi_pbpb_pass = poiFromBin(workDir, "PbPb", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pbpb_pass = poiFromBin(workDir, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pbpb_pass = poiFromBin(workDir, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pp_pass = poiFromBin(workDir, "PP", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pp_pass = poiFromBin(workDir, "PP", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pp_pass = poiFromBin(workDir, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
 
-   double njpsi_pbpb_pass_err = poiErrFromBin(workDir, "PbPb", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pbpb_pass_err = poiErrFromBin(workDir, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pbpb_pass_err = poiErrFromBin(workDir, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pp_pass_err = poiErrFromBin(workDir, "PP", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pp_pass_err = poiErrFromBin(workDir, "PP", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pp_pass_err = poiErrFromBin(workDir, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
 
    double *xx = new double[npar_pass];
@@ -276,13 +275,13 @@ double doubleratio_pass_stat(const char* workDir, anabin thebin, const char* pre
 }
 
 double doubleratio_prompt_nominal(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath) {
-   double njpsi_pbpb_pass = poiFromBin(workDir_pass, "PbPb", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pbpb_pass = poiFromBin(workDir_pass, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pbpb_pass = poiFromBin(workDir_pass, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pp_pass = poiFromBin(workDir_pass, "PP", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pp_pass = poiFromBin(workDir_pass, "PP", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pp_pass = poiFromBin(workDir_pass, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pbpb_fail = poiFromBin(workDir_fail, "PbPb", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pbpb_fail = poiFromBin(workDir_fail, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pbpb_fail = poiFromBin(workDir_fail, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pp_fail = poiFromBin(workDir_fail, "PP", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pp_fail = poiFromBin(workDir_fail, "PP", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pp_fail = poiFromBin(workDir_fail, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
 
    TString prependPathForEff("../Efficiency"); if (TString(prependPath) != "") prependPathForEff = TString(prependPath) + "/" + prependPathForEff;
@@ -310,22 +309,22 @@ double doubleratio_prompt_nominal(const char* workDir_pass, const char* workDir_
 }
 
 double doubleratio_prompt_stat(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath) {
-   double njpsi_pbpb_pass = poiFromBin(workDir_pass, "PbPb", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pbpb_pass = poiFromBin(workDir_pass, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pbpb_pass = poiFromBin(workDir_pass, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pp_pass = poiFromBin(workDir_pass, "PP", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pp_pass = poiFromBin(workDir_pass, "PP", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pp_pass = poiFromBin(workDir_pass, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pbpb_fail = poiFromBin(workDir_fail, "PbPb", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pbpb_fail = poiFromBin(workDir_fail, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pbpb_fail = poiFromBin(workDir_fail, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pp_fail = poiFromBin(workDir_fail, "PP", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pp_fail = poiFromBin(workDir_fail, "PP", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pp_fail = poiFromBin(workDir_fail, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
 
-   double njpsi_pbpb_pass_err = poiErrFromBin(workDir_pass, "PbPb", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pbpb_pass_err = poiErrFromBin(workDir_pass, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pbpb_pass_err = poiErrFromBin(workDir_pass, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pp_pass_err = poiErrFromBin(workDir_pass, "PP", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pp_pass_err = poiErrFromBin(workDir_pass, "PP", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pp_pass_err = poiErrFromBin(workDir_pass, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pbpb_fail_err = poiErrFromBin(workDir_fail, "PbPb", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pbpb_fail_err = poiErrFromBin(workDir_fail, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pbpb_fail_err = poiErrFromBin(workDir_fail, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pp_fail_err = poiErrFromBin(workDir_fail, "PP", "NJpsi", thebin, "DATA", prependPath);
+   double njpsi_pp_fail_err = poiErrFromBin(workDir_fail, "PP", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pp_fail_err = poiErrFromBin(workDir_fail, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
 
    TString prependPathForEff("../Efficiency"); if (TString(prependPath) != "") prependPathForEff = TString(prependPath) + "/" + prependPathForEff;
@@ -334,7 +333,7 @@ double doubleratio_prompt_stat(const char* workDir_pass, const char* workDir_fai
    double effjpsi_pp_NP = ljpsieff("npjpsi","pp",thebin,prependPathForEff);
 
    double *xx = new double[npar_prompt];
-   double *err = new double[npar_pass];
+   double *err = new double[npar_prompt];
    int i=0;
    xx[i] = njpsi_pbpb_pass; err[i] = njpsi_pbpb_pass_err; i++;
    xx[i] = rfrac_pbpb_pass; err[i] = rfrac_pbpb_pass_err; i++;
