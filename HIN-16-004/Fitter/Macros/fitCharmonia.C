@@ -203,7 +203,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
 
         bool isWeighted = myws.data(dsName.c_str())->isWeighted();
 
-        if (incPsi2S && ! incJpsi) {
+        if (incPsi2S && ! incJpsi && !isMC) {
           string outDir = "/home/llr/cms/stahl/DimuonCADIs/HIN-16-004/Fitter/Output/BkgStudyCheb_ptCtauCut_JPSIONLY_Alpha_n_rSigmaPbPb_Jpsifixed/";
           string plotLabel = Form("_Jpsi_%s", parIni["Model_Psi2S_PbPb"].c_str()); 
           plotLabel = plotLabel + Form("_Bkg_%s", parIni["Model_Bkg_PbPb"].c_str());
@@ -252,7 +252,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace, // Workspace with all the inpu
         
         bool isWeighted = myws.data(dsName.c_str())->isWeighted();
         
-        if (incPsi2S && ! incJpsi) {
+        if (incPsi2S && ! incJpsi && !isMC) {
           string outDir = "/home/llr/cms/stahl/DimuonCADIs/HIN-16-004/Fitter/Output/BkgStudyCheb_ptCtauCut_JPSIONLY_Alpha_n_rSigmaPbPb_Jpsifixed/";
           string plotLabel = Form("_Jpsi_%s", parIni["Model_Psi2S_PP"].c_str()); 
           plotLabel = plotLabel + Form("_Bkg_%s", parIni["Model_Bkg_PP"].c_str());
@@ -476,7 +476,7 @@ void setOptions(struct InputOpt* opt)
 
 bool isFitAlreadyFound(RooArgSet *newpars, string outputDir, string plotLabel, string TAG, struct KinCuts cut, bool isPbPb, bool doSimulFit) {
   string FileName = "";
-  TAG.erase(TAG.find("_"));
+  if (TAG.find("_")!=std::string::npos) TAG.erase(TAG.find("_"));
   if (doSimulFit) {
    FileName = Form("%sresult/%s/FIT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), TAG.c_str(), TAG.c_str(), "Psi2SJpsi", "COMB", plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
   } else {
@@ -527,7 +527,7 @@ bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2) {
 bool loadPreviousFitResult(RooWorkspace& myws, string outputDir, string plotLabel, string DSTAG, struct KinCuts cut, bool isPbPb, bool doSimulFit)
 {
   string FileName = "";
-  DSTAG.erase(DSTAG.find("_"));
+  if (DSTAG.find("_")!=std::string::npos) DSTAG.erase(DSTAG.find("_"));
   if (doSimulFit) {
     FileName = Form("%sresult/%s/FIT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), DSTAG.c_str(), DSTAG.c_str(), "Psi2SJpsi", "COMB", plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
   } else {

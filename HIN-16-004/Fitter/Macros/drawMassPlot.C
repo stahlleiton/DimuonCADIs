@@ -37,7 +37,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
   if ( (plotLabel.find("AccEff")!=std::string::npos) || (plotLabel.find("_lJpsiEff")!=std::string::npos) ) applyWeight_Corr = true;
   else applyWeight_Corr = false;
   
-  DSTAG.erase(DSTAG.find("_"));
+  if (DSTAG.find("_")!=std::string::npos) DSTAG.erase(DSTAG.find("_"));
   
   string dsOSName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   string dsSSName = Form("dSS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));

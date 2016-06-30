@@ -94,7 +94,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
       setCentralityMap(Form("%s/Input/CentralityMap_PbPb2015.txt",gSystem->ExpandPathName(gSystem->pwd())));
       cols   = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent, *weight);
       dataOS = new RooDataSet(Form("dOS_%s", DSName.c_str()), "dOS", *cols, WeightVar(*weight), StoreAsymError(*mass));
-//      dataSS = new RooDataSet(Form("dSS_%s", DSName.c_str()), "dSS", *cols, WeightVar(*weight), StoreAsymError(*mass));
+      dataSS = new RooDataSet(Form("dSS_%s", DSName.c_str()), "dSS", *cols, WeightVar(*weight), StoreAsymError(*mass));
       if (isPureSDataset) dataOSNoBkg = new RooDataSet(Form("dOS_%s_NoBkg", DSName.c_str()), "dOSNoBkg", *cols, WeightVar(*weight), StoreAsymError(*mass));
     }
     else if (applyWeight_Corr)
@@ -172,7 +172,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
             
           }
           else { // Like-Sign dimuons
-            if (!isPureSDataset && !applyWeight_Corr) dataSS->add(*cols, ( applyWeight  ? weight->getVal() : 1.0));
+            if (!isPureSDataset && !applyWeight_Corr ) dataSS->add(*cols, ( applyWeight  ? weight->getVal() : 1.0));
           }
         }
       }
