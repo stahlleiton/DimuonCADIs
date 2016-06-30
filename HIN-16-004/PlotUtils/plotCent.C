@@ -19,8 +19,8 @@ void plotCent(const char* filename="histos.root") {
 
    TH1F *hCentrality_mid = (TH1F*) f->Get("hCentrality_mid");
    TH1F *hCentrality_fwd = (TH1F*) f->Get("hCentrality_fwd");
-   TH1F *hNpart_mid = (TH1F*) f->Get("hNpart_mid");
-   TH1F *hNpart_fwd = (TH1F*) f->Get("hNpart_fwd");
+   TH1F *hNpart_mid = (TH1F*) f->Get("hdNpart_mid");
+   TH1F *hNpart_fwd = (TH1F*) f->Get("hdNpart_fwd");
 
    TCanvas *c1 = new TCanvas();
    hCentrality_mid->GetXaxis()->SetTitle("Centrality percentile (%)");
