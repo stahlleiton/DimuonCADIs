@@ -175,6 +175,16 @@ double doubleratio_monster(const double *xx, bool isprompt) {
       double ffail_jpsi_pp = njpsi_pp_fail/(njpsi_pp_fail+njpsi_pp_pass);
       double ffail_psip_pp = npsip_pp_fail/(npsip_pp_fail+npsip_pp_pass);
 
+      // revert efficiencies
+      effjpsi_pbpb_P_syst = 1. - effjpsi_pbpb_P_syst;
+      effjpsi_pbpb_NP_syst = 1. - effjpsi_pbpb_NP_syst;
+      effpsip_pbpb_P_syst = 1. - effpsip_pbpb_P_syst;
+      effpsip_pbpb_NP_syst = 1. - effpsip_pbpb_NP_syst;
+      effjpsi_pp_P_syst = 1. - effjpsi_pp_P_syst;
+      effjpsi_pp_NP_syst = 1. - effjpsi_pp_NP_syst;
+      effpsip_pp_P_syst = 1. - effpsip_pp_P_syst;
+      effpsip_pp_NP_syst = 1. - effpsip_pp_NP_syst;
+
       double fNP_jpsi_pbpb = (ffail_jpsi_pbpb - effjpsi_pbpb_P_syst) / (effjpsi_pbpb_NP_syst - effjpsi_pbpb_P_syst);
       double fNP_psip_pbpb = (ffail_psip_pbpb - effpsip_pbpb_P_syst) / (effpsip_pbpb_NP_syst - effpsip_pbpb_P_syst);
       double fNP_jpsi_pp = (ffail_jpsi_pp - effjpsi_pp_P_syst) / (effjpsi_pp_NP_syst - effjpsi_pp_P_syst);
