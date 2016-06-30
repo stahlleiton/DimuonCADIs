@@ -51,6 +51,15 @@ TGraphAsymmErrors* result12007_fwd();
 TGraphAsymmErrors* result12007_mid_syst();
 TGraphAsymmErrors* result12007_fwd_syst();
 
+void results2tree(
+      const char* workDirName, 
+      const char* DSTag="DATA", // Data Set tag can be: "DATA","MCPSI2SP", "MCJPSIP" ...
+      const char* prependPath="",
+      const char* thePoiNames="RFrac2Svs1S,N_Jpsi,N_Psi2S,N_Psi2S_intpl,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg",
+      bool wantPureSMC=false
+      );
+#include "../../results2tree.C"
+
 RooRealVar* poiFromFile(const char* filename, const char* token, const char* thepoiname) {
    TFile *f = TFile::Open(filename);
    if (!f) {
@@ -288,8 +297,8 @@ double poiFromBin(const char* workDirName, const char* theCollSystem, const char
    TString tfname = treeFileName(workDirName, DSTag, prependPath);
    TFile *f = TFile::Open(tfname);
    if (!f || !f->IsOpen()) {
-      // results2tree(workDirName,DSTag,prependPath);
-      // f = new TFile(treeFileName(tfname);
+      results2tree(workDirName,DSTag,prependPath);
+      f = new TFile(tfname);
       if (!f) return -1e99;
    }
    TTree *tr = (TTree*) f->Get("fitresults");
@@ -323,8 +332,8 @@ double poiErrFromBin(const char* workDirName, const char* theCollSystem, const c
    TString tfname = treeFileName(workDirName, DSTag, prependPath);
    TFile *f = TFile::Open(tfname);
    if (!f || !f->IsOpen()) {
-      // results2tree(workDirName,DSTag,prependPath);
-      // f = new TFile(treeFileName(tfname);
+      results2tree(workDirName,DSTag,prependPath);
+      f = new TFile(tfname);
       if (!f) return -1e99;
    }
    TTree *tr = (TTree*) f->Get("fitresults");
