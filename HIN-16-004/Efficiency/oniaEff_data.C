@@ -178,7 +178,7 @@ void oniaEff_data::Loop(const char* fname_jpsi, const char* fname_psip, const ch
 
          double recopt = tlvrecqq->Pt();
 
-         // fill the numerators
+         // fill the denominators
          if (fabs(tlvrecqq->Rapidity()) < 1.6) {
             TH1F *hnum_centmid = isjpsi ? hnumjpsi_centmid : (ispsip ? hnumpsip_centmid : hnumbkg_centmid);
             TH1F *hnum_ptmid = isjpsi ? hnumjpsi_ptmid : (ispsip ? hnumpsip_ptmid : hnumbkg_ptmid);
