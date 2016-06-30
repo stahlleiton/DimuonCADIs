@@ -35,12 +35,44 @@ void customiseLegend(TLegend& legend)
   legend.SetFillStyle(1001);
 }
 
+Bool_t initialChecks(const char* partNameCheck, const char* collNameCheck, const char* rapNameCheck, Int_t polOrderCheck)
+{
+  if (strcmp(partNameCheck,"JPsi") && strcmp(partNameCheck,"Psi2S"))
+  {
+    cout << "[ERROR]: partName must be Jpsi or Psi2S" << endl;
+    return kFALSE;
+  }
+  
+  if (strcmp(collNameCheck,"PP") && strcmp(collNameCheck,"PbPb"))
+  {
+    cout << "[ERROR]: colName must be PP or PbPb" << endl;
+    return kFALSE;
+  }
+  
+  if (strcmp(rapNameCheck,"Mid") && strcmp(rapNameCheck,"Fwd"))
+  {
+    cout << "[ERROR]: rapName must be Mid or Fwd" << endl;
+    return kFALSE;
+  }
+  
+  if ( (polOrderCheck<1) || (polOrderCheck>2))
+  {
+    cout << "[ERROR]: Only polOrder 1 and 2 are supported" << endl;
+    return kFALSE;
+  }
+  
+  return kTRUE;
+}
 
-void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char* partName="JPsi", const char* collName="PP", const char* rapName="Mid", Int_t nRand=100)
+void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char* partName="JPsi", const char* collName="PP", const char* rapName="Mid", Int_t polOrder = 2, Int_t nRand=100)
 // partName = "JPsi" or "Psi2S", collName = "PP" or "PbPb"
 // rapName = "Mid" or "Fwd"
 // nRand is the number of random data distributions that we want to generate from the original one
+// polOrder is the order of the polinomial to be used to fit the DATA/MC distribution (supported 1 or 2)
 {
+  // Input parameters checks
+  if (!initialChecks(partName,collName,rapName,polOrder)) return;
+
   // Read the input files and extract the corresponding distributions
   TFile* fData = new TFile(fileData,"READ");
   TFile* fMC = new TFile(fileMC,"READ");
@@ -142,7 +174,9 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
     histoDataClone2->GetYaxis()->SetTitle("dN/dp_{T}(DATA)/dN/dp_{T}(MC)");
     
     TString fName(nh==0 ? "wFunction_nominal" : Form("wFunction_n%d",nh-1));
-    TF1* fWeight = new TF1(fName.Data(),Pol2,0.,30.,3);
+    TF1* fWeight(0x0);
+    if (polOrder==1) fWeight= new TF1(fName.Data(),Pol1,0.,30.,2);
+    else if (polOrder==2) fWeight= new TF1(fName.Data(),Pol2,0.,30.,3);
     fWeight->SetLineColor(nh==0 ? 1 : 2);
     histoDataClone2->Fit(fWeight,"N");
     
