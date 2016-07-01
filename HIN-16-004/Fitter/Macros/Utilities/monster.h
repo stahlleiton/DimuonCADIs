@@ -25,17 +25,17 @@ double doubleratio_prompt(const double *xx);
 double doubleratio_nonprompt(const double *xx);
 double npsip_pbpb_pass_from_doubleratio_prompt(RooWorkspace *w, RooArgList vars);
 
-double doubleratio_pass_generic(const char* workDir, anabin thebin, const char* prependPath="", bool dostat=false, bool dosyst=false, const char* systtag="");
+double doubleratio_pass_generic(const char* workDir, anabin thebin, const char* prependPath="", bool dostat=false, bool dosyst=false, const char* opt="");
 double doubleratio_pass_nominal(const char* workDir, anabin thebin, const char* prependPath="");
-double doubleratio_pass_stat(const char* workDir, anabin thebin, const char* prependPath="");
-double doubleratio_pass_syst(const char* workDir, anabin thebin, const char* prependPath="", const char* systtag="");
-double doubleratio_monster_generic(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="", bool isprompt=true, bool dostat=false, bool dosyst=false, const char* systtag="");
+double doubleratio_pass_stat(const char* workDir, anabin thebin, const char* prependPath="", const char* opt="");
+double doubleratio_pass_syst(const char* workDir, anabin thebin, const char* prependPath="", const char* opt="");
+double doubleratio_monster_generic(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="", bool isprompt=true, bool dostat=false, bool dosyst=false, const char* opt="");
 double doubleratio_prompt_nominal(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="");
-double doubleratio_prompt_stat(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="");
-double doubleratio_prompt_syst(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="", const char* systtag="");
+double doubleratio_prompt_stat(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="", const char* opt="");
+double doubleratio_prompt_syst(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="", const char* opt="");
 double doubleratio_nonprompt_nominal(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="");
-double doubleratio_nonprompt_stat(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="");
-double doubleratio_nonprompt_syst(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="", const char* systtag="");
+double doubleratio_nonprompt_stat(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="", const char* opt="");
+double doubleratio_nonprompt_syst(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="", const char* opt="");
 
 #include <math.h>
 #include <iostream>
@@ -280,25 +280,29 @@ double npsip_pbpb_pass_from_doubleratio_prompt(RooWorkspace *w, RooArgList vars)
    return npsip_pbpb_pass->getVal();
 }
 
-double doubleratio_pass_generic(const char* workDir, anabin thebin, const char* prependPath, bool dostat, bool dosyst, const char* systtag) {
+double doubleratio_pass_generic(const char* workDir, anabin thebin, const char* prependPath, bool dostat, bool dosyst, const char* opt) {
    double njpsi_pbpb_pass = poiFromBin(workDir, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pbpb_pass = poiFromBin(workDir, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
    double njpsi_pp_pass = poiFromBin(workDir, "PP", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pp_pass = poiFromBin(workDir, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
 
-   double njpsi_pbpb_pass_err = poiErrFromBin(workDir, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
-   double rfrac_pbpb_pass_err = poiErrFromBin(workDir, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pp_pass_err = poiErrFromBin(workDir, "PP", "N_Jpsi", thebin, "DATA", prependPath);
-   double rfrac_pp_pass_err = poiErrFromBin(workDir, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
+   TString tsopt(opt);
+   bool PPonly = tsopt.Contains("PP");
+   bool PbPbonly = tsopt.Contains("PbPb");
+
+   double njpsi_pbpb_pass_err = PPonly ? 0 : poiErrFromBin(workDir, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
+   double rfrac_pbpb_pass_err = PPonly ? 0 : poiErrFromBin(workDir, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
+   double njpsi_pp_pass_err = PbPbonly ? 0 : poiErrFromBin(workDir, "PP", "N_Jpsi", thebin, "DATA", prependPath);
+   double rfrac_pp_pass_err = PbPbonly ? 0 : poiErrFromBin(workDir, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
 
    TString TSprependPath(prependPath); if (TSprependPath != "") TSprependPath += "/";
 
-   map<anabin,syst> alpha_DR = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_eff_MCstat.csv");
-   map<anabin,syst> alpha_fitpp_bkg = readSyst(TSprependPath + "Systematics/csv/syst_PP_fit_bkg.csv");
-   map<anabin,syst> alpha_fitpp_sig = readSyst(TSprependPath + "Systematics/csv/syst_PP_fit_sig.csv");
-   map<anabin,syst> alpha_fitpbpb_bkg = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_fit_bkg.csv");
-   map<anabin,syst> alpha_fitpbpb_sig = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_fit_sig.csv");
-   map<anabin,syst> alpha_Bhad_add = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_bhad_add.csv");
+   map<anabin,syst> alpha_DR; if (!PPonly) alpha_DR = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_eff_MCstat.csv");
+   map<anabin,syst> alpha_fitpp_bkg; if (!PbPbonly) alpha_fitpp_bkg = readSyst(TSprependPath + "Systematics/csv/syst_PP_fit_bkg.csv");
+   map<anabin,syst> alpha_fitpp_sig; if (!PbPbonly) alpha_fitpp_sig = readSyst(TSprependPath + "Systematics/csv/syst_PP_fit_sig.csv");
+   map<anabin,syst> alpha_fitpbpb_bkg; if (!PPonly) alpha_fitpbpb_bkg = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_fit_bkg.csv");
+   map<anabin,syst> alpha_fitpbpb_sig; if (!PPonly) alpha_fitpbpb_sig = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_fit_sig.csv");
+   map<anabin,syst> alpha_Bhad_add; if (!PPonly) alpha_Bhad_add = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_bhad_add.csv");
 
    double *xx = new double[npar_pass];
    double *err = new double[npar_pass];
@@ -313,12 +317,12 @@ double doubleratio_pass_generic(const char* workDir, anabin thebin, const char* 
    xx[i] = 0; err[i] = dosyst ? alpha_Bhad_add[thebin].value : 0; i++;
 
    // set all systs but one to zero, if applicable
-   TString TSsysttag(systtag);
-   if (dosyst && TSsysttag != "") for (int j=4; j<i; j++) {
-      if (j==4 && TSsysttag.Contains("DR")) continue;
-      if (j==5 && TSsysttag.Contains("fitpp")) continue;
-      if (j==6 && TSsysttag.Contains("fitpbpb")) continue;
-      if (j==7 && TSsysttag.Contains("Bhad_add")) continue;
+   TString TSopt(opt);
+   if (dosyst && TSopt != "" && TSopt != "PP" && TSopt != "PbPb") for (int j=4; j<i; j++) {
+      if (j==4 && TSopt.Contains("DR")) continue;
+      if (j==5 && TSopt.Contains("fitpp")) continue;
+      if (j==6 && TSopt.Contains("fitpbpb")) continue;
+      if (j==7 && TSopt.Contains("Bhad_add")) continue;
       err[j] = 0;
    }
 
@@ -329,17 +333,17 @@ double doubleratio_pass_generic(const char* workDir, anabin thebin, const char* 
    return ans;
 }
 
-double doubleratio_pass_nominal(const char* workDir, anabin thebin, const char* prependPath="") {
+double doubleratio_pass_nominal(const char* workDir, anabin thebin, const char* prependPath) {
    return doubleratio_pass_generic(workDir, thebin, prependPath, false, false);
 }
-double doubleratio_pass_stat(const char* workDir, anabin thebin, const char* prependPath="") {
-   return doubleratio_pass_generic(workDir, thebin, prependPath, true, false);
+double doubleratio_pass_stat(const char* workDir, anabin thebin, const char* prependPath, const char* opt) {
+   return doubleratio_pass_generic(workDir, thebin, prependPath, true, false, opt);
 }
-double doubleratio_pass_syst(const char* workDir, anabin thebin, const char* prependPath="", const char* systtag) {
-   return doubleratio_pass_generic(workDir, thebin, prependPath, false, true, systtag);
+double doubleratio_pass_syst(const char* workDir, anabin thebin, const char* prependPath, const char* opt) {
+   return doubleratio_pass_generic(workDir, thebin, prependPath, false, true, opt);
 }
 
-double doubleratio_monster_generic(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath, bool isprompt, bool dostat, bool dosyst, const char* systtag) {
+double doubleratio_monster_generic(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath, bool isprompt, bool dostat, bool dosyst, const char* opt) {
    double njpsi_pbpb_pass = poiFromBin(workDir_pass, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pbpb_pass = poiFromBin(workDir_pass, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
    double njpsi_pp_pass = poiFromBin(workDir_pass, "PP", "N_Jpsi", thebin, "DATA", prependPath);
@@ -349,14 +353,18 @@ double doubleratio_monster_generic(const char* workDir_pass, const char* workDir
    double njpsi_pp_fail = poiFromBin(workDir_fail, "PP", "N_Jpsi", thebin, "DATA", prependPath);
    double rfrac_pp_fail = poiFromBin(workDir_fail, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
 
-   double njpsi_pbpb_pass_err = poiErrFromBin(workDir_pass, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
-   double rfrac_pbpb_pass_err = poiErrFromBin(workDir_pass, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pp_pass_err = poiErrFromBin(workDir_pass, "PP", "N_Jpsi", thebin, "DATA", prependPath);
-   double rfrac_pp_pass_err = poiErrFromBin(workDir_pass, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pbpb_fail_err = poiErrFromBin(workDir_fail, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
-   double rfrac_pbpb_fail_err = poiErrFromBin(workDir_fail, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
-   double njpsi_pp_fail_err = poiErrFromBin(workDir_fail, "PP", "N_Jpsi", thebin, "DATA", prependPath);
-   double rfrac_pp_fail_err = poiErrFromBin(workDir_fail, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
+   TString tsopt(opt);
+   bool PPonly = tsopt.Contains("PP");
+   bool PbPbonly = tsopt.Contains("PbPb");
+
+   double njpsi_pbpb_pass_err = PPonly ? 0 : poiErrFromBin(workDir_pass, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
+   double rfrac_pbpb_pass_err = PPonly ? 0 : poiErrFromBin(workDir_pass, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
+   double njpsi_pp_pass_err = PbPbonly ? 0 : poiErrFromBin(workDir_pass, "PP", "N_Jpsi", thebin, "DATA", prependPath);
+   double rfrac_pp_pass_err = PbPbonly ? 0 : poiErrFromBin(workDir_pass, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
+   double njpsi_pbpb_fail_err = PPonly ? 0 : poiErrFromBin(workDir_fail, "PbPb", "N_Jpsi", thebin, "DATA", prependPath);
+   double rfrac_pbpb_fail_err = PPonly ? 0 : poiErrFromBin(workDir_fail, "PbPb", "RFrac2Svs1S", thebin, "DATA", prependPath);
+   double njpsi_pp_fail_err = PbPbonly ? 0 : poiErrFromBin(workDir_fail, "PP", "N_Jpsi", thebin, "DATA", prependPath);
+   double rfrac_pp_fail_err = PbPbonly ? 0 : poiErrFromBin(workDir_fail, "PP", "RFrac2Svs1S", thebin, "DATA", prependPath);
 
    TString prependPathForEff("../Efficiency"); if (TString(prependPath) != "") prependPathForEff = TString(prependPath) + "/" + prependPathForEff;
    double effjpsi_pp_P = ljpsieff("jpsi","pp",thebin,prependPathForEff); 
@@ -365,11 +373,11 @@ double doubleratio_monster_generic(const char* workDir_pass, const char* workDir
 
    TString TSprependPath(prependPath); if (TSprependPath != "") TSprependPath += "/";
 
-   map<anabin,syst> alpha_DR = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_eff_MCstat.csv");
-   map<anabin,syst> alpha_fitpp_bkg = readSyst(TSprependPath + "Systematics/csv/syst_PP_fit_bkg.csv");
-   map<anabin,syst> alpha_fitpp_sig = readSyst(TSprependPath + "Systematics/csv/syst_PP_fit_sig.csv");
-   map<anabin,syst> alpha_fitpbpb_bkg = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_fit_bkg.csv");
-   map<anabin,syst> alpha_fitpbpb_sig = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_fit_sig.csv");
+   map<anabin,syst> alpha_DR; if (!PPonly) alpha_DR = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_eff_MCstat.csv");
+   map<anabin,syst> alpha_fitpp_bkg; if (!PbPbonly) alpha_fitpp_bkg = readSyst(TSprependPath + "Systematics/csv/syst_PP_fit_bkg.csv");
+   map<anabin,syst> alpha_fitpp_sig; if (!PbPbonly) alpha_fitpp_sig = readSyst(TSprependPath + "Systematics/csv/syst_PP_fit_sig.csv");
+   map<anabin,syst> alpha_fitpbpb_bkg; if (!PPonly) alpha_fitpbpb_bkg = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_fit_bkg.csv");
+   map<anabin,syst> alpha_fitpbpb_sig; if (!PPonly) alpha_fitpbpb_sig = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_fit_sig.csv");
 
    double *xx = new double[npar_prompt];
    double *err = new double[npar_prompt];
@@ -388,22 +396,22 @@ double doubleratio_monster_generic(const char* workDir_pass, const char* workDir
    xx[i] = 0; err[i] = dosyst ? alpha_DR[thebin].value : 0; i++;
    xx[i] = 0; err[i] = dosyst ? sqrt(pow(alpha_fitpp_bkg[thebin].value,2) + pow(alpha_fitpp_sig[thebin].value,2)) : 0; i++;
    xx[i] = 0; err[i] = dosyst ? sqrt(pow(alpha_fitpbpb_bkg[thebin].value,2) + pow(alpha_fitpbpb_sig[thebin].value,2)) : 0; i++;
-   // unimplemented systs
+   // unimplemented (for now) systs
    xx[i] = 0; err[i] = 0; i++; // alpha_effjpsi_pp_pr
    xx[i] = 0; err[i] = 0; i++; // alpha_effpsip_pp_pr
    xx[i] = 0; err[i] = 0; i++; // alpha_effjpsi_pp_npr
    xx[i] = 0; err[i] = 0; i++; // alpha_effpppbpb
 
    // set all systs but one to zero, if applicable
-   TString TSsysttag(systtag);
-   if (dosyst && TSsysttag != "") for (int j=11; j<i; j++) {
-      if (j==11 && TSsysttag.Contains("DR")) continue;
-      if (j==12 && TSsysttag.Contains("fitpp")) continue;
-      if (j==13 && TSsysttag.Contains("fitpbpb")) continue;
-      if (j==14 && TSsysttag.Contains("effjpsi_pp_pr")) continue;
-      if (j==15 && TSsysttag.Contains("effpsip_pp_pr")) continue;
-      if (j==16 && TSsysttag.Contains("effjpsi_pp_npr")) continue;
-      if (j==17 && TSsysttag.Contains("effpppbpb")) continue;
+   TString TSopt(opt);
+   if (dosyst && TSopt != "" && TSopt != "PP" && TSopt != "PbPb") for (int j=11; j<i; j++) {
+      if (j==11 && TSopt.Contains("DR")) continue;
+      if (j==12 && TSopt.Contains("fitpp")) continue;
+      if (j==13 && TSopt.Contains("fitpbpb")) continue;
+      if (j==14 && TSopt.Contains("effjpsi_pp_pr")) continue;
+      if (j==15 && TSopt.Contains("effpsip_pp_pr")) continue;
+      if (j==16 && TSopt.Contains("effjpsi_pp_npr")) continue;
+      if (j==17 && TSopt.Contains("effpppbpb")) continue;
       err[j] = 0;
    }
 
@@ -419,23 +427,23 @@ double doubleratio_monster_generic(const char* workDir_pass, const char* workDir
    return ans;
 }
 
-double doubleratio_prompt_nominal(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="") {
+double doubleratio_prompt_nominal(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath) {
    return doubleratio_monster_generic(workDir_pass, workDir_fail, thebin, prependPath, true, false, false);
 }
-double doubleratio_prompt_stat(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="") {
-   return doubleratio_monster_generic(workDir_pass, workDir_fail, thebin, prependPath, true, true, false);
+double doubleratio_prompt_stat(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath, const char* opt) {
+   return doubleratio_monster_generic(workDir_pass, workDir_fail, thebin, prependPath, true, true, false, opt);
 }
-double doubleratio_prompt_syst(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="", const char* systtag) {
-   return doubleratio_monster_generic(workDir_pass, workDir_fail, thebin, prependPath, true, false, true, systtag);
+double doubleratio_prompt_syst(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath, const char* opt) {
+   return doubleratio_monster_generic(workDir_pass, workDir_fail, thebin, prependPath, true, false, true, opt);
 }
-double doubleratio_nonprompt_nominal(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="") {
+double doubleratio_nonprompt_nominal(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath) {
    return doubleratio_monster_generic(workDir_pass, workDir_fail, thebin, prependPath, false, false, false);
 }
-double doubleratio_nonprompt_stat(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="") {
-   return doubleratio_monster_generic(workDir_pass, workDir_fail, thebin, prependPath, false, true, false);
+double doubleratio_nonprompt_stat(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath, const char* opt) {
+   return doubleratio_monster_generic(workDir_pass, workDir_fail, thebin, prependPath, false, true, false, opt);
 }
-double doubleratio_nonprompt_syst(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath="", const char* systtag) {
-   return doubleratio_monster_generic(workDir_pass, workDir_fail, thebin, prependPath, false, false, true, systtag);
+double doubleratio_nonprompt_syst(const char* workDir_pass, const char* workDir_fail, anabin thebin, const char* prependPath, const char* opt) {
+   return doubleratio_monster_generic(workDir_pass, workDir_fail, thebin, prependPath, false, false, true, opt);
 }
 
 #endif // ifndef monster_h
