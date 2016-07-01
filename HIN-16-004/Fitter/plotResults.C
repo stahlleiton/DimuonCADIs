@@ -46,7 +46,7 @@ const bool  promptonly    = false; // plot the prompt only double ratio
 const bool  nonpromptonly = false; // plot the non-prompt only double ratio
 const bool  plotlimits95  = false;  // display 95% CL limits (when the lower limit is 0)
 const bool  plotsysts     = true;  // display systematics
-const char* nameTag="_nolimits";            // can put here e.g. "_prompt", "_nonprompt", ...
+const char* nameTag="_pass";            // can put here e.g. "_prompt", "_nonprompt", ...
 
 
 ///////////////
@@ -403,12 +403,14 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       haxesr->GetXaxis()->SetTickLength(0);
       haxesr->GetYaxis()->SetTickLength(gStyle->GetTickLength("Y")/(1.-xfrac));
       haxesr->GetYaxis()->SetRangeUser(0,1.5);
+      if (nonpromptonly) haxesr->GetYaxis()->SetRangeUser(0,2.5);
       if (plot12007) haxesr->GetYaxis()->SetRangeUser(0,3.2);
       haxesr->GetXaxis()->SetTitleSize(0);
       haxesr->GetXaxis()->SetLabelSize(0);
       liner = TLine(0,1,420,1);
    }
    haxes->GetYaxis()->SetRangeUser(0,1.5);
+   if (nonpromptonly) haxes->GetYaxis()->SetRangeUser(0,2.5);
    if (plot12007) haxes->GetYaxis()->SetRangeUser(0,3.2);
    haxes->GetYaxis()->SetTitle(ylabel);
    const char* xlabel = (xaxis=="pt") ? "p_{T} (GeV/c)" : "N_{part}";
@@ -585,6 +587,13 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
 
    if (xaxis=="cent") padl->cd();
    tleg->Draw();
+
+   TLatex tl;
+   double tlx = 0.2+xshift;
+   double tly = 0.69;
+   if (!promptonly && !nonpromptonly) tl.DrawLatexNDC(tlx,tly,"Passing #font[12]{l}_{J/#psi}^{3D} cut");
+   else if (promptonly) tl.DrawLatexNDC(tlx,tly,"Prompt only");
+   else tl.DrawLatexNDC(tlx,tly,"Non-prompt only");
 
    int iPos = 33;
    CMS_lumi( (TPad*) gPad, 106, iPos, "" );
