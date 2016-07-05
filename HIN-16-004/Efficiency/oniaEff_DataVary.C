@@ -11,7 +11,6 @@
 #include <TClass.h>
 #include <TObjArray.h>
 #include <TSystem.h>
-
 #include <iostream>
 
 TObjArray* readFileWeight(const char* file);
@@ -33,14 +32,10 @@ const double ctaucutmid_pbpb = 0.03;
 const double ctaucutfwd_pbpb = 0.05;
 
 // pt-dependent ctau cuts
-const double ctaucut_a_mid_pp = 0.010;
-const double ctaucut_a_fwd_pp = 0.013;
-const double ctaucut_a_mid_pbpb = 0.013;
-const double ctaucut_a_fwd_pbpb = 0.015;
-const double ctaucut_b_mid_pp = 0.25;
-const double ctaucut_b_fwd_pp = 0.29;
-const double ctaucut_b_mid_pbpb = 0.22;
-const double ctaucut_b_fwd_pbpb = 0.28;
+const double ctaucut_a_mid = 0.012;
+const double ctaucut_b_mid = 0.23;
+const double ctaucut_a_fwd = 0.014;
+const double ctaucut_b_fwd = 0.28;
 
 // other settings
 const double maxdr = 0.03;
@@ -51,16 +46,10 @@ const double massup = 0.15;
 
 // function for ctau cuts
 bool ctaucut(double ctau, double y, double pt, bool ispbpb) {
-   double a=1,b=1;
-   if (ispbpb) {
-      if (fabs(y)<1.6){a=ctaucut_a_mid_pbpb; b=ctaucut_b_mid_pbpb;} 
-      else {a=ctaucut_a_fwd_pbpb; b=ctaucut_b_fwd_pbpb;}
-   } else {
-      if (fabs(y)<1.6){a=ctaucut_a_mid_pp; b=ctaucut_b_mid_pp;} 
-      else {a=ctaucut_a_fwd_pp; b=ctaucut_b_fwd_pp;}
-   }
-
-   return ctau < a + b / pt;
+  double a=1,b=1;
+  if (fabs(y)<1.6){a=ctaucut_a_mid; b=ctaucut_b_mid;} 
+  else {a=ctaucut_a_fwd; b=ctaucut_b_fwd;}
+  return ctau < a + b / pt;
 };
 
 using namespace HI;
@@ -97,7 +86,7 @@ void oniaEff_DataVary::Loop(const char* fname, bool ispbpb, bool isPsip)
    if (fChain == 0) return;
 
    Long64_t nentries = fChain->GetEntriesFast();
-   nentries = 5000;
+   //nentries = 10000;
    
    // define the histos
    // we need 2 numerators (with and without ctau3d cut), 1 denominator. Let's make them in arrays
@@ -134,24 +123,28 @@ void oniaEff_DataVary::Loop(const char* fname, bool ispbpb, bool isPsip)
    TObjArray*  wtHisto_den_ptfwd =  new TObjArray();
    TObjArray* wtFnMid = NULL;
    TObjArray* wtFnFwd = NULL;
-   TString colltag, objtag, raptag;
-
-
+  
    if(!ispbpb && !isPsip){
-     wtFnMid = readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_JPsi_PP_Mid.root"));
-     wtFnFwd  = readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_JPsi_PP_Fwd.root"));
+     wtFnMid = (TObjArray*)readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_JPsi_PP_Mid.root"));
+     wtFnFwd  = (TObjArray*)readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_JPsi_PP_Fwd.root"));
    }
    if(ispbpb && !isPsip){
-     wtFnMid = readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_JPsi_PbPb_Mid.root"));
-     wtFnFwd = readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_JPsi_PbPb_Fwd.root"));
+     wtFnMid = (TObjArray*)readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_JPsi_PbPb_Mid.root"));
+     
+     cout<<"===========ok1============================="<<endl;
+
+     wtFnFwd = (TObjArray*)readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_JPsi_PbPb_Fwd.root"));
    } 
    if(!ispbpb && isPsip) {
-     wtFnMid = readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_Psi2S_PP_Mid.root"));
-     wtFnFwd = readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_Psi2S_PP_Fwd.root"));
+     wtFnMid = (TObjArray*)readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_Psi2S_PP_Mid.root"));
+     wtFnFwd = (TObjArray*)readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_Psi2S_PP_Fwd.root"));
    }
    if(ispbpb && isPsip){
-     wtFnMid = readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_Psi2S_PbPb_Mid.root"));
-     wtFnFwd = readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_Psi2S_PbPb_Fwd.root"));
+     wtFnMid = (TObjArray*)readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_Psi2S_PbPb_Mid.root"));
+
+     cout<<"===========ok2============================="<<endl;
+
+     wtFnFwd = (TObjArray*)readFileWeight(Form("%s/wFunctions/%s",gSystem->ExpandPathName(gSystem->pwd()), "weights_Psi2S_PbPb_Fwd.root"));
    }
    
    TF1* function(0x0);
@@ -205,6 +198,7 @@ void oniaEff_DataVary::Loop(const char* fname, bool ispbpb, bool isPsip)
        wtHisto_den_ptfwd->Add(h8);
      }
    
+   //delete function;
    TH1* hWt1; TH1* hWt2; TH1* hWt3; TH1* hWt4;
    TH1* hWt5; TH1* hWt6; TH1* hWt7; TH1* hWt8;
 
@@ -250,6 +244,7 @@ void oniaEff_DataVary::Loop(const char* fname, bool ispbpb, bool isPsip)
 	  return;
 	}
       
+      //TF1* function(0x0);
       TIter nextFunc2Mid(wtFnMid);
       TIter nextFunc2Fwd(wtFnFwd);
       TString fnName;
@@ -428,7 +423,7 @@ void oniaEff_DataVary::Loop(const char* fname, bool ispbpb, bool isPsip)
 	      hWt1 = static_cast<TH1*>(wtHisto_num_centmid->FindObject(Form("hnumptdepcut_centmid_%s",function->GetName())));
 	      hWt2 = static_cast<TH1*>(wtHisto_num_ptmid->FindObject(Form("hnumptdepcut_ptmid_%s",function->GetName())));
 	      
-	      weight_DataMC = function->Eval(genpt);
+	      weight_DataMC = function->Eval(recopt);
 	      if(weight_DataMC < 0.0) weight_DataMC = 0.0;
 	      weight = weight*weight_DataMC;
 	      hWt1->Fill(Centrality/2,weight);
@@ -445,7 +440,7 @@ void oniaEff_DataVary::Loop(const char* fname, bool ispbpb, bool isPsip)
 	      hWt5 = static_cast<TH1*>(wtHisto_num_centfwd->FindObject(Form("hnumptdepcut_centfwd_%s",function->GetName())));
 	      hWt6 = static_cast<TH1*>(wtHisto_num_ptfwd->FindObject(Form("hnumptdepcut_ptfwd_%s",function->GetName())));
 	      
-	      weight_DataMC = function->Eval(genpt);
+	      weight_DataMC = function->Eval(recopt);
 	      if(weight_DataMC < 0.0) weight_DataMC = 0.0;
 	      weight = weight*weight_DataMC;
 	      hWt5->Fill(Centrality/2,weight);
@@ -453,8 +448,6 @@ void oniaEff_DataVary::Loop(const char* fname, bool ispbpb, bool isPsip)
 	    }
 	}
       }
-      
-      hnum2d->Fill(fabs(tlvrecqq->Rapidity()),tlvrecqq->Pt(),weight);
       
    } // event loop
    
@@ -479,6 +472,9 @@ void oniaEff_DataVary::Loop(const char* fname, bool ispbpb, bool isPsip)
    f->Write();
    f->Close();
 
+   delete function;
+   delete wtFnFwd;
+   delete wtFnMid;
    delete wtHisto_num_centmid;
    delete wtHisto_num_ptmid;
    delete wtHisto_den_centmid;
