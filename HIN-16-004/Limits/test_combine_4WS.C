@@ -8,6 +8,11 @@
 #include "RooAddPdf.h"
 #include "RooSimultaneous.h"
 
+#include "../Fitter/Macros/Utilities/monster.h"
+#include "../Fitter/Systematics/syst.h"
+#include "../Fitter/Systematics/syst.C"
+#include "../Efficiency/eff.h"
+
 #include <list>
 #include <string>
 #include <iostream>
@@ -15,8 +20,6 @@
 using namespace RooFit;
 using namespace std;
 
-const char* suf = "_NP";
-const TString tsuf(suf);
 
 RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr, const char* name_pbpb_npr, const char* name_pp_npr, bool commonParams=false, int nCPU=2)
 {
@@ -57,7 +60,7 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
          newmax = min(val+5.*fabs(err), newmax);
       }
 
-      RooRealVar *theVarCopy = new RooRealVar(varName.Data(),theVar->GetTitle(),val,newmin,newmax);
+      RooRealVar *theVarCopy = new RooRealVar(Form("%s_pass",varName.Data()),Form("%s (pass)",theVar->GetTitle()),val,newmin,newmax);
       theVarCopy->setConstant(theVar->isConstant());
       theVarCopy->setError(err);
       if ( (theVar->getMin() == theVar->getMax()) || theVar->getError() == 0. ) theVarCopy->setConstant();
@@ -79,10 +82,9 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
       if ( (varName != "invMass") && (varName != "pt") && (varName != "rap") && (varName != "cent")) {
          newmin = max(val-5.*fabs(err), newmin);
          newmax = min(val+5.*fabs(err), newmax);
-         varName = varName + tsuf;
       }
 
-      RooRealVar *theVarCopy = new RooRealVar(varName.Data(),Form("%s (NP)",theVar->GetTitle()),val,newmin,newmax);
+      RooRealVar *theVarCopy = new RooRealVar(Form("%s_fail",varName.Data()),Form("%s (fail)",theVar->GetTitle()),val,newmin,newmax);
       theVarCopy->setConstant(theVar->isConstant());
       theVarCopy->setError(err);
       if ( (theVar->getMin() == theVar->getMax()) || theVar->getError() == 0. ) theVarCopy->setConstant();
@@ -97,20 +99,22 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
    it = allFunctions.createIterator();
    RooFormulaVar *theFunc = (RooFormulaVar*) it->Next();
    while (theFunc) {
+      TString funcName(theFunc->GetName());
       // skip the number of Psi2S in PbPb and PP as we'll build them later (using the double ratio)
-      if ((TString(theFunc->GetName())=="N_Psi2S_PbPb") || (TString(theFunc->GetName())=="N_Psi2S_PP")) {theFunc = (RooFormulaVar*) it->Next(); continue;}
+      if (funcName=="N_Psi2S_PbPb") {theFunc = (RooFormulaVar*) it->Next(); continue;}
       RooArgSet* theVars = theFunc->getVariables();
       RooArgSet* theVars_copy = new RooArgSet();
       TIterator* it2 = theVars->createIterator();
       theVar = (RooRealVar*) it2->Next();
       while (theVar) {
-         RooRealVar *theVar_copy = wcombo->var(theVar->GetName());
-         if (!theVar_copy) {cout << "Error, missing variable " << theVar->GetName() << endl; theVar_copy = theVar;}
+         const char* varname_pr = Form("%s_pass",theVar->GetName());
+         RooRealVar *theVar_copy = wcombo->var(varname_pr);
+         if (!theVar_copy) {cout << "Error, missing variable " << varname_pr << endl; theVar_copy = theVar; theVar->SetName(varname_pr);}
          theVars_copy->add(*theVar_copy);
          theVar = (RooRealVar*) it2->Next();
       }
       TString args("@0"); for (int i=1; i<theVars->getSize(); i++) args+=Form("*@%i",i);
-      RooFormulaVar *theFuncCopy = new RooFormulaVar(theFunc->GetName(),args.Data(),RooArgList(*theVars_copy));
+      RooFormulaVar *theFuncCopy = new RooFormulaVar(Form("%s_pass",theFunc->GetName()),args.Data(),RooArgList(*theVars_copy));
       wcombo->import(*theFuncCopy);
       theFunc = (RooFormulaVar*) it->Next();
    }
@@ -120,21 +124,19 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
    it = allFunctions.createIterator();
    theFunc = (RooFormulaVar*) it->Next();
    while (theFunc) {
-      // skip the number of Psi2S in PbPb and PP as we'll build them later (using the double ratio)
-      if ((TString(theFunc->GetName())=="N_Psi2S_PbPb") || (TString(theFunc->GetName())=="N_Psi2S_PP")) {theFunc = (RooFormulaVar*) it->Next(); continue;}
       RooArgSet* theVars = theFunc->getVariables();
       RooArgSet* theVars_copy = new RooArgSet();
       TIterator* it2 = theVars->createIterator();
       theVar = (RooRealVar*) it2->Next();
       while (theVar) {
-         TString varname_npr = TString(theVar->GetName()) + tsuf;
-         RooRealVar *theVar_copy = wcombo->var(varname_npr.Data());
-         if (!theVar_copy) {cout << "Error, missing variable " << varname_npr << endl; theVar_copy = theVar; theVar.SetName(varname_npr.Data());}
+         const char* varname_npr = Form("%s_fail",theVar->GetName());
+         RooRealVar *theVar_copy = wcombo->var(varname_npr);
+         if (!theVar_copy) {cout << "Error, missing variable " << varname_npr << endl; theVar_copy = theVar; theVar->SetName(varname_npr);}
          theVars_copy->add(*theVar_copy);
          theVar = (RooRealVar*) it2->Next();
       }
       TString args("@0"); for (int i=1; i<theVars->getSize(); i++) args+=Form("*@%i",i);
-      RooFormulaVar *theFuncCopy = new RooFormulaVar(Form("%s%s",theFunc->GetName(),suf),args.Data(),RooArgList(*theVars_copy));
+      RooFormulaVar *theFuncCopy = new RooFormulaVar(Form("%s_fail",theFunc->GetName()),args.Data(),RooArgList(*theVars_copy));
       wcombo->import(*theFuncCopy);
       theFunc = (RooFormulaVar*) it->Next();
    }
@@ -157,22 +159,22 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
             TString t; Int_t from = 0;
             while (theargs.Tokenize(t, from , " ")) {
                if (t.Index("m=")!=kNPOS) m=((TObjString*) t.Tokenize("=")->At(1))->String();
-               if (t.Index("m0=")!=kNPOS) m0=((TObjString*) t.Tokenize("=")->At(1))->String();
-               if (t.Index("sigma=")!=kNPOS) sigma=((TObjString*) t.Tokenize("=")->At(1))->String();
-               if (t.Index("alpha=")!=kNPOS) alpha=((TObjString*) t.Tokenize("=")->At(1))->String();
-               if (t.Index("n=")!=kNPOS) n=((TObjString*) t.Tokenize("=")->At(1))->String();
+               if (t.Index("m0=")!=kNPOS) m0=((TObjString*) t.Tokenize("=")->At(1))->String() + "_pass";
+               if (t.Index("sigma=")!=kNPOS) sigma=((TObjString*) t.Tokenize("=")->At(1))->String() + "_pass";
+               if (t.Index("alpha=")!=kNPOS) alpha=((TObjString*) t.Tokenize("=")->At(1))->String() + "_pass";
+               if (t.Index("n=")!=kNPOS) n=((TObjString*) t.Tokenize("=")->At(1))->String() + "_pass";
             }
-            cout << Form("CBShape::%s(%s, %s, %s, %s, %s)",thePdf->GetName(),m.Data(),m0.Data(),sigma.Data(),alpha.Data(),n.Data()) << endl;
-            wcombo->factory(Form("CBShape::%s(%s, %s, %s, %s, %s)",thePdf->GetName(),m.Data(),m0.Data(),sigma.Data(),alpha.Data(),n.Data()));
+            cout << Form("CBShape::%s_pass(%s, %s, %s, %s, %s)",thePdf->GetName(),m.Data(),m0.Data(),sigma.Data(),alpha.Data(),n.Data()) << endl;
+            wcombo->factory(Form("CBShape::%s_pass(%s, %s, %s, %s, %s)",thePdf->GetName(),m.Data(),m0.Data(),sigma.Data(),alpha.Data(),n.Data()));
          } else if (className == "RooExtendPdf") {
             TString pdf,n;
             TString t; Int_t from = 0;
             while (theargs.Tokenize(t, from , " ")) {
-               if (t.Index("pdf=")!=kNPOS) pdf=((TObjString*) t.Tokenize("=")->At(1))->String();
-               if (t.Index("n=")!=kNPOS) n=((TObjString*) t.Tokenize("=")->At(1))->String();
+               if (t.Index("pdf=")!=kNPOS) pdf=((TObjString*) t.Tokenize("=")->At(1))->String() + "_pass";
+               if (t.Index("n=")!=kNPOS) n=((TObjString*) t.Tokenize("=")->At(1))->String() + "_pass";
             }
-            cout << Form("RooExtendPdf::%s(%s, %s)",thePdf->GetName(),pdf.Data(),n.Data()) << endl;
-            wcombo->factory(Form("RooExtendPdf::%s(%s, %s)",thePdf->GetName(),pdf.Data(),n.Data()));
+            cout << Form("RooExtendPdf::%s_pass(%s, %s)",thePdf->GetName(),pdf.Data(),n.Data()) << endl;
+            wcombo->factory(Form("RooExtendPdf::%s_pass(%s, %s)",thePdf->GetName(),pdf.Data(),n.Data()));
          } else if (className == "RooChebychev") {
             TString obs,args;
             TString t; Int_t from = 0;
@@ -181,8 +183,8 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
                if (t.Index("coefList=")!=kNPOS) args=((TObjString*) t.Tokenize("=")->At(1))->String();
             }
             args.ReplaceAll("(","{"); args.ReplaceAll(")","}");
-            cout << Form("Chebychev::%s(%s, %s)",thePdf->GetName(),obs.Data(),args.Data()) << endl;
-            wcombo->factory(Form("Chebychev::%s(%s, %s)",thePdf->GetName(),obs.Data(),args.Data()));
+            cout << Form("Chebychev::%s_pass(%s, %s)",thePdf->GetName(),obs.Data(),args.Data()) << endl;
+            wcombo->factory(Form("Chebychev::%s_pass(%s, %s)",thePdf->GetName(),obs.Data(),args.Data()));
          } else if (className == "RooUniform") {
            TString obs;
            TString t; Int_t from = 0;
@@ -190,26 +192,26 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
              if (t.Index("x=")!=kNPOS) obs=((TObjString*) t.Tokenize("=")->At(1))->String();
            }
            obs.ReplaceAll("(",""); obs.ReplaceAll(")","");
-           cout << Form("Uniform::%s(%s)",thePdf->GetName(),obs.Data()) << endl;
-           wcombo->factory(Form("Uniform::%s(%s)",thePdf->GetName(),obs.Data()));
+           cout << Form("Uniform::%s_pass(%s)",thePdf->GetName(),obs.Data()) << endl;
+           wcombo->factory(Form("Uniform::%s_pass(%s)",thePdf->GetName(),obs.Data()));
          } else if (className == "RooAddPdf") {
             // skip the total PDFs as we will rebuild them
             if (TString(thePdf->GetName()).Index("pdfMASS_Tot_")!=kNPOS) {thePdf = (RooAbsPdf*) it->Next(); nok++; continue;}
             RooArgList pdfList, coefList, pdfList_orig=((RooAddPdf*)thePdf)->pdfList(), coefList_orig=((RooAddPdf*)thePdf)->coefList();
             for (int i=0; i<pdfList_orig.getSize(); i++) {
-               RooAbsPdf *toadd = wcombo->pdf(pdfList_orig[i].GetName());
+               RooAbsPdf *toadd = wcombo->pdf(Form("%s_pass",pdfList_orig[i].GetName()));
                if (toadd) pdfList.add(*toadd);
             }
             for (int i=0; i<coefList_orig.getSize(); i++) {
-               RooAbsReal *coef = wcombo->var(coefList_orig[i].GetName());
-               if (!coef) coef = wcombo->function(coefList_orig[i].GetName());
-               if (!coef) {cout << "ERROR! Cannot find " << coefList_orig[i].GetName() << endl; return NULL;}
+               RooAbsReal *coef = wcombo->var(Form("%s_pass",coefList_orig[i].GetName()));
+               if (!coef) coef = wcombo->function(Form("%s_pass",coefList_orig[i].GetName()));
+               if (!coef) {cout << "ERROR! Cannot find " << Form("%s_pass",coefList_orig[i].GetName()) << endl; return NULL;}
                coefList.add(*coef);
             }
             RooAddPdf *newpdf=NULL;
             if (pdfList.getSize()<coefList.getSize()) {thePdf = (RooAbsPdf*) it->Next(); continue;}
-            if (coefList.getSize()>0) newpdf = new RooAddPdf(thePdf->GetName(),thePdf->GetTitle(),pdfList,coefList);
-            else newpdf = new RooAddPdf(thePdf->GetName(),thePdf->GetTitle(),pdfList);
+            if (coefList.getSize()>0) newpdf = new RooAddPdf(Form("%s_pass",thePdf->GetName()),Form("%s (pass)",thePdf->GetTitle()),pdfList,coefList);
+            else newpdf = new RooAddPdf(Form("%s_pass",thePdf->GetName()),Form("%s (pass)",thePdf->GetTitle()),pdfList);
             wcombo->import(*newpdf);
          } else {
             cout << "Error, I don't know this type of PDF: " << className << "::" << thePdf->GetName() << ". I will ignore it." << endl;
@@ -228,7 +230,7 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
       it = allPdfs.createIterator();
       RooAbsPdf *thePdf = (RooAbsPdf*) it->Next();
       while (thePdf) {
-         if (wcombo->pdf(Form("%s%s",thePdf->GetName(),suf))) {thePdf = (RooAbsPdf*) it->Next(); nok++; continue;}
+         if (wcombo->pdf(Form("%s_fail",thePdf->GetName()))) {thePdf = (RooAbsPdf*) it->Next(); nok++; continue;}
          TString className(thePdf->ClassName());
          ostringstream oss; thePdf->printArgs(oss); TString theargs(oss.str().c_str());
          if (className == "RooCBShape") {
@@ -236,22 +238,22 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
             TString t; Int_t from = 0;
             while (theargs.Tokenize(t, from , " ")) {
                if (t.Index("m=")!=kNPOS) m=((TObjString*) t.Tokenize("=")->At(1))->String();
-               if (t.Index("m0=")!=kNPOS) m0=((TObjString*) t.Tokenize("=")->At(1))->String() + tsuf;
-               if (t.Index("sigma=")!=kNPOS) sigma=((TObjString*) t.Tokenize("=")->At(1))->String() + tsuf;
-               if (t.Index("alpha=")!=kNPOS) alpha=((TObjString*) t.Tokenize("=")->At(1))->String() + tsuf;
-               if (t.Index("n=")!=kNPOS) n=((TObjString*) t.Tokenize("=")->At(1))->String() + tsuf;
+               if (t.Index("m0=")!=kNPOS) m0=((TObjString*) t.Tokenize("=")->At(1))->String() + "_fail";
+               if (t.Index("sigma=")!=kNPOS) sigma=((TObjString*) t.Tokenize("=")->At(1))->String() + "_fail";
+               if (t.Index("alpha=")!=kNPOS) alpha=((TObjString*) t.Tokenize("=")->At(1))->String() + "_fail";
+               if (t.Index("n=")!=kNPOS) n=((TObjString*) t.Tokenize("=")->At(1))->String() + "_fail";
             }
-            TString factorystring = Form("CBShape::%s(%s%s, %s, %s, %s, %s)",thePdf->GetName(),suf,m.Data(),m0.Data(),sigma.Data(),alpha.Data(),n.Data());
+            TString factorystring = Form("CBShape::%s_fail(%s, %s, %s, %s, %s)",thePdf->GetName(),m.Data(),m0.Data(),sigma.Data(),alpha.Data(),n.Data());
             cout << factorystring.Data() << endl;
             wcombo->factory(factorystring.Data());
          } else if (className == "RooExtendPdf") {
             TString pdf,n;
             TString t; Int_t from = 0;
             while (theargs.Tokenize(t, from , " ")) {
-               if (t.Index("pdf=")!=kNPOS) pdf=((TObjString*) t.Tokenize("=")->At(1))->String() + tsuf;
-               if (t.Index("n=")!=kNPOS) n=((TObjString*) t.Tokenize("=")->At(1))->String() + tsuf;
+               if (t.Index("pdf=")!=kNPOS) pdf=((TObjString*) t.Tokenize("=")->At(1))->String() + "_fail";
+               if (t.Index("n=")!=kNPOS) n=((TObjString*) t.Tokenize("=")->At(1))->String() + "_fail";
             }
-            TString factorystring = Form("RooExtendPdf::%s%s(%s, %s)",thePdf->GetName(),suf,pdf.Data(),n.Data());
+            TString factorystring = Form("RooExtendPdf::%s_fail(%s, %s)",thePdf->GetName(),pdf.Data(),n.Data());
             cout << factorystring.Data() << endl;
             wcombo->factory(factorystring.Data());
          } else if (className == "RooChebychev") {
@@ -262,8 +264,8 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
                if (t.Index("coefList=")!=kNPOS) args=((TObjString*) t.Tokenize("=")->At(1))->String();
             }
             args.ReplaceAll("(","{"); args.ReplaceAll(")","}");
-            args.ReplaceAll("_PP",TString("_PP")+tsuf); args.ReplaceAll("_PbPb",TString("_PbPb")+tsuf);
-            TString factorystring = Form("Chebychev::%s%s(%s, %s)",thePdf->GetName(),suf,obs.Data(),args.Data());
+            args.ReplaceAll("_PP",TString("_PP")+"fail"); args.ReplaceAll("_PbPb",TString("_PbPb")+"_fail");
+            TString factorystring = Form("Chebychev::%s_fail(%s, %s)",thePdf->GetName(),obs.Data(),args.Data());
             cout << factorystring.Data() << endl;
             wcombo->factory(factorystring.Data());
          } else if (className == "RooUniform") {
@@ -274,25 +276,25 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
            }
            obs.ReplaceAll("(",""); obs.ReplaceAll(")","");
            cout << Form("Uniform::%s(%s)",thePdf->GetName(),obs.Data()) << endl;
-           wcombo->factory(Form("Uniform::%s(%s)",thePdf->GetName(),obs.Data()));
+           wcombo->factory(Form("Uniform::%s_fail(%s)",thePdf->GetName(),obs.Data()));
          } else if (className == "RooAddPdf") {
             // skip the total PDFs as we will rebuild them
             if (TString(thePdf->GetName()).Index("pdfMASS_Tot_")!=kNPOS) {thePdf = (RooAbsPdf*) it->Next(); nok++; continue;}
             RooArgList pdfList, coefList, pdfList_orig=((RooAddPdf*)thePdf)->pdfList(), coefList_orig=((RooAddPdf*)thePdf)->coefList();
             for (int i=0; i<pdfList_orig.getSize(); i++) {
-               RooAbsPdf *toadd = wcombo->pdf(Form("%s%s",pdfList_orig[i].GetName(),suf));
+               RooAbsPdf *toadd = wcombo->pdf(Form("%s_fail",pdfList_orig[i].GetName()));
                if (toadd) pdfList.add(*toadd);
             }
             for (int i=0; i<coefList_orig.getSize(); i++) {
-               RooAbsReal *coef = wcombo->var(Form("%s%s",coefList_orig[i].GetName(),suf));
-               if (!coef) coef = wcombo->function(Form("%s%s",coefList_orig[i].GetName(),suf));
-               if (!coef) {cout << "ERROR! Cannot find " << Form("%s%s",coefList_orig[i].GetName(),suf) << endl; return NULL;}
+               RooAbsReal *coef = wcombo->var(Form("%s_fail",coefList_orig[i].GetName()));
+               if (!coef) coef = wcombo->function(Form("%s_fail",coefList_orig[i].GetName()));
+               if (!coef) {cout << "ERROR! Cannot find " << Form("%s_fail",coefList_orig[i].GetName()) << endl; return NULL;}
                coefList.add(*coef);
             }
             RooAddPdf *newpdf=NULL;
             if (pdfList.getSize()<coefList.getSize()) {thePdf = (RooAbsPdf*) it->Next(); continue;}
-            if (coefList.getSize()>0) newpdf = new RooAddPdf(Form("%s%s",thePdf->GetName(),suf),Form("%s (NP)",thePdf->GetTitle()),pdfList,coefList);
-            else newpdf = new RooAddPdf(Form("%s%s",thePdf->GetName(),suf),Form("%s (NP)",thePdf->GetTitle()),pdfList);
+            if (coefList.getSize()>0) newpdf = new RooAddPdf(Form("%s_fail",thePdf->GetName()),Form("%s (fail)",thePdf->GetTitle()),pdfList,coefList);
+            else newpdf = new RooAddPdf(Form("%s_fail",thePdf->GetName()),Form("%s (fail)",thePdf->GetTitle()),pdfList);
             wcombo->import(*newpdf);
          } else {
             cout << "Error, I don't know this type of PDF: " << className << "::" << thePdf->GetName() << ". I will ignore it." << endl;
@@ -309,11 +311,11 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
    data_pbpb_npr =(RooDataSet *) ws_pbpb_npr->data("dOS_DATA_PbPb");
    data_pp_npr =(RooDataSet *) ws_pp_npr->data("dOS_DATA_PP");
 
-	RooCategory sample("sample", "sample");
-	sample.defineType("PbPb");
-	sample.defineType("PP");
-	sample.defineType("PbPb_NP");
-	sample.defineType("PP_NP");
+   RooCategory sample("sample", "sample");
+	 sample.defineType("PbPb_pass");
+	 sample.defineType("PP_pass");
+	 sample.defineType("PbPb_fail");
+	 sample.defineType("PP_fail");
    RooRealVar *invMass = wcombo->var("invMass");
    RooArgSet cols(*invMass);
 
@@ -322,67 +324,100 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
 
    RooDataSet data_combo("dOS_DATA", "dOS_DATA", cols, RooFit::Index(sample),
          /*Only for track rotation*/
-         RooFit::Import("PbPb", *data_pbpb_pr), RooFit::Import("PP", *data_pp_pr),
-         RooFit::Import("PbPb_NP", *data_pbpb_npr), RooFit::Import("PP_NP", *data_pp_npr));
+         RooFit::Import("PbPb_pass", *data_pbpb_pr), RooFit::Import("PP_pass", *data_pp_pr),
+         RooFit::Import("PbPb_fail", *data_pbpb_npr), RooFit::Import("PP_fail", *data_pp_npr));
 
    wcombo->import(data_combo);
 
-//    // build the double ratio
-//    RooRealVar *RFrac2Svs1S_PbPbvsPP = new RooRealVar("RFrac2Svs1S_PbPbvsPP","RFrac2Svs1S_PbPbvsPP",0.5,-10,10);
-//    // help RooFit by telling it what to expect for the double ratio
-//    RooRealVar *RFrac2Svs1S_PbPb = wcombo->var("RFrac2Svs1S_PbPb");
-//    RooRealVar *RFrac2Svs1S_PP = wcombo->var("RFrac2Svs1S_PP");
-//    RFrac2Svs1S_PbPbvsPP->setVal(RFrac2Svs1S_PbPb->getVal()/RFrac2Svs1S_PP->getVal());
-//    RFrac2Svs1S_PbPbvsPP->setError(
-//          sqrt(pow(RFrac2Svs1S_PbPb->getError()/RFrac2Svs1S_PbPb->getVal(),2) + 
-//             pow(RFrac2Svs1S_PP->getError()/RFrac2Svs1S_PP->getVal(),2))
-//          *RFrac2Svs1S_PbPbvsPP->getVal());
-//   
-//    // build the pp pdf
-//    RooAbsPdf *sig1S_PP = wcombo->pdf("pdfMASS_Jpsi_PP");
-//    RooAbsPdf *sig2S_PP = wcombo->pdf("pdfMASS_Psi2S_PP");
-//    RooAbsPdf *pdf_combinedbkgd_PP = wcombo->pdf("pdfMASS_Bkg_PP");
-//    RooRealVar *nsig1f_PP = wcombo->var("N_Jpsi_PP");
-//    // RooRealVar *RFrac2Svs1S_PP = wcombo->var("RFrac2Svs1S_PP");
-//    RooRealVar *nbkgd_PP = wcombo->var("N_Bkg_PP");
-//    RooFormulaVar *nsig2f_PP = new RooFormulaVar("N_Psi2S_PP","@0*@1",RooArgList(*RFrac2Svs1S_PP,*nsig1f_PP));
-// //   RooFormulaVar *nsig2f_PP = (RooFormulaVar*) wcombo->function("N_Psi2S_PP");
-//    RooAddPdf *pdf_pp = new RooAddPdf ("pdfMASS_Tot_PP","new total p.d.f. PP",
-//          RooArgList(*sig1S_PP,*sig2S_PP,*pdf_combinedbkgd_PP),
-//          RooArgList(*nsig1f_PP,*nsig2f_PP,*nbkgd_PP));
 
-//    // build the pbpb pdf
-//    RooAbsPdf *sig1S = wcombo->pdf("pdfMASS_Jpsi_PbPb");
-//    RooAbsPdf *sig2S = wcombo->pdf("pdfMASS_Psi2S_PbPb");
-//    RooAbsPdf *pdf_combinedbkgd = wcombo->pdf("pdfMASS_Bkg_PbPb");
-//    RooRealVar *nsig1f = wcombo->var("N_Jpsi_PbPb");
-//    RooRealVar *nbkgd = wcombo->var("N_Bkg_PbPb");
-//    RooFormulaVar *nsig2f = new RooFormulaVar("N_Psi2S_PbPb","@0*@1*@2",RooArgList(*RFrac2Svs1S_PbPbvsPP,*RFrac2Svs1S_PP,*nsig1f));
-//    RooAbsPdf *pdf_pbpb = new RooAddPdf ("pdfMASS_Tot_PbPb","new total p.d.f.",
-//          RooArgList(*sig1S,*sig2S,*pdf_combinedbkgd),
-//          RooArgList(*nsig1f,*nsig2f,*nbkgd));
+   // build the double ratio prompt
+   RooRealVar *RFrac2Svs1S_PbPbvsPP_Prompt = new RooRealVar("RFrac2Svs1S_PbPbvsPP_P","RFrac2Svs1S_PbPbvsPP_P",0.5,-10,10);
+  
+   // help RooFit by telling it what to expect for the double ratio prompt
+   anabin thebin = binFromFile(name_pbpb_pr);
+   double effjpsi_pp_P_val = ljpsieff("jpsi","pp",thebin,"../Efficiency");
+   double effpsip_pp_P_val = ljpsieff("psi2s","pp",thebin,"../Efficiency");
+   double effjpsi_pp_NP_val = ljpsieff("npjpsi","pp",thebin,"../Efficiency");
+   const double vars[18] = {wcombo->var("N_Jpsi_PbPb_pass")->getVal(),wcombo->var("RFrac2Svs1S_PbPb_pass")->getVal(),wcombo->var("N_Jpsi_PP_pass")->getVal(),wcombo ->var("RFrac2Svs1S_PP_pass")->getVal(),wcombo->var("N_Jpsi_PbPb_fail")->getVal(),wcombo->var("RFrac2Svs1S_PbPb_fail")->getVal(),wcombo->var("N_Jpsi_PP_fail")->getVal() ,wcombo->var("RFrac2Svs1S_PP_fail")->getVal(),effjpsi_pp_P_val,effpsip_pp_P_val,effjpsi_pp_NP_val,0.,0.,0.,0.,0.,0.,0.};
+    RFrac2Svs1S_PbPbvsPP_Prompt->setVal(doubleratio_prompt(vars));
+  
+   // build the prompt pp pdf
+   RooAbsPdf *sig1S_PP_pass = wcombo->pdf("pdfMASS_Jpsi_PP_pass");
+   RooAbsPdf *sig2S_PP_pass = wcombo->pdf("pdfMASS_Psi2S_PP_pass");
+   RooAbsPdf *pdf_combinedbkgd_PP_pass = wcombo->pdf("pdfMASS_Bkg_PP_pass");
+   RooRealVar *nsig1f_PP_pass = wcombo->var("N_Jpsi_PP_pass");
+   RooRealVar *nbkgd_PP_pass = wcombo->var("N_Bkg_PP_pass");
+   RooFormulaVar *nsig2f_PP_pass = (RooFormulaVar*) wcombo->function("N_Psi2S_PP_pass");
+   RooAddPdf *pdf_pp_pass = new RooAddPdf ("pdfMASS_Tot_PP_pass","new total pass p.d.f. PP",
+                                           RooArgList(*sig1S_PP_pass,*sig2S_PP_pass,*pdf_combinedbkgd_PP_pass),
+                                           RooArgList(*nsig1f_PP_pass,*nsig2f_PP_pass,*nbkgd_PP_pass));
+  
+   // build the non-prompt pp pdf
+   RooAbsPdf *sig1S_PP_fail = wcombo->pdf("pdfMASS_Jpsi_PP_fail");
+   RooAbsPdf *sig2S_PP_fail = wcombo->pdf("pdfMASS_Psi2S_PP_fail");
+   RooAbsPdf *pdf_combinedbkgd_PP_fail = wcombo->pdf("pdfMASS_Bkg_PP_fail");
+   RooRealVar *nsig1f_PP_fail = wcombo->var("N_Jpsi_PP_fail");
+   RooRealVar *nbkgd_PP_fail = wcombo->var("N_Bkg_PP_fail");
+   RooFormulaVar *nsig2f_PP_fail = (RooFormulaVar*) wcombo->function("N_Psi2S_PP_fail");
+   RooAddPdf *pdf_pp_fail = new RooAddPdf ("pdfMASS_Tot_PP_fail","new total fail p.d.f. PP",
+                                      RooArgList(*sig1S_PP_fail,*sig2S_PP_fail,*pdf_combinedbkgd_PP_fail),
+                                      RooArgList(*nsig1f_PP_fail,*nsig2f_PP_fail,*nbkgd_PP_fail));
+  
+   // build the prompt pbpb pdf
+   RooAbsPdf *sig1S_pass = wcombo->pdf("pdfMASS_Jpsi_PbPb_pass");
+   RooAbsPdf *sig2S_pass = wcombo->pdf("pdfMASS_Psi2S_PbPb_pass");
+   RooAbsPdf *pdf_combinedbkgd_pass = wcombo->pdf("pdfMASS_Bkg_PbPb_pass");
+   RooRealVar *nsig1f_pass = wcombo->var("N_Jpsi_PbPb_pass");
+   RooRealVar *nbkgd_pass = wcombo->var("N_Bkg_PbPb_pass");
+  
+   RooRealVar* effjpsi_pp_P = new RooRealVar("effjpsi_pp_P","effjpsi_pp_P",effjpsi_pp_P_val);
+   RooRealVar* effpsip_pp_P = new RooRealVar("effpsip_pp_P","effpsip_pp_P",effpsip_pp_P_val);
+   RooRealVar* effjpsi_pp_NP = new RooRealVar("effjpsi_pp_NP","effjpsi_pp_NP",effjpsi_pp_NP_val);
+   Double_t Npsi2SPbPbPass = npsip_pbpb_pass_from_doubleratio_prompt(wcombo, RooArgList(*effjpsi_pp_P,*effpsip_pp_P,*effjpsi_pp_NP)); // Create and import the needed variables
+  
+   RooFormulaVar* nsig2f_pass = (RooFormulaVar*) wcombo->function("N_Psi2S_PbPb_pass");
+   RooAbsPdf *pdf_pbpb_pass = new RooAddPdf ("pdfMASS_Tot_PbPb_pass","new total pass p.d.f. PbPb",
+                                        RooArgList(*sig1S_pass,*sig2S_pass,*pdf_combinedbkgd_pass),
+                                        RooArgList(*nsig1f_pass,*nsig2f_pass,*nbkgd_pass));
+  
+  // build the non-prompt pbpb pdf
+  RooAbsPdf *sig1S_fail = wcombo->pdf("pdfMASS_Jpsi_PbPb_fail");
+  RooAbsPdf *sig2S_fail = wcombo->pdf("pdfMASS_Psi2S_PbPb_fail");
+  RooAbsPdf *pdf_combinedbkgd_fail = wcombo->pdf("pdfMASS_Bkg_PbPb_fail");
+  RooRealVar *nsig1f_fail = wcombo->var("N_Jpsi_PbPb_fail");
+  RooRealVar *nbkgd_fail = wcombo->var("N_Bkg_PbPb_fail");
+  RooFormulaVar *nsig2f_fail = (RooFormulaVar*) wcombo->function("N_Psi2S_PbPb_fail");
+  RooAddPdf *pdf_pbpb_fail = new RooAddPdf ("pdfMASS_Tot_PbPb_fail","new total fail p.d.f. PbPb",
+                                          RooArgList(*sig1S_fail,*sig2S_fail,*pdf_combinedbkgd_fail),
+                                          RooArgList(*nsig1f_fail,*nsig2f_fail,*nbkgd_fail));
+  
+   // build the simunltaneous pdf
+   RooSimultaneous simPdf("simPdf", "simPdf", sample);
+   simPdf.addPdf(*pdf_pbpb_pass, "PbPb_pass");
+   simPdf.addPdf(*pdf_pbpb_fail, "PbPb_fail");
+	 simPdf.addPdf(*pdf_pp_pass, "PP_pass");
+   simPdf.addPdf(*pdf_pp_fail, "PP_fail");
+  
+   // import PDFs to the workspace
+   if (!commonParams) {
+     wcombo->import(*pdf_pp_pass,	RecycleConflictNodes());
+     wcombo->import(*pdf_pp_fail,	RecycleConflictNodes());
+   } else {
+     wcombo->import(*pdf_pp_pass,	RecycleConflictNodes(), RenameVariable("f_Jpsi_PP_pass","f_Jpsi_pass"), RenameVariable("m_Jpsi_PP_pass","m_Jpsi_pass"), RenameVariable("sigma1_Jpsi_PP_pass","sigma1_Jpsi_pass"), RenameVariable("rSigma21_Jpsi_PP_pass","rSigma21_Jpsi_pass"));
+     wcombo->import(*pdf_pp_fail,	RecycleConflictNodes(), RenameVariable("f_Jpsi_PP_fail","f_Jpsi_fail"), RenameVariable("m_Jpsi_PP_fail","m_Jpsi_fail"), RenameVariable("sigma1_Jpsi_PP_fail","sigma1_Jpsi_fail"), RenameVariable("rSigma21_Jpsi_PP_fail","rSigma21_Jpsi_fail"));
+   }
+   if (!commonParams) {
+     wcombo->import(*pdf_pbpb_pass, RecycleConflictNodes());
+     wcombo->import(*pdf_pbpb_fail, RecycleConflictNodes());
+   } else {
+     wcombo->import(*pdf_pbpb_pass,	RecycleConflictNodes(), RenameVariable("f_Jpsi_PbPb_pass","f_Jpsi_pass"), RenameVariable("m_Jpsi_PbPb_pass","m_Jpsi_pass"), RenameVariable("sigma1_Jpsi_PbPb_pass","sigma1_Jpsi_pass"),  RenameVariable("rSigma21_Jpsi_PbPb_pass","rSigma21_Jpsi_pass"));
+     wcombo->import(*pdf_pbpb_fail,	RecycleConflictNodes(), RenameVariable("f_Jpsi_PbPb_fail","f_Jpsi_fail"), RenameVariable("m_Jpsi_PbPb_fail","m_Jpsi_fail"), RenameVariable("sigma1_Jpsi_PbPb_fail","sigma1_Jpsi_fail"),  RenameVariable("rSigma21_Jpsi_PbPb_fail","rSigma21_Jpsi_fail"));
+   }
+   wcombo->import(simPdf, RecycleConflictNodes());
+  
+   wcombo->Print();
 
-//    RooSimultaneous simPdf("simPdf", "simPdf", sample);
-//    simPdf.addPdf(*pdf_pbpb, "PbPb");
-//    simPdf.addPdf(*pdf_pp, "PP");
-
-//    // import PDFs to the workspace
-//    if (!commonParams) {
-//       wcombo->import(*pdf_pp,	RecycleConflictNodes());
-//    } else {
-//       wcombo->import(*pdf_pp,	RecycleConflictNodes(), RenameVariable("f_Jpsi_PP","f_Jpsi"), RenameVariable("m_Jpsi_PP","m_Jpsi"), RenameVariable("sigma1_Jpsi_PP","sigma1_Jpsi"), RenameVariable("rSigma21_Jpsi_PP","rSigma21_Jpsi"));
-//    }
-//    if (!commonParams) {
-//       wcombo->import(*pdf_pbpb, RecycleConflictNodes());
-//    } else {
-//       wcombo->import(*pdf_pbpb,	RecycleConflictNodes(), RenameVariable("f_Jpsi_PbPb","f_Jpsi"), RenameVariable("m_Jpsi_PbPb","m_Jpsi"), RenameVariable("sigma1_Jpsi_PbPb","sigma1_Jpsi"), RenameVariable("rSigma21_Jpsi_PbPb","rSigma21_Jpsi"));
-//    }
-//    wcombo->import(simPdf, RecycleConflictNodes());
-
-//    wcombo->Print();
-//    // return NULL;
-
-   ws->Delete(); ws_pp->Delete(); f->Delete(); f_pp->Delete();
+   ws_pbpb_pr->Delete(); ws_pp_pr->Delete(); ws_pbpb_npr->Delete(); ws_pp_npr->Delete(); f_pbpb_pr->Delete(); f_pp_pr->Delete(); f_pbpb_npr->Delete(); f_pp_npr->Delete();
 
    // simPdf.fitTo(data_combo,NumCPU(nCPU), Extended(kTRUE), Minimizer("Minuit2","Migrad"));
 
