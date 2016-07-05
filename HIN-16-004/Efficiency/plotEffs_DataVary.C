@@ -192,8 +192,8 @@ void plotEffs_DataVary(const char* dir = "files_100vars_mine") {
 
                TLegend *tleg2 = new TLegend(0.7,0.17,0.89,0.31);
                tleg2->SetBorderSize(0);
-               tleg2->AddEntry(hpsi2spp,"pp","lp");
-               tleg2->AddEntry(hpsi2spbpb,"pbpb","lp");
+               tleg2->AddEntry(tpsr_pp,"pp","lp");
+               tleg2->AddEntry(tpsr_pbpb,"pbpb","lp");
                tleg2->Draw();
 
                tl.DrawLatex((idep==0) ? 1.5 : 10, 1.4, ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
@@ -385,7 +385,6 @@ TProfile* SingleRatio(TObjArray *anum2, TObjArray *aden2, TObjArray *anum1, TObj
    for (int i=1; i<4.*nvars; i++) {
       int i1 = gRandom->Integer(nvars)+1;
       int i2 = gRandom->Integer(nvars)+1;
-      cout << tag << " " << i1 << " " << i2 << endl;
       TH1F *hnum2 = (TH1F*) anum2->At(i2);
       TH1F *hden2 = (TH1F*) aden2->At(i2);
       TH1F *hnum1 = (TH1F*) anum1->At(i1);
@@ -402,7 +401,6 @@ TProfile* SingleRatio(TObjArray *anum2, TObjArray *aden2, TObjArray *anum1, TObj
          fixCentPp(hnum1);
          fixCentPp(hden1);
       }
-      if (i<10) cout << hnum2->GetBinContent(1) << " " << hden2->GetBinContent(1) <<  " " << hnum1->GetBinContent(1) << " " << hden1->GetBinContent(1);
       hnum2->Sumw2(true);
       hden2->Sumw2(true);
       hnum1->Sumw2(true);
@@ -412,7 +410,6 @@ TProfile* SingleRatio(TObjArray *anum2, TObjArray *aden2, TObjArray *anum1, TObj
       hratio2->Divide(hnum2,hden2,1,1,"B");
       hratio1->Divide(hnum1,hden1,1,1,"B");
       hratio2->Divide(hratio1);
-      if (i<10) cout << " -> " << hratio2->GetBinContent(1) << endl;
       fillTProf(tprof,hratio2);
       if (doint) {
          delete hnum2;
@@ -423,7 +420,6 @@ TProfile* SingleRatio(TObjArray *anum2, TObjArray *aden2, TObjArray *anum1, TObj
       delete hratio2; delete hratio1;
    }
 
-   cout << tprof->GetBinContent(1) << endl;
    return tprof;
 }
 
