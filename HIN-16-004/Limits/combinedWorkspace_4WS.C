@@ -79,19 +79,23 @@ void combinedWorkspace_4WS(const char* name_pbpb_pass="fitresult_pbpb_pass.root"
      ws->factory( "expr::RFrac2Svs1S_PbPbvsPP_P_syst('@0+@1',RFrac2Svs1S_PbPbvsPP_P,alpha_syst)" );
      
      // build the pbpb pdf
-     ws->factory( "expr::N_Psi2S_PbPb_syst('(@0*@1+@2*@3)*@4*@5',A,RFrac2Svs1S_PbPbvsPP_Prompt_syst,B,RFrac2Svs1S_PbPbvsPP_NonPrompt,N_Jpsi_PbPb,RFrac2Svs1S_PP)" );
-     ws->factory( "SUM::pdfMASS_Tot_PbPb_syst(N_Jpsi_PbPb * pdfMASS_Jpsi_PbPb, N_Psi2S_PbPb_syst * pdfMASS_Psi2S_PbPb, N_Bkg_PbPb * pdfMASS_Bkg_PbPb)" );
-     ws->factory( "PROD::pdfMASS_Tot_PbPb_constr(pdfMASS_Tot_PbPb_syst,constr_syst)" );
+     RooRealVar* effjpsi_pp_P = (RooRealVar*)ws->var("effjpsi_pp_P");
+     RooRealVar* effpsip_pp_P = (RooRealVar*)ws->var("effpsip_pp_P");
+     RooRealVar* effjpsi_pp_NP = (RooRealVar*)ws->var("effjpsi_pp_NP");
+     Double_t Npsi2SPbPbPass = npsip_pbpb_pass_from_doubleratio_prompt(ws, RooArgList(*effjpsi_pp_P,*effpsip_pp_P,*effjpsi_pp_NP),true); // Create and import N_Psi2S_PbPb_pass_syst
+     
+     ws->factory( "SUM::pdfMASS_Tot_PbPb_pass_syst(N_Jpsi_PbPb_pass * pdfMASS_Jpsi_PbPb_pass, N_Psi2S_PbPb_pass_syst * pdfMASS_Psi2S_PbPb_pass, N_Bkg_PbPb_pass * pdfMASS_Bkg_PbPb_pass)" );
+     ws->factory( "PROD::pdfMASS_Tot_PbPb_pass_constr(pdfMASS_Tot_PbPb_syst,constr_syst)" );
      
      // build the combined pdf
-     ws->factory("SIMUL::simPdf_syst_noconstr(sample,PbPb=pdfMASS_Tot_PbPb_syst,PP=pdfMASS_Tot_PP)");
+     ws->factory("SIMUL::simPdf_syst_noconstr(sample,PbPb_pass=pdfMASS_Tot_PbPb_pass_syst,PbPb_fail=pdfMASS_Tot_PbPb_fail,PP_pass=pdfMASS_Tot_PP_pass,PP_fail=pdfMASS_Tot_PP_fail)");
      RooSimultaneous *simPdf = (RooSimultaneous*) ws->pdf("simPdf_syst_noconstr");
      RooGaussian *constr_syst = (RooGaussian*) ws->pdf("constr_syst");
      RooProdPdf *simPdf_constr = new RooProdPdf("simPdf_syst","simPdf_syst",RooArgSet(*simPdf,*constr_syst));
      ws->import(*simPdf_constr);
      
    } else {
-      ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP)");
+      ws->factory("SIMUL::simPdf_syst(sample,PbPb_pass=pdfMASS_Tot_PbPb_pass,PbPb_fail=pdfMASS_Tot_PbPb_fail,PP_pass=pdfMASS_Tot_PP_pass,PP_fail=pdfMASS_Tot_PP_fail)");
    }
 
    ws->Print();
@@ -132,7 +136,7 @@ void combinedWorkspace_4WS(const char* name_pbpb_pass="fitresult_pbpb_pass.root"
 //            && varname != "sample"
 //            )
 //         theVar->setConstant();
-     if ( varname == "f_Jpsi_PP" || varname == "f_Jpsi_PbPb" || varname == "rSigma21_Jpsi_PP" || varname == "m_Jpsi_PP" || varname == "m_Jpsi_PbPb" || varname == "sigma1_Jpsi_PP" || varname == "sigma1_Jpsi_PbPb" || (varname.Contains("lambda"))  )
+     if ( varname.Contains("f_Jpsi_PP") || varname.Contains("f_Jpsi_PbPb") || varname.Contains("rSigma21_Jpsi_PP") || varname.Contains("m_Jpsi_PP") || varname.Contains("m_Jpsi_PbPb") || varname.Contains("sigma1_Jpsi_PP") || varname.Contains("sigma1_Jpsi_PbPb") || (varname.Contains("lambda"))  )
          {
            theVar->setConstant();
          }

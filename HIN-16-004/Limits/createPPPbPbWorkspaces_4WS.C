@@ -18,7 +18,7 @@
 using namespace std;
 
 // use the LLR batch system?
-const bool usebatch=true;
+const bool usebatch=false;
 
 void createPPPbPbWorkspaces_4WS(
                    const char* workDirName_pass, // workDirName: usual tag where to look for files in Output
@@ -62,6 +62,7 @@ void createPPPbPbWorkspaces_4WS(
     cout << endl;
     cout << "############ Merging workspaces for analysis bin " << cnt << " ..." << endl;
     cout << "PbPb pass workspace " << cnt << " / " << theFiles_PbPb_pass.size() << ": " << *it_PbPb_pass << endl;
+    cout << endl;
     
     double systval(0.);
     anabin thebinPbPb = binFromFile(*it_PbPb_pass);

@@ -23,7 +23,7 @@ double doubleratio_pass(const double *xx);
 double doubleratio_monster(const double *xx, bool isprompt);
 double doubleratio_prompt(const double *xx);
 double doubleratio_nonprompt(const double *xx);
-double npsip_pbpb_pass_from_doubleratio_prompt(RooWorkspace *w, RooArgList vars);
+double npsip_pbpb_pass_from_doubleratio_prompt(RooWorkspace *w, RooArgList vars, bool wSys=false);
 
 double doubleratio_pass_generic(const char* workDir, anabin thebin, const char* prependPath="", bool dostat=false, bool dosyst=false, const char* opt="");
 double doubleratio_pass_nominal(const char* workDir, anabin thebin, const char* prependPath="");
@@ -206,7 +206,7 @@ double doubleratio_nonprompt(const double *xx) {
 }
 
 // T H E   M O N S T E R   F U N C T I O N,   R O O F I T   V E R S I O N
-double npsip_pbpb_pass_from_doubleratio_prompt(RooWorkspace *w, RooArgList vars) {
+double npsip_pbpb_pass_from_doubleratio_prompt(RooWorkspace *w, RooArgList vars, bool wSys) {
    int i=0;
   
    // efficiencies
@@ -215,41 +215,68 @@ double npsip_pbpb_pass_from_doubleratio_prompt(RooWorkspace *w, RooArgList vars)
    RooRealVar* effjpsi_pp_NP = (RooRealVar*) &(vars[i]); i++;
   
    // yields from data
-   RooRealVar* njpsi_pbpb_pass = w->var("N_Jpsi_PbPb_pass");
-   RooRealVar* DR_P = w->var("RFrac2Svs1S_PbPbvsPP_P");
-   RooRealVar* njpsi_pp_pass = w->var("N_Jpsi_PP_pass");
-   RooRealVar* npsip_pp_pass = w->var("N_Psi2S_PP_pass");
-   RooRealVar* rfrac_pp_pass = w->var("RFrac2Svs1S_PP_pass");
-   RooRealVar* njpsi_pbpb_fail = w->var("N_Jpsi_PbPb_fail");
-   RooRealVar* npsip_pbpb_fail = w->var("N_Psi2S_PbPb_fail");
-   RooRealVar* rfrac_pbpb_fail = w->var("RFrac2Svs1S_PbPb_fail");
-   RooRealVar* njpsi_pp_fail = w->var("N_Jpsi_PP_fail");
-   RooRealVar* npsip_pp_fail = w->var("N_Psi2S_PP_fail");
-   RooRealVar* rfrac_pp_fail = w->var("RFrac2Svs1S_PP_fail");
+   RooRealVar* njpsi_pbpb_pass = (RooRealVar*) w->var("N_Jpsi_PbPb_pass");
+   RooAbsReal* DR_P = NULL;
+   if (wSys) DR_P = w->function("RFrac2Svs1S_PbPbvsPP_P_syst");
+   else DR_P = w->var("RFrac2Svs1S_PbPbvsPP_P");
+   RooRealVar* njpsi_pp_pass = (RooRealVar*) w->var("N_Jpsi_PP_pass");
+   RooFormulaVar* npsip_pp_pass = (RooFormulaVar*) w->function("N_Psi2S_PP_pass");
+   RooRealVar* rfrac_pp_pass = (RooRealVar*) w->var("RFrac2Svs1S_PP_pass");
+   RooFormulaVar* njpsi_pbpb_fail = (RooFormulaVar*) w->function("N_Jpsi_PbPb_fail");
+   RooFormulaVar* npsip_pbpb_fail = (RooFormulaVar*) w->function("N_Psi2S_PbPb_fail");
+   RooFormulaVar* rfrac_pbpb_fail = (RooFormulaVar*) w->function("RFrac2Svs1S_PbPb_fail");
+   RooRealVar* njpsi_pp_fail = (RooRealVar*) w->var("N_Jpsi_PP_fail");
+   RooFormulaVar* npsip_pp_fail = (RooFormulaVar*) w->function("N_Psi2S_PP_fail");
+   RooFormulaVar* rfrac_pp_fail = (RooFormulaVar*) w->function("RFrac2Svs1S_PP_fail");
 
-   RooFormulaVar *njpsi_pp = new RooFormulaVar("N_Jpsi_PP","N_Jpsi_PP","@0+@1",RooArgList(*njpsi_pp_pass,*njpsi_pp_fail));
-   RooFormulaVar *njpsi_pbpb = new RooFormulaVar("N_Jpsi_PbPb","N_Jpsi_PbPb","@0+@1",RooArgList(*njpsi_pbpb_pass,*njpsi_pbpb_fail));
-   RooFormulaVar *npsip_pp = new RooFormulaVar("N_Psi2S_PP","N_Psi2S_PP","@0+@1",RooArgList(*npsip_pp_pass,*npsip_pp_fail));
-
-   // DR_fP
-   RooFormulaVar *effpsip_pp_NP = new RooFormulaVar("effpsip_pp_NP","effpsip_pp_NP","@0",RooArgList(*effjpsi_pp_NP));
-   RooFormulaVar *effjpsi_pbpb_P = new RooFormulaVar("effjpsi_pbpb_P","effjpsi_pbpb_P","@0",RooArgList(*effjpsi_pp_P));
-   RooFormulaVar *effpsip_pbpb_P = new RooFormulaVar("effpsip_pbpb_P","effpsip_pbpb_P","@0",RooArgList(*effpsip_pp_P));
-   RooFormulaVar *effjpsi_pbpb_NP = new RooFormulaVar("effjpsi_pbpb_NP","effjpsi_pbpb_NP","@0",RooArgList(*effjpsi_pp_NP));
-   RooFormulaVar *effpsip_pbpb_NP = new RooFormulaVar("effpsip_pbpb_NP","effpsip_pbpb_NP","@0",RooArgList(*effjpsi_pp_NP));
-
-   RooFormulaVar *fpass_jpsi_pbpb = new RooFormulaVar("fpass_jpsi_pbpb","fpass_jpsi_pbpb","@0/(@0+@1)",RooArgList(*njpsi_pbpb_pass,*njpsi_pbpb_fail));
-   RooFormulaVar *fpass_jpsi_pp = new RooFormulaVar("fpass_jpsi_pp","fpass_jpsi_pp","@0/(@0+@1)",RooArgList(*njpsi_pp_pass,*njpsi_pp_fail));
-   RooFormulaVar *fpass_psip_pp = new RooFormulaVar("fpass_psip_pp","fpass_psip_pp","@0/(@0+@1)",RooArgList(*npsip_pp_pass,*npsip_pp_fail));
-
-   RooFormulaVar *fP_jpsi_pbpb = new RooFormulaVar("fP_jpsi_pbpb","fP_jpsi_pbpb","(@1-@2)/(@0-@2)",RooArgList(*effjpsi_pbpb_P,*fpass_jpsi_pbpb,*effjpsi_pbpb_NP));
-   RooFormulaVar *fP_jpsi_pp = new RooFormulaVar("fP_jpsi_pp","fP_jpsi_pp","(@1-@2)/(@0-@2)",RooArgList(*effjpsi_pp_P,*fpass_jpsi_pp,*effjpsi_pp_NP));
-   RooFormulaVar *fP_psip_pp = new RooFormulaVar("fP_psip_pp","fP_psip_pp","(@1-@2)/(@0-@2)",RooArgList(*effpsip_pp_P,*fpass_psip_pp,*effpsip_pp_NP));
+   if (!effjpsi_pp_P || !effpsip_pp_P || !effjpsi_pp_NP || !njpsi_pbpb_pass || !DR_P || !njpsi_pp_pass || !npsip_pp_pass || !rfrac_pp_pass || !njpsi_pbpb_fail || !npsip_pbpb_fail || !rfrac_pbpb_fail || !njpsi_pp_fail || !npsip_pp_fail || !rfrac_pp_fail )
+   {
+     cout << "[ERROR]: Some variable(s) not defined in the input workspace" << endl;
+     return -99.;
+   }
+  
+   RooFormulaVar *njpsi_pp = (RooFormulaVar*) w->function("N_Jpsi_PP");
+   RooFormulaVar *njpsi_pbpb = (RooFormulaVar*) w->function("N_Jpsi_PbPb");
+   RooFormulaVar *npsip_pp = (RooFormulaVar*) w->function("N_Psi2S_PP");
+   RooFormulaVar *effpsip_pp_NP = (RooFormulaVar*) w->function("effpsip_pp_NP");
+   RooFormulaVar *effjpsi_pbpb_P = (RooFormulaVar*) w->function("effjpsi_pbpb_P");
+   RooFormulaVar *effpsip_pbpb_P = (RooFormulaVar*) w->function("effpsip_pbpb_P");
+   RooFormulaVar *effjpsi_pbpb_NP = (RooFormulaVar*) w->function("effjpsi_pbpb_NP");
+   RooFormulaVar *effpsip_pbpb_NP = (RooFormulaVar*) w->function("effpsip_pbpb_NP");
+   RooFormulaVar *fpass_jpsi_pbpb = (RooFormulaVar*) w->function("fpass_jpsi_pbpb");
+   RooFormulaVar *fpass_jpsi_pp = (RooFormulaVar*) w->function("fpass_jpsi_pp");
+   RooFormulaVar *fpass_psip_pp = (RooFormulaVar*) w->function("fpass_psip_pp");
+   RooFormulaVar *fP_jpsi_pbpb = (RooFormulaVar*) w->function("fP_jpsi_pbpb");
+   RooFormulaVar *fP_jpsi_pp = (RooFormulaVar*) w->function("fP_jpsi_pp");
+   RooFormulaVar *fP_psip_pp = (RooFormulaVar*) w->function("fP_psip_pp");
+   if (!njpsi_pp) // One variable missing means that is the first time we call this function so all variables are undefined
+   {
+     njpsi_pp = new RooFormulaVar("N_Jpsi_PP","N_Jpsi_PP","@0+@1",RooArgList(*njpsi_pp_pass,*njpsi_pp_fail));
+     njpsi_pbpb = new RooFormulaVar("N_Jpsi_PbPb","N_Jpsi_PbPb","@0+@1",RooArgList(*njpsi_pbpb_pass,*njpsi_pbpb_fail));
+     npsip_pp = new RooFormulaVar("N_Psi2S_PP","N_Psi2S_PP","@0+@1",RooArgList(*npsip_pp_pass,*npsip_pp_fail));
+     
+     // DR_fP
+     effpsip_pp_NP = new RooFormulaVar("effpsip_pp_NP","effpsip_pp_NP","@0",RooArgList(*effjpsi_pp_NP));
+     effjpsi_pbpb_P = new RooFormulaVar("effjpsi_pbpb_P","effjpsi_pbpb_P","@0",RooArgList(*effjpsi_pp_P));
+     effpsip_pbpb_P = new RooFormulaVar("effpsip_pbpb_P","effpsip_pbpb_P","@0",RooArgList(*effpsip_pp_P));
+     effjpsi_pbpb_NP = new RooFormulaVar("effjpsi_pbpb_NP","effjpsi_pbpb_NP","@0",RooArgList(*effjpsi_pp_NP));
+     effpsip_pbpb_NP = new RooFormulaVar("effpsip_pbpb_NP","effpsip_pbpb_NP","@0",RooArgList(*effjpsi_pp_NP));
+     
+     fpass_jpsi_pbpb = new RooFormulaVar("fpass_jpsi_pbpb","fpass_jpsi_pbpb","@0/(@0+@1)",RooArgList(*njpsi_pbpb_pass,*njpsi_pbpb_fail));
+     fpass_jpsi_pp = new RooFormulaVar("fpass_jpsi_pp","fpass_jpsi_pp","@0/(@0+@1)",RooArgList(*njpsi_pp_pass,*njpsi_pp_fail));
+     fpass_psip_pp = new RooFormulaVar("fpass_psip_pp","fpass_psip_pp","@0/(@0+@1)",RooArgList(*npsip_pp_pass,*npsip_pp_fail));
+     
+     fP_jpsi_pbpb = new RooFormulaVar("fP_jpsi_pbpb","fP_jpsi_pbpb","(@1-@2)/(@0-@2)",RooArgList(*effjpsi_pbpb_P,*fpass_jpsi_pbpb,*effjpsi_pbpb_NP));
+     fP_jpsi_pp = new RooFormulaVar("fP_jpsi_pp","fP_jpsi_pp","(@1-@2)/(@0-@2)",RooArgList(*effjpsi_pp_P,*fpass_jpsi_pp,*effjpsi_pp_NP));
+     fP_psip_pp = new RooFormulaVar("fP_psip_pp","fP_psip_pp","(@1-@2)/(@0-@2)",RooArgList(*effpsip_pp_P,*fpass_psip_pp,*effpsip_pp_NP));
+   }
 
    // now that we have all the ingredients, let's get to what we want: npsip_pbpb_pass.
-   RooFormulaVar *npsip_pbpb_P = new RooFormulaVar("N_Psi2S_PbPb_P","N_Psi2S_PbPb_P","@0*((@1*@2)/(@3*@4))*@5*@6",
+   const char* varNameP = wSys ? "N_Psi2S_PbPb_P_syst" : "N_Psi2S_PbPb_P";
+   RooFormulaVar *npsip_pbpb_P = new RooFormulaVar(varNameP,varNameP,"@0*((@1*@2)/(@3*@4))*@5*@6",
          RooArgList(*DR_P, *fP_psip_pp,*npsip_pp, *fP_jpsi_pp,*njpsi_pp, *fP_jpsi_pbpb,*njpsi_pbpb));
-   RooFormulaVar *npsip_pbpb_pass = new RooFormulaVar("N_Psi2S_PbPb_pass","N_Psi2S_PbPb_pass","(@0+(@1/(@2-@1))*@3)*(@2-@1)/(1-@1)",
+   const char* varNamePass = wSys ? "N_Psi2S_PbPb_pass_syst" : "N_Psi2S_PbPb_pass";
+   RooFormulaVar *npsip_pbpb_pass = new RooFormulaVar(varNamePass,varNamePass,"(@0+(@1/(@2-@1))*@3)*(@2-@1)/(1-@1)",
          RooArgList(*npsip_pbpb_P, *effpsip_pbpb_NP, *effpsip_pbpb_P, *npsip_pbpb_fail));
    w->import(*npsip_pbpb_pass);
    return npsip_pbpb_pass->getVal();

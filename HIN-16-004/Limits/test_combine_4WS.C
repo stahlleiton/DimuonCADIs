@@ -55,12 +55,15 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
       double val=theVar->getVal();
       double err=theVar->getError();
       TString varName(theVar->GetName());
+      TString varTitle(theVar->GetTitle());
       if ( (varName != "invMass") && (varName != "pt") && (varName != "rap") && (varName != "cent")) {
          newmin = max(val-5.*fabs(err), newmin);
          newmax = min(val+5.*fabs(err), newmax);
+         varName = Form("%s_pass",varName.Data());
+         varTitle = Form("%s (pass)",theVar->GetTitle());
       }
 
-      RooRealVar *theVarCopy = new RooRealVar(Form("%s_pass",varName.Data()),Form("%s (pass)",theVar->GetTitle()),val,newmin,newmax);
+      RooRealVar *theVarCopy = new RooRealVar(varName.Data(),varTitle.Data(),val,newmin,newmax);
       theVarCopy->setConstant(theVar->isConstant());
       theVarCopy->setError(err);
       if ( (theVar->getMin() == theVar->getMax()) || theVar->getError() == 0. ) theVarCopy->setConstant();
@@ -69,9 +72,9 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
    }
 
    // non-prompt
-   allVars = ws_pbpb_npr->allVars(); 
-   allVars.add(ws_pp_npr->allVars());
-   it = allVars.createIterator();
+   RooArgSet allVars_np = ws_pbpb_npr->allVars();
+   allVars_np.add(ws_pp_npr->allVars());
+   it = allVars_np.createIterator();
    theVar = (RooRealVar*) it->Next();
    while (theVar) {
       // restrict the range to [val-5sigma, val+5sigma]
@@ -79,12 +82,15 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
       double val=theVar->getVal();
       double err=theVar->getError();
       TString varName(theVar->GetName());
+      TString varTitle(theVar->GetTitle());
       if ( (varName != "invMass") && (varName != "pt") && (varName != "rap") && (varName != "cent")) {
          newmin = max(val-5.*fabs(err), newmin);
          newmax = min(val+5.*fabs(err), newmax);
+         varName = Form("%s_fail",varName.Data());
+         varTitle = Form("%s (fail)",theVar->GetTitle());
       }
 
-      RooRealVar *theVarCopy = new RooRealVar(Form("%s_fail",varName.Data()),Form("%s (fail)",theVar->GetTitle()),val,newmin,newmax);
+      RooRealVar *theVarCopy = new RooRealVar(varName.Data(),varTitle.Data(),val,newmin,newmax);
       theVarCopy->setConstant(theVar->isConstant());
       theVarCopy->setError(err);
       if ( (theVar->getMin() == theVar->getMax()) || theVar->getError() == 0. ) theVarCopy->setConstant();
@@ -120,8 +126,8 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
    }
 
    // non-prompt
-   allFunctions = ws_pp_npr->allFunctions(); allFunctions.add(ws_pbpb_npr->allFunctions());
-   it = allFunctions.createIterator();
+   RooArgSet allFunctions_np = ws_pp_npr->allFunctions(); allFunctions_np.add(ws_pbpb_npr->allFunctions());
+   it = allFunctions_np.createIterator();
    theFunc = (RooFormulaVar*) it->Next();
    while (theFunc) {
       RooArgSet* theVars = theFunc->getVariables();
@@ -183,6 +189,7 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
                if (t.Index("coefList=")!=kNPOS) args=((TObjString*) t.Tokenize("=")->At(1))->String();
             }
             args.ReplaceAll("(","{"); args.ReplaceAll(")","}");
+            args.ReplaceAll("_PP",TString("_PP")+ "_pass"); args.ReplaceAll("_PbPb",TString("_PbPb")+"_pass");
             cout << Form("Chebychev::%s_pass(%s, %s)",thePdf->GetName(),obs.Data(),args.Data()) << endl;
             wcombo->factory(Form("Chebychev::%s_pass(%s, %s)",thePdf->GetName(),obs.Data(),args.Data()));
          } else if (className == "RooUniform") {
@@ -222,12 +229,12 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
    }
 
    // non-prompt
-   allPdfs = ws_pp_npr->allPdfs(); allPdfs.add(ws_pbpb_npr->allPdfs());
+   RooArgSet allPdfs_np = ws_pp_npr->allPdfs(); allPdfs_np.add(ws_pbpb_npr->allPdfs());
    nok=0;
-   while (allPdfs.getSize() != nok) {
+   while (allPdfs_np.getSize() != nok) {
       cout << nok << endl;
       nok=0;
-      it = allPdfs.createIterator();
+      it = allPdfs_np.createIterator();
       RooAbsPdf *thePdf = (RooAbsPdf*) it->Next();
       while (thePdf) {
          if (wcombo->pdf(Form("%s_fail",thePdf->GetName()))) {thePdf = (RooAbsPdf*) it->Next(); nok++; continue;}
@@ -264,7 +271,7 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
                if (t.Index("coefList=")!=kNPOS) args=((TObjString*) t.Tokenize("=")->At(1))->String();
             }
             args.ReplaceAll("(","{"); args.ReplaceAll(")","}");
-            args.ReplaceAll("_PP",TString("_PP")+"fail"); args.ReplaceAll("_PbPb",TString("_PbPb")+"_fail");
+            args.ReplaceAll("_PP",TString("_PP")+ "_fail"); args.ReplaceAll("_PbPb",TString("_PbPb")+"_fail");
             TString factorystring = Form("Chebychev::%s_fail(%s, %s)",thePdf->GetName(),obs.Data(),args.Data());
             cout << factorystring.Data() << endl;
             wcombo->factory(factorystring.Data());
@@ -331,7 +338,7 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
 
 
    // build the double ratio prompt
-   RooRealVar *RFrac2Svs1S_PbPbvsPP_Prompt = new RooRealVar("RFrac2Svs1S_PbPbvsPP_P","RFrac2Svs1S_PbPbvsPP_P",0.5,-10,10);
+   RooRealVar *RFrac2Svs1S_PbPbvsPP_P = new RooRealVar("RFrac2Svs1S_PbPbvsPP_P","RFrac2Svs1S_PbPbvsPP_P",0.5,-10,10);
   
    // help RooFit by telling it what to expect for the double ratio prompt
    anabin thebin = binFromFile(name_pbpb_pr);
@@ -339,7 +346,8 @@ RooWorkspace* test_combine_4WS(const char* name_pbpb_pr, const char* name_pp_pr,
    double effpsip_pp_P_val = ljpsieff("psi2s","pp",thebin,"../Efficiency");
    double effjpsi_pp_NP_val = ljpsieff("npjpsi","pp",thebin,"../Efficiency");
    const double vars[18] = {wcombo->var("N_Jpsi_PbPb_pass")->getVal(),wcombo->var("RFrac2Svs1S_PbPb_pass")->getVal(),wcombo->var("N_Jpsi_PP_pass")->getVal(),wcombo ->var("RFrac2Svs1S_PP_pass")->getVal(),wcombo->var("N_Jpsi_PbPb_fail")->getVal(),wcombo->var("RFrac2Svs1S_PbPb_fail")->getVal(),wcombo->var("N_Jpsi_PP_fail")->getVal() ,wcombo->var("RFrac2Svs1S_PP_fail")->getVal(),effjpsi_pp_P_val,effpsip_pp_P_val,effjpsi_pp_NP_val,0.,0.,0.,0.,0.,0.,0.};
-    RFrac2Svs1S_PbPbvsPP_Prompt->setVal(doubleratio_prompt(vars));
+    RFrac2Svs1S_PbPbvsPP_P->setVal(doubleratio_prompt(vars));
+   wcombo->import(*RFrac2Svs1S_PbPbvsPP_P);
   
    // build the prompt pp pdf
    RooAbsPdf *sig1S_PP_pass = wcombo->pdf("pdfMASS_Jpsi_PP_pass");
