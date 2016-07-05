@@ -45,7 +45,7 @@ const double massdown = 0.25;
 const double massup = 0.15;
 
 // function for ctau cuts
-bool ctaucut(double ctau, double y, double pt, bool ispbpb) {
+bool ctaucut(double ctau, double y, double pt) {
   double a=1,b=1;
   if (fabs(y)<1.6){a=ctaucut_a_mid; b=ctaucut_b_mid;} 
   else {a=ctaucut_a_fwd; b=ctaucut_b_fwd;}
@@ -398,7 +398,7 @@ void oniaEff_DataVary::Loop(const char* fname, bool ispbpb, bool isPsip)
 	}
       }
       
-      bool ctauptdepcutok = ctaucut(Reco_QQ_ctau3D[ibestqq], tlvrecqq->Rapidity(), tlvrecqq->Pt(), ispbpb);
+      bool ctauptdepcutok = ctaucut(Reco_QQ_ctau3D[ibestqq], tlvrecqq->Rapidity(), tlvrecqq->Pt());
       
       if (ctauptdepcutok) {
 	if (fabs(tlvrecqq->Rapidity()) < 1.6) {
