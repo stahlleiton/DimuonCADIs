@@ -6,6 +6,8 @@
 #include "TLegend.h"
 #include "TF1.h"
 #include "TMath.h"
+#include "TObjString.h"
+#include "TObjArray.h"
 
 #include "FitFunctions.h"
 #include "../Fitter/Macros/CMS/CMS_lumi.C"
@@ -21,6 +23,7 @@ void setErr(TH1F *hist);
 void setErrWt(TH1F *hist1, TH1F *hist2);
 void fixCentPp(TH1F *hist);
 TH1F* integrateHist(TH1F *hist);
+TObjArray* getWeightedfiles(TFile* file, TString deptag, TString raptag);
 
 void plotDataMC_DataVary() {
 
@@ -35,8 +38,9 @@ void plotDataMC_DataVary() {
       
       TString name = "files/histos_" + objtag + "_" + colltag + ".root";
       TFile *fjpsi = new TFile(name);
-            
-      for (int idep=0; idep<1; idep++) { // idep=2 -> integrated
+      const char* fname = "files/histos_" + objtag + "_" + colltag + ".root";
+      
+      for (int idep=0; idep<2; idep++) { // idep=2 -> integrated
 	deptag = (idep==0) ? "pt" : "cent";
 	
 	for (int irap=0; irap<2; irap++) {
@@ -51,32 +55,17 @@ void plotDataMC_DataVary() {
 	    gStyle->SetEndErrorSize(3);
 	    
 	    TObjArray* wtwTMCfiles = NULL;
-	    wtwTMCfiles = getWeightedfiles(fjpsi, deptag, raptag);
-
-	    TString hname;
-	    hname = "hnum" + cuttag + deptag + raptag;
-	    TH1F *hjpsinum = (TH1F*) fjpsi->Get(hname);
-	    hname = (icut<3) ? "hden_" + deptag + raptag : "hnum_" + deptag + raptag;
-	    TH1F *hjpsiden = (TH1F*) fjpsi->Get(hname);
+	    wtwTMCfiles = (TObjArray*)getWeightedfiles(fjpsi, deptag, raptag);
 	    
-	    if (idep==2) {
-	      hjpsinum = integrateHist(hjpsinum);
-	      hjpsiden = integrateHist(hjpsiden);
-	    }
-	    
-	    if (icoll==0 && idep==1) { // centrality for pp... fill all the bins
-	      fixCentPp(hjpsinum);
-	      fixCentPp(hjpsiden);
-	    }
-	    
+	    //TH1F *hjpsiden;
 	    const int nbins_ptmid = 5;
 	    const float bins_ptmid[nbins_ptmid+1] = {6.5, 9, 12, 15, 20, 30};
 	    const int nbins_ptfwd = 3;
 	    const float bins_ptfwd[nbins_ptfwd+1] = {3, 6.5, 12, 30};
-	    TH1F *hjpsiMid;
-	    TH1F *hjpsiFwd;
+	    TH1F *hjpsiMid = NULL;
+	    TH1F *hjpsiFwd = NULL;
 	    
-	    int nbins = hjpsinum->GetNbinsX();
+	    int nbins = (irap==0) ? 5 : 3; 
 	    cout<<" nbibs: "<<nbins<<endl;
 	    
 	    if(irap==0)
@@ -119,7 +108,7 @@ void plotDataMC_DataVary() {
 	      if(irap==0){
 		hjpsiMid->SetBinContent(i+1,ptMid[i]);
 		hjpsiMid->SetBinError(i+1, ptMidErr[i]);
-
+		
 		cout<<" ptMid[i] "<<ptMid[i]<<endl;
 	      }
 	      
@@ -129,20 +118,15 @@ void plotDataMC_DataVary() {
 	      }
 	    }
 	    
-	    gStyle->SetOptTitle(0); // at least most of the time                                                            
+	    gStyle->SetOptTitle(0); // at least most of the time    
 	    gStyle->SetOptStat(0); // most of the time, sometimes "nemriou" might be useful to display name,  
 	    //number of entries, mean, rms, integral, overflow and underflow                                     
 	    gStyle->SetOptFit(1);
 	    
-	    hjpsinum->Sumw2();
+	    //hjpsinum->Sumw2();
  	    TLatex tl; TString cname;
-	    TString Compame = "DataMC";
+	    TString Compame = "DataMC_fluct";
 	    TCanvas *c2 = new TCanvas();
-	    
-	    int num;
-	    if(jj==0) num = 2;
-	    if(jj==1) num = 4;	
-	    if(jj==2) num = +3;
 	    
 	    TH1F *hjpsiDataPbPb;
 	    if(irap==0) hjpsiDataPbPb = (TH1F*)hjpsiMid->Clone();
@@ -152,94 +136,64 @@ void plotDataMC_DataVary() {
 	    hjpsiDataPbPb->GetXaxis()->SetTitle((idep==1) ? "Centrality bin" : "p_{T} (GeV/c)");
 	    hjpsiDataPbPb->Scale(1/hjpsiDataPbPb->Integral());
 	    
-	    //hjpsiDataPbPb->GetYaxis()->SetTitleSize(0.03);
-	    hjpsiDataPbPb->GetYaxis()->SetTitleOffset(0.72);
-	    hjpsiDataPbPb->GetXaxis()->SetTitleOffset(0.7);
+	    //hjpsiDataPbPb->GetYaxis()->SetTitleSize(0.06);
+	    hjpsiDataPbPb->GetYaxis()->SetTitleOffset(0.9);
+	    hjpsiDataPbPb->GetXaxis()->SetTitleOffset(0.8);
 	    TAxis *YaxRatio = hjpsiDataPbPb->GetYaxis();
 	    YaxRatio->SetLimits(0.0,0.8);
 	    hjpsiDataPbPb->GetYaxis()->SetRangeUser(0.0,0.8);
-
 	    hjpsiDataPbPb->Draw();
+	    
+	    TH1* histonum(0x0);
+	    TIter nextFunc(wtwTMCfiles);
+	    TH1* hWt = NULL; TH1* hjpsinum = NULL;
+	    
+	    while ( (histonum = static_cast<TH1*>(nextFunc())) )
+	      {
+		TString hname = histonum->GetName();
+		hjpsinum = static_cast<TH1*>(wtwTMCfiles->FindObject(histonum->GetName()) );
+		hjpsinum->Scale(1/hjpsinum->Integral());
+		hjpsinum->SetMarkerColor(2);
+		hjpsinum->SetLineColor(2);
+		hjpsinum->Draw("E1 same");
+		
+		if(hname.Contains("nominal")){
+		  hWt = static_cast<TH1*>(wtwTMCfiles->FindObject(histonum->GetName()) );
+		  hWt->Scale(1/hWt->Integral());
+		  hWt->SetMarkerColor(4);
+		  hWt->SetLineColor(4);
+		  hWt->SetLineWidth(2);
+		  hWt->Draw("E1 same");
+		}
 
-	    hjpsinum->Scale(1/hjpsinum->Integral());
-	    hjpsinum->SetMarkerColor(num);
-	    hjpsinum->SetLineColor(num);
-
-	    hjpsinum->Draw("E1 same");
-
-
+	      }
 	    
 	    cname = "files/" + Compame + colltag + "_"  + objtag + "_" + deptag + "_" + raptag + "_" + cuttag;
 	    double yshift =0; if (icoll==1 && irap==1) yshift=0.3;
 	    if (icut>=3) yshift=0;
 	    TLegend *tleg = new TLegend(0.61,0.667,0.92,0.78);
 	    tleg->SetBorderSize(0);
-	    if(irap==0)
-	      tleg->AddEntry(hjpsiMid,Form("Data: %s", iobj==0 ? "J/#psi" : "#psi(2S)"),"lp");
-	    if(irap==1)
-	      tleg->AddEntry(hjpsiFwd,Form("Data: %s", iobj==0 ? "J/#psi" : "#psi(2S)"),"lp");
-	    tleg->AddEntry(hjpsinum,Form("MC: %s", iobj==0 ? "J/#psi" : "#psi(2S)"),"lp");
+	    tleg->AddEntry(hjpsiDataPbPb,Form("Data: %s", iobj==0 ? "J/#psi" : "#psi(2S)"),"lp");
+	    tleg->AddEntry(hWt,Form("MC nominal: %s", iobj==0 ? "J/#psi" : "#psi(2S)"),"lp");
+	    tleg->AddEntry(hjpsinum,Form("MC weighted: %s", iobj==0 ? "J/#psi" : "#psi(2S)"),"lp");
 	    tleg->Draw();
 	    
 	    tl.DrawLatex((irap==0) ? 9.4 : 5.2,1.3, colltag + TString(", ") + ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1 || icut==3) ? "cut #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));	    
-	    c2->SaveAs(cname + ".root");
-	    c2->SaveAs(cname + ".png");
-	    c2->SaveAs(cname + ".pdf");
-	    
-	    TH1F *hjpsiDataPbPb;
-	    if(irap==0) hjpsiDataPbPb = (TH1F*)hjpsiMid->Clone();
-	    if(irap==1) hjpsiDataPbPb = (TH1F*)hjpsiFwd->Clone();
-	    hjpsiDataPbPb->SetDirectory(0);
-	    hjpsiDataPbPb->SetName("hjpsiDataPbPb");
-	    hjpsiDataPbPb->Divide(hjpsinum);
-	    hjpsiDataPbPb->GetYaxis()->SetTitle("DATA/MC");
-	    
-	    TAxis *YaxRatio = hjpsiDataPbPb->GetYaxis();
-	    YaxRatio->SetLimits(0.4,1.4);
-	    hjpsiDataPbPb->GetYaxis()->SetRangeUser(0.4,1.4);
-	    
-	    TCanvas *c3 = new TCanvas();
-	    hjpsiDataPbPb->Draw();
-	    
-	    TString CompameR = "DataMC_Ratio";
-	    cname = "files/" + CompameR + colltag + "_"  + objtag  + "_" + deptag + "_" + raptag + "_" + cuttag;
-	    yshift =0; if (icoll==1 && irap==1) yshift=0.3;
-	    if (icut>=3) yshift=0;
-	    TLegend *tlegR = new TLegend(0.6,0.667,0.92,0.78);
-	    tlegR->SetBorderSize(0);
-	    if(irap==0)
-	      tlegR->AddEntry(hjpsiMid,Form("Data/MC Ratio: %s", iobj==0 ? "J/#psi" : "#psi(2S)"),"p");
-	    if(irap==1)
-	      tlegR->AddEntry(hjpsiFwd,Form("Data/MC Ratio: %s", iobj==0 ? "J/#psi" : "#psi(2S)"),"p");
-	    tlegR->Draw();
-	    
-	    tl.DrawLatex((irap==0) ? 9.4 : 5.2,1.3, colltag + TString(", ") + ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1 || icut==3) ? "cut #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
-	    TF1 *FitFn = new TF1("FitFn",(irap==0) ? Pol2 : Pol1,0.0,30.0,(irap==0) ? 3 : 2); 
-	    FitFn->SetLineWidth(2.0);
-	    FitFn->SetLineColor(2);
-	    hjpsiDataPbPb->Fit("FitFn","", "",(irap==0) ? 6.5 : 3.0,30.0);
-	    FitFn->Draw("same");
-	    
-	    c3->SaveAs(cname + ".root");
-	    c3->SaveAs(cname + ".png");
-	    c3->SaveAs(cname + ".pdf");
-	    
-	    CompameR = "Ratio";
-	    cname = "files/" + CompameR + colltag + "_"  + objtag + "_" + deptag + "_" + raptag + "_" + cuttag;
-	    
-	    TFile *outf = new TFile(cname + ".root","RECREATE");
-	    hjpsiDataPbPb->Write();
-	    FitFn->Write();
-	    outf->Close();
+	   
+	    //c2->SaveAs(cname + ".root");
+	    //c2->SaveAs(cname + ".png");
+	    //c2->SaveAs(cname + ".pdf");
 	    
 	    //delete c1;  
 	    //delete c2;  
 	    //delete c3;  
 	    //delete hjpsiDataPbPb;
 	    //delete hjpsinum;    
+	    //delete  hWt;
 	    //delete FitFn;
-	    //delete hjpsiMid;
-	    //delete hjpsiFwd;
+	    delete hjpsiMid;
+	    delete hjpsiFwd;
+	    delete wtwTMCfiles;
 	    
 	  } // icut loop (without / with ctau cut)
 	} // irap loop (mid / fwd)
@@ -295,26 +249,23 @@ TH1F* integrateHist(TH1F *hist) {
    return ans;
 }
 
-
-TObjArray* getWeightedfiles(const char* file, TString deptag, TString raptag)
+TObjArray* getWeightedfiles(TFile* fileWt, TString deptag, TString raptag)
 {
-  TFile *fileWt = new TFile(file,"READ");
   if (!fileWt)
     {
-      cout << "[ERROR] File "<< file << " for weights is not found" << endl;
+      cout << "[ERROR] File "<< fileWt << " for weights is not found" << endl;
       return NULL;
     }
   
   TList* wtfile = fileWt->GetListOfKeys();
   TIter nextObjArray(wtfile);
   
-  TString sName(fileWt->GetName());
   TObjArray* wtFiles = NULL;
+  TObjString* fname;
   
-  TObjString* fname(0x0);
   while ( (fname = static_cast<TObjString*>(nextObjArray.Next())) )
     {
-      wtFiles = static_cast<TObjArray*>(fileWt->FindObjectAny(Form("wtHisto_num_%s%s", deptag, raptag) ));
+      wtFiles = static_cast<TObjArray*>(fileWt->FindObjectAny(Form("wtHisto_num_%s%s", deptag.Data(), raptag.Data()) ));
     }
   return wtFiles;
 }
