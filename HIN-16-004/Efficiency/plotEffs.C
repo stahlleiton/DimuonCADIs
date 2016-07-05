@@ -241,13 +241,13 @@ void plotEffs() {
                   vector<string> yname;
                   yname.push_back("\\pp");
                   yname.push_back("\\pbpb");
-                  vector<TH1F*> ths;
+                  vector<TH1*> ths;
                   ths.push_back(hpsi2spp); ths.push_back(hpsi2spbpb);
                   inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality bin", yname);
                   printHist(ths, texname.Data());
                   if (idep==0) closetex(texname.Data());
                } else {
-                  vector<TH1F*> ths;
+                  vector<TH1*> ths;
                   ths.push_back(hpsi2spp); ths.push_back(hpsi2spbpb);
                   printHist(ths, texname.Data());
                   closetex(texname.Data());
@@ -277,13 +277,13 @@ void plotEffs() {
                   // print tex
                   vector<string> yname;
                   yname.push_back("Double ratio of efficiencies");
-                  vector<TH1F*> ths;
+                  vector<TH1*> ths;
                   ths.push_back(hpsi2spbpb);
                   inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality bin", yname);
                   printHist(ths, texname.Data());
                   if (idep==0) closetex(texname.Data());
                } else {
-                  vector<TH1F*> ths;
+                  vector<TH1*> ths;
                   ths.push_back(hpsi2spbpb);
                   printHist(ths, texname.Data());
                   closetex(texname.Data());
