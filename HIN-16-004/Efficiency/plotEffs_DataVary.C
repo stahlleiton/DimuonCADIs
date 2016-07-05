@@ -82,10 +82,10 @@ void plotEffs_DataVary(const char* dir = "files_100vars_mine") {
             TObjArray *hpsi2sden = (TObjArray*) fpsi2s->Get(aname);
             // TObjArray *hnpjpsiden = (TObjArray*) fnpjpsi->Get(aname);
 
-            TProfile *tp_jpsi = SimpleEff(hjpsinum,hjpsiden,aname);
+            TProfile *tp_jpsi = SimpleEff(hjpsinum,hjpsiden,aname + colltag);
             tp_jpsi->SetMarkerColor(kBlack);
             tp_jpsi->SetLineColor(kBlack);
-            TProfile *tp_psi2s = SimpleEff(hpsi2snum,hpsi2sden,aname);
+            TProfile *tp_psi2s = SimpleEff(hpsi2snum,hpsi2sden,aname + colltag);
             tp_psi2s->SetMarkerColor(kRed);
             tp_psi2s->SetLineColor(kRed);
             // TProfile *tp_npjpsi = SimpleEff(hnpjpsinum,hnpjpsiden,aname);
@@ -171,8 +171,8 @@ void plotEffs_DataVary(const char* dir = "files_100vars_mine") {
             TObjArray *hjpsidenpbpb = (TObjArray*) fjpsi_pbpb->Get(aname);
             TObjArray *hpsi2sdenpbpb = (TObjArray*) fpsi2s_pbpb->Get(aname);
 
-            TProfile *tpsr_pp = SingleRatio(hpsi2spp,hpsi2sdenpp,hjpsipp,hjpsidenpp,aname);
-            TProfile *tpsr_pbpb = SingleRatio(hpsi2spbpb,hpsi2sdenpbpb,hjpsipbpb,hjpsidenpbpb,aname);
+            TProfile *tpsr_pp = SingleRatio(hpsi2spp,hpsi2sdenpp,hjpsipp,hjpsidenpp,aname + "_pp");
+            TProfile *tpsr_pbpb = SingleRatio(hpsi2spbpb,hpsi2sdenpbpb,hjpsipbpb,hjpsidenpbpb,aname + "_pbpb");
             tpsr_pp->SetMarkerColor(kBlack);
             tpsr_pp->SetLineColor(kBlack);
             tpsr_pbpb->SetMarkerColor(kRed);
@@ -347,16 +347,13 @@ TProfile* SimpleEff(TObjArray *anum, TObjArray *aden, TString tag) {
    TProfile *tprof = newTProfile((TH1F*) anum->At(0));
 
    bool fixcent = (tag.Contains("pp") && tag.Contains("cent"));
-   bool doint = (tag.Contains("int"));
 
    for (int i=1; i<anum->GetSize(); i++) {
       TH1F *hnum = (TH1F*) anum->At(i);
       TH1F *hden = (TH1F*) aden->At(i);
-      if (doint) {
+      if (fixcent) {
          hnum = integrateHist(hnum);
          hden = integrateHist(hden);
-      }
-      if (fixcent) {
          fixCentPp(hnum);
          fixCentPp(hden);
       }
@@ -365,7 +362,7 @@ TProfile* SimpleEff(TObjArray *anum, TObjArray *aden, TString tag) {
       TH1F *hratio = (TH1F*) hnum->Clone("hratio");
       hratio->Divide(hnum,hden,1,1,"B");
       fillTProf(tprof,hratio);
-      if (doint) {
+      if (fixcent) {
          delete hnum;
          delete hden;
       }
@@ -376,10 +373,12 @@ TProfile* SimpleEff(TObjArray *anum, TObjArray *aden, TString tag) {
 }
 
 TProfile* SingleRatio(TObjArray *anum2, TObjArray *aden2, TObjArray *anum1, TObjArray *aden1, TString tag) {
-   TProfile *tprof = newTProfile((TH1F*) anum2->At(0));
 
    bool fixcent = (tag.Contains("pp") && tag.Contains("cent"));
    bool doint = (tag.Contains("int"));
+
+   if (fixcent) fixCentPp((TH1F*) anum2->At(0));
+   TProfile *tprof = newTProfile((TH1F*) anum2->At(0));
 
    int nvars = anum2->GetSize()-1;
    for (int i=1; i<4.*nvars; i++) {
@@ -426,8 +425,7 @@ TProfile* SingleRatio(TObjArray *anum2, TObjArray *aden2, TObjArray *anum1, TObj
 TProfile* DoubleRatio(TObjArray *anum2pbpb, TObjArray *aden2pbpb, TObjArray *anum1pbpb, TObjArray *aden1pbpb, TObjArray *anum2pp, TObjArray *aden2pp, TObjArray *anum1pp, TObjArray *aden1pp, TString tag) {
    TProfile *tprof = newTProfile((TH1F*) anum2pbpb->At(0));
 
-   bool fixcent = (tag.Contains("pp") && tag.Contains("cent"));
-   bool doint = (tag.Contains("int"));
+   bool fixcent = (tag.Contains("cent"));
 
    int nvars = anum2pbpb->GetSize()-1;
    for (int i=1; i<8.*nvars; i++) {
@@ -443,21 +441,7 @@ TProfile* DoubleRatio(TObjArray *anum2pbpb, TObjArray *aden2pbpb, TObjArray *anu
       TH1F *hden2pp = (TH1F*) aden2pp->At(i2pp);
       TH1F *hnum1pp = (TH1F*) anum1pp->At(i1pp);
       TH1F *hden1pp = (TH1F*) aden1pp->At(i1pp);
-      if (doint) {
-         hnum2pbpb = integrateHist(hnum2pbpb);
-         hden2pbpb = integrateHist(hden2pbpb);
-         hnum1pbpb = integrateHist(hnum1pbpb);
-         hden1pbpb = integrateHist(hden1pbpb);
-         hnum2pp = integrateHist(hnum2pp);
-         hden2pp = integrateHist(hden2pp);
-         hnum1pp = integrateHist(hnum1pp);
-         hden1pp = integrateHist(hden1pp);
-      }
       if (fixcent) {
-         fixCentPp(hnum2pbpb);
-         fixCentPp(hden2pbpb);
-         fixCentPp(hnum1pbpb);
-         fixCentPp(hden1pbpb);
          fixCentPp(hnum2pp);
          fixCentPp(hden2pp);
          fixCentPp(hnum1pp);
@@ -481,18 +465,8 @@ TProfile* DoubleRatio(TObjArray *anum2pbpb, TObjArray *aden2pbpb, TObjArray *anu
       hratiopp2->Divide(hnum2pp,hden2pp,1,1,"B");
       hratiopp1->Divide(hnum1pp,hden1pp,1,1,"B");
       hratiopp2->Divide(hratiopp1);
-      hratiopp2->Divide(hratiopp2);
+      hratiopbpb2->Divide(hratiopp2);
       fillTProf(tprof,hratiopbpb2);
-      if (doint) {
-         delete hnum2pbpb;
-         delete hden2pbpb;
-         delete hnum1pbpb;
-         delete hden1pbpb;
-         delete hnum2pp;
-         delete hden2pp;
-         delete hnum1pp;
-         delete hden1pp;
-      }
       delete hratiopbpb2; delete hratiopbpb1;
       delete hratiopp2; delete hratiopp1;
    }
@@ -518,10 +492,91 @@ TProfile* newTProfile(TH1F *hist) {
    return new TProfile(Form("tprof_%s",hist->GetName()),"",nbins,xbins,"S");
 }
 
-// for test
-void plotAll(const char* filename, const char* toname) {
-   TFile *f = new TFile(filename);
-   TObjArray *a = (TObjArray*) f->Get(toname);
-   ((TH1F*) a->At(0))->Draw();
-   for (int i=1; i<a->GetSize(); i++) ((TH1F*) a->At(i))->Draw("same");
+// plot distribs
+void plotAll(const char* dir, bool ispsip, bool ispbpb, bool iscent, bool isfwd) {
+   TString part = ispsip ? "psi2s" : "jpsi";
+   TString part2 = ispsip ? "Psi2S" : "JPsi";
+   TString coll = ispbpb ? "pbpb" : "pp";
+   TString coll2 = ispbpb ? "PbPb" : "PP";
+   TString dep = iscent ? "cent" : "pt";
+   TString rap = isfwd ? "fwd" : "mid";
+   TString rap2 = isfwd ? "Fwd" : "Mid";
+   TString fname = TString(dir) + "/histos_" + part + "_" + coll + ".root";
+   TString fname2 = TString("files") + "/histos_" + part + "_" + coll + ".root";
+   TString fwname = TString("wFunctions/weights_") + part2 + "_" + coll2 + "_" + rap2 + ".root";
+   TString histname = TString("wtHisto_num_") + dep + rap;
+   TString histname2 = TString("hnumptdepcut_") + dep + rap;
+   TString hdataname("hRandData");
+
+   TFile *fh = new TFile(fname);
+   if (!fh) return;
+   TObjArray *histsMC = (TObjArray*) fh->Get(histname);
+   if (!histsMC) return;
+   TFile *fw = new TFile(fwname);
+   if (!fw) return;
+   TObjArray *histsData = (TObjArray*) fw->Get(hdataname);
+   if (!histsData) return;
+   TFile *fh2 = new TFile(fname2);
+   if (!fh2) return;
+   TH1F *hnom = (TH1F*) fh2->Get(histname2);
+   if (!hnom) return;
+
+   setTDRStyle();
+   TCanvas *c1 = new TCanvas();
+   TLegend *tleg = new TLegend(0.6,0.51,0.88,0.8);
+   tleg->SetBorderSize(0);
+   TString header;
+   header = coll + TString(isfwd ? ", |y|>1.6" : ", |y|<1.6") + ", " + part2;
+   tleg->SetHeader(header);
+   for (int i=100; i>=0; i--) {
+      TH1F *h = (TH1F*) histsMC->At(i);
+      if (i>0) {
+         h->SetLineColor(kRed);
+      } else {
+         h->SetLineColor(kBlue);
+         h->SetLineWidth(2);
+         tleg->AddEntry(h, "Nominal MC","l");
+      }
+      h->SetMarkerSize(0);
+      if (i==100) { // case of the first hist
+         h->GetXaxis()->SetTitle(iscent ? "Centrality percentile" : "p_{T} [GeV/c]");
+         h->GetYaxis()->SetTitle("a.u.");
+         tleg->AddEntry(h,"Reweighted MC","l");
+         TH1F *haxes = (TH1F*) h->Clone("axes"); haxes->GetYaxis()->SetRangeUser(0,0.65);
+         haxes->Draw("AXIS");
+         h->DrawNormalized("same");
+      } else {
+         h->DrawNormalized("same");
+      }
+   }
+
+   hnom->SetLineColor(kCyan);
+   hnom->SetLineWidth(2);
+   hnom->SetMarkerSize(0);
+   tleg->AddEntry(hnom,"Unweighted MC","l");
+   hnom->DrawNormalized("same");
+
+   TH1F *h = (TH1F*) histsData->At(0);
+   h->SetLineColor(kBlack);
+   h->SetLineWidth(2);
+   h->SetMarkerStyle(kFullCircle);
+   h->SetMarkerSize(1);
+   h->DrawNormalized("same");
+   tleg->AddEntry(h,"Data","lp");
+   tleg->Draw();
+
+   TString cname = TString(dir) + TString("/datamc_") + coll + "_" + part + "_" + rap;
+   c1->SaveAs(cname + ".pdf");
+   c1->SaveAs(cname + ".png");
+   c1->SaveAs(cname + ".root");
+
+   delete c1;
+   delete fh; delete fw; delete fh2;
+}
+
+void plotAll(const char* dir) {
+   for (int ispsip=0; ispsip<2; ispsip++)
+      for (int ispbpb=0; ispbpb<2; ispbpb++)
+         for (int isfwd=0; isfwd<2; isfwd++)
+            plotAll(dir,ispsip,ispbpb,false,isfwd);
 }
