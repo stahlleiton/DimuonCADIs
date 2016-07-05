@@ -9,7 +9,7 @@
 
 using namespace std;
 
-void makeEffs_DataVary() {
+void makeEffs_DataVary(const char* dir="files_100vars") {
    // PP
    TChain *tch_jpsi_pp = new TChain("hionia/myTree");
    tch_jpsi_pp->Add("root://xrootd.unl.edu//store/group/phys_heavyions/dileptons/MC2015/pp502TeV/TTrees/OniaTree_JpsiMM_5p02TeV_TuneCUETP8M1_HINppWinter16DR-75X_mcRun2_asymptotic_ppAt5TeV_v3-v1.root");
@@ -47,20 +47,20 @@ void makeEffs_DataVary() {
    // make the efficiency histos
    cout << "Efficiencies for pp prompt Jpsi" << endl;
    oniaEff_DataVary obj_jpsi_pp(tch_jpsi_pp);
-   obj_jpsi_pp.Loop("files/histos_jpsi_pp.root",false);
+   obj_jpsi_pp.Loop(Form("%s/histos_jpsi_pp.root",dir),false);
    cout << "Efficiencies for pp prompt Psi(2S)" << endl;
    oniaEff_DataVary obj_psi2s_pp(tch_psi2s_pp);
-   obj_psi2s_pp.Loop("files/histos_psi2s_pp.root",false,true);
+   obj_psi2s_pp.Loop(Form("%s/histos_psi2s_pp.root",dir),false,true);
    cout << "Efficiencies for pp non-prompt Jpsi" << endl;
    oniaEff_DataVary obj_npjpsi_pp(tch_npjpsi_pp);
-   obj_npjpsi_pp.Loop("files/histos_npjpsi_pp.root",false);
+   obj_npjpsi_pp.Loop(Form("%s/histos_npjpsi_pp.root",dir),false);
    cout << "Efficiencies for pbpb prompt Jpsi" << endl;
    oniaEff_DataVary obj_jpsi_pbpb(tch_jpsi_pbpb);
-   obj_jpsi_pbpb.Loop("files/histos_jpsi_pbpb.root",true,false);
+   obj_jpsi_pbpb.Loop(Form("%s/histos_jpsi_pbpb.root",dir),true,false);
    cout << "Efficiencies for pbpb prompt Psi(2S)" << endl;
    oniaEff_DataVary obj_psi2s_pbpb(tch_psi2s_pbpb);
-   obj_psi2s_pbpb.Loop("files/histos_psi2s_pbpb.root",true,true);
+   obj_psi2s_pbpb.Loop(Form("%s/histos_psi2s_pbpb.root",dir),true,true);
    cout << "Efficiencies for pbpb non-prompt Jpsi" << endl;
    oniaEff_DataVary obj_npjpsi_pbpb(tch_npjpsi_pbpb);
-   obj_npjpsi_pbpb.Loop("files/histos_npjpsi_pbpb.root",true);
+   obj_npjpsi_pbpb.Loop(Form("%s/histos_npjpsi_pbpb.root",dir),true);
 }
