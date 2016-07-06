@@ -40,93 +40,67 @@
 #include "RooFitResult.h"
 #include "TSystem.h"
 
-#include "test_combine.C"
+#include "test_combine_4WS.C"
 #include "../Fitter/Systematics/syst.h"
 
 using namespace RooFit;
 using namespace RooStats;
 
-const int nsyst = 7;
-const char** systname[7] = {"effDR", "fitpp", "fitpbpb", "effjpsi_pp_pr", "effpsip_pp_pr", "effjpsi_pp_npr", "eff_pppbpb"};
-const bool systisadd[7] = {0,1,1,0,0,0,0};
-
 void buildSystWS(RooWorkspace *ws, const char* name, double val, bool isadd);
 
-void combinedWorkspace_4WS(const char* name_pbpb_pr, const char* name_pp_pr, const char* name_pbpb_npr, const char* name_pp_npr, const char* name_out, map<string,syst> *mapsyst=NULL, const char* subDirName ="wsTest", int nCPU=2){
+void combinedWorkspace_4WS(const char* name_pbpb_pass="fitresult_pbpb_pass.root", const char* name_pbpb_fail="fitresult_pbpb_fail.root", const char* name_pp_pass="fitresult_pp_pass.root", const char* name_pp_fail="fitresult_pp_fail.root", const char* name_out="fitresult_combo.root", const float systval = 0., const char* subDirName ="wsTest", int nCPU=2){
    // subdir: Directory to save workspaces under currentPATH/CombinedWorkspaces/subDir/
 
    // set things silent
    gErrorIgnoreLevel=kError;
    RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
   
-   bool dosyst = (mapsyst!=NULL);
+   bool dosyst = (systval > 0.);
 
    TString nameOut(name_out);
   
-   RooWorkspace * ws = test_combine(name_pbpb, name_PP, false, nCPU);
+   RooWorkspace * ws = test_combine_4WS(name_pbpb_pass, name_pp_pass, name_pbpb_fail, name_pp_fail, false, nCPU);
    RooAbsData * data = ws->data("dOS_DATA");
 
-   RooRealVar* RFrac2Svs1S_PbPbvsPP = ws->var("RFrac2Svs1S_PbPbvsPP");
+   RooRealVar* RFrac2Svs1S_PbPbvsPP_P = ws->var("RFrac2Svs1S_PbPbvsPP_P");
    RooRealVar* leftEdge = new RooRealVar("leftEdge","leftEdge",-10);
    RooRealVar* rightEdge = new RooRealVar("rightEdge","rightEdge",10);
-   RooGenericPdf step("step", "step", "(@0 >= @1) && (@0 < @2)", RooArgList(*RFrac2Svs1S_PbPbvsPP, *leftEdge, *rightEdge));
+   RooGenericPdf step("step", "step", "(@0 >= @1) && (@0 < @2)", RooArgList(*RFrac2Svs1S_PbPbvsPP_P, *leftEdge, *rightEdge));
    ws->import(step);
-   ws->factory( "Uniform::flat(RFrac2Svs1S_PbPbvsPP)" );
+   ws->factory( "Uniform::flat(RFrac2Svs1S_PbPbvsPP_P)" );
 
    // systematics
    if (dosyst) {
-      for (int i=0; i<nsyst; i++) buildSystWS(ws, systname[i], mapsyst[systname[i]].val, systisadd[i]);
-
-      // * call the monster
-      // * replace the Npsi2S's by their equivalent with syst (*4: pp / pbpb, pr / npr)
-      // * build the combined pdf (very simple)
-      // * put all the constr on the pp and pbpb pdfs (pr?), NOT on the simPdf
-      // * build the simPdf (from the 4 independent pdf's!)
-      // * voila.
-
-      // // add systematics into the double and single ratios
-      // //   ws->factory( "expr::N_Psi2S_PbPb_syst('@0*@1',N_Psi2S_PbPb,alpha_syst)" );
-      // ws->factory( "expr::RFrac2Svs1S_PP_syst('@0+@1',RFrac2Svs1S_PP,alpha_syst_addRPP)" );
-      // // ws->factory( "expr::RFrac2Svs1S_PbPb_syst('@0+@1',RFrac2Svs1S_PbPb,alpha_syst_addRPbPb)" );
-      // ws->factory( "expr::RFrac2Svs1S_PbPbvsPP_syst('@0*@1+@2',RFrac2Svs1S_PbPbvsPP,alpha_syst,alpha_syst_add2R)" );
-
-      // // build the pbpb pdf
-      // ws->factory( "expr::N_Psi2S_PbPb_syst('@0*(@1*@2+@3)',N_Jpsi_PbPb,RFrac2Svs1S_PP_syst,RFrac2Svs1S_PbPbvsPP_syst,alpha_syst_addRPbPb)" );
-      // ws->factory( "SUM::pdfMASS_Tot_PbPb_syst(N_Jpsi_PbPb * pdfMASS_Jpsi_PbPb, N_Psi2S_PbPb_syst * pdfMASS_Psi2S_PbPb, N_Bkg_PbPb * pdfMASS_Bkg_PbPb)" );
-      // //   ws->factory( "PROD::pdfMASS_Tot_PbPb_constr(pdfMASS_Tot_PbPb_syst,constr_syst)" );
-      // ws->factory( "PROD::constr_syst_tot0(constr_syst,constr_syst_add2R)" );
-      // ws->factory( "PROD::constr_syst_tot(constr_syst_tot0,constr_syst_addRPbPb)" );
-      // ws->factory( "PROD::pdfMASS_Tot_PbPb_constr(pdfMASS_Tot_PbPb_syst,constr_syst_tot)" );
-
-      // // build the pp pdf
-      // // ws->factory( "expr::N_Psi2S_PP_syst('@0*@1/@2',RFrac2Svs1S_PbPb_syst,N_Jpsi_PP,RFrac2Svs1S_PbPbvsPP_syst)" );
-      // ws->factory( "expr::N_Psi2S_PP_syst('@0*@1',N_Jpsi_PP,RFrac2Svs1S_PP_syst)" );
-      // ws->factory( "SUM::pdfMASS_Tot_PP_syst(N_Jpsi_PP * pdfMASS_Jpsi_PP, N_Psi2S_PP_syst * pdfMASS_Psi2S_PP, N_Bkg_PP * pdfMASS_Bkg_PP)" );
-      // ws->factory( "PROD::pdfMASS_Tot_PP_constr(pdfMASS_Tot_PP_syst,constr_syst_addRPP)" );
-
-      // // build the combined pdf
-      // // ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb_constr,PP=pdfMASS_Tot_PP_constr)");
-      // ws->factory("SIMUL::simPdf_syst_noconstr(sample,PbPb=pdfMASS_Tot_PbPb_syst,PP=pdfMASS_Tot_PP_syst)");
-      // RooSimultaneous *simPdf = (RooSimultaneous*) ws->pdf("simPdf_syst_noconstr");
-      // RooGaussian *constr_syst = (RooGaussian*) ws->pdf("constr_syst");
-      // RooGaussian *constr_syst_add2R = (RooGaussian*) ws->pdf("constr_syst_add2R");
-      // RooGaussian *constr_syst_addRPP = (RooGaussian*) ws->pdf("constr_syst_addRPP");
-      // RooGaussian *constr_syst_addRPbPb = (RooGaussian*) ws->pdf("constr_syst_addRPbPb");
-      // RooProdPdf *simPdf_constr = new RooProdPdf("simPdf_syst","simPdf_syst",RooArgSet(*simPdf,*constr_syst,*constr_syst_add2R,*constr_syst_addRPP,*constr_syst_addRPbPb));
-      // ws->import(*simPdf_constr);
-
+     ws->factory( Form("kappa_syst[%f]",systval) );
+     ws->factory( "expr::alpha_syst('kappa_syst*beta_syst',kappa_syst,beta_syst[0,-5,5])" );
+     ws->factory( "Gaussian::constr_syst(beta_syst,glob_syst[0,-5,5],1)" );
+     
+     // add systematics into the double ratio
+     ws->factory( "expr::RFrac2Svs1S_PbPbvsPP_P_syst('@0+@1',RFrac2Svs1S_PbPbvsPP_P,alpha_syst)" );
+     
+     // build the pbpb pdf
+     RooRealVar* effjpsi_pp_P = (RooRealVar*)ws->var("effjpsi_pp_P");
+     RooRealVar* effpsip_pp_P = (RooRealVar*)ws->var("effpsip_pp_P");
+     RooRealVar* effjpsi_pp_NP = (RooRealVar*)ws->var("effjpsi_pp_NP");
+     Double_t Npsi2SPbPbPass = npsip_pbpb_pass_from_doubleratio_prompt(ws, RooArgList(*effjpsi_pp_P,*effpsip_pp_P,*effjpsi_pp_NP),true); // Create and import N_Psi2S_PbPb_pass_syst
+     
+     ws->factory( "SUM::pdfMASS_Tot_PbPb_pass_syst(N_Jpsi_PbPb_pass * pdfMASS_Jpsi_PbPb_pass, N_Psi2S_PbPb_pass_syst * pdfMASS_Psi2S_PbPb_pass, N_Bkg_PbPb_pass * pdfMASS_Bkg_PbPb_pass)" );
+     ws->factory( "PROD::pdfMASS_Tot_PbPb_pass_constr(pdfMASS_Tot_PbPb_syst,constr_syst)" );
+     
+     // build the combined pdf
+     ws->factory("SIMUL::simPdf_syst_noconstr(sample,PbPb_pass=pdfMASS_Tot_PbPb_pass_syst,PbPb_fail=pdfMASS_Tot_PbPb_fail,PP_pass=pdfMASS_Tot_PP_pass,PP_fail=pdfMASS_Tot_PP_fail)");
+     RooSimultaneous *simPdf = (RooSimultaneous*) ws->pdf("simPdf_syst_noconstr");
+     RooGaussian *constr_syst = (RooGaussian*) ws->pdf("constr_syst");
+     RooProdPdf *simPdf_constr = new RooProdPdf("simPdf_syst","simPdf_syst",RooArgSet(*simPdf,*constr_syst));
+     ws->import(*simPdf_constr);
+     
    } else {
-      ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP)");
+      ws->factory("SIMUL::simPdf_syst(sample,PbPb_pass=pdfMASS_Tot_PbPb_pass,PbPb_fail=pdfMASS_Tot_PbPb_fail,PP_pass=pdfMASS_Tot_PP_pass,PP_fail=pdfMASS_Tot_PP_fail)");
    }
 
    ws->Print();
 
-   if (dosyst) {
-      ws->var("beta_syst")->setConstant(kFALSE);
-      ws->var("beta_syst_add2R")->setConstant(kFALSE);
-      ws->var("beta_syst_addRPP")->setConstant(kFALSE);
-      ws->var("beta_syst_addRPbPb")->setConstant(kFALSE);
-   }
+   if (dosyst) ws->var("beta_syst")->setConstant(kFALSE);
 
 
    /////////////////////////////////////////////////////////////////////
@@ -136,35 +110,20 @@ void combinedWorkspace_4WS(const char* name_pbpb_pr, const char* name_pp_pr, con
    obs.add( *ws->cat("sample"));    
    //  /////////////////////////////////////////////////////////////////////
 
-   if (dosyst) {
-      ws->var("glob_syst")->setConstant(true);
-      ws->var("glob_syst_add2R")->setConstant(true);
-      ws->var("glob_syst_addRPP")->setConstant(true);
-      ws->var("glob_syst_addRPbPb")->setConstant(true);
-   }
+   if (dosyst) ws->var("glob_syst")->setConstant(true);
    RooArgSet globalObs("global_obs");
-   if (dosyst) {
-      globalObs.add( *ws->var("glob_syst") );
-      globalObs.add( *ws->var("glob_syst_add2R") );
-      globalObs.add( *ws->var("glob_syst_addRPP") );
-      globalObs.add( *ws->var("glob_syst_addRPbPb") );
-   }
+   if (dosyst) globalObs.add( *ws->var("glob_syst") );
 
    // ws->Print();
 
    RooArgSet poi("poi");
-   poi.add( *ws->var("RFrac2Svs1S_PbPbvsPP") );
+   poi.add( *ws->var("RFrac2Svs1S_PbPbvsPP_P") );
 
 
 
    // create set of nuisance parameters
    RooArgSet nuis("nuis");
-   if (dosyst) {
-      nuis.add( *ws->var("beta_syst") );
-      nuis.add( *ws->var("beta_syst_add2R") );
-      nuis.add( *ws->var("beta_syst_addRPP") );
-      nuis.add( *ws->var("beta_syst_addRPbPb") );
-   }
+   if (dosyst) nuis.add( *ws->var("beta_syst") );
 
    // set parameters constant
    RooArgSet allVars = ws->allVars();
@@ -177,18 +136,12 @@ void combinedWorkspace_4WS(const char* name_pbpb_pr, const char* name_pp_pr, con
 //            && varname != "sample"
 //            )
 //         theVar->setConstant();
-     if ( varname == "f_Jpsi_PP" || varname == "f_Jpsi_PbPb" || varname == "rSigma21_Jpsi_PP" || varname == "m_Jpsi_PP" || varname == "m_Jpsi_PbPb" || varname == "sigma1_Jpsi_PP" || varname == "sigma1_Jpsi_PbPb" || (varname.Contains("lambda") /*&& varname.Contains("PP")*/)  )
+     if ( varname.Contains("f_Jpsi_PP") || varname.Contains("f_Jpsi_PbPb") || varname.Contains("rSigma21_Jpsi_PP") || varname.Contains("m_Jpsi_PP") || varname.Contains("m_Jpsi_PbPb") || varname.Contains("sigma1_Jpsi_PP") || varname.Contains("sigma1_Jpsi_PbPb") || (varname.Contains("lambda"))  )
          {
            theVar->setConstant();
          }
       if (varname=="glob_syst"
             || varname=="beta_syst"
-            || varname=="glob_syst_add2R"
-            || varname=="beta_syst_add2R"
-            || varname=="glob_syst_addRPP"
-            || varname=="beta_syst_addRPP"
-            || varname=="glob_syst_addRPbPb"
-            || varname=="beta_syst_addRPbPb"
          ) {
          cout << varname << endl;
          theVar->setConstant(!dosyst);
@@ -210,7 +163,7 @@ void combinedWorkspace_4WS(const char* name_pbpb_pr, const char* name_pp_pr, con
    /////////////////////////////////////////////////////////////////////
    RooAbsReal * pNll = sbHypo.GetPdf()->createNLL( *data,NumCPU(nCPU) );
    RooMinuit(*pNll).migrad(); // minimize likelihood wrt all parameters before making plots
-   RooPlot *framepoi = ((RooRealVar *)poi.first())->frame(Bins(10),Range(0.,1),Title("LL and profileLL in RFrac2Svs1S_PbPbvsPP"));
+   RooPlot *framepoi = ((RooRealVar *)poi.first())->frame(Bins(10),Range(0.,1),Title("LL and profileLL in RFrac2Svs1S_PbPbvsPP_Prompt"));
    pNll->plotOn(framepoi,ShiftToZero());
    
    RooAbsReal * pProfile = pNll->createProfile( globalObs ); // do not profile global observables
@@ -299,17 +252,5 @@ void combinedWorkspace_4WS(const char* name_pbpb_pr, const char* name_pp_pr, con
    ws->writeToFile(saveName);
 }
 
-
-void buildSystWS(RooWorkspace *ws, const char* name, double val, bool isadd) {
-   if (!isadd) {
-      ws->factory( Form("kappa_syst_%s[%f]",name,1.+val) );
-      ws->factory( Form("expr::alpha_syst_%s('pow(kappa_syst_%s,beta_syst_%s)',kappa_syst_%s,beta_syst_%s[0,-5,5])",name,name,name,name,name) );
-   } else {
-
-      ws->factory( Form("kappa_syst_%s[%f]",name,val) );
-      ws->factory( Form("expr::alpha_syst_%s('kappa_syst_%s*beta_syst_%s',kappa_syst_%s,beta_syst_%s[0,-5,5])",name,name,name,name,name) );
-   }
-   ws->factory( Form("Gaussian::constr_syst_%s(beta_syst_%s,glob_syst_%s[0,-5,5],1)", name,name,name) );
-}
 
 
