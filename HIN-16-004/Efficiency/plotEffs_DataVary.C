@@ -35,12 +35,8 @@ void plotEffs_DataVary(const char* dir = "files_100vars_mine") {
    TFile *fpsi2s_pbpb = new TFile(Form("%s/histos_psi2s_pbpb.root",dir));
    // TFile *fnpjpsi_pbpb = new TFile("files_100vars/histos_npjpsi_pbpb.root");
 
-   ofstream file_nocut(Form("%s/syst_PbPb_eff_MCstat_nocut.csv",dir));
-   ofstream file_ctaucut(Form("%s/syst_PbPb_eff_MCstat_ctaucut.csv",dir));
    ofstream file_ctauptdepcut(Form("%s/syst_PbPb_eff_MCstat_ctauptdepcut.csv",dir));
-   file_nocut << "MC statistics in efficiency (no ctau cut)" << endl;
-   file_ctaucut << "MC statistics in efficiency (with ctau pt-independent cut)" << endl;
-   file_ctauptdepcut << "MC statistics in efficiency (with ctau pt-dependent cut)" << endl;
+   file_ctauptdepcut << "Eff. cancellation: 100 vars" << endl;
 
    // initialize the random generatior
    gRandom = new TRandom3();
@@ -257,9 +253,7 @@ void plotEffs_DataVary(const char* dir = "files_100vars_mine") {
 
             // print the uncertainty values to the csv
             ofstream *file = NULL;
-            if (icut==0) file = &file_nocut;
-            else if (icut==1) file = &file_ctaucut;
-            else file = &file_ctauptdepcut;
+            file = &file_ctauptdepcut;
             double rapmin, rapmax, ptmin, ptmax, centmin, centmax, value, valueErr;
             rapmin = (irap==0) ? 0 : 1.6;
             rapmax = (irap==0) ? 1.6 : 2.4;
@@ -309,8 +303,6 @@ void plotEffs_DataVary(const char* dir = "files_100vars_mine") {
       } // idep loop (pt / centrality)
    } // icoll loop (pp / pbpb)
 
-   file_nocut.close();
-   file_ctaucut.close();
    file_ctauptdepcut.close();
 }
 
