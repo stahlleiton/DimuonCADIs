@@ -14,7 +14,7 @@
 using namespace std;
 
 const int npar_pass = 8;
-const int npar_prompt = 18;
+const int npar_prompt = 15;
 
 double quadratic_sum(vector<double> v);
 double uncert(double (*f)(const double *xx), const double *val, const double *err, const int npar);
@@ -125,20 +125,21 @@ double doubleratio_monster(const double *xx, bool isprompt) {
    double alpha_effDR = 1. + xx[i]; i++;
    double alpha_fitpp = xx[i]; i++;
    double alpha_fitpbpb = xx[i]; i++;
-   double alpha_effjpsi_pp_P = 1. + xx[i]; i++;
-   double alpha_effpsip_pp_P = 1. + xx[i]; i++;
-   double alpha_effjpsi_pp_NP = 1. + xx[i]; i++;
-   double alpha_effpppbpb = 1. + xx[i]; i++;
+   double alpha_Bhad_add = xx[i]; i++;
+   double alpha_effjpsi_pp_P = 1. + 0; // placeholder
+   double alpha_effpsip_pp_P = 1. + 0; // placeholder
+   double alpha_effjpsi_pp_NP = 1. + 0; // placeholder
+   double alpha_effpppbpb = 1. + 0; // placeholder
 
    // DR_I
    double njpsi_pbpb = njpsi_pbpb_pass + njpsi_pbpb_fail;
-   double npsip_pbpb_pass = njpsi_pbpb_pass*rfrac_pbpb_pass + alpha_fitpbpb;
-   double npsip_pbpb_fail = njpsi_pbpb_fail*rfrac_pbpb_fail + alpha_fitpbpb;
+   double npsip_pbpb_pass = njpsi_pbpb_pass*(rfrac_pbpb_pass + alpha_fitpbpb);
+   double npsip_pbpb_fail = njpsi_pbpb_fail*(rfrac_pbpb_fail + alpha_fitpbpb);
    double npsip_pbpb = npsip_pbpb_pass + npsip_pbpb_fail;
    
    double njpsi_pp = njpsi_pp_pass + njpsi_pp_fail;
-   double npsip_pp_pass = njpsi_pp_pass*rfrac_pp_pass + alpha_fitpp;
-   double npsip_pp_fail = njpsi_pp_fail*rfrac_pp_fail + alpha_fitpp;
+   double npsip_pp_pass = njpsi_pp_pass*(rfrac_pp_pass + alpha_fitpp);
+   double npsip_pp_fail = njpsi_pp_fail*(rfrac_pp_fail + alpha_fitpp);
    double npsip_pp = npsip_pp_pass + npsip_pp_fail;
 
    double DR_I = (npsip_pbpb/njpsi_pbpb) / (npsip_pp/njpsi_pp);
@@ -167,7 +168,7 @@ double doubleratio_monster(const double *xx, bool isprompt) {
 
       double DR_fP = (fP_psip_pbpb / fP_jpsi_pbpb) / (fP_psip_pp / fP_jpsi_pp);
 
-      double DR_P = DR_I * DR_fP * alpha_effDR;
+      double DR_P = DR_I * DR_fP * alpha_effDR + alpha_Bhad_add; // remove the bhad_syst for option (c)
       return DR_P;
    } else {
       double ffail_jpsi_pbpb = njpsi_pbpb_fail/(njpsi_pbpb_fail+njpsi_pbpb_pass);
@@ -192,7 +193,7 @@ double doubleratio_monster(const double *xx, bool isprompt) {
 
       double DR_fNP = (fNP_psip_pbpb / fNP_jpsi_pbpb) / (fNP_psip_pp / fNP_jpsi_pp);
 
-      double DR_NP = DR_I * DR_fNP * alpha_effDR;
+      double DR_NP = DR_I * DR_fNP * alpha_effDR + alpha_Bhad_add; // remove the bhad_syst for option (c)
       return DR_NP;
    }
 }
@@ -299,7 +300,7 @@ double doubleratio_pass_generic(const char* workDir, anabin thebin, const char* 
 
    TString TSprependPath(prependPath); if (TSprependPath != "") TSprependPath += "/";
 
-   map<anabin,syst> alpha_DR; if (!PPonly) alpha_DR = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_eff_MCstat.csv");
+   map<anabin,syst> alpha_DR; if (!PPonly) alpha_DR = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_eff.csv");
    map<anabin,syst> alpha_fitpp_bkg; if (!PbPbonly) alpha_fitpp_bkg = readSyst(TSprependPath + "Systematics/csv/syst_PP_fit_bkg.csv");
    map<anabin,syst> alpha_fitpp_sig; if (!PbPbonly) alpha_fitpp_sig = readSyst(TSprependPath + "Systematics/csv/syst_PP_fit_sig.csv");
    map<anabin,syst> alpha_fitpbpb_bkg; if (!PPonly) alpha_fitpbpb_bkg = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_fit_bkg.csv");
@@ -375,11 +376,12 @@ double doubleratio_monster_generic(const char* workDir_pass, const char* workDir
 
    TString TSprependPath(prependPath); if (TSprependPath != "") TSprependPath += "/";
 
-   map<anabin,syst> alpha_DR; if (!PPonly) alpha_DR = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_eff_MCstat.csv");
+   map<anabin,syst> alpha_DR; if (!PPonly) alpha_DR = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_eff.csv");
    map<anabin,syst> alpha_fitpp_bkg; if (!PbPbonly) alpha_fitpp_bkg = readSyst(TSprependPath + "Systematics/csv/syst_PP_fit_bkg.csv");
    map<anabin,syst> alpha_fitpp_sig; if (!PbPbonly) alpha_fitpp_sig = readSyst(TSprependPath + "Systematics/csv/syst_PP_fit_sig.csv");
    map<anabin,syst> alpha_fitpbpb_bkg; if (!PPonly) alpha_fitpbpb_bkg = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_fit_bkg.csv");
    map<anabin,syst> alpha_fitpbpb_sig; if (!PPonly) alpha_fitpbpb_sig = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_fit_sig.csv");
+   map<anabin,syst> alpha_Bhad_add; if (!PPonly) alpha_Bhad_add = readSyst(TSprependPath + "Systematics/csv/syst_PbPb_bhad_add.csv");
 
    double *xx = new double[npar_prompt];
    double *err = new double[npar_prompt];
@@ -398,11 +400,7 @@ double doubleratio_monster_generic(const char* workDir_pass, const char* workDir
    xx[i] = 0; err[i] = dosyst ? alpha_DR[thebin].value : 0; i++;
    xx[i] = 0; err[i] = dosyst ? sqrt(pow(alpha_fitpp_bkg[thebin].value,2) + pow(alpha_fitpp_sig[thebin].value,2)) : 0; i++;
    xx[i] = 0; err[i] = dosyst ? sqrt(pow(alpha_fitpbpb_bkg[thebin].value,2) + pow(alpha_fitpbpb_sig[thebin].value,2)) : 0; i++;
-   // unimplemented (for now) systs
-   xx[i] = 0; err[i] = 0; i++; // alpha_effjpsi_pp_pr
-   xx[i] = 0; err[i] = 0; i++; // alpha_effpsip_pp_pr
-   xx[i] = 0; err[i] = 0; i++; // alpha_effjpsi_pp_npr
-   xx[i] = 0; err[i] = 0; i++; // alpha_effpppbpb
+   xx[i] = 0; err[i] = dosyst ? alpha_Bhad_add[thebin].value : 0; i++;
 
    // set all systs but one to zero, if applicable
    TString TSopt(opt);
@@ -410,10 +408,7 @@ double doubleratio_monster_generic(const char* workDir_pass, const char* workDir
       if (j==11 && TSopt.Contains("DR")) continue;
       if (j==12 && TSopt.Contains("fitpp")) continue;
       if (j==13 && TSopt.Contains("fitpbpb")) continue;
-      if (j==14 && TSopt.Contains("effjpsi_pp_pr")) continue;
-      if (j==15 && TSopt.Contains("effpsip_pp_pr")) continue;
-      if (j==16 && TSopt.Contains("effjpsi_pp_npr")) continue;
-      if (j==17 && TSopt.Contains("effpppbpb")) continue;
+      if (j==14 && TSopt.Contains("Bhad_add")) continue;
       err[j] = 0;
    }
 
