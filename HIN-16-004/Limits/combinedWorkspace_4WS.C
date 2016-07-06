@@ -46,6 +46,8 @@
 using namespace RooFit;
 using namespace RooStats;
 
+bool controlPlots = false; // Flag to draw control plots
+
 void buildSystWS(RooWorkspace *ws, const char* name, double val, bool isadd);
 
 void combinedWorkspace_4WS(const char* name_pbpb_pass="fitresult_pbpb_pass.root", const char* name_pbpb_fail="fitresult_pbpb_fail.root", const char* name_pp_pass="fitresult_pp_pass.root", const char* name_pp_fail="fitresult_pp_fail.root", const char* name_out="fitresult_combo.root", const float systval = 0., const char* subDirName ="wsTest", int nCPU=2){
@@ -159,95 +161,93 @@ void combinedWorkspace_4WS(const char* name_pbpb_pass="fitresult_pbpb_pass.root"
    sbHypo.SetNuisanceParameters( nuis );
    sbHypo.SetPriorPdf( *ws->pdf("step") ); // this is optional
 
-   // ws->Print();
+
    /////////////////////////////////////////////////////////////////////
    RooAbsReal * pNll = sbHypo.GetPdf()->createNLL( *data,NumCPU(nCPU) );
    RooMinuit(*pNll).migrad(); // minimize likelihood wrt all parameters before making plots
-   RooPlot *framepoi = ((RooRealVar *)poi.first())->frame(Bins(10),Range(0.,1),Title("LL and profileLL in RFrac2Svs1S_PbPbvsPP_P"));
-   pNll->plotOn(framepoi,ShiftToZero());
-   
-   RooAbsReal * pProfile = pNll->createProfile( globalObs ); // do not profile global observables
-   pProfile->getVal(); // this will do fit and set POI and nuisance parameters to fitted values
-   pProfile->plotOn(framepoi,LineColor(kRed));
-   framepoi->SetMinimum(0);
-   framepoi->SetMaximum(10);
-   TCanvas *cpoi = new TCanvas();
-   cpoi->cd(); framepoi->Draw();
-//   cpoi->SaveAs("cpoi.pdf");
-
+  
+   if (controlPlots)
+   {
+     RooPlot *framepoi = ((RooRealVar *)poi.first())->frame(Bins(10),Range(0.,1),Title("LL and profileLL in RFrac2Svs1S_PbPbvsPP_P"));
+     pNll->plotOn(framepoi,ShiftToZero());
+     framepoi->SetMinimum(0);
+     framepoi->SetMaximum(10);
+     TCanvas *cpoi = new TCanvas();
+     cpoi->cd(); framepoi->Draw();
+     cpoi->SaveAs("cpoi.pdf");
+   }
+  
    ((RooRealVar *)poi.first())->setMin(0.);
    RooArgSet * pPoiAndNuisance = new RooArgSet("poiAndNuisance");
-   // pPoiAndNuisance->add(*sbHypo.GetNuisanceParameters());
-   // pPoiAndNuisance->add(*sbHypo.GetParametersOfInterest());
    pPoiAndNuisance->add( nuis );
    pPoiAndNuisance->add( poi );
    sbHypo.SetSnapshot(*pPoiAndNuisance);
-
-   RooPlot* xframeSB_PP_pass = pObs->frame(Title("SBhypo_PP_pass"));
-   data->plotOn(xframeSB_PP_pass,Cut("sample==sample::PP_pass"));
-   RooAbsPdf *pdfSB_PP_pass = sbHypo.GetPdf();
-   RooCategory *sample = ws->cat("sample");
-   pdfSB_PP_pass->plotOn(xframeSB_PP_pass,Slice(*sample,"PP_pass"),ProjWData(*sample,*data));
-   TCanvas *c1 = new TCanvas();
-   c1->cd(); xframeSB_PP_pass->Draw();
- //   c1->SaveAs("c1.pdf");
   
-   RooPlot* xframeSB_PP_fail = pObs->frame(Title("SBhypo_PP_fail"));
-   data->plotOn(xframeSB_PP_fail,Cut("sample==sample::PP_fail"));
-   RooAbsPdf *pdfSB_PP_fail = sbHypo.GetPdf();
-   RooCategory *sample = ws->cat("sample");
-   pdfSB_PP_fail->plotOn(xframeSB_PP_fail,Slice(*sample,"PP_fail"),ProjWData(*sample,*data));
-   TCanvas *c2 = new TCanvas();
-   c2->cd(); xframeSB_PP_fail->Draw();
-   //   c1->SaveAs("c1.pdf");
+   if (controlPlots)
+   {
+     RooPlot* xframeSB_PP_pass = pObs->frame(Title("SBhypo_PP_pass"));
+     data->plotOn(xframeSB_PP_pass,Cut("sample==sample::PP_pass"));
+     RooAbsPdf *pdfSB_PP_pass = sbHypo.GetPdf();
+     RooCategory *sample = ws->cat("sample");
+     pdfSB_PP_pass->plotOn(xframeSB_PP_pass,Slice(*sample,"PP_pass"),ProjWData(*sample,*data));
+     TCanvas *c1 = new TCanvas();
+     c1->cd(); xframeSB_PP_pass->Draw();
+     c1->SaveAs("c1.pdf");
+    
+     RooPlot* xframeSB_PP_fail = pObs->frame(Title("SBhypo_PP_fail"));
+     data->plotOn(xframeSB_PP_fail,Cut("sample==sample::PP_fail"));
+     RooAbsPdf *pdfSB_PP_fail = sbHypo.GetPdf();
+     pdfSB_PP_fail->plotOn(xframeSB_PP_fail,Slice(*sample,"PP_fail"),ProjWData(*sample,*data));
+     TCanvas *c2 = new TCanvas();
+     c2->cd(); xframeSB_PP_fail->Draw();
+     c2->SaveAs("c1.pdf");
+    
+     RooPlot* xframeB_PbPb_pass = pObs->frame(Title("SBhypo_PbPb_pass"));
+     data->plotOn(xframeB_PbPb_pass,Cut("sample==sample::PbPb_pass"));
+     RooAbsPdf *pdfB_PbPb_pass = sbHypo.GetPdf();
+     pdfB_PbPb_pass->plotOn(xframeB_PbPb_pass,Slice(*sample,"PbPb_pass"),ProjWData(*sample,*data));
+     TCanvas *c3 = new TCanvas();
+     c3->cd(); xframeB_PbPb_pass->Draw();
+     c3->SetLogy();
+     c3->SaveAs("c2.pdf");
+    
+     RooPlot* xframeB_PbPb_fail = pObs->frame(Title("SBhypo_PbPb_fail"));
+     data->plotOn(xframeB_PbPb_fail,Cut("sample==sample::PbPb_fail"));
+     RooAbsPdf *pdfB_PbPb_fail = sbHypo.GetPdf();
+     pdfB_PbPb_fail->plotOn(xframeB_PbPb_fail,Slice(*sample,"PbPb_fail"),ProjWData(*sample,*data));
+     TCanvas *c4 = new TCanvas();
+     c4->cd(); xframeB_PbPb_fail->Draw();
+     c4->SetLogy();
+     c4->SaveAs("c2.pdf");
+   }
   
-   RooPlot* xframeB_PbPb_pass = pObs->frame(Title("SBhypo_PbPb_pass"));
-   data->plotOn(xframeB_PbPb_pass,Cut("sample==sample::PbPb_pass"));
-   RooAbsPdf *pdfB_PbPb_pass = sbHypo.GetPdf();
-   pdfB_PbPb_pass->plotOn(xframeB_PbPb_pass,Slice(*sample,"PbPb_pass"),ProjWData(*sample,*data));
-   TCanvas *c3 = new TCanvas();
-   c3->cd(); xframeB_PbPb_pass->Draw();
-   c3->SetLogy();
-//   c3->SaveAs("c2.pdf");
-//   c3->SaveAs("c2.root");
-  
-  RooPlot* xframeB_PbPb_fail = pObs->frame(Title("SBhypo_PbPb_fail"));
-  data->plotOn(xframeB_PbPb_fail,Cut("sample==sample::PbPb_fail"));
-  RooAbsPdf *pdfB_PbPb_fail = sbHypo.GetPdf();
-  pdfB_PbPb_fail->plotOn(xframeB_PbPb_fail,Slice(*sample,"PbPb_fail"),ProjWData(*sample,*data));
-  TCanvas *c4 = new TCanvas();
-  c4->cd(); xframeB_PbPb_fail->Draw();
-  c4->SetLogy();
-  //   c4->SaveAs("c2.pdf");
-  //   c4->SaveAs("c2.root");
-
-   delete pProfile;
    delete pNll;
    delete pPoiAndNuisance;
    ws->import( sbHypo );
+  
    /////////////////////////////////////////////////////////////////////
    RooStats::ModelConfig bHypo = sbHypo;
    bHypo.SetName("BHypo");
    bHypo.SetWorkspace(*ws);
    pNll = bHypo.GetPdf()->createNLL( *data,NumCPU(nCPU) );
+   RooMinuit(*pNll).migrad(); // minimize likelihood wrt all parameters before making plots
    RooArgSet poiAndGlobalObs("poiAndGlobalObs");
    poiAndGlobalObs.add( poi );
    poiAndGlobalObs.add( globalObs );
-   pProfile = pNll->createProfile( poiAndGlobalObs ); // do not profile POI and global observables
    ((RooRealVar *)poi.first())->setVal( 0 );  // set RFrac2Svs1S_PbPbvsPP=0 here
-   pProfile->getVal(); // this will do fit and set nuisance parameters to profiled values
    pPoiAndNuisance = new RooArgSet( "poiAndNuisance" );
    pPoiAndNuisance->add( nuis );
    pPoiAndNuisance->add( poi );
    bHypo.SetSnapshot(*pPoiAndNuisance);
 
-   delete pProfile;
+
    delete pNll;
    delete pPoiAndNuisance;
 
    // import model config into workspace
    bHypo.SetWorkspace(*ws);
    ws->import( bHypo );
+  
    /////////////////////////////////////////////////////////////////////
    ws->Print();
    bHypo.Print();
