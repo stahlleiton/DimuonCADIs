@@ -72,7 +72,7 @@ map<anabin, syst> readSyst(const char* systfile, const char* workDirName, const 
 
          TString sfile(systfile), systtag;
          if (sfile.Contains("bhad_add")) systtag = "Bhad_add";
-         else if (sfile.Contains("bhad") || sfile.Contains("eff_MCstat")) systtag = "DR";
+         else if (sfile.Contains("bhad") || sfile.Contains("eff")) systtag = "DR";
          else if (sfile.Contains("PbPb_fit")) systtag = "fitpbpb";
          else if (sfile.Contains("PP_fit")) systtag = "fitpp";
 
@@ -127,7 +127,7 @@ map<anabin, syst> readSyst_all_pass(const char* token, const char* prependPath, 
    set<anabin> all = allbins();
    for (set<anabin>::const_iterator it = all.begin(); it!=all.end(); it++) {
       syst thesyst;
-      thesyst.name = "Total";
+      thesyst.name = token;
       thesyst.value = doubleratio_pass_syst(workDirName, *it, prependPath, token);
       thesyst.value_dR = thesyst.value;
       thesyst.value_dR_rel = thesyst.value / doubleratio_pass_nominal(workDirName, *it, prependPath);
@@ -141,7 +141,7 @@ map<anabin, syst> readSyst_all_prompt(const char* token, const char* prependPath
    set<anabin> all = allbins();
    for (set<anabin>::const_iterator it = all.begin(); it!=all.end(); it++) {
       syst thesyst;
-      thesyst.name = "Total";
+      thesyst.name = token;
       thesyst.value = doubleratio_prompt_syst(workDirName, workDirNameFail, *it, prependPath, token);
       thesyst.value_dR = thesyst.value;
       thesyst.value_dR_rel = thesyst.value / doubleratio_prompt_nominal(workDirName, workDirNameFail, *it, prependPath);
@@ -155,7 +155,7 @@ map<anabin, syst> readSyst_all_nonprompt(const char* token, const char* prependP
    set<anabin> all = allbins();
    for (set<anabin>::const_iterator it = all.begin(); it!=all.end(); it++) {
       syst thesyst;
-      thesyst.name = "Total";
+      thesyst.name = token;
       thesyst.value = doubleratio_nonprompt_syst(workDirName, workDirNameFail, *it, prependPath, token);
       thesyst.value_dR = thesyst.value;
       thesyst.value_dR_rel = thesyst.value / doubleratio_nonprompt_nominal(workDirName, workDirNameFail, *it, prependPath);
@@ -164,29 +164,27 @@ map<anabin, syst> readSyst_all_nonprompt(const char* token, const char* prependP
    return ans;
 }
 
-map<anabin, syst> readSyst_all(const char* token, const char* prependPath, const char* workDirName, bool doPrintTex, const char* texName) {
-   // token should be PP or PbPb
-  
-   bool isdRSyst(false); // wether the systematic unc is referred to double ratio or not
-   if (strcmp(workDirName,"")) isdRSyst = true;
+map<anabin, syst> readSyst_all(const char* prependPath, const char* workDirName, bool doPrintTex, const char* texName, int mode, const char* workDirNameFail) {
+   vector<TString> tags;
+   tags.push_back("fitpp");
+   tags.push_back("fitpbpb");
+   tags.push_back("DR");
+   tags.push_back("Bhad_add");
   
    vector< map<anabin, syst> > systmap_all;
-   vector< map<anabin, syst> > systmap_all_toprint;
-   vector<TString> filelist = fileList_syst(token,prependPath);
 
-   for (vector<TString>::const_iterator it=filelist.begin(); it!=filelist.end(); it++) {
-      cout << "Reading file " << *it << endl;
-      map<anabin,syst> systmap = readSyst(it->Data(),workDirName,prependPath);
-      systmap_all_toprint.push_back(systmap);
-      if ( !isdRSyst && (it->Index("_add") != kNPOS) ) continue; // do not combine nor return additive systematics (NP contamination)
+   for (vector<TString>::const_iterator it=tags.begin(); it!=tags.end(); it++) {
+      map<anabin,syst> systmap;
+      if (mode==0) systmap = readSyst_all_pass(it->Data(),prependPath,workDirName);
+      else if (mode==1) systmap = readSyst_all_prompt(it->Data(),prependPath,workDirName,workDirNameFail);
+      else systmap = readSyst_all_nonprompt(it->Data(),prependPath,workDirName,workDirNameFail);
       systmap_all.push_back(systmap);
    }
 
-   map<anabin,syst> ans = combineSyst(systmap_all,isdRSyst ? "Total" : token,isdRSyst);
+   map<anabin,syst> ans = combineSyst(systmap_all, "Total" ,true);
    systmap_all.push_back(ans);
-   systmap_all_toprint.push_back(ans);
 
-   if (doPrintTex) printTex(systmap_all_toprint, texName, isdRSyst);
+   if (doPrintTex) printTex(systmap_all, texName, true);
 
    return ans;
 };
