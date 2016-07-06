@@ -264,7 +264,8 @@ void plotEffs_DataVary(const char* dir = "files_100vars_mine") {
                   ptmin = tp_dr->GetXaxis()->GetBinLowEdge(ibin);
                   ptmax = tp_dr->GetXaxis()->GetBinUpEdge(ibin);
                   value = tp_dr->GetBinContent(ibin);
-                  valueErr = max(fabs(tp_dr->GetBinContent(ibin)-1),tp_dr->GetBinError(ibin));
+                  // valueErr = max(fabs(tp_dr->GetBinContent(ibin)-1),tp_dr->GetBinError(ibin));
+                  valueErr = tp_dr->GetBinError(ibin);
                   *file << rapmin << ", " << rapmax << ", " << ptmin << ", " << ptmax << ", " << centmin << ", " << centmax << ", " << value << ", " << valueErr << endl;
                }
             } else if (idep==1) {
