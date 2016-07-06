@@ -272,7 +272,7 @@ double npsip_pbpb_pass_from_doubleratio_prompt(RooWorkspace *w, RooArgList vars,
    }
 
    // now that we have all the ingredients, let's get to what we want: npsip_pbpb_pass.
-   const char* varNameP = wSys ? "N_Psi2S_PbPb_P_syst" : "N_Psi2S_PbPb_P";
+   const char* varNameP = wSys ? "N_Psi2S_PbPb_syst" : "N_Psi2S_PbPb";
    RooFormulaVar *npsip_pbpb_P = new RooFormulaVar(varNameP,varNameP,"@0*((@1*@2)/(@3*@4))*@5*@6",
          RooArgList(*DR_P, *fP_psip_pp,*npsip_pp, *fP_jpsi_pp,*njpsi_pp, *fP_jpsi_pbpb,*njpsi_pbpb));
    const char* varNamePass = wSys ? "N_Psi2S_PbPb_pass_syst" : "N_Psi2S_PbPb_pass";

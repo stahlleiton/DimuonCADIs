@@ -85,7 +85,7 @@ void combinedWorkspace_4WS(const char* name_pbpb_pass="fitresult_pbpb_pass.root"
      Double_t Npsi2SPbPbPass = npsip_pbpb_pass_from_doubleratio_prompt(ws, RooArgList(*effjpsi_pp_P,*effpsip_pp_P,*effjpsi_pp_NP),true); // Create and import N_Psi2S_PbPb_pass_syst
      
      ws->factory( "SUM::pdfMASS_Tot_PbPb_pass_syst(N_Jpsi_PbPb_pass * pdfMASS_Jpsi_PbPb_pass, N_Psi2S_PbPb_pass_syst * pdfMASS_Psi2S_PbPb_pass, N_Bkg_PbPb_pass * pdfMASS_Bkg_PbPb_pass)" );
-     ws->factory( "PROD::pdfMASS_Tot_PbPb_pass_constr(pdfMASS_Tot_PbPb_syst,constr_syst)" );
+     ws->factory( "PROD::pdfMASS_Tot_PbPb_pass_constr(pdfMASS_Tot_PbPb_pass_syst,constr_syst)" );
      
      // build the combined pdf
      ws->factory("SIMUL::simPdf_syst_noconstr(sample,PbPb_pass=pdfMASS_Tot_PbPb_pass_syst,PbPb_fail=pdfMASS_Tot_PbPb_fail,PP_pass=pdfMASS_Tot_PP_pass,PP_fail=pdfMASS_Tot_PP_fail)");
@@ -163,7 +163,7 @@ void combinedWorkspace_4WS(const char* name_pbpb_pass="fitresult_pbpb_pass.root"
    /////////////////////////////////////////////////////////////////////
    RooAbsReal * pNll = sbHypo.GetPdf()->createNLL( *data,NumCPU(nCPU) );
    RooMinuit(*pNll).migrad(); // minimize likelihood wrt all parameters before making plots
-   RooPlot *framepoi = ((RooRealVar *)poi.first())->frame(Bins(10),Range(0.,1),Title("LL and profileLL in RFrac2Svs1S_PbPbvsPP_Prompt"));
+   RooPlot *framepoi = ((RooRealVar *)poi.first())->frame(Bins(10),Range(0.,1),Title("LL and profileLL in RFrac2Svs1S_PbPbvsPP_P"));
    pNll->plotOn(framepoi,ShiftToZero());
    
    RooAbsReal * pProfile = pNll->createProfile( globalObs ); // do not profile global observables
@@ -183,23 +183,43 @@ void combinedWorkspace_4WS(const char* name_pbpb_pass="fitresult_pbpb_pass.root"
    pPoiAndNuisance->add( poi );
    sbHypo.SetSnapshot(*pPoiAndNuisance);
 
-   RooPlot* xframeSB = pObs->frame(Title("SBhypo"));
-   data->plotOn(xframeSB,Cut("sample==sample::PP"));
-   RooAbsPdf *pdfSB = sbHypo.GetPdf();
+   RooPlot* xframeSB_PP_pass = pObs->frame(Title("SBhypo_PP_pass"));
+   data->plotOn(xframeSB_PP_pass,Cut("sample==sample::PP_pass"));
+   RooAbsPdf *pdfSB_PP_pass = sbHypo.GetPdf();
    RooCategory *sample = ws->cat("sample");
-   pdfSB->plotOn(xframeSB,Slice(*sample,"PP"),ProjWData(*sample,*data));
+   pdfSB_PP_pass->plotOn(xframeSB_PP_pass,Slice(*sample,"PP_pass"),ProjWData(*sample,*data));
    TCanvas *c1 = new TCanvas();
-   c1->cd(); xframeSB->Draw();
-//   c1->SaveAs("c1.pdf");
-   RooPlot* xframeB = pObs->frame(Title("SBhypo_PbPb"));
-   data->plotOn(xframeB,Cut("sample==sample::PbPb"));
-   RooAbsPdf *pdfB = sbHypo.GetPdf();
-   pdfB->plotOn(xframeB,Slice(*sample,"PbPb"),ProjWData(*sample,*data));
+   c1->cd(); xframeSB_PP_pass->Draw();
+ //   c1->SaveAs("c1.pdf");
+  
+   RooPlot* xframeSB_PP_fail = pObs->frame(Title("SBhypo_PP_fail"));
+   data->plotOn(xframeSB_PP_fail,Cut("sample==sample::PP_fail"));
+   RooAbsPdf *pdfSB_PP_fail = sbHypo.GetPdf();
+   RooCategory *sample = ws->cat("sample");
+   pdfSB_PP_fail->plotOn(xframeSB_PP_fail,Slice(*sample,"PP_fail"),ProjWData(*sample,*data));
    TCanvas *c2 = new TCanvas();
-   c2->cd(); xframeB->Draw();
-   c2->SetLogy();
-//   c2->SaveAs("c2.pdf");
-//   c2->SaveAs("c2.root");
+   c2->cd(); xframeSB_PP_fail->Draw();
+   //   c1->SaveAs("c1.pdf");
+  
+   RooPlot* xframeB_PbPb_pass = pObs->frame(Title("SBhypo_PbPb_pass"));
+   data->plotOn(xframeB_PbPb_pass,Cut("sample==sample::PbPb_pass"));
+   RooAbsPdf *pdfB_PbPb_pass = sbHypo.GetPdf();
+   pdfB_PbPb_pass->plotOn(xframeB_PbPb_pass,Slice(*sample,"PbPb_pass"),ProjWData(*sample,*data));
+   TCanvas *c3 = new TCanvas();
+   c3->cd(); xframeB_PbPb_pass->Draw();
+   c3->SetLogy();
+//   c3->SaveAs("c2.pdf");
+//   c3->SaveAs("c2.root");
+  
+  RooPlot* xframeB_PbPb_fail = pObs->frame(Title("SBhypo_PbPb_fail"));
+  data->plotOn(xframeB_PbPb_fail,Cut("sample==sample::PbPb_fail"));
+  RooAbsPdf *pdfB_PbPb_fail = sbHypo.GetPdf();
+  pdfB_PbPb_fail->plotOn(xframeB_PbPb_fail,Slice(*sample,"PbPb_fail"),ProjWData(*sample,*data));
+  TCanvas *c4 = new TCanvas();
+  c4->cd(); xframeB_PbPb_fail->Draw();
+  c4->SetLogy();
+  //   c4->SaveAs("c2.pdf");
+  //   c4->SaveAs("c2.root");
 
    delete pProfile;
    delete pNll;
