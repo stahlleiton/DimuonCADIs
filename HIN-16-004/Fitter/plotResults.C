@@ -44,12 +44,12 @@ const bool  plot12007_mid = false; // plot 12-007, midrapidity
 const bool  plot12007_fwd = false; // plot 12-007, fwdrapidity
 const bool  fiterrors     = true;  // statistical errors are from the fit
 const bool  FCerrors      = false; // statistical errors are from the Feldman-Cousins intervals ("limits")
-const bool  promptonly    = true; // plot the prompt only double ratio
+const bool  promptonly    = true;  // plot the prompt only double ratio
 const bool  nonpromptonly = false; // plot the non-prompt only double ratio
-const bool  plotlimits95  = false;  // display 95% CL limits (when the lower limit is 0)
+const bool  plotlimits95  = true;  // display 95% CL limits (when the lower limit is 0)
 const bool  plotsysts     = true;  // display systematics
-const bool  plotrapp      = false;  // plot Rapp and Du's predictions
-const char* nameTag="_prompt";            // can put here e.g. "_prompt", "_nonprompt", ...
+const bool  plotrapp      = false; // plot Rapp and Du's predictions
+const char* nameTag="";            // can put here e.g. "_prompt", "_nonprompt", ...
 
 const bool plot12007 = plot12007_mid || plot12007_fwd;
 
