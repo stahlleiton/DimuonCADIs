@@ -3,11 +3,11 @@
 #include "Macros/Utilities/bin.h"
 #include "Macros/Utilities/bfrac.h"
 #include "Macros/Utilities/EVENTUTILS.h"
-
 #include "Macros/Utilities/initClasses.h"
 #include "Macros/Utilities/resultUtils.h"
 #include "Macros/Utilities/texUtils.h"
 #include "Macros/Utilities/monster.h"
+#include "Macros/Utilities/rappGraph.h"
 #include "Systematics/syst.h"
 #include "../Limits/limits.h"
 
@@ -16,6 +16,7 @@
 #include <string>
 #include <sstream>
 #include "TGraphAsymmErrors.h"
+#include "TGraphErrors.h"
 #include "TCanvas.h"
 #include "TH1.h"
 #include "TLegend.h"
@@ -39,15 +40,18 @@ const char* poiname = "RFrac2Svs1S"; // for double ratios
 // const char* poiname = "N_Psi2S"; // for RAA (will correct automatically for efficiency)
 #endif
 const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
-const bool  plot12007     = false; // compare with 12-007
+const bool  plot12007_mid = false; // plot 12-007, midrapidity
+const bool  plot12007_fwd = false; // plot 12-007, fwdrapidity
 const bool  fiterrors     = true;  // statistical errors are from the fit
 const bool  FCerrors      = false; // statistical errors are from the Feldman-Cousins intervals ("limits")
-const bool  promptonly    = false; // plot the prompt only double ratio
+const bool  promptonly    = true; // plot the prompt only double ratio
 const bool  nonpromptonly = false; // plot the non-prompt only double ratio
 const bool  plotlimits95  = false;  // display 95% CL limits (when the lower limit is 0)
 const bool  plotsysts     = true;  // display systematics
-const char* nameTag="_pass";            // can put here e.g. "_prompt", "_nonprompt", ...
+const bool  plotrapp      = false;  // plot Rapp and Du's predictions
+const char* nameTag="_prompt";            // can put here e.g. "_prompt", "_nonprompt", ...
 
+const bool plot12007 = plot12007_mid || plot12007_fwd;
 
 ///////////////
 // CONSTANTS //
@@ -430,6 +434,40 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    tleg->SetBorderSize(0);
    tleg->SetTextSize(0.03);
 
+   // plot Rapp's theory first if we have to
+   if (plotrapp) {
+      if (plot12007_mid) {
+         TGraphErrors *gmid_12007 = rapp_cent_mid_276();
+         gmid_12007->SetFillColorAlpha(kCyan-7,0.5); 
+         gmid_12007->Draw("3");
+      }
+      if (plot12007_fwd) {
+         TGraphErrors *gfwd_12007 = rapp_cent_fwd_276();
+         gfwd_12007->SetFillColorAlpha(kMagenta-7,0.5); 
+         gfwd_12007->Draw("3");
+      }
+
+      TGraphErrors *gmid=NULL, *gfwd=NULL;
+      if (xaxis=="cent") {
+         gmid = rapp_cent_mid_502();
+         gfwd = rapp_cent_fwd_502();
+      }
+      if (xaxis=="pt") {
+         gmid = rapp_pt_mid_502();
+         gfwd = rapp_pt_fwd_502();
+      }
+      if (gmid && !(plot12007_fwd && !plot12007_mid)) { // if asking for 2.76TeV fwd only, do not plot 5TeV mid
+         gmid->SetFillColorAlpha(kBlue-7,0.5); 
+         // gmid->SetFillStyle(3440);
+         gmid->Draw("3");
+      }
+      if (gfwd && !(plot12007_mid && !plot12007_fwd)) { // if asking for 2.76TeV mid only, do not plot 5TeV fwd
+         gfwd->SetFillColorAlpha(kRed-7,0.5);
+         // gfwd->SetFillStyle(3404);
+         gfwd->Draw("3");
+      }
+   }
+
    // prepare for the printing of the result tables
    const char* xname = (xaxis=="cent") ? "Centrality" : "\\pt";
    gSystem->mkdir(Form("Output/%s/tex/", outputDir.c_str()), kTRUE); 
@@ -481,9 +519,10 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       // tg->Draw("[]");
 
       TString raplabel = Form("%.1f < |y| < %.1f, ",it->first.rapbin().low(),it->first.rapbin().high());
+      if (it->first.rapbin().low()<0.1) raplabel = Form("|y| < %.1f, ",it->first.rapbin().high());
       TString otherlabel = "BWAA";
-      if (xaxis == "pt") otherlabel.Form("%i%s-%i%s",(int) (it->first.centbin().low()/2.), "%", (int) (it->first.centbin().high()/2.), "%");
-      if (xaxis == "cent") otherlabel.Form("%.1f < p_{T} < %.1f GeV/c",it->first.ptbin().low(), it->first.ptbin().high());
+      if (xaxis == "pt") otherlabel.Form("%i-%i%s",(int) (it->first.centbin().low()/2.), (int) (it->first.centbin().high()/2.), "%");
+      if (xaxis == "cent") otherlabel.Form("%g < p_{T} < %g GeV/c",it->first.ptbin().low(), it->first.ptbin().high());
       if (!isMB) {
          tleg->AddEntry(tg, (raplabel + otherlabel), "p");
       }
@@ -531,46 +570,54 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    // now plot the 12007 if we need to
    if (plot12007 && xaxis == "cent") {
       padl->cd();
-      TGraphAsymmErrors *g_12007_mid_cent = result12007_mid_cent();
-      TGraphAsymmErrors *g_12007_mid_cent_syst = result12007_mid_cent_syst();
-      g_12007_mid_cent->SetMarkerStyle(kFullTriangleUp);
-      g_12007_mid_cent->SetMarkerSize(1.5);
-      g_12007_mid_cent->SetMarkerColor(kCyan);
-      g_12007_mid_cent->SetLineColor(kCyan);
-      g_12007_mid_cent_syst->SetFillColorAlpha(kCyan, 0.5);
-      g_12007_mid_cent_syst->Draw("2");
-      g_12007_mid_cent->Draw("P");
-      tleg->AddEntry(g_12007_mid_cent,"0 < |y| < 1.6, 6.5 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
-      TGraphAsymmErrors *g_12007_fwd_cent = result12007_fwd_cent();
-      TGraphAsymmErrors *g_12007_fwd_cent_syst = result12007_fwd_cent_syst();
-      g_12007_fwd_cent->SetMarkerStyle(kFullTriangleDown);
-      g_12007_fwd_cent->SetMarkerSize(1.5);
-      g_12007_fwd_cent->SetMarkerColor(kMagenta);
-      g_12007_fwd_cent->SetLineColor(kMagenta);
-      g_12007_fwd_cent_syst->SetFillColorAlpha(kMagenta, 0.5);
-      g_12007_fwd_cent_syst->Draw("2");
-      g_12007_fwd_cent->Draw("P");
-      tleg->AddEntry(g_12007_fwd_cent,"1.6 < |y| < 2.4, 3 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
+      if (plot12007_mid) {
+         TGraphAsymmErrors *g_12007_mid_cent = result12007_mid_cent();
+         TGraphAsymmErrors *g_12007_mid_cent_syst = result12007_mid_cent_syst();
+         g_12007_mid_cent->SetMarkerStyle(kFullTriangleUp);
+         g_12007_mid_cent->SetMarkerSize(1.5);
+         g_12007_mid_cent->SetMarkerColor(kCyan);
+         g_12007_mid_cent->SetLineColor(kCyan);
+         g_12007_mid_cent_syst->SetFillColorAlpha(kCyan, 0.5);
+         g_12007_mid_cent_syst->Draw("2");
+         g_12007_mid_cent->Draw("P");
+         tleg->AddEntry(g_12007_mid_cent,"0 < |y| < 1.6, 6.5 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
+      }
+      if (plot12007_fwd) {
+         TGraphAsymmErrors *g_12007_fwd_cent = result12007_fwd_cent();
+         TGraphAsymmErrors *g_12007_fwd_cent_syst = result12007_fwd_cent_syst();
+         g_12007_fwd_cent->SetMarkerStyle(kFullTriangleDown);
+         g_12007_fwd_cent->SetMarkerSize(1.5);
+         g_12007_fwd_cent->SetMarkerColor(kMagenta);
+         g_12007_fwd_cent->SetLineColor(kMagenta);
+         g_12007_fwd_cent_syst->SetFillColorAlpha(kMagenta, 0.5);
+         g_12007_fwd_cent_syst->Draw("2");
+         g_12007_fwd_cent->Draw("P");
+         tleg->AddEntry(g_12007_fwd_cent,"1.6 < |y| < 2.4, 3 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
+      }
 
       padr->cd();
-      TGraphAsymmErrors *g_12007_mid = result12007_mid();
-      TGraphAsymmErrors *g_12007_mid_syst = result12007_mid_syst();
-      g_12007_mid->SetMarkerStyle(kFullTriangleUp);
-      g_12007_mid->SetMarkerSize(1.5);
-      g_12007_mid->SetMarkerColor(kCyan);
-      g_12007_mid->SetLineColor(kCyan);
-      g_12007_mid_syst->SetFillColorAlpha(kCyan, 0.5);
-      g_12007_mid_syst->Draw("2");
-      g_12007_mid->Draw("P");
-      TGraphAsymmErrors *g_12007_fwd = result12007_fwd();
-      TGraphAsymmErrors *g_12007_fwd_syst = result12007_fwd_syst();
-      g_12007_fwd->SetMarkerStyle(kFullTriangleDown);
-      g_12007_fwd->SetMarkerSize(1.5);
-      g_12007_fwd->SetMarkerColor(kMagenta);
-      g_12007_fwd->SetLineColor(kMagenta);
-      g_12007_fwd_syst->SetFillColorAlpha(kMagenta, 0.5);
-      g_12007_fwd_syst->Draw("2");
-      g_12007_fwd->Draw("P");
+      if (plot12007_mid) {
+         TGraphAsymmErrors *g_12007_mid = result12007_mid();
+         TGraphAsymmErrors *g_12007_mid_syst = result12007_mid_syst();
+         g_12007_mid->SetMarkerStyle(kFullTriangleUp);
+         g_12007_mid->SetMarkerSize(1.5);
+         g_12007_mid->SetMarkerColor(kCyan);
+         g_12007_mid->SetLineColor(kCyan);
+         g_12007_mid_syst->SetFillColorAlpha(kCyan, 0.5);
+         g_12007_mid_syst->Draw("2");
+         g_12007_mid->Draw("P");
+      }
+      if (plot12007_fwd) {
+         TGraphAsymmErrors *g_12007_fwd = result12007_fwd();
+         TGraphAsymmErrors *g_12007_fwd_syst = result12007_fwd_syst();
+         g_12007_fwd->SetMarkerStyle(kFullTriangleDown);
+         g_12007_fwd->SetMarkerSize(1.5);
+         g_12007_fwd->SetMarkerColor(kMagenta);
+         g_12007_fwd->SetLineColor(kMagenta);
+         g_12007_fwd_syst->SetFillColorAlpha(kMagenta, 0.5);
+         g_12007_fwd_syst->Draw("2");
+         g_12007_fwd->Draw("P");
+      }
 
       padl->cd();
    }
