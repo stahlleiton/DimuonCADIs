@@ -160,7 +160,7 @@ vector<TString> combFileList(const char* input, const char* token, const char* p
     
     while ((file=(TSystemFile*)next())) {
       fname = file->GetName();
-      if (fname.EndsWith(".root") && fname.Index("combined_PbPbPP_workspace") != kNPOS
+      if (fname.EndsWith(".root") && fname.Index("combined_PbPbPP_") != kNPOS
           && (fname.Index(token) != kNPOS)) {
         ans.push_back(basedir+fname);
       }
@@ -187,7 +187,7 @@ vector<TString> limitsFileList(const char* input, const char* token, const char*
     
     while ((file=(TSystemFile*)next())) {
       fname = file->GetName();
-      if (fname.EndsWith(".root") && fname.Index("combined_PbPbPP_workspace") != kNPOS
+      if (fname.EndsWith(".root") && fname.Index("combined_PbPbPP_") != kNPOS
           && (fname.Index("_Scan") == kNPOS) && (fname.Index(token) != kNPOS)) {
         ans.push_back(basedir+fname);
       }
