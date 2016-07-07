@@ -13,7 +13,7 @@
 using namespace std;
 
 const bool usebatch=true;
-const char* asymLimitsFileName = "csv/cLimits_950_nominal_all_newSystAlphaFix_20160614_CL95_Asym_Asym_wSys.csv";
+const char* asymLimitsFileName = "csv/cLimits_950_nominal_newctau_all_20160619_CL95_Asym_Asym_wSys.csv";
 
 void computeLimits_FC(
                    const char* ACTag, // ACTag: where to look for combined workspaces in Limits/CombinedWorkspaces/
@@ -55,7 +55,7 @@ void computeLimits_FC(
   string str = strs.str();
   TString sCL(str);
   sCL.Remove(0,sCL.First('.')+1);
-  string limitsFileName = string("csv/") + "cLimits_" + string(sCL) + "_" + string(ACTag);
+  string limitsFileName = string("csv/") + "cLimitsFC_" + string(sCL) + "_" + string(ACTag);
   if ( doSyst ) limitsFileName = limitsFileName + "_wSyst.csv";
   else limitsFileName = limitsFileName + "_woSyst.csv";
   
@@ -92,7 +92,7 @@ void computeLimits_FC(
        exports += Form("export poimax=%f; ",poimax);
        exports += Form("export pwd_=%s; ", gSystem->pwd());
        TString command("qsub -k oe -q cms@llrt3 -l nodes=1:ppn=23 ");
-       command += Form("-N limits_bin%i ",cnt);
+       command += Form("-N limitsFC_bin%i ",cnt);
        command += "-V ";
        command += Form("-o %s ", gSystem->pwd());
        command += Form("-v it,ACTag,CL,poimin,poimax,pwd_ ");

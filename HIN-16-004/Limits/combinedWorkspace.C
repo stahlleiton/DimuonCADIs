@@ -94,9 +94,15 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
       ws->factory( "expr::N_Psi2S_PbPb_syst('@0*(@1*@2+@3)',N_Jpsi_PbPb,RFrac2Svs1S_PP_syst,RFrac2Svs1S_PbPbvsPP_syst,alpha_syst_addRPbPb)" );
       ws->factory( "SUM::pdfMASS_Tot_PbPb_syst(N_Jpsi_PbPb * pdfMASS_Jpsi_PbPb, N_Psi2S_PbPb_syst * pdfMASS_Psi2S_PbPb, N_Bkg_PbPb * pdfMASS_Bkg_PbPb)" );
       //   ws->factory( "PROD::pdfMASS_Tot_PbPb_constr(pdfMASS_Tot_PbPb_syst,constr_syst)" );
-      ws->factory( "PROD::constr_syst_tot0(constr_syst,constr_syst_add2R)" );
-      ws->factory( "PROD::constr_syst_tot(constr_syst_tot0,constr_syst_addRPbPb)" );
-      ws->factory( "PROD::pdfMASS_Tot_PbPb_constr(pdfMASS_Tot_PbPb_syst,constr_syst_tot)" );
+      // ws->factory( "PROD::constr_syst_tot0(constr_syst,constr_syst_add2R)" );
+      // ws->factory( "PROD::constr_syst_tot(constr_syst_tot0,constr_syst_addRPbPb)" );
+      // ws->factory( "PROD::pdfMASS_Tot_PbPb_constr(pdfMASS_Tot_PbPb_syst,constr_syst_tot)" );
+      RooAbsPdf *pdfMASS_Tot_PbPb_syst = ws->pdf("pdfMASS_Tot_PbPb_syst");
+      RooGaussian *constr_syst = (RooGaussian*) ws->pdf("constr_syst");
+      RooGaussian *constr_syst_add2R = (RooGaussian*) ws->pdf("constr_syst_add2R");
+      RooGaussian *constr_syst_addRPbPb = (RooGaussian*) ws->pdf("constr_syst_addRPbPb");
+      RooProdPdf *pdfMASS_Tot_PbPb_constr = new RooProdPdf("pdfMASS_Tot_PbPb_constr","pdfMASS_Tot_PbPb_constr",RooArgSet(*pdfMASS_Tot_PbPb_syst,*constr_syst,*constr_syst_add2R,*constr_syst_addRPbPb));
+      ws->import(*pdfMASS_Tot_PbPb_constr);
     
       // build the pp pdf
       // ws->factory( "expr::N_Psi2S_PP_syst('@0*@1/@2',RFrac2Svs1S_PbPb_syst,N_Jpsi_PP,RFrac2Svs1S_PbPbvsPP_syst)" );
@@ -105,15 +111,7 @@ void combinedWorkspace(const char* name_pbpb="fitresult.root", const char* name_
       ws->factory( "PROD::pdfMASS_Tot_PP_constr(pdfMASS_Tot_PP_syst,constr_syst_addRPP)" );
 
       // build the combined pdf
-      // ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb_constr,PP=pdfMASS_Tot_PP_constr)");
-      ws->factory("SIMUL::simPdf_syst_noconstr(sample,PbPb=pdfMASS_Tot_PbPb_syst,PP=pdfMASS_Tot_PP_syst)");
-      RooSimultaneous *simPdf = (RooSimultaneous*) ws->pdf("simPdf_syst_noconstr");
-      RooGaussian *constr_syst = (RooGaussian*) ws->pdf("constr_syst");
-      RooGaussian *constr_syst_add2R = (RooGaussian*) ws->pdf("constr_syst_add2R");
-      RooGaussian *constr_syst_addRPP = (RooGaussian*) ws->pdf("constr_syst_addRPP");
-      RooGaussian *constr_syst_addRPbPb = (RooGaussian*) ws->pdf("constr_syst_addRPbPb");
-      RooProdPdf *simPdf_constr = new RooProdPdf("simPdf_syst","simPdf_syst",RooArgSet(*simPdf,*constr_syst,*constr_syst_add2R,*constr_syst_addRPP,*constr_syst_addRPbPb));
-      ws->import(*simPdf_constr);
+      ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb_constr,PP=pdfMASS_Tot_PP_constr)");
 
    } else {
       ws->factory("SIMUL::simPdf_syst(sample,PbPb=pdfMASS_Tot_PbPb,PP=pdfMASS_Tot_PP)");
