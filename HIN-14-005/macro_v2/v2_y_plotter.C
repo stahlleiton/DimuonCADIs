@@ -186,36 +186,32 @@ void v2_y_plotter(
   // general labels 
   TLatex *lt1  = new TLatex();
   lt1->SetNDC();
+  lt1->SetTextFont(42);
+  lt1->SetTextSize(0.04);
 
   TH1F *phAxis = new TH1F("phAxis",";|y|;v_{2}",10,0,2.4);
-  phAxis->GetYaxis()->SetRangeUser(-0.07,0.25);
-//  phAxis->GetYaxis()->SetRangeUser(-0.05,0.25);
+  if (jpsiCategory==2) {
+    phAxis->GetYaxis()->SetRangeUser(-0.07,0.25);
+  } else {
+    phAxis->GetYaxis()->SetRangeUser(0,0.25);
+  }
   phAxis->GetXaxis()->CenterTitle();
   phAxis->GetYaxis()->CenterTitle();
   phAxis->GetXaxis()->SetNdivisions(-6);
 
-  TF1 *line    = new TF1("line","0",0,400);
+  TF1 *line    = new TF1();//"line","0",0,400);
   line->SetLineWidth(1);
- 
-  TLatex *pre = new TLatex(0.15,0.22,Form("%s",legend[jpsiCategory]));
-  pre->SetTextFont(42);
-  pre->SetTextSize(0.05);
 
-  TLatex *lpt     = new TLatex(0.15,0.2,Form("%s",ptBinsLegend[0]));
-  lpt->SetTextFont(42);
-  lpt->SetTextSize(0.04);
-
-  TLatex *lcent = new TLatex(0.15,0.18,Form("%s",centBinsLegend[0]));
-  lcent->SetTextFont(42);
-  lcent->SetTextSize(0.04);
-
- //-------------- Drawing 
+  //-------------- Drawing 
   TCanvas *pc = new TCanvas("pc","pc");
   phAxis->Draw();
   CMS_lumi(pc,101,33);
-  pre->Draw();
-  lpt->Draw();
-  lcent->Draw();
+  lt1->SetTextSize(0.05);
+  lt1->DrawLatex(0.2,0.85,Form("%s",legend[jpsiCategory]));
+  lt1->SetTextSize(0.04);
+  lt1->DrawLatex(0.2,0.80,Form("%s",ptBinsLegend[0]));
+  lt1->SetTextSize(0.04);
+  lt1->DrawLatex(0.2,0.75,Form("%s",centBinsLegend[0]));
 
   pgV2_sys->Draw("2");
   pgV2->Draw("PZ");

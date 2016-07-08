@@ -10,7 +10,7 @@ void printChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, s
 
 void drawMassPlot(RooWorkspace& myws,   // Local workspace
                   string outputDir,     // Output directory
-		  struct InputOpt opt,  // Variable with run information (kept for legacy purpose)
+                  struct InputOpt opt,  // Variable with run information (kept for legacy purpose)
                   struct KinCuts cut,   // Variable with current kinematic cuts
                   string plotLabel,     // The label used to define the output file name
                   // Select the type of datasets to fit
@@ -34,14 +34,22 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
                   bool saveWS=true      // save the workspace into a file
                   ) 
 {
-  bool applyWeight_AccEff = false;
-  if (DSTAG.find("AccEff")!=std::string::npos) applyWeight_AccEff = true;
-  else applyWeight_AccEff = false;
+  bool applyWeight_Corr = false;
+  if ( (plotLabel.find("AccEff")!=std::string::npos) || (plotLabel.find("_lJpsiEff")!=std::string::npos) ) applyWeight_Corr = true;
+  else applyWeight_Corr = false;
+  
+  if (DSTAG.find("_")!=std::string::npos) DSTAG.erase(DSTAG.find("_"));
   
   string dsOSName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   string dsSSName = Form("dSS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
-  if(applyWeight_AccEff) dsOSName = Form("dOS_%s", DSTAG.c_str());
-  if(applyWeight_AccEff) dsSSName = Form("dSS_%s", DSTAG.c_str());
+  if(applyWeight_Corr)
+  {
+    TString corrName = "";
+    if (plotLabel.find("AccEff")!=std::string::npos) corrName = "AccEff";
+    else if (plotLabel.find("_lJpsiEff")!=std::string::npos) corrName = "lJpsiEff";
+    dsOSName = Form("dOS_%s_%s_%s", DSTAG.c_str(),(isPbPb?"PbPb":"PP"),corrName.Data());
+  }
+//  if(applyWeight_Corr) dsSSName = Form("dSS_%s", DSTAG.c_str());
 
   string pdfName  = Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP"));
   if (plotPureSMC) dsOSName = Form("dOS_%s_%s_NoBkg", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));

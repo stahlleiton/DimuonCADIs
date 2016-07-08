@@ -913,6 +913,7 @@ RooStats::HypoTestInvTool::RunInverter(RooWorkspace * w,
       }
 
       toymcs->SetTestStatistic(testStat);
+      // toymcs->AddTestStatistic(&maxll);
 
       if (data->isWeighted() && !mGenerateBinned) {
          Info("StandardHypoTestInvDemo","Data set is weighted, nentries = %d and sum of weights = %8.1f but toy generation is unbinned - it would be faster to set mGenerateBinned to true\n",data->numEntries(), data->sumEntries());
