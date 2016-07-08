@@ -309,6 +309,7 @@ double poiFromBin(const char* workDirName, const char* theCollSystem, const char
 
    float ptmin, ptmax, ymin, ymax, centmin, centmax;
    float val=-999.;
+   int valI=-999.;
    char collSystem[5];
    tr->SetBranchAddress("ptmin",&ptmin);
    tr->SetBranchAddress("ptmax",&ptmax);
@@ -316,15 +317,23 @@ double poiFromBin(const char* workDirName, const char* theCollSystem, const char
    tr->SetBranchAddress("ymax",&ymax);
    tr->SetBranchAddress("centmin",&centmin);
    tr->SetBranchAddress("centmax",&centmax);
-   tr->SetBranchAddress(Form("%s_val",thepoiname),&val);
+   if (string(thepoiname)!="chi2" && string(thepoiname)!="ndof") tr->SetBranchAddress(Form("%s_val",thepoiname),&val);
+   else if (string(thepoiname)!="ndof") tr->SetBranchAddress(thepoiname,&val);
+   else tr->SetBranchAddress(thepoiname,&valI);
    tr->SetBranchAddress("collSystem",collSystem);
 
    int ntr = tr->GetEntries();
+   bool found=false;
    for (int i=0; i<ntr; i++) {
       tr->GetEntry(i);
-      if ((anabin(ymin, ymax, ptmin, ptmax, centmin, centmax) == thebin) && (TString(collSystem) == TString(theCollSystem))) break;
+      if ((anabin(ymin, ymax, ptmin, ptmax, centmin, centmax) == thebin) && (TString(collSystem) == TString(theCollSystem))) {
+         found=true;
+         break;
+      }
    }
    f->Close(); delete f;
+   if (!found) val = -999;
+   if (string(thepoiname)=="ndof") val = valI;
    return val;
 }
 
@@ -355,11 +364,16 @@ double poiErrFromBin(const char* workDirName, const char* theCollSystem, const c
    tr->SetBranchAddress("collSystem",collSystem);
 
    int ntr = tr->GetEntries();
+   bool found=false;
    for (int i=0; i<ntr; i++) {
       tr->GetEntry(i);
-      if ((anabin(ymin, ymax, ptmin, ptmax, centmin, centmax) == thebin) && (TString(collSystem) == TString(theCollSystem))) break;
+      if ((anabin(ymin, ymax, ptmin, ptmax, centmin, centmax) == thebin) && (TString(collSystem) == TString(theCollSystem))) {
+         found=true;
+         break;
+      }
    }
    f->Close(); delete f;
+   if (!found) err=-999;
    return err;
 }
 
