@@ -213,9 +213,9 @@ void v2_cent_plotter(
     lt1->DrawLatex((adXaxis[1]+5)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-1-1]));
     lt1->DrawLatex((adXaxis[2]-5)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-1-2]));
   } else {
-    lt1->DrawLatex((adXaxis[0]+30)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-nBins]));
-    lt1->DrawLatex((adXaxis[1]+5)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-nBins-1]));
-    lt1->DrawLatex((adXaxis[2]-5)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-nBins-2]));
+    lt1->DrawLatex((adXaxis[0]+30)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-nBins-1]));
+    lt1->DrawLatex((adXaxis[1]+5)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-nBins-2]));
+    lt1->DrawLatex((adXaxis[2]-5)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-nBins-3]));
   }
   
   pgV2_sys->Draw("2");
