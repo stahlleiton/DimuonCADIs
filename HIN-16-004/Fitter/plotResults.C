@@ -3,10 +3,11 @@
 #include "Macros/Utilities/bin.h"
 #include "Macros/Utilities/bfrac.h"
 #include "Macros/Utilities/EVENTUTILS.h"
-
 #include "Macros/Utilities/initClasses.h"
 #include "Macros/Utilities/resultUtils.h"
 #include "Macros/Utilities/texUtils.h"
+#include "Macros/Utilities/monster.h"
+#include "Macros/Utilities/rappGraph.h"
 #include "Systematics/syst.h"
 #include "../Limits/limits.h"
 
@@ -15,6 +16,7 @@
 #include <string>
 #include <sstream>
 #include "TGraphAsymmErrors.h"
+#include "TGraphErrors.h"
 #include "TCanvas.h"
 #include "TH1.h"
 #include "TLegend.h"
@@ -38,18 +40,18 @@ const char* poiname = "RFrac2Svs1S"; // for double ratios
 // const char* poiname = "N_Psi2S"; // for RAA (will correct automatically for efficiency)
 #endif
 const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
-const bool  doratio       = true;  // true -> look for separate PP and PbPb files, false -> input files are with simultaneous pp-PbPb fits
-const bool  plot12007     = false; // compare with 12-007
+const bool  plot12007_mid = false; // plot 12-007, midrapidity
+const bool  plot12007_fwd = false; // plot 12-007, fwdrapidity
 const bool  fiterrors     = true;  // statistical errors are from the fit
 const bool  FCerrors      = false; // statistical errors are from the Feldman-Cousins intervals ("limits")
-const bool  promptonly    = false; // plot the prompt only double ratio
+const bool  promptonly    = true;  // plot the prompt only double ratio
 const bool  nonpromptonly = false; // plot the non-prompt only double ratio
 const bool  plotlimits95  = true;  // display 95% CL limits (when the lower limit is 0)
 const bool  plotsysts     = true;  // display systematics
-#define normalCutsDir "nominal"
-#define invCutsDir "nonprompt"
+const bool  plotrapp      = false; // plot Rapp and Du's predictions
 const char* nameTag="";            // can put here e.g. "_prompt", "_nonprompt", ...
 
+const bool plot12007 = plot12007_mid || plot12007_fwd;
 
 ///////////////
 // CONSTANTS //
@@ -67,7 +69,7 @@ const double lumipbpb_peri = 464;
 RooRealVar* poiFromFile(const char* filename, const char* token="");
 // plot
 void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsymmErrors*> theGraphs_syst, string xaxis, string outputDir, map<anabin, syst> gsyst);
-void plot(vector<anabin> thecats, string xaxis, string workDirName);
+void plot(vector<anabin> thecats, string xaxis, string workDirName, string workDirNameFail="");
 void centrality2npart(TGraphAsymmErrors* tg, bool issyst=false, bool isMB=false, double xshift=0.);
 void plotLimits(vector<anabin> theCats, string xaxis, const char* filename="../Limits/csv/Limits_95.csv", double xshift=0, bool ULonly=true, bool isInclusive=false);
 void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color);
@@ -78,16 +80,16 @@ void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color);
 // MAIN FUNCTIONS TO BE CALLED BY THE USER //
 /////////////////////////////////////////////
 
-void plotPt(string workDirName) {
+void plotPt(string workDirName, string workDirNameFail="") {
    string xaxis = "pt";
    vector<anabin> theCats;
    theCats.push_back(anabin(0,1.6,6.5,30,0,200));
    theCats.push_back(anabin(1.6,2.4,3,30,0,200));
 
-   plot(theCats,xaxis,workDirName);
+   plot(theCats,xaxis,workDirName, workDirNameFail);
 };
 
-void plotCent(string workDirName) {
+void plotCent(string workDirName, string workDirNameFail="") {
    string xaxis = "cent";
    vector<anabin> theCats;
 
@@ -99,106 +101,125 @@ void plotCent(string workDirName) {
    theCats.push_back(anabin(0,1.6,6.5,30,0,-200));
    theCats.push_back(anabin(1.6,2.4,3,30,0,-200));
 
-   plot(theCats,xaxis,workDirName);
+   plot(theCats,xaxis,workDirName, workDirNameFail);
 };
 
 /////////////////////
 // OTHER FUNCTIONS //
 /////////////////////
 
-void plot(vector<anabin> thecats, string xaxis, string outputDir) {
+void plot(vector<anabin> thecats, string xaxis, string outputDir, string outputDirFail) {
    // thecats contains the categories. eg 0<y<1.6 and 1.6<y<2.4
    // xaxis is the variable to be plotted. "pt", "rap" or "cent"
 
-   // list of files
-   vector<TString> theFiles, theFiles2;
-   if (!doratio) {
-      theFiles = fileList(outputDir.c_str());
-   } else {
-      theFiles = fileList(outputDir.c_str(),"PbPb");
-      theFiles2 = fileList(outputDir.c_str(),"PP");
-
-      // if (theFiles.size() != theFiles2.size()) {
-      //    cout << "I found a different number of pp and PbPb files!! This is no good, I give up." << endl;
-      //    return;
-      // }
+   TFile *f = new TFile(treeFileName(outputDir.c_str(),"DATA"));
+   if (!f || !f->IsOpen()) {
+      results2tree(outputDir.c_str(),"DATA");
+      f = new TFile(treeFileName(outputDir.c_str(),"DATA"));
+      if (!f) return;
    }
+   TTree *tr = (TTree*) f->Get("fitresults");
+   if (!tr) return;
 
-   map<anabin, RooRealVar*> theVars;
+   map<anabin, double> theVars_val;
+   map<anabin, double> theVars_stat;
+   map<anabin, double> theVars_syst;
    map<anabin,syst> stat_PP; // statistical uncertainty on PP fits (useful for the case of the centrality dependence)
 
-   vector<TString>::const_iterator it,it2;
-   for (vector<TString>::const_iterator it=theFiles.begin(); it!=theFiles.end(); it++) {
-      anabin thebin = binFromFile(it->Data());
-      if (!doratio) {
-         theVars[thebin] = poiFromFile(it->Data(),"_PbPbvsPP");
+   vector<double> x, ex, y, ey;
+   float ptmin, ptmax, ymin, ymax, centmin, centmax;
+   float val, err=0;
+   int ival=-999;
+   char collSystem[5];
+   tr->SetBranchAddress("ptmin",&ptmin);
+   tr->SetBranchAddress("ptmax",&ptmax);
+   tr->SetBranchAddress("ymin",&ymin);
+   tr->SetBranchAddress("ymax",&ymax);
+   tr->SetBranchAddress("centmin",&centmin);
+   tr->SetBranchAddress("centmax",&centmax);
+   tr->SetBranchAddress(Form("%s_val",poiname),&val);
+   tr->SetBranchAddress(Form("%s_err",poiname),&err);
+   tr->SetBranchAddress("collSystem",collSystem);
+
+   int ntr = tr->GetEntries();
+   for (int i=0; i<ntr; i++) {
+      tr->GetEntry(i);
+      anabin thebin(ymin, ymax, ptmin, ptmax, centmin, centmax);
+
+      if (TString(collSystem)=="PP") continue;
+
+      double dR, dR_stat, dR_statPP, dR_syst;
+      const char* opt = (xaxis=="cent") ? "PbPb" : ""; // for the centrality dependence, exclude PbPb errors
+      if (!promptonly && !nonpromptonly) {
+         dR = doubleratio_pass_nominal(outputDir.c_str(), thebin);
+         dR_stat = doubleratio_pass_stat(outputDir.c_str(), thebin, "", opt);
+         dR_statPP = doubleratio_pass_stat(outputDir.c_str(), thebin, "", "PP");
+         dR_syst = doubleratio_pass_syst(outputDir.c_str(), thebin, "", opt);
+      } else if (promptonly) {
+         dR = doubleratio_prompt_nominal(outputDir.c_str(), outputDirFail.c_str(), thebin);
+         dR_stat = doubleratio_prompt_stat(outputDir.c_str(), outputDirFail.c_str(), thebin, "", opt);
+         dR_statPP = doubleratio_prompt_stat(outputDir.c_str(), outputDirFail.c_str(), thebin, "", "PP");
+         dR_syst = doubleratio_prompt_syst(outputDir.c_str(), outputDirFail.c_str(), thebin, "", opt);
       } else {
-         RooRealVar *num=NULL;
-         if (!promptonly && !nonpromptonly) num = poiFromFile(it->Data(),"_PbPb");
-         else if (promptonly) num = new RooRealVar(bfrac(normalCutsDir,invCutsDir,thebin,"RFrac2Svs1S_PbPb"));
-         else  num = new RooRealVar(bfrac(normalCutsDir,invCutsDir,thebin,"RFrac2Svs1S_NPrompt_PbPb"));
-
-         // force the centrality to 0-200 for pp
-         anabin thebinpp = thebin;
-         binI centbin(0,200);
-         thebinpp.setcentbin(centbin);
-
-         // look for the pp file corresponding to the pbpb one
-         bool found=false;
-         for (it2=theFiles2.begin(); it2!=theFiles2.end(); it2++) {
-            if (binFromFile(it2->Data()) == thebinpp) {
-               found=true;
-               break;
-            }
-         }
-         if (!found) {
-            cout << "Error! I did not find the PP file for " << *it << endl;
-            return;
-         }
-         anabin thebin_PP = binFromFile(it2->Data());
-         RooRealVar *den = NULL;
-         if (!promptonly && !nonpromptonly) den = poiFromFile(it2->Data(),"_PP");
-         else if (promptonly) den = new RooRealVar(bfrac(normalCutsDir,invCutsDir,thebin_PP,"RFrac2Svs1S_PP"));
-         else  den = new RooRealVar(bfrac(normalCutsDir,invCutsDir,thebin_PP,"RFrac2Svs1S_NPrompt_PP"));
-         theVars[thebin] = ratioVar(num,den,!(xaxis=="cent")); // if plotting the centrality dependence, do not put the pp stat
-         syst thestat_PP;
-         thestat_PP.name = "stat_PP";
-         thestat_PP.value = den->getVal() != 0 ? den->getError()/den->getVal() : 0;
-         thestat_PP.value_dR = thestat_PP.value*theVars[thebin]->getVal(); 
-         thestat_PP.value_dR_rel = thestat_PP.value; 
-         stat_PP[thebinpp] = thestat_PP;
-
-         delete num; delete den;
+         dR = doubleratio_nonprompt_nominal(outputDir.c_str(), outputDirFail.c_str(), thebin);
+         dR_stat = doubleratio_nonprompt_stat(outputDir.c_str(), outputDirFail.c_str(), thebin, "", opt);
+         dR_statPP = doubleratio_nonprompt_stat(outputDir.c_str(), outputDirFail.c_str(), thebin, "", "PP");
+         dR_syst = doubleratio_nonprompt_syst(outputDir.c_str(), outputDirFail.c_str(), thebin, "", opt);
       }
+
+      theVars_val[thebin] = dR;
+      theVars_stat[thebin] = dR_stat;
+      theVars_syst[thebin] = dR_syst;
+
+      syst thestat_PP;
+      thestat_PP.name = "stat_PP";
+      thestat_PP.value_dR = dR_statPP;
+      thestat_PP.value = thestat_PP.value_dR / dR; 
+      thestat_PP.value_dR_rel = thestat_PP.value; 
+      stat_PP[thebin] = thestat_PP;
    }
 
    map<anabin, vector<anabin> > theBins;
-   map<anabin, vector<RooRealVar*> > theVarsBinned;
+   map<anabin, vector<double> > theVarsBinned;
+   map<anabin, vector<double> > theVarsBinned_stat;
+   map<anabin, vector<double> > theVarsBinned_syst;
    map<anabin, TGraphAsymmErrors* > theGraphs;
    map<anabin, TGraphAsymmErrors* > theGraphs_syst;
 
    // initialize the maps
    for (vector<anabin>::const_iterator it=thecats.begin(); it!=thecats.end(); it++) {
       theBins[*it] = vector<anabin>();
-      theVarsBinned[*it] = vector<RooRealVar*>();
+      theVarsBinned[*it] = vector<double>();
    }
 
-   for (map<anabin, RooRealVar*>::const_iterator it=theVars.begin(); it!=theVars.end(); it++) {
+   for (map<anabin, double>::const_iterator it=theVars_val.begin(); it!=theVars_val.end(); it++) {
       anabin thebin = it->first;
       if (!binok(thecats,xaxis,thebin)) continue;
       theBins[thebin].push_back(it->first);
       theVarsBinned[thebin].push_back(it->second);
+      theVarsBinned_stat[thebin].push_back(theVars_stat[it->first]);
+      theVarsBinned_syst[thebin].push_back(theVars_stat[it->first]);
    }
 
    // systematics
-   map<anabin, syst> syst_PP = readSyst_all("PP","",outputDir.c_str());
-   if (doratio && xaxis=="cent") { // put the PP stat error into the PP syst, that will go into a box at 1
+   map<anabin, syst> syst_PP; 
+   if (plotsysts) {
+      if (!promptonly && !nonpromptonly) syst_PP = readSyst_all_pass("PP","",outputDir.c_str());
+      else if (promptonly) syst_PP = readSyst_all_prompt("PP","",outputDir.c_str(),outputDirFail.c_str());
+      else syst_PP = readSyst_all_nonprompt("PP","",outputDir.c_str(),outputDirFail.c_str());
+   }
+   if (xaxis=="cent") { // put the PP stat error into the PP syst, that will go into a box at 1
       vector< map<anabin, syst> > all_PP;
       all_PP.push_back(syst_PP);
       all_PP.push_back(stat_PP);
       syst_PP = combineSyst(all_PP,"statsyst_PP");
    }
-   map<anabin, syst> syst_PbPb = readSyst_all("PbPb","",outputDir.c_str());
+   map<anabin, syst> syst_PbPb;
+   if (plotsysts) {
+      if (!promptonly && !nonpromptonly) syst_PbPb = readSyst_all_pass("PbPb","",outputDir.c_str());
+      else if (promptonly) syst_PbPb = readSyst_all_prompt("PbPb","",outputDir.c_str(),outputDirFail.c_str());
+      else syst_PbPb = readSyst_all_nonprompt("PbPb","",outputDir.c_str(),outputDirFail.c_str());
+   }
    // map<anabin, syst> syst_PbPb_NP_add = readSyst("Systematics/csv/syst_PbPb_bhad_add.csv");
 
    // make TGraphAsymmErrors
@@ -244,11 +265,13 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
             // exsyst = !isMB ? 5 : 5./(1.-xfrac);
             exsyst = exl;
             eysyst = plotsysts ? syst_PbPb[thebin].value_dR : 0; // only PbPb syst: the PP one will go to a dedicated box
+            if (plotsysts && isMB) eysyst = sqrt(pow(syst_PP[thebin].value_dR,2) + pow(syst_PbPb[thebin].value_dR,2));
          }
-         y = theVarsBinned[*it][i]->getVal();
+         y = theVarsBinned[*it][i];
          if (fiterrors) {
-            eyl = fabs(theVarsBinned[*it][i]->getErrorLo());
-            eyh = theVarsBinned[*it][i]->getErrorHi();
+            eyl = fabs(theVarsBinned_stat[*it][i]);
+            if (isMB) eyl = sqrt(pow(theVarsBinned_stat[*it][i],2) + pow(stat_PP[*it].value_dR,2));
+            eyh = eyl;
          } else {
             map<anabin, limits> maplim = readLimits("../Limits/csv/Limits_68.csv");
             if (maplim.find(*it) != maplim.end()) {
@@ -256,8 +279,8 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
                eyl = lim.val.first;
                eyh = lim.val.second;
             } else {
-               eyl = fabs(theVarsBinned[*it][i]->getErrorLo());
-               eyh = theVarsBinned[*it][i]->getErrorHi();
+               eyl = fabs(theVarsBinned_stat[*it][i]);
+               eyh = theVarsBinned_stat[*it][i];
             }
          }
 
@@ -280,9 +303,6 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
 
    // plot
    plotGraph(theGraphs, theGraphs_syst, xaxis, outputDir, syst_PP);
-
-   map<anabin, RooRealVar*>::iterator itv;
-   for (itv=theVars.begin(); itv!=theVars.end(); itv++) delete itv->second;
 }
 
 RooRealVar* poiFromFile(const char* filename, const char* token) {
@@ -387,12 +407,14 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       haxesr->GetXaxis()->SetTickLength(0);
       haxesr->GetYaxis()->SetTickLength(gStyle->GetTickLength("Y")/(1.-xfrac));
       haxesr->GetYaxis()->SetRangeUser(0,1.5);
+      if (nonpromptonly) haxesr->GetYaxis()->SetRangeUser(0,2.5);
       if (plot12007) haxesr->GetYaxis()->SetRangeUser(0,3.2);
       haxesr->GetXaxis()->SetTitleSize(0);
       haxesr->GetXaxis()->SetLabelSize(0);
       liner = TLine(0,1,420,1);
    }
    haxes->GetYaxis()->SetRangeUser(0,1.5);
+   if (nonpromptonly) haxes->GetYaxis()->SetRangeUser(0,2.5);
    if (plot12007) haxes->GetYaxis()->SetRangeUser(0,3.2);
    haxes->GetYaxis()->SetTitle(ylabel);
    const char* xlabel = (xaxis=="pt") ? "p_{T} (GeV/c)" : "N_{part}";
@@ -411,6 +433,40 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    TLegend *tleg = new TLegend(0.16+xshift,0.73,0.50,0.89);
    tleg->SetBorderSize(0);
    tleg->SetTextSize(0.03);
+
+   // plot Rapp's theory first if we have to
+   if (plotrapp) {
+      if (plot12007_mid) {
+         TGraphErrors *gmid_12007 = rapp_cent_mid_276();
+         gmid_12007->SetFillColorAlpha(kCyan-7,0.5); 
+         gmid_12007->Draw("3");
+      }
+      if (plot12007_fwd) {
+         TGraphErrors *gfwd_12007 = rapp_cent_fwd_276();
+         gfwd_12007->SetFillColorAlpha(kMagenta-7,0.5); 
+         gfwd_12007->Draw("3");
+      }
+
+      TGraphErrors *gmid=NULL, *gfwd=NULL;
+      if (xaxis=="cent") {
+         gmid = rapp_cent_mid_502();
+         gfwd = rapp_cent_fwd_502();
+      }
+      if (xaxis=="pt") {
+         gmid = rapp_pt_mid_502();
+         gfwd = rapp_pt_fwd_502();
+      }
+      if (gmid && !(plot12007_fwd && !plot12007_mid)) { // if asking for 2.76TeV fwd only, do not plot 5TeV mid
+         gmid->SetFillColorAlpha(kBlue-7,0.5); 
+         // gmid->SetFillStyle(3440);
+         gmid->Draw("3");
+      }
+      if (gfwd && !(plot12007_mid && !plot12007_fwd)) { // if asking for 2.76TeV mid only, do not plot 5TeV fwd
+         gfwd->SetFillColorAlpha(kRed-7,0.5);
+         // gfwd->SetFillStyle(3404);
+         gfwd->Draw("3");
+      }
+   }
 
    // prepare for the printing of the result tables
    const char* xname = (xaxis=="cent") ? "Centrality" : "\\pt";
@@ -463,9 +519,10 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       // tg->Draw("[]");
 
       TString raplabel = Form("%.1f < |y| < %.1f, ",it->first.rapbin().low(),it->first.rapbin().high());
+      if (it->first.rapbin().low()<0.1) raplabel = Form("|y| < %.1f, ",it->first.rapbin().high());
       TString otherlabel = "BWAA";
-      if (xaxis == "pt") otherlabel.Form("%i%s-%i%s",(int) (it->first.centbin().low()/2.), "%", (int) (it->first.centbin().high()/2.), "%");
-      if (xaxis == "cent") otherlabel.Form("%.1f < p_{T} < %.1f GeV/c",it->first.ptbin().low(), it->first.ptbin().high());
+      if (xaxis == "pt") otherlabel.Form("%i-%i%s",(int) (it->first.centbin().low()/2.), (int) (it->first.centbin().high()/2.), "%");
+      if (xaxis == "cent") otherlabel.Form("%g < p_{T} < %g GeV/c",it->first.ptbin().low(), it->first.ptbin().high());
       if (!isMB) {
          tleg->AddEntry(tg, (raplabel + otherlabel), "p");
       }
@@ -513,46 +570,54 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    // now plot the 12007 if we need to
    if (plot12007 && xaxis == "cent") {
       padl->cd();
-      TGraphAsymmErrors *g_12007_mid_cent = result12007_mid_cent();
-      TGraphAsymmErrors *g_12007_mid_cent_syst = result12007_mid_cent_syst();
-      g_12007_mid_cent->SetMarkerStyle(kFullTriangleUp);
-      g_12007_mid_cent->SetMarkerSize(1.5);
-      g_12007_mid_cent->SetMarkerColor(kCyan);
-      g_12007_mid_cent->SetLineColor(kCyan);
-      g_12007_mid_cent_syst->SetFillColorAlpha(kCyan, 0.5);
-      g_12007_mid_cent_syst->Draw("2");
-      g_12007_mid_cent->Draw("P");
-      tleg->AddEntry(g_12007_mid_cent,"0 < |y| < 1.6, 6.5 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
-      TGraphAsymmErrors *g_12007_fwd_cent = result12007_fwd_cent();
-      TGraphAsymmErrors *g_12007_fwd_cent_syst = result12007_fwd_cent_syst();
-      g_12007_fwd_cent->SetMarkerStyle(kFullTriangleDown);
-      g_12007_fwd_cent->SetMarkerSize(1.5);
-      g_12007_fwd_cent->SetMarkerColor(kMagenta);
-      g_12007_fwd_cent->SetLineColor(kMagenta);
-      g_12007_fwd_cent_syst->SetFillColorAlpha(kMagenta, 0.5);
-      g_12007_fwd_cent_syst->Draw("2");
-      g_12007_fwd_cent->Draw("P");
-      tleg->AddEntry(g_12007_fwd_cent,"1.6 < |y| < 2.4, 3 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
+      if (plot12007_mid) {
+         TGraphAsymmErrors *g_12007_mid_cent = result12007_mid_cent();
+         TGraphAsymmErrors *g_12007_mid_cent_syst = result12007_mid_cent_syst();
+         g_12007_mid_cent->SetMarkerStyle(kFullTriangleUp);
+         g_12007_mid_cent->SetMarkerSize(1.5);
+         g_12007_mid_cent->SetMarkerColor(kCyan);
+         g_12007_mid_cent->SetLineColor(kCyan);
+         g_12007_mid_cent_syst->SetFillColorAlpha(kCyan, 0.5);
+         g_12007_mid_cent_syst->Draw("2");
+         g_12007_mid_cent->Draw("P");
+         tleg->AddEntry(g_12007_mid_cent,"0 < |y| < 1.6, 6.5 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
+      }
+      if (plot12007_fwd) {
+         TGraphAsymmErrors *g_12007_fwd_cent = result12007_fwd_cent();
+         TGraphAsymmErrors *g_12007_fwd_cent_syst = result12007_fwd_cent_syst();
+         g_12007_fwd_cent->SetMarkerStyle(kFullTriangleDown);
+         g_12007_fwd_cent->SetMarkerSize(1.5);
+         g_12007_fwd_cent->SetMarkerColor(kMagenta);
+         g_12007_fwd_cent->SetLineColor(kMagenta);
+         g_12007_fwd_cent_syst->SetFillColorAlpha(kMagenta, 0.5);
+         g_12007_fwd_cent_syst->Draw("2");
+         g_12007_fwd_cent->Draw("P");
+         tleg->AddEntry(g_12007_fwd_cent,"1.6 < |y| < 2.4, 3 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
+      }
 
       padr->cd();
-      TGraphAsymmErrors *g_12007_mid = result12007_mid();
-      TGraphAsymmErrors *g_12007_mid_syst = result12007_mid_syst();
-      g_12007_mid->SetMarkerStyle(kFullTriangleUp);
-      g_12007_mid->SetMarkerSize(1.5);
-      g_12007_mid->SetMarkerColor(kCyan);
-      g_12007_mid->SetLineColor(kCyan);
-      g_12007_mid_syst->SetFillColorAlpha(kCyan, 0.5);
-      g_12007_mid_syst->Draw("2");
-      g_12007_mid->Draw("P");
-      TGraphAsymmErrors *g_12007_fwd = result12007_fwd();
-      TGraphAsymmErrors *g_12007_fwd_syst = result12007_fwd_syst();
-      g_12007_fwd->SetMarkerStyle(kFullTriangleDown);
-      g_12007_fwd->SetMarkerSize(1.5);
-      g_12007_fwd->SetMarkerColor(kMagenta);
-      g_12007_fwd->SetLineColor(kMagenta);
-      g_12007_fwd_syst->SetFillColorAlpha(kMagenta, 0.5);
-      g_12007_fwd_syst->Draw("2");
-      g_12007_fwd->Draw("P");
+      if (plot12007_mid) {
+         TGraphAsymmErrors *g_12007_mid = result12007_mid();
+         TGraphAsymmErrors *g_12007_mid_syst = result12007_mid_syst();
+         g_12007_mid->SetMarkerStyle(kFullTriangleUp);
+         g_12007_mid->SetMarkerSize(1.5);
+         g_12007_mid->SetMarkerColor(kCyan);
+         g_12007_mid->SetLineColor(kCyan);
+         g_12007_mid_syst->SetFillColorAlpha(kCyan, 0.5);
+         g_12007_mid_syst->Draw("2");
+         g_12007_mid->Draw("P");
+      }
+      if (plot12007_fwd) {
+         TGraphAsymmErrors *g_12007_fwd = result12007_fwd();
+         TGraphAsymmErrors *g_12007_fwd_syst = result12007_fwd_syst();
+         g_12007_fwd->SetMarkerStyle(kFullTriangleDown);
+         g_12007_fwd->SetMarkerSize(1.5);
+         g_12007_fwd->SetMarkerColor(kMagenta);
+         g_12007_fwd->SetLineColor(kMagenta);
+         g_12007_fwd_syst->SetFillColorAlpha(kMagenta, 0.5);
+         g_12007_fwd_syst->Draw("2");
+         g_12007_fwd->Draw("P");
+      }
 
       padl->cd();
    }
@@ -569,6 +634,13 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
 
    if (xaxis=="cent") padl->cd();
    tleg->Draw();
+
+   TLatex tl;
+   double tlx = 0.2+xshift;
+   double tly = 0.69;
+   if (!promptonly && !nonpromptonly) tl.DrawLatexNDC(tlx,tly,"Passing #font[12]{l}_{J/#psi}^{3D} cut");
+   else if (promptonly) tl.DrawLatexNDC(tlx,tly,"Prompt only");
+   else tl.DrawLatexNDC(tlx,tly,"Non-prompt only");
 
    int iPos = 33;
    CMS_lumi( (TPad*) gPad, 106, iPos, "" );

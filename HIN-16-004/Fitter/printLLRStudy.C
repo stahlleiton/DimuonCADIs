@@ -35,7 +35,7 @@ struct model_t {
 typedef vector<model_t> vecModels_t;
 typedef set<model_t> setModels_t;
 
-vector<string> printNLL(map< string, setModels_t > content, string outputDir, string type, string dirLabel) ;
+vector<string> printNLL(map< string, setModels_t > content, string outputDir, string type, string dirLabel, double pvalcut) ;
 void setLines(vector<string>& strLin, vector<string> lin); 
 void printLines(vector<string> strLin, ofstream& fout); 
 bool findFiles(string dirPath, vector<string>& fileNames); 
@@ -46,9 +46,10 @@ bool extractNLL(string fileName, model_t& value) ;
 
 
 void printLLRStudy(
-		   string dirLabel="DataAccEff",  // Name of the working directory (currently hardcoded to work with DATA)
-                   string type = "Bkg"               // Type of the LLR test, available options are: "Bkg" , "Jpsi" and "Psi2S"
-                   ) 
+      string dirLabel="DataAccEff",  // Name of the working directory (currently hardcoded to work with DATA)
+      string type = "Bkg",           // Type of the LLR test, available options are: "Bkg" , "Jpsi" and "Psi2S"
+      double pvalcut = 5.            // cut pvalue, in %  
+      ) 
 {
   
   vector<string> fileNames;
@@ -74,7 +75,7 @@ void printLLRStudy(
   }
 
   // Loop over each kinematic bin and compute the LLR/AIC tests
-  vector<string> bestModelFiles = printNLL(content, outputDir, type, dirLabel); 
+  vector<string> bestModelFiles = printNLL(content, outputDir, type, dirLabel, pvalcut); 
   cout << "[INFO] " << ((type=="Bkg")?"Background":"Signal") << " Study summary file done!" << endl; 
     
   cout << "The files for the best models are: " << endl;
@@ -100,7 +101,7 @@ void printLLRStudy(
 };
 
 
-vector<string> printNLL(map< string, setModels_t > content, string outputDir, string type, string dirLabel) 
+vector<string> printNLL(map< string, setModels_t > content, string outputDir, string type, string dirLabel, double pvalcut) 
 { 
   vector<string> ans;
 
@@ -158,7 +159,7 @@ vector<string> printNLL(map< string, setModels_t > content, string outputDir, st
             double  diffNPar   =  2.0*(nParA-nParB);
             double  probChi2   = 100.*TMath::Prob(diffNLL, diffNPar);
             if (diffNLL<0) probChi2 = 100.;
-            if (probChi2>5. && (nParA-nParB)<=2) modelNLLB[iB].cnt++;
+            if (probChi2>pvalcut && (nParA-nParB)<=2) modelNLLB[iB].cnt++;
             lin.push_back("| "+modelNameA);
             lin.push_back(Form("|    NLL: %.2f  ", NLLA));
             lin.push_back(Form("|    Diff: %.2f  ", diffNLL));

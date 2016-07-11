@@ -12,6 +12,7 @@
 
 #include "../Fitter/Macros/Utilities/resultUtils.h"
 #include "../Fitter/Systematics/syst.h"
+#include "../Fitter/Systematics/syst.C"
 #include "combinedWorkspace.C"
 
 using namespace std;
@@ -36,41 +37,14 @@ void createPPPbPbWorkspaces(
     return;
   }
   
-  map<anabin, syst> syst_PbPb_eff;
-  map<anabin, syst> syst_PbPb_fit;
-  map<anabin, syst> syst_PbPb_bhad;
-  map<anabin, syst> syst_PbPb_bhad_add;
-  map<anabin, syst> syst_PP_fit;
+  // read systematics
+  map<anabin, syst> syst_2R;
   if ( doSyst )
   {
-    syst_PbPb_eff = readSyst_all("PbPb_eff","../Fitter");
-    if ( syst_PbPb_eff.empty() )
+    syst_2R = readSyst_all_pass("","../Fitter",workDirName);
+    if ( syst_2R.empty() )
     {
-      cout << "#[Error]: No PbPb efficiency systematics files found" << endl;
-      return;
-    }
-    syst_PbPb_fit = readSyst_all("PbPb_fit","../Fitter");
-    if ( syst_PbPb_fit.empty() )
-    {
-      cout << "#[Error]: No PbPb fit systematics files found" << endl;
-      return;
-    }
-    syst_PbPb_bhad = readSyst("../Fitter/Systematics/csv/syst_PbPb_bhad.csv");
-    if ( syst_PbPb_bhad.empty() )
-    {
-      cout << "#[Error]: No PbPb bhad systematics files found" << endl;
-      return;
-    }
-    syst_PbPb_bhad_add = readSyst("../Fitter/Systematics/csv/syst_PbPb_bhad_add.csv");
-    if ( syst_PbPb_bhad_add.empty() )
-    {
-      cout << "#[Error]: No PbPb bhad additive systematics files found" << endl;
-      return;
-    }
-    syst_PP_fit = readSyst_all("PP_fit","../Fitter");
-    if ( syst_PP_fit.empty() )
-    {
-      cout << "#[Error]: No PP fit systematics files found" << endl;
+      cout << "#[Error]: No systematics files found" << endl;
       return;
     }
   }
@@ -82,16 +56,11 @@ void createPPPbPbWorkspaces(
     cout << "############ Merging workspaces for analysis bin " << cnt << " ..." << endl;
     cout << "PbPb workspace " << cnt << " / " << theFiles_PbPb.size() << ": " << *it_PbPb << endl;
     
-    double systvalMult(0.);
-    double systValAdd2R(0.);
-    double systValAddRPbPb(0.);
-    double systValAddRPP(0.);
+    double systval(0.);
     if ( doSyst )
     {
       anabin thebinPbPb = binFromFile(*it_PbPb);
-      systvalMult = sqrt( pow(syst_PbPb_eff[thebinPbPb].value,2.) + pow(syst_PbPb_bhad[thebinPbPb].value,2.));
-      systValAdd2R = syst_PbPb_bhad_add[thebinPbPb].value;
-      systValAddRPbPb = syst_PbPb_fit[thebinPbPb].value;
+      systval = syst_2R[thebinPbPb].value_dR;
     }
     
     bool foundPPws = false;
@@ -104,12 +73,6 @@ void createPPPbPbWorkspaces(
         cout << "PP workspace " << cnt << " / " << theFiles_PP.size() << ": " << *it_PP << endl;
         cout << endl;
         
-        if ( doSyst )
-        {
-          anabin thebinPP = binFromFile(*it_PP);
-          systValAddRPP = syst_PP_fit[thebinPP].value;
-        }
-        
         TString binName(*it_PbPb);
         binName.Remove(0,binName.Last('/')+1);
         binName.Remove(0,binName.Index("_pt")+1);
@@ -118,16 +81,13 @@ void createPPPbPbWorkspaces(
         else  binName.Prepend("woSyst_");
         
         if (!usebatch) {
-           combinedWorkspace(*it_PbPb, *it_PP, Form("combined_PbPbPP_workspace_%s.root",binName.Data()), systvalMult, systValAdd2R, systValAddRPP, systValAddRPbPb, ACTag, nCPU);
+           combinedWorkspace(*it_PbPb, *it_PP, Form("combined_PbPbPP_workspace_%s.root",binName.Data()), systval, ACTag, nCPU);
         } else {
            TString exports;
            exports += Form("export it_PbPb=%s; ",it_PbPb->Data());
            exports += Form("export it_PP=%s; ",it_PP->Data());
            exports += Form("export binName=%s; ", binName.Data());
-           exports += Form("export systvalMult=%f; ", systvalMult);
-           exports += Form("export systValAdd2R=%f; ", systValAdd2R);
-           exports += Form("export systValAddRPP=%f; ", systValAddRPP);
-           exports += Form("export systValAddRPbPb=%f; ", systValAddRPbPb);
+           exports += Form("export systval=%f; ", systval);
            exports += Form("export ACTag=%s; ", ACTag);
            exports += Form("export nCPU=%i; ", nCPU);
            exports += Form("export pwd_=%s; ", gSystem->pwd());
@@ -137,7 +97,7 @@ void createPPPbPbWorkspaces(
            command += "-N ${binName} ";
            command += "-V ";
            command += Form("-o %s ", gSystem->pwd());
-           command += Form("-v it_PbPb,it_PP,binName,systVal,systValAdd,ACTag,nCPU,pwd_ ");
+           command += Form("-v it_PbPb,it_PP,binName,systVal,ACTag,nCPU,pwd_ ");
            command += "runbatch_workspace.sh";
            TString command_full = exports + command;
            cout << command_full.Data() << endl;

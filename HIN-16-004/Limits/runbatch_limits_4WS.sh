@@ -23,16 +23,6 @@ echo ""
 echo "The environment variables are the following:"
 env
 
-mynumcpu=`cat /proc/cpuinfo | grep processor | wc -l`
-mynumcpu2=$(( mynumcpu - 2 ))
-echo "Note: you asked for nCPU=${nCPU}, but I have $mynumcpu, I could use $mynumcpu2."
-
-if [ $mynumcpu2 -gt $nCPU ]; then
-   nCPU=$mynumcpu2
-fi
-
-echo "So, I will use $nCPU CPUs."
-
 echo
 echo '###############################################'
 echo '#      _       _           _             _    #'
@@ -42,8 +32,7 @@ echo '# | |_| | (_) | |_) | \__ \ || (_| | |  | |_  #'
 echo '#  \___/ \___/|_.__/  |___/\__\__,_|_|   \__| #'
 echo '###############################################'
                                                       
-
-echo root -l -b -q combinedWorkspace.C+'("'${it_PbPb}'", "'${it_PP}'", "combined_PbPbPP_workspace_'${binName}'.root", '${systval}', "'${ACTag}'", '${nCPU}')'
-time root -l -b -q combinedWorkspace.C+'("'${it_PbPb}'", "'${it_PP}'", "combined_PbPbPP_workspace_'${binName}'.root", '${systval}', "'${ACTag}'", '${nCPU}')'
+echo root -l -b -q runLimit_RaaNS_Workspace.C+'("'${it}'", "RFrac2Svs1S_PbPbvsPP_P", "simPdf", "workspace", "dOS_DATA", "'${ACTag}'", '${CL}', '${calculatorType}', '${testStatType}', '${useCLs}')'
+time root -l -b -q runLimit_RaaNS_Workspace.C+'("'${it}'", "RFrac2Svs1S_PbPbvsPP_P", "simPdf", "workspace", "dOS_DATA", "'${ACTag}'", '${CL}', '${calculatorType}', '${testStatType}', '${useCLs}')'
 
 echo "ok, I'm done"

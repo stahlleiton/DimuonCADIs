@@ -61,7 +61,7 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
    RooFormulaVar *theFunc = (RooFormulaVar*) it->Next();
    while (theFunc) {
       // skip the number of Psi2S in PbPb and PP as we'll build them later (using the double ratio)
-      if ((TString(theFunc->GetName())=="N_Psi2S_PbPb") || (TString(theFunc->GetName())=="N_Psi2S_PP")) {theFunc = (RooFormulaVar*) it->Next(); continue;}
+      if (TString(theFunc->GetName())=="N_Psi2S_PbPb") {theFunc = (RooFormulaVar*) it->Next(); continue;}
       RooArgSet* theVars = theFunc->getVariables();
       RooArgSet* theVars_copy = new RooArgSet();
       TIterator* it2 = theVars->createIterator();
@@ -190,17 +190,15 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
          *RFrac2Svs1S_PbPbvsPP->getVal());
   
    // build the pp pdf
-   RooAbsPdf *sig1S_PP = wcombo->pdf("pdfMASS_Jpsi_PP");
-   RooAbsPdf *sig2S_PP = wcombo->pdf("pdfMASS_Psi2S_PP");
-   RooAbsPdf *pdf_combinedbkgd_PP = wcombo->pdf("pdfMASS_Bkg_PP");
-   RooRealVar *nsig1f_PP = wcombo->var("N_Jpsi_PP");
-   // RooRealVar *RFrac2Svs1S_PP = wcombo->var("RFrac2Svs1S_PP");
-   RooRealVar *nbkgd_PP = wcombo->var("N_Bkg_PP");
-   RooFormulaVar *nsig2f_PP = new RooFormulaVar("N_Psi2S_PP","@0*@1",RooArgList(*RFrac2Svs1S_PP,*nsig1f_PP));
-//   RooFormulaVar *nsig2f_PP = (RooFormulaVar*) wcombo->function("N_Psi2S_PP");
-   RooAddPdf *pdf_pp = new RooAddPdf ("pdfMASS_Tot_PP","new total p.d.f. PP",
-         RooArgList(*sig1S_PP,*sig2S_PP,*pdf_combinedbkgd_PP),
-         RooArgList(*nsig1f_PP,*nsig2f_PP,*nbkgd_PP));
+  RooAbsPdf *sig1S_PP = wcombo->pdf("pdfMASS_Jpsi_PP");
+  RooAbsPdf *sig2S_PP = wcombo->pdf("pdfMASS_Psi2S_PP");
+  RooAbsPdf *pdf_combinedbkgd_PP = wcombo->pdf("pdfMASS_Bkg_PP");
+  RooRealVar *nsig1f_PP = wcombo->var("N_Jpsi_PP");
+  RooRealVar *nbkgd_PP = wcombo->var("N_Bkg_PP");
+  RooFormulaVar *nsig2f_PP = (RooFormulaVar*) wcombo->function("N_Psi2S_PP");
+  RooAddPdf *pdf_pp = new RooAddPdf ("pdfMASS_Tot_PP","new total p.d.f. PP",
+                                     RooArgList(*sig1S_PP,*sig2S_PP,*pdf_combinedbkgd_PP),
+                                     RooArgList(*nsig1f_PP,*nsig2f_PP,*nbkgd_PP));
 
    // build the pbpb pdf
    RooAbsPdf *sig1S = wcombo->pdf("pdfMASS_Jpsi_PbPb");
@@ -213,9 +211,10 @@ RooWorkspace* test_combine(const char* name_pbpb="fitresult.root", const char* n
          RooArgList(*sig1S,*sig2S,*pdf_combinedbkgd),
          RooArgList(*nsig1f,*nsig2f,*nbkgd));
 
-	RooSimultaneous simPdf("simPdf", "simPdf", sample);
-	simPdf.addPdf(*pdf_pbpb, "PbPb");
-	simPdf.addPdf(*pdf_pp, "PP");
+   // build the simunltaneous pdf
+	 RooSimultaneous simPdf("simPdf", "simPdf", sample);
+	 simPdf.addPdf(*pdf_pbpb, "PbPb");
+	 simPdf.addPdf(*pdf_pp, "PP");
 
    // import PDFs to the workspace
    if (!commonParams) {

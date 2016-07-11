@@ -117,12 +117,17 @@ void writeLimits2File(
     // Read the HypotestInverterResult to get the limits
     TFile* f = TFile::Open(*it,"READ");
     RooStats::HypoTestInverterResult* r = static_cast<RooStats::HypoTestInverterResult*>(f->FindObjectAny("result_RFrac2Svs1S_PbPbvsPP"));
+    if (!r) r = static_cast<RooStats::HypoTestInverterResult*>(f->FindObjectAny("result_RFrac2Svs1S_PbPbvsPP_P"));
+    if (!r) {
+       cout << "[ERROR] Could not find HypoTestInverterResult in file "<< *it << endl;
+       continue;
+    }
     
     // Write results to file
     file << sRapMin.Data() << ", " << sRapMax.Data() << ", "
-    << sptMin.Data() << ", " << sptMax.Data() << ", "
-    << sCentMin.Data() << ", " << sCentMax.Data() << ", "
-    << r->LowerLimit() << ", " << r->UpperLimit() << endl;
+       << sptMin.Data() << ", " << sptMax.Data() << ", "
+       << sCentMin.Data() << ", " << sCentMax.Data() << ", "
+       << r->LowerLimit() << ", " << r->UpperLimit() << endl;
     
     f->Close(); delete f;
     

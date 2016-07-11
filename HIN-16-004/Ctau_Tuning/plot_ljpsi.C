@@ -6,6 +6,12 @@ const double ctaucut_b_fwd_pp = 0.29;
 
 const bool datamc = false;
 
+const bool integrate = true;
+// if integrate = false, then plot the ljpsi distribution
+// if integrate = true, then plot the integrated distribution (cumulative distribution)
+
+void integrateHist(TH1F* hist);
+
 void plot_ljpsi(const char* fdata, const char* fmc) {
    TFile *tfd = TFile::Open(fdata);
    TFile *tfm = TFile::Open(fmc);
@@ -48,11 +54,25 @@ void plot_ljpsi(const char* fdata, const char* fmc) {
          TH1F *hmc = (TH1F*) tfm->Get(obj->GetName());
          // hdata->Rebin(6);
          // hmc->Rebin(6);
-         double int_data = hdata->Integral(hdata->FindBin(-0.015), hdata->FindBin(0.015));
-         double int_mc = hmc->Integral(hmc->FindBin(-0.015), hmc->FindBin(0.015));
-         hmc->Scale(int_data/int_mc);
+
+         if (!integrate) {
+            double int_data = hdata->Integral(hdata->FindBin(-0.015), hdata->FindBin(0.015));
+            double int_mc = hmc->Integral(hmc->FindBin(-0.015), hmc->FindBin(0.015));
+            hmc->Scale(int_data/int_mc);
+         } else {
+            double int_mc_all = hmc->Integral(0, hmc->GetNbinsX()+1);
+            double int_data_all = hdata->Integral(0, hdata->GetNbinsX()+1);
+            hmc->Scale(1./int_mc_all);
+            hdata->Scale(1./int_data_all);
+            double int_data = hdata->Integral(0, hdata->FindBin(0.));
+            double int_mc = hmc->Integral(0, hmc->FindBin(0.));
+            hdata->Scale(int_mc/int_data); 
+            integrateHist(hdata);
+            integrateHist(hmc);
+         }
          hdata->GetXaxis()->SetTitle("#font[12]{l}_{J/#psi} [mm]");
          hdata->GetYaxis()->SetTitle("Entries");
+         if (integrate) hdata->GetYaxis()->SetTitle("c.d.f.");
 
          // read the bin from the name
          TString thname(hdata->GetName());
@@ -84,6 +104,14 @@ void plot_ljpsi(const char* fdata, const char* fmc) {
          tb->SetFillColor(kBlack);
          tb->SetFillStyle(3003);
          tb->Draw();
+
+         if (integrate) {
+            TLine *tl = new TLine(hdata->GetXaxis()->GetXmin(),0.9,hdata->GetXaxis()->GetXmax(),0.9);
+            tl->SetLineStyle(3);
+            tl->SetLineColor(kBlack);
+            tl->SetLineWidth(5);
+            tl->Draw();
+         }
 
          if (datamc) {
             p1->cd();
@@ -118,7 +146,9 @@ void plot_ljpsi(const char* fdata, const char* fmc) {
          // double sigma_mc = dg->GetParameter(3);
          // double dsigma_mc = dg->GetParError(3);
 
-         TLegend *tleg = new TLegend(0.61,0.6,0.9,0.88);
+         double lx1=0.61, lx2=0.9, ly1=0.6, ly2=0.88;
+         if (integrate) {ly1-=0.4; ly2-=0.4;}
+         TLegend *tleg = new TLegend(lx1,ly1,lx2,ly2);
          tleg->SetBorderSize(0);
          TString header("#splitline{");
          header += isfwd ? "1.6<|y|<2.4" : "|y|<1.6";
@@ -133,4 +163,16 @@ void plot_ljpsi(const char* fdata, const char* fmc) {
          c1->SaveAs(Form("%s.png",hdata->GetName()));
       }
    }
+}
+
+void integrateHist(TH1F* hist) {
+   int nentries = hist->GetNbinsX();
+   TH1F *historig = (TH1F*) hist->Clone("historig");
+   for (int i=1; i<nentries+2; i++) {
+      double val, err;
+      val = historig->IntegralAndError(0,i,err);
+      hist->SetBinContent(i,val);
+      hist->SetBinError(i,err);
+   }
+   delete historig;
 }

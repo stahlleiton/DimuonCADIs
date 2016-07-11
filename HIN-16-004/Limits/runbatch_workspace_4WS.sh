@@ -43,7 +43,7 @@ echo '#  \___/ \___/|_.__/  |___/\__\__,_|_|   \__| #'
 echo '###############################################'
                                                       
 
-echo root -l -b -q combinedWorkspace.C+'("'${it_PbPb}'", "'${it_PP}'", "combined_PbPbPP_workspace_'${binName}'.root", '${systval}', "'${ACTag}'", '${nCPU}')'
-time root -l -b -q combinedWorkspace.C+'("'${it_PbPb}'", "'${it_PP}'", "combined_PbPbPP_workspace_'${binName}'.root", '${systval}', "'${ACTag}'", '${nCPU}')'
+echo root -l -b -q combinedWorkspace_4WS.C+'("'${it_PbPb_pass}'", "'${it_PbPb_fail}'", "'${it_PP_pass}'", "'${it_PP_fail}'", "combined_PbPbPP_PnP_workspace_'${binName}'.root", '${systval}', "'${ACTag}'", '${nCPU}')'
+time root -l -b -q combinedWorkspace_4WS.C+'("'${it_PbPb_pass}'", "'${it_PbPb_fail}'", "'${it_PP_pass}'", "'${it_PP_fail}'", "combined_PbPbPP_PnP_workspace_'${binName}'.root", '${systval}', "'${ACTag}'", '${nCPU}')'
 
 echo "ok, I'm done"

@@ -47,38 +47,14 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
    vector<string> vnames;
    TString workDirName; Int_t from = 0;
    int cnt=0;
+   set<anabin> thebins = allbins();
+
    while (workDirNamesStr.Tokenize(workDirName, from , ",")) {
-      TFile *f = new TFile(treeFileName(workDirName));
-      if (!f || !f->IsOpen()) {
-         results2tree(workDirName);
-         f = new TFile(treeFileName(workDirName));
-         if (!f) continue;
-      }
-      TTree *tr = (TTree*) f->Get("fitresults");
-      if (!tr) continue;
       vnames.push_back(workDirName.Data());
-      float ptmin, ptmax, ymin, ymax, centmin, centmax;
-      float val, val_err=0;
-      float chi2; int ndof;
-      char collSystem[5];
-      tr->SetBranchAddress("ptmin",&ptmin);
-      tr->SetBranchAddress("ptmax",&ptmax);
-      tr->SetBranchAddress("ymin",&ymin);
-      tr->SetBranchAddress("ymax",&ymax);
-      tr->SetBranchAddress("centmin",&centmin);
-      tr->SetBranchAddress("centmax",&centmax);
-      tr->SetBranchAddress(Form("%s_val",poiname),&val);
-      tr->SetBranchAddress(Form("%s_err",poiname),&val_err);
-      tr->SetBranchAddress("chi2",&chi2);
-      tr->SetBranchAddress("ndof",&ndof);
-      tr->SetBranchAddress("collSystem",collSystem);
+      for (set<anabin>::const_iterator it=thebins.begin(); it!=thebins.end(); it++) {
 
-      int ntr = tr->GetEntries();
-      for (int i=0; i<ntr; i++) {
-         tr->GetEntry(i);
-         if (string(collSystem) != collTag) continue;
-
-         anabin trbin(ymin, ymax, ptmin, ptmax, centmin, centmax);
+         anabin trbin = *it;
+         if (string(collTag)=="PP" && trbin.centbin()!=binI(0,200)) continue;
 
          // if this is the first time we see this bin: create it
          if (mapvals.find(trbin)==mapvals.end()) {
@@ -87,20 +63,30 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
             mapndof[trbin] = vector<int>();
          }
 
+         double val;
+         double chi2 = poiFromBin(workDirName.Data(),collTag,"chi2",trbin);
+         double ndof = poiFromBin(workDirName.Data(),collTag,"ndof",trbin);
+
          // in the case of a really bad chi2, print a warning
-         if (TMath::Prob(chi2,ndof)<1e-10) {
+         if (ndof==-999 || TMath::Prob(chi2,ndof)<1e-10) {
+            double ymin = trbin.rapbin().low();
+            double ymax = trbin.rapbin().high();
+            double ptmin = trbin.ptbin().low();
+            double ptmax = trbin.ptbin().high();
+            int centmin = trbin.centbin().low();
+            int centmax = trbin.centbin().high();
             cout << "Warning, bad chi2: ";
             cout << " for " << workDirName.Data() << ", " << collTag << ", " << ymin << "<|y|<" << ymax << ", " << ptmin << "<pt<" << ptmax << ", " << centmin/2 << "-" << centmax/2 << "%. ";
             cout << "p(" << chi2 << "," << ndof << ")=" << TMath::Prob(chi2,ndof) << endl;
+            mapvals[trbin].push_back(-999);
+         } else {
+            val= poiFromBin(workDirName.Data(),collTag,"RFrac2Svs1S",trbin);
+            mapvals[trbin].push_back(val);
          }
-         mapvals[trbin].push_back(val);
          mapchi2[trbin].push_back(chi2);
          mapndof[trbin].push_back(ndof);
-         if (cnt==0) maperr[trbin] = val_err;
+         if (cnt==0) maperr[trbin] = poiErrFromBin(workDirName.Data(),collTag,"RFrac2Svs1S",trbin);
       }
-
-      f->Close();
-      delete f;
       cnt++;
    }
 
@@ -180,11 +166,12 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
 
       // then the alternative values
       for (unsigned int i=1; i<vval.size(); i++) {
-         texfile << " & " << 100.*(vval[i]-vval[0])/vval[0] << "\\% (" << vchi2[i] << "/" << vndof[i] << ")";
+         if (vval[i] != -999) texfile << " & " << 100.*(vval[i]-vval[0])/vval[0] << "\\% (" << vchi2[i] << "/" << vndof[i] << ")";
+         else texfile << " & - ";
       }
 
       // and at last the systematic
-      texfile << " & " << 100.*mapsyst[thebin] << "\\%";
+      texfile << " & " << 100.*mapsyst[thebin]/vval[0] << "\\%";
       texfile << " \\\\" << endl;
 
       oldbin = thebin;
@@ -200,6 +187,7 @@ double rms(vector<double> v, bool isrelative) {
    if (v.size()==0 || v[0]==0) return 0;
     double s=0,s2=0;
     for (unsigned int i=0; i<v.size(); i++) {
+       if (v[i]==-999) continue;
        s+=v[i];
        s2+=v[i]*v[i];
     }
@@ -212,6 +200,7 @@ double maxdiff(vector<double> v, bool isrelative) {
    if (v.size()==0 || v[0]==0) return 0;
    double maxdiff=0;
     for (unsigned int i=1; i<v.size(); i++) {
+       if (v[i]==-999) continue;
        maxdiff=max(maxdiff,fabs(v[i]-v[0]));
     }
     double ans = maxdiff;
