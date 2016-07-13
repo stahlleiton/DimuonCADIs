@@ -98,7 +98,7 @@ void computeLimits(
     cout << "Using combined PbPb-PP workspace " << cnt << " / " << theFiles.size() << ": " << *it << endl;
 
     anabin thebin = binFromFile(*it);
-    if (thebin != anabin(1.6,2.4,3,30,40,80)) continue;
+    // if (thebin != anabin(1.6,2.4,3,30,40,80)) continue;
 
     if (!usebatch) {
        pair<double,double> lims = runLimit_RaaNS_Workspace(*it, "RFrac2Svs1S_PbPbvsPP_P", "simPdf", "workspace", "dOS_DATA", ACTag, CL, calculatorType, testStatType, useCLs);

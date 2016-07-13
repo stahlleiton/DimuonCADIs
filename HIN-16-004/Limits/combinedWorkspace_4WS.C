@@ -138,7 +138,12 @@ void combinedWorkspace_4WS(const char* name_pbpb_pass="fitresult_pbpb_pass.root"
 //            && varname != "sample"
 //            )
 //         theVar->setConstant();
-     if ( varname.Contains("f_Jpsi_PP") || varname.Contains("f_Jpsi_PbPb") || varname.Contains("rSigma21_Jpsi_PP") || varname.Contains("m_Jpsi_PP") || varname.Contains("m_Jpsi_PbPb") || varname.Contains("sigma1_Jpsi_PP") || varname.Contains("sigma1_Jpsi_PbPb") || (varname.Contains("lambda"))  )
+     if ( varname.Contains("f_Jpsi_PP") || varname.Contains("f_Jpsi_PbPb") ||
+           varname.Contains("rSigma21_Jpsi_PP") || 
+           varname.Contains("m_Jpsi_PP") || varname.Contains("m_Jpsi_PbPb") || 
+           varname.Contains("sigma1_Jpsi_PP") || varname.Contains("sigma1_Jpsi_PbPb") || 
+           (varname.Contains("lambda")) ||
+           (varname.Contains("_fail") && !varname.Contains("RFrac2Svs1S")))
          {
            theVar->setConstant();
          }
@@ -230,11 +235,13 @@ void combinedWorkspace_4WS(const char* name_pbpb_pass="fitresult_pbpb_pass.root"
    bHypo.SetName("BHypo");
    bHypo.SetWorkspace(*ws);
    pNll = bHypo.GetPdf()->createNLL( *data,NumCPU(nCPU) );
-   RooMinuit(*pNll).migrad(); // minimize likelihood wrt all parameters before making plots
+   // RooMinuit(*pNll).migrad(); // minimize likelihood wrt all parameters before making plots
    RooArgSet poiAndGlobalObs("poiAndGlobalObs");
    poiAndGlobalObs.add( poi );
    poiAndGlobalObs.add( globalObs );
+   RooAbsReal * pProfile = pNll->createProfile( poiAndGlobalObs ); // do not profile POI and global observables
    ((RooRealVar *)poi.first())->setVal( 0 );  // set RFrac2Svs1S_PbPbvsPP=0 here
+   pProfile->getVal(); // this will do fit and set nuisance parameters to profiled values
    pPoiAndNuisance = new RooArgSet( "poiAndNuisance" );
    pPoiAndNuisance->add( nuis );
    pPoiAndNuisance->add( poi );

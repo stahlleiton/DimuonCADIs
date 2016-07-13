@@ -18,7 +18,7 @@
 using namespace std;
 
 // use the LLR batch system?
-const bool usebatch=false;
+const bool usebatch=true;
 
 void createPPPbPbWorkspaces_4WS(
                    const char* workDirName_pass, // workDirName: usual tag where to look for files in Output
