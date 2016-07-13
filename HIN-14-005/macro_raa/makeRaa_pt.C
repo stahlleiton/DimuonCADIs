@@ -29,6 +29,7 @@ Output: the Raa vs pt.
 #include "TPaveStats.h"
 #include "TLatex.h"
 #include "TLegend.h"
+#include "TLegendEntry.h"
 
 #include "dataBinning_2015.h"
 #include "filesRaa_2015.h"
@@ -359,55 +360,79 @@ void makeRaa_pt( bool bSavePlots=1,
   TBox *lumi = (TBox*)systFile->Get("lumi");
 
   //---------------- general stuff
-  TLatex *ly     = new TLatex(20.0,0.05,"|y| < 2.4");
+  TLatex *ly     = new TLatex(0.2,0.8,"|y| < 2.4");
+  ly->SetNDC();
   ly->SetTextFont(42);
-  ly->SetTextSize(0.05);
-  TLatex *lcent = new TLatex(19,1.03,"Cent. 0-100%");
+  ly->SetTextSize(0.04);
+  TLatex *lcent = new TLatex(0.2,0.8,"Cent. 0-100%");
+  lcent->SetNDC();
   lcent->SetTextFont(42);
-  lcent->SetTextSize(0.05);
+  lcent->SetTextSize(0.04);
 
-  TLatex *lPr = new TLatex(2,1.35,"Prompt J/#psi");
+  TLatex *lPr = new TLatex(0.2,0.85,"Prompt J/#psi");
+  lPr->SetNDC();
   lPr->SetTextFont(42);
   lPr->SetTextSize(0.05);
 
-  TLatex *lNpr = new TLatex(2,1.35,"Non-prompt J/#psi");
+  TLatex *lNpr = new TLatex(0.2,0.85,"Non-prompt J/#psi");
+  lNpr->SetNDC();
   lNpr->SetTextFont(42);
   lNpr->SetTextSize(0.05);
 
-  TLegend *leg11a = new TLegend(0.65,0.52,0.8,0.65);
+//  TLegend *leg11a = new TLegend(0.65,0.5,0.8,0.63);
+  TLegend *leg11a = new TLegend(0.18,0.49,0.4,0.54);
   leg11a->SetFillStyle(0);
   leg11a->SetFillColor(0);
   leg11a->SetBorderSize(0);
   leg11a->SetMargin(0.2);
-  leg11a->SetTextSize(0.04);
-  leg11a->AddEntry(gPrJpsi,"|y|<2.4","P");
-  leg11a->AddEntry(gPrJpsi_pt365y1624,"1.6<|y|<2.4","P");
+  leg11a->SetTextSize(0.045);
+  TLegendEntry *leg11a2 = leg11a->AddEntry(gPrJpsi_pt365y1624,"1.6<|y|<2.4","P");
+  leg11a2->SetTextColor(kViolet+2);
 
-  TLegend *leg11b = new TLegend(0.65,0.52,0.8,0.65);
+  TLegend *leg11a_1 = new TLegend(0.45,0.49,0.6,0.54);
+  leg11a_1->SetFillStyle(0);
+  leg11a_1->SetFillColor(0);
+  leg11a_1->SetBorderSize(0);
+  leg11a_1->SetMargin(0.2);
+  leg11a_1->SetTextSize(0.045);
+  TLegendEntry *leg11a1 = leg11a_1->AddEntry(gPrJpsi,"|y|<2.4","P");
+  leg11a1->SetTextColor(kRed);
+  
+  TLegend *leg11b = new TLegend(0.65,0.5,0.8,0.63);
   leg11b->SetFillStyle(0);
   leg11b->SetFillColor(0);
   leg11b->SetBorderSize(0);
   leg11b->SetMargin(0.2);
-  leg11b->SetTextSize(0.04);
+  leg11b->SetTextSize(0.045);
   
   leg11b->AddEntry(gPrJpsi_mb,"|y|<2.4","P");
   leg11b->AddEntry(gPrJpsi_y1624_mb,"1.6<|y|<2.4","P");
 
-  TLegend *leg22a = new TLegend(0.65,0.52,0.8,0.65);
+//  TLegend *leg22a = new TLegend(0.65,0.52,0.8,0.65);
+  TLegend *leg22a = new TLegend(0.18,0.68,0.4,0.73);
   leg22a->SetFillStyle(0);
   leg22a->SetFillColor(0);
   leg22a->SetBorderSize(0);
   leg22a->SetMargin(0.2);
-  leg22a->SetTextSize(0.04);
-  leg22a->AddEntry(gNonPrJpsi,"|y|<2.4","P");
-  leg22a->AddEntry(gNonPrJpsi_pt365y1624,"1.6<|y|<2.4","P");
+  leg22a->SetTextSize(0.045);
+  TLegendEntry *leg22a2 = leg22a->AddEntry(gNonPrJpsi_pt365y1624,"1.6<|y|<2.4","P");
+  leg22a2->SetTextColor(kViolet+2);
+
+  TLegend *leg22a_1 = new TLegend(0.45,0.68,0.6,0.73);
+  leg22a_1->SetFillStyle(0);
+  leg22a_1->SetFillColor(0);
+  leg22a_1->SetBorderSize(0);
+  leg22a_1->SetMargin(0.2);
+  leg22a_1->SetTextSize(0.045);
+  TLegendEntry *leg22a1_1 = leg22a_1->AddEntry(gNonPrJpsi,"|y|<2.4","P");
+  leg22a1_1->SetTextColor(kOrange+2);
  
   TLegend *leg22b = new TLegend(0.65,0.52,0.8,0.65);
   leg22b->SetFillStyle(0);
   leg22b->SetFillColor(0);
   leg22b->SetBorderSize(0);
   leg22b->SetMargin(0.2);
-  leg22b->SetTextSize(0.04);
+  leg22b->SetTextSize(0.045);
   
   leg22b->AddEntry(gNonPrJpsi_mb,"|y|<2.4","P");
   leg22b->AddEntry(gNonPrJpsi_y1624_mb,"1.6<|y|<2.4","P");
@@ -427,6 +452,7 @@ void makeRaa_pt( bool bSavePlots=1,
   lcent->Draw();
   lPr->Draw();
   leg11a->Draw();
+  leg11a_1->Draw();
   
   gPrJpsiSyst->Draw("2");
   gPrJpsi->Draw("P");
@@ -486,6 +512,7 @@ void makeRaa_pt( bool bSavePlots=1,
   lcent->Draw();
   lNpr->Draw(0);
   leg22a->Draw();
+  leg22a_1->Draw();
 
   gNonPrJpsiSyst->Draw("2");
   gNonPrJpsi->Draw("P");
