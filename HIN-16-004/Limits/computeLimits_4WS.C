@@ -12,6 +12,8 @@
 #include <string>
 
 #include "../Fitter/Macros/Utilities/resultUtils.h"
+#include "../Fitter/Systematics/syst.h"
+#include "../Fitter/Systematics/syst.C"
 #include "runLimit_RaaNS_Workspace.C"
 
 using namespace std;
