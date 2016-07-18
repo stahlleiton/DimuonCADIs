@@ -149,8 +149,8 @@ void computeLimits(
           double nsigma = sqrt(2)*TMath::ErfcInverse(1-CL);
           // double poimin = max(0.,0.5*(val - nsigma*err));
           // double poimax = 1.5*(val + nsigma*err);
-          double poimin = max(0.,val + 0.9*nsigma*err);
-          double poimax = val + 1.1*nsigma*err;
+          double poimin = max(0.,val + 0.8*nsigma*err);
+          double poimax = val + 1.2*nsigma*err;
           int npoints = 5;
           double dpoi = (poimax-poimin)/npoints;
           for (int ipoi=0; ipoi<npoints; ipoi++) 
