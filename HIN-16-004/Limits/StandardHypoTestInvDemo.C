@@ -297,7 +297,8 @@ StandardHypoTestInvDemo(const char * infile = 0,
                         bool useNumberCounting = false,
                         const char * nuisPriorName = 0,
                         double CL = 0.95,
-                        const char* ACTag = ""){
+                        const char* ACTag = "",
+                        int rndseed=-1){
 /*
 
   Other Parameter to pass in tutorial
@@ -403,6 +404,13 @@ StandardHypoTestInvDemo(const char * infile = 0,
       return NULL;
    }
 
+   // case of a single point scanned
+   if (npoints==1) {
+      optHTInv.randomSeed = rndseed;
+      optHTInv.useProof = false;
+      optHTInv.nworkers = 1;
+      optHTInv.massValue += string(Form("poi%f_seed%i",poimin,rndseed));
+   }
 
 
    HypoTestInvTool calc;

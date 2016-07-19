@@ -5,16 +5,39 @@
 
 #include <vector>
 #include <sstream>
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <string>
 
 #include "../Fitter/Macros/Utilities/resultUtils.h"
+#include "../Fitter/Systematics/syst.h"
+#include "../Fitter/Systematics/syst.C"
 #include "runLimit_RaaNS_Workspace.C"
 
 using namespace std;
 
 const bool usebatch=true;
+const int maxjobs=100; // be nice with others and submit max this many jobs
+
+
+std::string exec(const char* cmd) {
+   char buffer[128];
+   std::string result = "";
+   std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+   if (!pipe) throw std::runtime_error("popen() failed!");
+   while (!feof(pipe.get())) {
+      if (fgets(buffer, 128, pipe.get()) != NULL)
+         result += buffer;
+   }
+   return result;
+}
 
 void computeLimits(
-                   const char* ACTag, // ACTag: where to look for combined workspaces in Limits/CombinedWorkspaces/
+                   const char* ACTag, // ACTag: where to look for combined workspaces in Limits/CombinedWorkspaces
+                   const char* workDirName_pass, // workDirName: usual tag where to look for files in Output
+                   const char* workDirName_fail, // workDirName: usual tag where to look for files in Output
                    bool doSyst= false,
                    double CL=0.95, // Confidence Level for limits computation
                    int calculatorType = 2,
@@ -77,11 +100,13 @@ void computeLimits(
   {
     cout << ">>>>>>> Computing " << CL*100 << "% " << "limits for analysis bin " << cnt << endl;
     cout << "Using combined PbPb-PP workspace " << cnt << " / " << theFiles.size() << ": " << *it << endl;
-    
+
+    anabin thebin = binFromFile(*it);
+    // if (thebin != anabin(1.6,2.4,3,30,40,80)) continue;
+
     if (!usebatch) {
        pair<double,double> lims = runLimit_RaaNS_Workspace(*it, "RFrac2Svs1S_PbPbvsPP_P", "simPdf", "workspace", "dOS_DATA", ACTag, CL, calculatorType, testStatType, useCLs);
 
-       anabin thebin = binFromFile(*it);
 
        file << thebin.rapbin().low() << ", " << thebin.rapbin().high() << ", "
           << thebin.ptbin().low() << ", " << thebin.ptbin().high() << ", "
@@ -96,15 +121,74 @@ void computeLimits(
        exports += Form("export testStatType=%i; ",testStatType);
        exports += Form("export useCLs=%i; ",useCLs);
        exports += Form("export pwd_=%s; ", gSystem->pwd());
-       TString command("qsub -k oe -q cms@llrt3 -l nodes=1:ppn=23 ");
-       command += Form("-N limits_bin%i ",cnt);
-       command += "-V ";
-       command += Form("-o %s ", gSystem->pwd());
-       command += Form("-v it,ACTag,CL,calculatorType,testStatType,useCLs,pwd_ ");
-       command += "runbatch_limits_4WS.sh";
-       TString command_full = exports + command;
-       cout << command_full.Data() << endl;
-       system(command_full.Data());
+       if (calculatorType==0) {
+          // special case of frequentist limits: submit more jobs
+
+          // read systematics
+          map<anabin, syst> syst_2R;
+          double systval(0.);
+          if ( doSyst )
+          {
+            syst_2R = readSyst_all_prompt("","../Fitter",workDirName_pass,workDirName_fail);
+            if ( syst_2R.empty() )
+            {
+              cout << "#[Error]: No systematics files found" << endl;
+              return;
+            }
+            
+            systval = syst_2R[thebin].value_dR;
+          }
+         
+          TFile *f = TFile::Open(*it);
+          RooWorkspace *ws = (RooWorkspace*) f->Get("workspace");
+          ws->loadSnapshot("SbHypo_poiAndNuisance_snapshot");
+          RooRealVar *theVar = (RooRealVar*) ws->var("RFrac2Svs1S_PbPbvsPP_P");
+          double val = theVar->getVal();
+          double err = theVar->getError();
+          err = sqrt(pow(err,2) + pow(systval,2));
+          f->Close(); if (ws) delete ws;
+
+          double nsigma = sqrt(2)*TMath::ErfcInverse(1-CL);
+          // double poimin = max(0.,0.5*(val - nsigma*err));
+          // double poimax = 1.5*(val + nsigma*err);
+          double poimin = max(0.,val + 0.8*nsigma*err);
+          double poimax = val + 1.2*nsigma*err;
+          int npoints = 5;
+          double dpoi = (poimax-poimin)/npoints;
+          for (int ipoi=0; ipoi<npoints; ipoi++) 
+             for (int irnd=0; irnd<50; irnd++) {
+                TString exports2 = exports + Form("export poival=%f; ",poimin+ipoi*dpoi);
+                exports2 += Form("export rndseed=%i; ",irnd+1);
+                TString command("qsub -k oe -q cms@llrt3 -p -500 "); // -p option: lower the priority since we're submitting many jobs...
+                command += Form("-N limits_bin%i_ipoi%i_%i ",cnt,ipoi,irnd+1);
+                command += "-V ";
+                command += Form("-o %s ", gSystem->pwd());
+                command += Form("-v it,ACTag,CL,calculatorType,testStatType,useCLs,pwd_,poival,rndseed ");
+                command += "runbatch_limits_4WS.sh";
+                TString command_full = exports2 + command;
+                cout << command_full.Data() << endl;
+                int njobs = atoi(exec("qstat -u $USER cms@llrt3 | wc -l").c_str());
+                int njobs_queue = atoi(exec("qstat cms@llrt3 | grep \" Q \" | wc -l").c_str());
+                while (njobs_queue>0 && njobs >= maxjobs) {
+                   system("sleep 60");
+                   njobs = atoi(exec("qstat -u $USER cms@llrt3 | wc -l").c_str());
+                   njobs_queue = atoi(exec("qstat cms@llrt3 | grep \" Q \" | wc -l").c_str());
+                }
+                system(command_full.Data());
+             }
+       } else {
+          exports += Form("export poival=%f; ",-1.);
+          exports += Form("export rndseed=%i; ",-1);
+          TString command("qsub -k oe -q cms@llrt3 -l nodes=1:ppn=23 ");
+          command += Form("-N limits_bin%i ",cnt);
+          command += "-V ";
+          command += Form("-o %s ", gSystem->pwd());
+          command += Form("-v it,ACTag,CL,calculatorType,testStatType,useCLs,pwd_,poival,rndseed ");
+          command += "runbatch_limits_4WS.sh";
+          TString command_full = exports + command;
+          cout << command_full.Data() << endl;
+          system(command_full.Data());
+       }
        system("sleep 1");
     }
     
