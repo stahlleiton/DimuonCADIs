@@ -70,8 +70,9 @@ const char* legendSyst[] = {
 // ######################################
 // global uncertainties
 
-  double systEventSelection[2] = {0.04, 0.01}; // HF gating and good event selection ... this should be different in pp and pbpb ...
-  double systLumis[2]          = {0.04, 0.04}; // first for pp lumi, 2nd for counting the pbpb MB events
+  double systEventSelection[2] = {0.015, 0.0}; // HF gating and good event selection ... this should be different in pp and pbpb ...
+  double systLumis[2]          = {0.037, 0.03}; // first for pp lumi, 2nd for counting the pbpb MB events
+  double systTracking[2]       = {0.006, 0.012}; // first for pp tracking eff, 2nd for PbPb tracking eff
 
 #endif
 

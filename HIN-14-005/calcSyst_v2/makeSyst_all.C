@@ -186,7 +186,7 @@ void makeSyst_all(
     
         double relContrib_3d_max = (v2-adV2[iVar_3d][ib])/v2;
         double relContrib_3d_min = (v2-adV2[iVar_3d+1][ib])/v2;
-        contrib_3d[ib]           = TMath::Power(relContrib_3d_max+relContrib_3d_min,2);
+        contrib_3d[ib]           = TMath::Power(relContrib_3d_max+relContrib_3d_min,2)/2; // RMS is taken
         
         for (int iFit=iVar_fit; iFit<nFiles; iFit++)
         {

@@ -232,6 +232,9 @@ void v2_fitter(int jpsiCategory      = 1, // 1 : Prompt, 2 : Non-Prompt, 3: Bkg
       v2Fit->SetLineColor(kMagenta+2);
       v2Fit->SetLineStyle(2);
       v2Fit->SetLineWidth(4);
+
+      //// fit parameter initialization
+      v2Fit->SetParameters(0.5,1);
     
       double dFit_v2[30]    = {0.0}; 
       double dFit_v2Err[30] = {0.0};
