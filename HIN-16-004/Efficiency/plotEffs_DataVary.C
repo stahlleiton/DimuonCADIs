@@ -120,7 +120,7 @@ void plotEffs_DataVary(const char* dir = "files_100vars_mine") {
                // tleg->AddEntry(tp_npjpsi,"J/#psi (non-prompt)","lp");
                tleg->Draw();
 
-               tl.DrawLatex((idep==0) ? 1.5 : 10, (icut<3) ? 0.9 : 0.7, colltag + TString(", ") 
+               tl.DrawLatex((idep==0) ? 1.5 : 10, (icut<3) ? 0.9 : 0.7, ((colltag=="pp") ? "pp" : "PbPb") + TString(", ") 
                      + ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
                      + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1 || icut==3) ? "cst #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
 
@@ -189,7 +189,7 @@ void plotEffs_DataVary(const char* dir = "files_100vars_mine") {
                TLegend *tleg2 = new TLegend(0.7,0.17,0.89,0.31);
                tleg2->SetBorderSize(0);
                tleg2->AddEntry(tpsr_pp,"pp","lp");
-               tleg2->AddEntry(tpsr_pbpb,"pbpb","lp");
+               tleg2->AddEntry(tpsr_pbpb,"PbPb","lp");
                tleg2->Draw();
 
                tl.DrawLatex((idep==0) ? 1.5 : 10, 1.4, ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
