@@ -53,6 +53,8 @@ const char* nameTag="";            // can put here e.g. "_prompt", "_nonprompt",
 
 const bool plot12007 = plot12007_mid || plot12007_fwd;
 
+const double gTextSize = 0.035;
+
 ///////////////
 // CONSTANTS //
 ///////////////
@@ -72,7 +74,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
 void plot(vector<anabin> thecats, string xaxis, string workDirName, string workDirNameFail="");
 void centrality2npart(TGraphAsymmErrors* tg, bool issyst=false, bool isMB=false, double xshift=0.);
 void plotLimits(map<anabin, TGraphAsymmErrors*> theGraphs, string xaxis, const char* filename="../Limits/csv/Limits_95.csv", double xshift=0, bool ULonly=true, bool isInclusive=false);
-void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color);
+void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color, int style);
 bool isSignificant(map<anabin, TGraphAsymmErrors*> theGraphs, anabin thebin);
 
 
@@ -433,6 +435,10 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       padr->cd();
       haxesr->Draw();
       liner.Draw();
+      TLatex tlr;
+      tlr.SetTextSize(gTextSize*xfrac/(1.-xfrac));
+      tlr.DrawLatex(100,1.2,"Cent.");
+      tlr.DrawLatex(100,1.1,"0-100%");
       padl->cd();
    }
 
@@ -440,7 +446,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    if (xaxis=="cent") xshift=0.05;
    TLegend *tleg = new TLegend(0.16+xshift,0.73,0.50,0.89);
    tleg->SetBorderSize(0);
-   tleg->SetTextSize(0.03);
+   tleg->SetTextSize(gTextSize);
 
    // plot Rapp's theory first if we have to
    if (plotrapp) {
@@ -522,7 +528,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          prune(tg, tg_syst);
       }
       tg_syst->Draw("2");      
-      gStyle->SetEndErrorSize(5);
+      // gStyle->SetEndErrorSize(5);
+      gStyle->SetEndErrorSize(0);
       tg->Draw("P");
       // tg->Draw("[]");
 
@@ -532,7 +539,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       if (xaxis == "pt") otherlabel.Form("%i-%i%s",(int) (it->first.centbin().low()/2.), (int) (it->first.centbin().high()/2.), "%");
       if (xaxis == "cent") otherlabel.Form("%g < p_{T} < %g GeV/c",it->first.ptbin().low(), it->first.ptbin().high());
       if (!isMB) {
-         tleg->AddEntry(tg, (raplabel + otherlabel), "p");
+         tleg->AddEntry(tg, (raplabel + otherlabel), "lp");
       }
 
       // print tex
@@ -644,8 +651,12 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    tleg->Draw();
 
    TLatex tl;
-   double tlx = 0.2+xshift;
+   tl.SetTextSize(gTextSize);
+   tl.DrawLatexNDC(0.2+xshift,0.69,"#mu in acceptance");
+   double tlx = (xaxis=="cent") ? 0.77 : 0.92-xshift;
    double tly = 0.69;
+   int alignement = (xaxis=="cent") ? 11 : 31; // left ajusted for centrality, right ajusted for pt
+   tl.SetTextAlign(alignement);
    if (!promptonly && !nonpromptonly) tl.DrawLatexNDC(tlx,tly,"Passing #font[12]{l}_{J/#psi}^{3D} cut");
    else if (promptonly) tl.DrawLatexNDC(tlx,tly,"Prompt only");
    else tl.DrawLatexNDC(tlx,tly,"Non-prompt only");
@@ -722,6 +733,7 @@ void plotLimits(map<anabin, TGraphAsymmErrors*> theGraphs, string xaxis, const c
       if (!isInclusiveBin && isInclusive) continue;
       // draw arrow in the right place and with the right color...
       Color_t color=kBlack;
+      int style=1;
       double x=0, y=0, dx=0;
       double ylow = lim.val.first;
       y = lim.val.second;
@@ -738,21 +750,31 @@ void plotLimits(map<anabin, TGraphAsymmErrors*> theGraphs, string xaxis, const c
       }
       if (thebin.rapbin() == binF(0.,1.6)) {
          color = kBlue;
+         // style = 3;
       } else if (thebin.rapbin() == binF(1.6,2.4)) {
          color = kRed;
+         // style = 7;
       }
-      drawArrow(x+xshift, ylow, y, dx, color);
+      drawArrow(x+xshift, ylow, y, dx, color, style);
    }
 }
 
-void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color) {
+void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color, int style) {
    TArrow *arrow = new TArrow(x,yhigh,x,ylow<=0. ? 0.05 : ylow,0.03,ylow<=0. ? ">" : "<>");
    arrow->SetLineColor(color);
+   arrow->SetLineStyle(style);
    arrow->Draw();
    if (ylow<=0.) {
       TLine *line = new TLine(x-dx,yhigh,x+dx,yhigh);
       line->SetLineColor(color);
       line->Draw();
+   }
+   if (plotlimits95 && !FCerrors) {
+      TLatex tl;
+      tl.SetTextSize(gTextSize*0.65);
+      tl.SetTextAlign(21);
+      tl.SetTextColor(color);
+      tl.DrawLatex(x,yhigh+0.015,"95\% C.L.");
    }
 }
 
