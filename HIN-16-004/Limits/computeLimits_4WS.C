@@ -12,6 +12,8 @@
 #include <string>
 
 #include "../Fitter/Macros/Utilities/resultUtils.h"
+#include "../Fitter/Systematics/syst.h"
+#include "../Fitter/Systematics/syst.C"
 #include "runLimit_RaaNS_Workspace.C"
 
 using namespace std;
@@ -33,7 +35,9 @@ std::string exec(const char* cmd) {
 }
 
 void computeLimits(
-                   const char* ACTag, // ACTag: where to look for combined workspaces in Limits/CombinedWorkspaces/
+                   const char* ACTag, // ACTag: where to look for combined workspaces in Limits/CombinedWorkspaces
+                   const char* workDirName_pass, // workDirName: usual tag where to look for files in Output
+                   const char* workDirName_fail, // workDirName: usual tag where to look for files in Output
                    bool doSyst= false,
                    double CL=0.95, // Confidence Level for limits computation
                    int calculatorType = 2,
@@ -120,19 +124,35 @@ void computeLimits(
        if (calculatorType==0) {
           // special case of frequentist limits: submit more jobs
 
+          // read systematics
+          map<anabin, syst> syst_2R;
+          double systval(0.);
+          if ( doSyst )
+          {
+            syst_2R = readSyst_all_prompt("","../Fitter",workDirName_pass,workDirName_fail);
+            if ( syst_2R.empty() )
+            {
+              cout << "#[Error]: No systematics files found" << endl;
+              return;
+            }
+            
+            systval = syst_2R[thebin].value_dR;
+          }
+         
           TFile *f = TFile::Open(*it);
           RooWorkspace *ws = (RooWorkspace*) f->Get("workspace");
           ws->loadSnapshot("SbHypo_poiAndNuisance_snapshot");
           RooRealVar *theVar = (RooRealVar*) ws->var("RFrac2Svs1S_PbPbvsPP_P");
           double val = theVar->getVal();
           double err = theVar->getError();
+          err = sqrt(pow(err,2) + pow(systval,2));
           f->Close(); if (ws) delete ws;
 
           double nsigma = sqrt(2)*TMath::ErfcInverse(1-CL);
           // double poimin = max(0.,0.5*(val - nsigma*err));
           // double poimax = 1.5*(val + nsigma*err);
-          double poimin = max(0.,val + 0.9*nsigma*err);
-          double poimax = val + 1.1*nsigma*err;
+          double poimin = max(0.,val + 0.8*nsigma*err);
+          double poimax = val + 1.2*nsigma*err;
           int npoints = 5;
           double dpoi = (poimax-poimin)/npoints;
           for (int ipoi=0; ipoi<npoints; ipoi++) 
