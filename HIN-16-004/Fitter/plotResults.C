@@ -69,9 +69,9 @@ RooRealVar* poiFromFile(const char* filename, const char* token="");
 void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsymmErrors*> theGraphs_syst, string xaxis, string outputDir, map<anabin, syst> gsyst);
 void plot(vector<anabin> thecats, string xaxis, string workDirName);
 void centrality2npart(TGraphAsymmErrors* tg, bool issyst=false, bool isMB=false, double xshift=0.);
-void plotLimits(vector<anabin> theCats, string xaxis, const char* filename="../Limits/csv/Limits_95.csv", double xshift=0, bool ULonly=true, bool isInclusive=false);
+void plotLimits(map<anabin, TGraphAsymmErrors*> theGraphs, string xaxis, const char* filename="../Limits/csv/Limits_95.csv", double xshift=0, bool ULonly=true, bool isInclusive=false);
 void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color);
-
+bool isSignificant(map<anabin, TGraphAsymmErrors*> theGraphs, anabin thebin);
 
 
 /////////////////////////////////////////////
@@ -264,6 +264,14 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
          // eysyst = y*eysyst;
          // add the additive part of the NP contamination syst
          // if (plotsysts && syst_PbPb_NP_add.find(thebin) != syst_PbPb_NP_add.end()) eysyst = sqrt(pow(syst_PbPb_NP_add[thebin].value,2) + pow(eysyst,2)); 
+
+         // if we are plotting 95% CL limits, do not plot points that touch 0
+         if (y-fabs(eyl)<0) {
+            y = -99.;
+            eyl=0;
+            eyh=0;
+            eysyst=0;
+         }
 
          theGraphs[*it]->SetPoint(i,x,y);
          theGraphs[*it]->SetPointError(i,exl,exh,eyl,eyh);
@@ -557,13 +565,13 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       padl->cd();
    }
 
-   if (plotlimits95) plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv",0);
-   if (fiterrors && FCerrors) plotLimits(theCats,xaxis,"../Limits/csv/Limits_68.csv",xaxis=="cent" ? 5 : 1, false);
+   if (plotlimits95) plotLimits(theGraphs,xaxis,"../Limits/csv/Limits_95.csv",0);
+   if (fiterrors && FCerrors) plotLimits(theGraphs,xaxis,"../Limits/csv/Limits_68.csv",xaxis=="cent" ? 5 : 1, false);
 
    // limits for inclusive
    if (xaxis=="cent") {
       padr->cd();
-      if (plotlimits95) plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv", 0 , true, true);
+      if (plotlimits95) plotLimits(theGraphs,xaxis,"../Limits/csv/Limits_95.csv", 0 , true, true);
       padl->cd();
    }
 
@@ -619,15 +627,24 @@ void centrality2npart(TGraphAsymmErrors* tg, bool issyst, bool isMB, double xshi
    }
 }
 
-void plotLimits(vector<anabin> theCats, string xaxis, const char* filename, double xshift, bool ULonly, bool isInclusive) {
+void plotLimits(map<anabin, TGraphAsymmErrors*> theGraphs, string xaxis, const char* filename, double xshift, bool ULonly, bool isInclusive) {
    map<anabin,limits> maplim = readLimits(filename);
+
+   vector<anabin> theCats;
+   for (map<anabin, TGraphAsymmErrors*>::const_iterator it=theGraphs.begin(); it!=theGraphs.end(); it++) {
+      theCats.push_back(it->first);
+   }
 
    map<anabin,limits>::const_iterator it;
    for (it=maplim.begin(); it!=maplim.end(); it++) {
       anabin thebin = it->first;
       if (!binok(theCats,xaxis,thebin,false)) continue;
       limits lim = it->second;
-      if (ULonly && lim.val.first>0) continue; // only draw upper limits, ie interval which lower limit is 0
+
+      // only draw upper limits, ie interval which lower limit is 0
+      // if (ULonly && lim.val.first>0) continue; 
+      if (ULonly && !isSignificant(theGraphs,thebin)) continue;
+
       bool isInclusiveBin = (xaxis=="cent" && thebin.centbin()==binI(0,200));
       if (isInclusiveBin && !isInclusive) continue;
       if (!isInclusiveBin && isInclusive) continue;
@@ -665,4 +682,24 @@ void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color) {
       line->SetLineColor(color);
       line->Draw();
    }
+}
+
+bool isSignificant(map<anabin, TGraphAsymmErrors*> theGraphs, anabin thebin) {
+   bool ans=false;
+   for (map<anabin, TGraphAsymmErrors*>::const_iterator it=theGraphs.begin(); it!=theGraphs.end(); it++) {
+      TGraphAsymmErrors *tg = it->second;
+      anabin thecat = it->first;
+      for (int i=0; i<tg->GetN(); i++) {
+         double x = tg->GetX()[i];
+         bool yok = fabs(tg->GetY()[i] - tg->GetEYlow()[i])>0;
+         double xbin = (thebin.ptbin().low()+thebin.ptbin().high())/2.;
+         if (fabs(x-xbin)<1e-2 && yok) {ans=true; break;}
+         xbin = 150 + (150./1.6)*thebin.rapbin().low();
+         if (fabs(x-xbin)<1e-2 && yok) {ans=true; break;}
+         xbin = HI::findNpartAverage(thebin.centbin().low(),thebin.centbin().high());
+         if (fabs(x-xbin)<1e-2 && yok) {ans=true; break;}
+      }
+   }
+
+   return ans;
 }
