@@ -512,7 +512,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          tg_syst->SetFillColorAlpha(kGreen, 0.5);
       }
       tg->SetMarkerSize(1.5);
-      tg->SetLineWidth(tg->GetLineWidth()*2);
+      tg->SetLineWidth(tg->GetLineWidth()); //*2);
 
       if (xaxis=="cent") {
          if (thebin.centbin().low()<=0 && thebin.centbin().high()<=0) padr->cd();
@@ -715,7 +715,7 @@ void plotLimits(map<anabin, TGraphAsymmErrors*> theGraphs, string xaxis, const c
 
       // only draw upper limits, ie interval which lower limit is 0
       // if (ULonly && lim.val.first>0) continue; 
-      if (ULonly && !isSignificant(theGraphs,thebin)) continue;
+      if (ULonly && isSignificant(theGraphs,thebin)) continue;
 
       bool isInclusiveBin = (xaxis=="cent" && thebin.centbin()==binI(0,200));
       if (isInclusiveBin && !isInclusive) continue;
@@ -763,12 +763,10 @@ bool isSignificant(map<anabin, TGraphAsymmErrors*> theGraphs, anabin thebin) {
       anabin thecat = it->first;
       for (int i=0; i<tg->GetN(); i++) {
          double x = tg->GetX()[i];
-         bool yok = fabs(tg->GetY()[i] - tg->GetEYlow()[i])>0;
+         bool yok = (tg->GetY()[i] - fabs(tg->GetEYlow()[i]))>0;
          double xbin = (thebin.ptbin().low()+thebin.ptbin().high())/2.;
          if (fabs(x-xbin)<1e-2 && yok) {ans=true; break;}
-         xbin = 150 + (150./1.6)*thebin.rapbin().low();
-         if (fabs(x-xbin)<1e-2 && yok) {ans=true; break;}
-         xbin = HI::findNpartAverage(thebin.centbin().low(),thebin.centbin().high());
+         xbin = thebin.centbin() == binI(0,200) ?  150 + (150./1.6)*thebin.rapbin().low() : HI::findNpartAverage(thebin.centbin().low(),thebin.centbin().high());
          if (fabs(x-xbin)<1e-2 && yok) {ans=true; break;}
       }
    }
