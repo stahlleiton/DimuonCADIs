@@ -73,20 +73,24 @@ void makeSyst_y( bool bSavePlots        = 1,
   string ybins_str[] = {"0004","0408","0812","1216","1620","2024"};
   ofstream outputData_pr(Form("%s/data/raaSystUncert_y_pr.dat",outputDir));
   if (!outputData_pr.good()) {cout << "######### Fail to open data/*.dat file.##################" << endl;}
-  outputData_pr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Syst_tot\t" << "contrib_muID_trig\t" 
-             << "contrib_sta\t" << "contrib_3d\t" << "contrib_4d\t" << "contrib_fit\t" << "global_uncertainty\n";
+  outputData_pr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Uncert_tot\t"
+                << "contrib_IDtrg_stat\t" << "contrib_IDtrg_syst\t" << "contrib_sta_stat\t" << "contrib_sta_syst\t"
+                << "contrib_3d\t" << "contrib_4d\t" << "contrib_fit\t" << "global_uncertainty\n";
   ofstream outputData_npr(Form("%s/data/raaSystUncert_y_npr.dat",outputDir));
   if (!outputData_npr.good()) {cout << "######### Fail to open data/*.dat file.##################" << endl;}
-  outputData_npr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Syst_tot\t" << "contrib_muID_trig\t" 
-             << "contrib_sta\t" << "contrib_3d\t" << "contrib_4d\t" << "contrib_fit\t" << "global_uncertainty\n";
+  outputData_npr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Uncert_tot\t"
+                 << "contrib_IDtrg_stat\t" << "contrib_IDtrg_syst\t" << "contrib_sta_stat\t" << "contrib_sta_syst\t"
+                 << "contrib_3d\t" << "contrib_4d\t" << "contrib_fit\t" << "global_uncertainty\n";
 
   // Luminosity uncertainty calculation
   double systLumi      = 0;
   double systSelection = 0;
+  double systTrack     = 0;
   for (int iglb=0; iglb<2; iglb++)
   {
     systLumi      += TMath::Power(systLumis[iglb],2);
     systSelection += TMath::Power(systEventSelection[iglb],2);
+    systTrack     += TMath::Power(systTracking[iglb],2);
   }
 
   for(int ih=0; ih<nInHist;ih++)// for each kinematic rangea
@@ -505,17 +509,21 @@ void makeSyst_y( bool bSavePlots        = 1,
           outputData_pr << ybins_str[ibin-1]<<"\t" << "0024\t" << "0100\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_y[ibin-1] << "\t"
                      << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][1]+syst_effTnP_pr_aa[ibin-1][1]) << "\t"
                      << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][2]+syst_effTnP_pr_aa[ibin-1][2]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][3]+syst_effTnP_pr_aa[ibin-1][3]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][4]+syst_effTnP_pr_aa[ibin-1][4]) << "\t"
                      << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][0]+syst_effTnP_pr_aa[ibin-1][0]) << "\t"
                      << TMath::Sqrt(syst_eff4d_pr_pp[ibin-1][0]+syst_eff4d_pr_aa[ibin-1][0]) << "\t"
                      << TMath::Sqrt(fitContribution_pr_pp/rms_fitContribNorm + fitContribution_pr_aa/rms_fitContribNorm) << "\t"
-                     << TMath::Sqrt(systLumi+systSelection) << endl;
+                     << TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
           outputData_npr << ybins_str[ibin-1]<<"\t" << "0024\t" << "0100\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_y[ibin-1] << "\t"
                      << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][1]+syst_effTnP_npr_aa[ibin-1][1]) << "\t"
                      << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][2]+syst_effTnP_npr_aa[ibin-1][2]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][3]+syst_effTnP_npr_aa[ibin-1][3]) << "\t"
+                     << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][4]+syst_effTnP_npr_aa[ibin-1][4]) << "\t"
                      << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][0]+syst_effTnP_npr_aa[ibin-1][0]) << "\t"
                      << TMath::Sqrt(syst_eff4d_npr_pp[ibin-1][0]+syst_eff4d_npr_aa[ibin-1][0]) << "\t"
                      << TMath::Sqrt(fitContribution_npr_pp/rms_fitContribNorm + fitContribution_npr_aa/rms_fitContribNorm) << "\t"
-                     << TMath::Sqrt(systLumi+systSelection) << endl;
+                     << TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
 
           if(bDoDebug)
           {
@@ -580,7 +588,7 @@ void makeSyst_y( bool bSavePlots        = 1,
   gNonPrJpsiSyst->SetFillColor(kOrange-9);
   gNonPrJpsiSyst_y_y->SetFillColor(kViolet-9);
   //------------------------------- luminosity calcualtion
-  double globalSyst  = TMath::Sqrt(systLumi+systSelection);
+  double globalSyst  = TMath::Sqrt(systLumi+systSelection+systTrack);
   TBox *lumi = new TBox(2.33,1-globalSyst,2.4,1+globalSyst);
   lumi->SetFillColor(kGray+1);
 
