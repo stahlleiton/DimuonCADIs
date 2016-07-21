@@ -91,7 +91,7 @@ void plotEffs_DataVary(const char* dir = "files_100vars_mine") {
             TH1F *haxes = new TH1F("haxes","haxes",1,0,(idep==1) ? 100 : 30);
             haxes->GetYaxis()->SetTitle("Efficiency");
             if (icut>=3) haxes->GetYaxis()->SetTitle("#font[12]{l}_{J/#psi}^{3D} cut efficiency");
-            haxes->GetXaxis()->SetTitle((idep==1) ? "Centrality bin" : "p_{T}");
+            haxes->GetXaxis()->SetTitle((idep==1) ? "Centrality percentile [%]" : "p_{T} [GeV/c]");
             TLatex tl; TString cname;
             TString effname = (icut<3) ? "singleff_" : "ctaucuteff_";
             cname = TString(dir) + "/" + effname + colltag + "_" + deptag + "_" + raptag + "_" + cuttag;
@@ -136,7 +136,7 @@ void plotEffs_DataVary(const char* dir = "files_100vars_mine") {
                // yname.push_back("non-prompt \\Jpsi");
                vector<TH1*> tps;
                tps.push_back(tp_jpsi); tps.push_back(tp_psi2s); //tps.push_back(tp_npjpsi);
-               inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality bin", yname);
+               inittex(texname.Data(), deptag=="pt" ? "\\pt (\\GeVc)" : "Centrality", yname);
                printHist(tps, texname.Data());
                if (idep==0) closetex(texname.Data());
             } else {
@@ -205,7 +205,7 @@ void plotEffs_DataVary(const char* dir = "files_100vars_mine") {
                yname.push_back("\\pbpb");
                vector<TH1*> ths;
                ths.push_back(tpsr_pp); ths.push_back(tpsr_pbpb);
-               inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality bin", yname);
+               inittex(texname.Data(), deptag=="pt" ? "\\pt (\\GeVc)" : "Centrality", yname);
                printHist(ths, texname.Data());
                if (idep==0) closetex(texname.Data());
             } else {
@@ -241,7 +241,7 @@ void plotEffs_DataVary(const char* dir = "files_100vars_mine") {
                yname.push_back("Double ratio of efficiencies");
                vector<TH1*> ths;
                ths.push_back(tp_dr);
-               inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality bin", yname);
+               inittex(texname.Data(), deptag=="pt" ? "\\pt (\\GeVc)" : "Centrality", yname);
                printHist(ths, texname.Data());
                if (idep==0) closetex(texname.Data());
             } else {
@@ -532,7 +532,7 @@ void plotAll(const char* dir, bool ispsip, bool ispbpb, bool iscent, bool isfwd)
       }
       h->SetMarkerSize(0);
       if (i==100) { // case of the first hist
-         h->GetXaxis()->SetTitle(iscent ? "Centrality percentile" : "p_{T} [GeV/c]");
+         h->GetXaxis()->SetTitle(iscent ? "Centrality percentile [%]" : "p_{T} [GeV/c]");
          h->GetYaxis()->SetTitle("a.u.");
          tleg->AddEntry(h,"Reweighted MC","l");
          TH1F *haxes = (TH1F*) h->Clone("axes"); haxes->GetYaxis()->SetRangeUser(0,0.65);
