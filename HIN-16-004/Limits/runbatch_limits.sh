@@ -32,7 +32,7 @@ echo '# | |_| | (_) | |_) | \__ \ || (_| | |  | |_  #'
 echo '#  \___/ \___/|_.__/  |___/\__\__,_|_|   \__| #'
 echo '###############################################'
                                                       
-echo root -l -b -q runLimit_RaaNS_Workspace.C+'("'${it}'", "RFrac2Svs1S_PbPbvsPP", "simPdf", "workspace", "dOS_DATA", "'${ACTag}'", '${CL}', '${calculatorType}', '${testStatType}', '${useCLs}')'
-time root -l -b -q runLimit_RaaNS_Workspace.C+'("'${it}'", "RFrac2Svs1S_PbPbvsPP", "simPdf", "workspace", "dOS_DATA", "'${ACTag}'", '${CL}', '${calculatorType}', '${testStatType}', '${useCLs}')'
+echo root -l -b -q runLimit_RaaNS_Workspace.C+'("'${it}'", "RFrac2Svs1S_PbPbvsPP", "simPdf_syst", "workspace", "dOS_DATA", "'${ACTag}'", '${CL}', '${calculatorType}', '${testStatType}', '${useCLs}')'
+time root -l -b -q runLimit_RaaNS_Workspace.C+'("'${it}'", "RFrac2Svs1S_PbPbvsPP", "simPdf_syst", "workspace", "dOS_DATA", "'${ACTag}'", '${CL}', '${calculatorType}', '${testStatType}', '${useCLs}')'
 
 echo "ok, I'm done"

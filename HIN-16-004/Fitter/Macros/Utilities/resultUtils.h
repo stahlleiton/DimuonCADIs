@@ -16,6 +16,7 @@
 #include "TGraphAsymmErrors.h"
 #include "RooFitResult.h"
 #include "TFitResult.h"
+#include "TTree.h"
 
 #include <string>
 #include <vector>
@@ -35,10 +36,12 @@ anabin binFromFile(const char* filename);
 bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck, bool override=true);
 bool binok(anabin thecat, string xaxis, anabin &tocheck, bool override=true);
 bool isSameBinPPPbPb(const char* filenamePbPb, const char* filenamePP);
-TString treeFileName(const char* workDirName, const char* DSTag="DATA");
-void prune(vector<anabin> &v, bool keppshortest=true);
-void prune(TGraphAsymmErrors *g, TGraphAsymmErrors *gsyst=NULL, bool keppshortest=true);
-void prune(TGraphErrors *g, bool keppshortest=true);
+TString treeFileName(const char* workDirName, const char* DSTag="DATA", const char* prependPath="");
+double poiFromBin(const char* workDirName, const char* collSystem, const char* thepoiname, anabin thebin, const char* DSTag="DATA", const char* prependPath="");
+double poiErrFromBin(const char* workDirName, const char* collSystem, const char* thepoiname, anabin thebin, const char* DSTag="DATA", const char* prependPath="");
+void prune(vector<anabin> &v, bool keepshortest=true);
+void prune(TGraphAsymmErrors *g, TGraphAsymmErrors *gsyst=NULL, bool keepshortest=true);
+void prune(TGraphErrors *g, bool keepshortest=true);
 TGraphAsymmErrors* result12007_mid_cent();
 TGraphAsymmErrors* result12007_fwd_cent();
 TGraphAsymmErrors* result12007_mid_cent_syst();
@@ -47,6 +50,15 @@ TGraphAsymmErrors* result12007_mid();
 TGraphAsymmErrors* result12007_fwd();
 TGraphAsymmErrors* result12007_mid_syst();
 TGraphAsymmErrors* result12007_fwd_syst();
+
+void results2tree(
+      const char* workDirName, 
+      const char* DSTag="DATA", // Data Set tag can be: "DATA","MCPSI2SP", "MCJPSIP" ...
+      const char* prependPath="",
+      const char* thePoiNames="RFrac2Svs1S,N_Jpsi,N_Psi2S,N_Psi2S_intpl,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg",
+      bool wantPureSMC=false
+      );
+#include "../../results2tree.C"
 
 RooRealVar* poiFromFile(const char* filename, const char* token, const char* thepoiname) {
    TFile *f = TFile::Open(filename);
@@ -148,7 +160,7 @@ vector<TString> combFileList(const char* input, const char* token, const char* p
     
     while ((file=(TSystemFile*)next())) {
       fname = file->GetName();
-      if (fname.EndsWith(".root") && fname.Index("combined_PbPbPP_workspace") != kNPOS
+      if (fname.EndsWith(".root") && fname.Index("combined_PbPbPP_") != kNPOS
           && (fname.Index(token) != kNPOS)) {
         ans.push_back(basedir+fname);
       }
@@ -175,7 +187,7 @@ vector<TString> limitsFileList(const char* input, const char* token, const char*
     
     while ((file=(TSystemFile*)next())) {
       fname = file->GetName();
-      if (fname.EndsWith(".root") && fname.Index("combined_PbPbPP_workspace") != kNPOS
+      if (fname.EndsWith(".root") && fname.Index("combined_PbPbPP_") != kNPOS
           && (fname.Index("_Scan") == kNPOS) && (fname.Index(token) != kNPOS)) {
         ans.push_back(basedir+fname);
       }
@@ -275,9 +287,94 @@ bool isSameBinPPPbPb(const char* filenamePbPb, const char* filenamePP)
   }
 }
 
-TString treeFileName(const char* workDirName, const char* DSTag) {
+TString treeFileName(const char* workDirName, const char* DSTag, const char* prependPath) {
    TString outputFileName = Form("Output/%s/result/%s/tree_allvars.root",workDirName,DSTag);
+   if ( strcmp(prependPath,"") ) outputFileName.Prepend(Form("%s/",prependPath));
    return outputFileName;
+}
+
+double poiFromBin(const char* workDirName, const char* theCollSystem, const char* thepoiname, anabin thebin, const char* DSTag, const char* prependPath) {
+   TString tfname = treeFileName(workDirName, DSTag, prependPath);
+   TFile *f = TFile::Open(tfname);
+   if (!f || !f->IsOpen()) {
+      results2tree(workDirName,DSTag,prependPath);
+      f = new TFile(tfname);
+      if (!f) return -1e99;
+   }
+   TTree *tr = (TTree*) f->Get("fitresults");
+   if (!tr) return -1e99;
+
+   // fix centrality for pp
+   if (TString(theCollSystem) == "PP") thebin.setcentbin(binI(0,200));
+
+   float ptmin, ptmax, ymin, ymax, centmin, centmax;
+   float val=-999.;
+   int valI=-999.;
+   char collSystem[5];
+   tr->SetBranchAddress("ptmin",&ptmin);
+   tr->SetBranchAddress("ptmax",&ptmax);
+   tr->SetBranchAddress("ymin",&ymin);
+   tr->SetBranchAddress("ymax",&ymax);
+   tr->SetBranchAddress("centmin",&centmin);
+   tr->SetBranchAddress("centmax",&centmax);
+   if (string(thepoiname)!="chi2" && string(thepoiname)!="ndof") tr->SetBranchAddress(Form("%s_val",thepoiname),&val);
+   else if (string(thepoiname)!="ndof") tr->SetBranchAddress(thepoiname,&val);
+   else tr->SetBranchAddress(thepoiname,&valI);
+   tr->SetBranchAddress("collSystem",collSystem);
+
+   int ntr = tr->GetEntries();
+   bool found=false;
+   for (int i=0; i<ntr; i++) {
+      tr->GetEntry(i);
+      if ((anabin(ymin, ymax, ptmin, ptmax, centmin, centmax) == thebin) && (TString(collSystem) == TString(theCollSystem))) {
+         found=true;
+         break;
+      }
+   }
+   f->Close(); delete f;
+   if (!found) val = -999;
+   if (string(thepoiname)=="ndof") val = valI;
+   return val;
+}
+
+double poiErrFromBin(const char* workDirName, const char* theCollSystem, const char* thepoiname, anabin thebin, const char* DSTag, const char* prependPath) {
+   TString tfname = treeFileName(workDirName, DSTag, prependPath);
+   TFile *f = TFile::Open(tfname);
+   if (!f || !f->IsOpen()) {
+      results2tree(workDirName,DSTag,prependPath);
+      f = new TFile(tfname);
+      if (!f) return -1e99;
+   }
+   TTree *tr = (TTree*) f->Get("fitresults");
+   if (!tr) return -1e99;
+
+   // fix centrality for pp
+   if (TString(theCollSystem) == "PP") thebin.setcentbin(binI(0,200));
+
+   float ptmin, ptmax, ymin, ymax, centmin, centmax;
+   float err=0;
+   char collSystem[5];
+   tr->SetBranchAddress("ptmin",&ptmin);
+   tr->SetBranchAddress("ptmax",&ptmax);
+   tr->SetBranchAddress("ymin",&ymin);
+   tr->SetBranchAddress("ymax",&ymax);
+   tr->SetBranchAddress("centmin",&centmin);
+   tr->SetBranchAddress("centmax",&centmax);
+   tr->SetBranchAddress(Form("%s_err",thepoiname),&err);
+   tr->SetBranchAddress("collSystem",collSystem);
+
+   int ntr = tr->GetEntries();
+   bool found=false;
+   for (int i=0; i<ntr; i++) {
+      tr->GetEntry(i);
+      if ((anabin(ymin, ymax, ptmin, ptmax, centmin, centmax) == thebin) && (TString(collSystem) == TString(theCollSystem))) {
+         found=true;
+         break;
+      }
+   }
+   f->Close(); delete f;
+   if (!found) err=-999;
+   return err;
 }
 
 void prune(vector<anabin> &v, bool keepshort) {

@@ -180,51 +180,48 @@ void v2_cent_plotter(
   // general labels 
   TLatex *lt1  = new TLatex();
   lt1->SetNDC();
+  lt1->SetTextFont(42);
+  lt1->SetTextSize(0.04);
 
   TH1F *phAxis = new TH1F("phAxis",";N_{part};v_{2}",10,0,400);
-  phAxis->GetYaxis()->SetRangeUser(-0.05,0.25);
+  if(jpsiCategory==2) {
+    phAxis->GetYaxis()->SetRangeUser(-0.07,0.25);
+  } else {
+    phAxis->GetYaxis()->SetRangeUser(0,0.25);
+  }
   phAxis->GetXaxis()->CenterTitle();
   phAxis->GetYaxis()->CenterTitle();
 
-  TF1 *line    = new TF1("line","0",0,400);
+  TF1 *line    = new TF1();//"line","0",0,400);
   line->SetLineWidth(1);
- 
-  TLatex *pre = new TLatex(20.0,0.22,Form("%s",legend[jpsiCategory]));
-  pre->SetTextFont(42);
-  pre->SetTextSize(0.05);
-
-  TLatex *ly     = new TLatex(20.0,0.18,Form("%s",yBinsLegend[0]));
-  ly->SetTextFont(42);
-  ly->SetTextSize(0.04);
-
-  TLatex *lpt     = new TLatex(20.0,0.2,Form("%s",ptBinsLegend[0]));
-  lpt->SetTextFont(42);
-  lpt->SetTextSize(0.04);
-
-  TLatex *lcent = new TLatex(10.0,-0.025,Form("Cent."));
-  lcent->SetTextFont(42);
-  lcent->SetTextSize(0.04);
 
   //-------------- Drawing 
   TCanvas *pc = new TCanvas("pc","pc");
   phAxis->Draw();
   CMS_lumi(pc,101,33);
-  pre->Draw();
-  lpt->Draw();
-  ly->Draw();
-  lcent->Draw();
+  lt1->SetTextSize(0.05);
+  lt1->DrawLatex(0.2,0.85,Form("%s",legend[jpsiCategory]));
+  lt1->SetTextSize(0.04);
+  lt1->DrawLatex(0.2,0.80,Form("%s",ptBinsLegend[0]));
+  lt1->SetTextSize(0.04);
+  lt1->DrawLatex(0.2,0.75,Form("%s",yBinsLegend[0]));
+  lt1->SetTextSize(0.04);
+  lt1->DrawLatex(0.2,0.20,Form("Cent."));
 
-  for(unsigned int ib=0; ib<nBins; ib++)
-  {
-   if(jpsiCategory==2) lcent->DrawLatex(adXaxis[ib]-30,-0.025,Form("%s",centBinsLegend[nCentBins-1-ib]));
-   else lcent->DrawLatex(adXaxis[ib]-30,-0.025,Form("%s",centBinsLegend[nCentBins-nBins-ib]));
+  if(jpsiCategory==2) {
+    lt1->DrawLatex((adXaxis[0]+30)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-1]));
+    lt1->DrawLatex((adXaxis[1]+5)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-1-1]));
+    lt1->DrawLatex((adXaxis[2]-5)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-1-2]));
+  } else {
+    lt1->DrawLatex((adXaxis[0]+30)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-nBins-1]));
+    lt1->DrawLatex((adXaxis[1]+5)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-nBins-2]));
+    lt1->DrawLatex((adXaxis[2]-5)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-nBins-3]));
   }
   
   pgV2_sys->Draw("2");
   pgV2->Draw("PZ");
   pgV2_cont->Draw("P");
   gPad->RedrawAxis();
-
  
   if(bSavePlots)
   {

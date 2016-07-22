@@ -10,11 +10,11 @@
 #include "RooRealVar.h"
 
 // flags
-const bool doSysts = true;        // compute the systematics
-const bool printSysts = true;     // print the systematics summary table
+const bool doSysts = false;        // compute the systematics
+const bool printSysts = false;     // print the systematics summary table
 const bool plotMassPlots = false; 
 const bool plotAllVars = true;     // plot the dependance of all vars with pt, centrality, y
-const bool plotAllResults = true; // and plot the results!
+const bool plotAllResults = false; // and plot the results!
 const bool plotSystResults = false;// plot results taking syst fits as nominal too
 
 void makeAllMassPlots(const char* workDirName, const char* DSTag="DATA", bool paperStyle=true, bool incSS=false);
@@ -34,10 +34,10 @@ void makeAllPlots(const char* nominalDir, const char* systDirsSig, const char* s
    }
 
    // print the systematics table
-   if (printSysts) {
-      readSyst_all("PP", "", true, "Systematics/tex/syst_PP_all.tex");
-      readSyst_all("PbPb", "", true, "Systematics/tex/syst_PbPb_all.tex");
-   }
+   // if (printSysts) {
+      // readSyst_all("PP", "", true, "Systematics/tex/syst_PP_all.tex");
+      // readSyst_all("PbPb", "", true, "Systematics/tex/syst_PbPb_all.tex");
+   // }
 
    // draw mass plots
    if (plotMassPlots) {
@@ -160,7 +160,11 @@ void makeAllMassPlots(const char* workDirName, const char* DSTag, bool paperStyl
       RooRealVar *invMass = myws->var("invMass");
       cut.dMuon.M.Min = invMass->getMin();
       cut.dMuon.M.Max = invMass->getMax();
+      
+      // if this is not a MB bin, skip it
       anabin thebin = binFromFile(*it);
+      if (!(thebin==anabin(0,1.6,6.5,30,0,200) || thebin==anabin(1.6,2.4,3,30,0,200))) continue;
+
       cut.Centrality.Start = thebin.centbin().low();
       cut.Centrality.End = thebin.centbin().high();
       cut.dMuon.Pt.Min = thebin.ptbin().low();
@@ -169,8 +173,8 @@ void makeAllMassPlots(const char* workDirName, const char* DSTag, bool paperStyl
       cut.dMuon.AbsRap.Max = thebin.rapbin().high();
       bool isPbPb = (it->Index("PbPb")>0);
       string plotLabel = "";
-      bool incJpsi = !paperStyle;
-      bool incPsi2S = !paperStyle;
+      bool incJpsi = true;//!paperStyle;
+      bool incPsi2S = true;//!paperStyle;
       if (incJpsi)  { plotLabel = plotLabel + Form("_Jpsi_%s", jpsiName);  } 
       if (incPsi2S) { plotLabel = plotLabel + Form("_Psi2S_%s", psipName); }
       bool incBkg = true;

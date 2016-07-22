@@ -28,6 +28,7 @@ Output: the Raa vs rpaidity.
 #include "TPaveStats.h"
 #include "TLatex.h"
 #include "TLegend.h"
+#include "TLegendEntry.h"
 
 #include "dataBinning_2015.h"
 #include "filesRaa_2015.h"
@@ -341,20 +342,25 @@ void makeRaa_y(bool bSavePlots=1,
   TBox *lumi = (TBox*)systFile->Get("lumi");
 
   //---------------- general stuff
-  TLatex *lPr = new TLatex(0.2,1.35,"Prompt J/#psi");
+  TLatex *lPr = new TLatex(0.2,0.85,"Prompt J/#psi");
+  lPr->SetNDC();
   lPr->SetTextFont(42);
   lPr->SetTextSize(0.05);
 
-  TLatex *lNpr = new TLatex(0.2,1.35,"Non-prompt J/#psi");
+  TLatex *lNpr = new TLatex(0.2,0.85,"Non-prompt J/#psi");
+  lNpr->SetNDC();
   lNpr->SetTextFont(42);
   lNpr->SetTextSize(0.05);
 
-  TLatex *lpt = new TLatex(0.12,0.075,"6.5 < p_{T} < 30 GeV/c");
+  TLatex *lpt = new TLatex(0.2,0.8,"6.5 < p_{T} < 30 GeV/c");
+  lpt->SetNDC();
   lpt->SetTextFont(42);
-  lpt->SetTextSize(0.05);
-  TLatex *lcent = new TLatex(19,1.03,"Cent. 0-100%");
+  lpt->SetTextSize(0.04);
+
+  TLatex *lcent = new TLatex(0.2,0.75,"Cent. 0-100%");
+  lcent->SetNDC();
   lcent->SetTextFont(42);
-  lcent->SetTextSize(0.05);
+  lcent->SetTextSize(0.04);
 
 
   // ##################################################### pr plots

@@ -5,6 +5,7 @@
 #include "../Fitter/Macros/Utilities/bin.h"
 #include "../Fitter/Systematics/syst.h"
 #include "../Fitter/Macros/Utilities/resultUtils.h"
+#include "../Fitter/Macros/Utilities/monster.h"
 #include "TString.h"
 #include "TSystemFile.h"
 #include "TSystemDirectory.h"
@@ -24,7 +25,8 @@ vector<TString> fileList_lim(const char* prependPath="");
 map<anabin, limits> readLimits(const char* limitsfile);
 void printTex(vector< map<anabin, limits> > theLims, const char* texName="tex/limits.tex");
 void readLimits_all(const char* prependPath="", const char* texName="tex/limits.tex", const char* token="_68");
-void limitsFromFits(const char* workDir, const char* output="csv/Limits_68_fromfits.csv", bool withsyst=false);
+void limitsFromFits(const char* workDir, const char* output="csv/Limits_68_fromfits.csv", bool withsyst=false, int mode=0, const char* workDirFail="");
+// mode = 0 (pass), 1 (prompt) or 2 (non-prompt)
 map<anabin, vector<limits> > vm2mv(vector< map<anabin,limits> > v);
 
 
@@ -170,55 +172,46 @@ void printTex(vector< map<anabin, limits> > theLims, const char* texName) {
    cout << "Closed " << texName << endl;
 }
 
-void limitsFromFits(const char* workDir, const char* output, bool withsyst) {
-   // list of files
-   vector<TString> theFiles, theFiles2;
-   theFiles = fileList(workDir,"PbPb", "DATA", "../Fitter/");
-   theFiles2 = fileList(workDir,"PP", "DATA", "../Fitter/");
+void limitsFromFits(const char* workDir, const char* output, bool withsyst, int mode, const char* workDirFail) {
+   set<anabin> thebins = allbins();
+   const char* ppp = "../Fitter";
 
    map<anabin, syst> systs_all;
-   if (withsyst) systs_all = readSyst_all("","../Fitter",workDir);
+   if (withsyst) {
+      if (mode==0) systs_all = readSyst_all_pass("",ppp,workDir);
+      if (mode==1) systs_all = readSyst_all_prompt("",ppp,workDir,workDirFail);
+      if (mode==2) systs_all = readSyst_all_nonprompt("",ppp,workDir,workDirFail);
+   }
 
    ofstream file(output);
    file << "0.683" << endl;
 
-   vector<TString>::const_iterator it,it2;
-   for (vector<TString>::const_iterator it=theFiles.begin(); it!=theFiles.end(); it++) {
-      anabin thebin = binFromFile(it->Data());
-      RooRealVar *num=NULL;
-      num = poiFromFile(it->Data(),"_PbPb","RFrac2Svs1S");
-
-      // force the centrality to 0-200 for pp
-      anabin thebinpp = thebin;
-      binI centbin(0,200);
-      thebinpp.setcentbin(centbin);
-
-      // look for the pp file corresponding to the pbpb one
-      bool found=false;
-      for (it2=theFiles2.begin(); it2!=theFiles2.end(); it2++) {
-         if (binFromFile(it2->Data()) == thebinpp) {
-            found=true;
-            break;
-         }
+   set<anabin>::const_iterator it;
+   for (it=thebins.begin(); it!=thebins.end(); it++) {
+      anabin thebin = *it;
+      double val, err;
+      if (mode==0) {
+         val = doubleratio_pass_nominal(workDir,thebin,ppp);
+         err = doubleratio_pass_stat(workDir,thebin,ppp);
       }
-      if (!found) {
-         cout << "Error! I did not find the PP file for " << *it << endl;
-         return;
+      if (mode==1) {
+         val = doubleratio_prompt_nominal(workDir,workDirFail,thebin,ppp);
+         err = doubleratio_prompt_stat(workDir,workDirFail,thebin,ppp);
       }
-      anabin thebin_PP = binFromFile(it2->Data());
-      RooRealVar *den = NULL;
-      den = poiFromFile(it2->Data(),"_PP","RFrac2Svs1S");
-      RooRealVar *ratio = ratioVar(num,den,true); // if plotting the centrality dependence, do not put the pp stat
+      if (mode==2) {
+         val = doubleratio_nonprompt_nominal(workDir,workDirFail,thebin,ppp);
+         err = doubleratio_nonprompt_stat(workDir,workDirFail,thebin,ppp);
+      }
+
       file << thebin.rapbin().low() << ", " << thebin.rapbin().high() << ", "
          << thebin.ptbin().low() << ", " << thebin.ptbin().high() << ", "
          << thebin.centbin().low() << ", " << thebin.centbin().high() << ", ";
       if (!withsyst) {
-         file << ratio->getVal() + ratio->getErrorLo() << ", " << ratio->getVal() + ratio->getErrorHi() << endl;
+         file << val - err << ", " << val + err << endl;
       } else {
-         file << ratio->getVal() - sqrt(pow(ratio->getErrorLo(),2) + pow(systs_all[thebin].value_dR,2)) << ", " 
-            << ratio->getVal() + sqrt(pow(ratio->getErrorHi(),2) + pow(systs_all[thebin].value_dR,2)) << endl;
+         file << val - sqrt(pow(err,2) + pow(systs_all[thebin].value_dR,2)) << ", " 
+            << val + sqrt(pow(err,2) + pow(systs_all[thebin].value_dR,2)) << endl;
       }
-      delete num; delete den;
    }
 
    file.close();

@@ -297,7 +297,8 @@ StandardHypoTestInvDemo(const char * infile = 0,
                         bool useNumberCounting = false,
                         const char * nuisPriorName = 0,
                         double CL = 0.95,
-                        const char* ACTag = ""){
+                        const char* ACTag = "",
+                        int rndseed=-1){
 /*
 
   Other Parameter to pass in tutorial
@@ -403,6 +404,13 @@ StandardHypoTestInvDemo(const char * infile = 0,
       return NULL;
    }
 
+   // case of a single point scanned
+   if (npoints==1) {
+      optHTInv.randomSeed = rndseed;
+      optHTInv.useProof = false;
+      optHTInv.nworkers = 1;
+      optHTInv.massValue += string(Form("poi%f_seed%i",poimin,rndseed));
+   }
 
 
    HypoTestInvTool calc;
@@ -587,7 +595,8 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
    TCanvas * c1 = new TCanvas(c1Name);
    c1->SetLogy(false);
 
-   plot->Draw("CLb 2CL");  // plot all and Clb
+   // plot->Draw("CLb 2CL");  // plot all and Clb
+   plot->Draw("OBS"); // only the observed CLs+b
 
    c1->SaveAs((c1Name + ".pdf").Data());
    c1->SaveAs((c1Name + ".png").Data());
@@ -913,6 +922,7 @@ RooStats::HypoTestInvTool::RunInverter(RooWorkspace * w,
       }
 
       toymcs->SetTestStatistic(testStat);
+      // toymcs->AddTestStatistic(&maxll);
 
       if (data->isWeighted() && !mGenerateBinned) {
          Info("StandardHypoTestInvDemo","Data set is weighted, nentries = %d and sum of weights = %8.1f but toy generation is unbinned - it would be faster to set mGenerateBinned to true\n",data->numEntries(), data->sumEntries());

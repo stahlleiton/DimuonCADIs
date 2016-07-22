@@ -11,8 +11,8 @@
 #include <algorithm>
 
 int nworkers = 0;                        // number of worker for ProofLite (default use all available cores)
-int nPointsToScan = 20;
-double additionalToysFac = 0.5;
+int nPointsToScan = 10;//20;
+double additionalToysFac = 2.;//0.5;
 
 pair<double,double> runLimit_RaaNS_Workspace_FC(const char *filename="TRIAL.root", const char *poiname="raa3", const char *pdfname="joint", const char *wsname="wcombo", const char* dataname="dOS_DATA", const char* ACTag="", double CI = 0.95, double poimin=0, double poimax=10);
 

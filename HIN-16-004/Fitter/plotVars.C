@@ -370,7 +370,7 @@ void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* w
    setTDRStyle();
    TCanvas *c1 = new TCanvas("c1","c1",600,600);
 
-   TLegend *tleg = new TLegend(0.18,0.73,0.52,0.89);
+   TLegend *tleg = new TLegend(0.18,0.69,0.52,0.89);
    tleg->SetBorderSize(0);
    tleg->SetTextSize(0.03);
 
@@ -379,7 +379,9 @@ void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* w
 
    for (unsigned int i=0; i<graphs.size(); i++) {
       graphs[i]->SetLineColor((i<4) ? 1+i : 2+i); // skip yellow
+      if (i>=8) graphs[i]->SetLineColor(3+i); // skip white too
       graphs[i]->SetMarkerColor((i<4) ? 1+i : 2+i);
+      if (i>=8) graphs[i]->SetMarkerColor(3+i); // skip white too
       graphs[i]->SetMarkerStyle(20+i);
       graphs[i]->SetMarkerSize(1.5);
       if (i==0) {
