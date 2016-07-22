@@ -27,6 +27,7 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #include <TH2D.h>
 #include <TCanvas.h>
 #include <TLegend.h>
+#include <TLegendEntry.h>
 #include <TStyle.h>
 #include <TLatex.h>
 #include <TInterpreter.h>
@@ -44,6 +45,7 @@ void v2_pt_plotter(
        const char* outputDir    = "output", 
        const char* inputDir     = "outputNumbers",// where phi and v2 numbers are (root, and txt format)
        const char* inputDirSyst = "../calcSyst_v2/histSyst",// where phi and v2 numbers are (root, and txt format)
+       bool lineAt65            = true,
        bool bDoDebug            = true,
        bool bSavePlots          = true
         ) {
@@ -265,13 +267,15 @@ void v2_pt_plotter(
   // general labels 
   TLatex *lt1  = new TLatex();
   lt1->SetNDC();
+  lt1->SetTextFont(42);
+  lt1->SetTextSize(0.04);
 
-  TH1F *phAxis = new TH1F("phAxis",";p_{T} GeV/c;v_{2}",10,0,30);
-  phAxis->GetYaxis()->SetRangeUser(-0.05,0.25);
+  TH1F *phAxis = new TH1F("phAxis",";p_{T} (GeV/c);v_{2}",10,0,30);
+  phAxis->GetYaxis()->SetRangeUser(0,0.25);
   phAxis->GetXaxis()->CenterTitle();
   phAxis->GetYaxis()->CenterTitle();
 
-  TF1 *line    = new TF1("line","0",0,400);
+  TLine *line    = new TLine();//"line","0",0,400);
   line->SetLineWidth(1);
  
   TLegend *legPt = new TLegend(0.7,0.6,0.8,0.7);
@@ -279,31 +283,27 @@ void v2_pt_plotter(
   legPt->SetFillColor(0);
   legPt->SetBorderSize(0);
   legPt->SetMargin(0.2);
-  legPt->SetTextSize(0.04);
+  legPt->SetTextSize(0.045);
   legPt->SetTextFont(42);
-  legPt->AddEntry(pgV2,"|y|<2.4","P");
-  legPt->AddEntry(pgV2_low,"1.6<|y|<2.4","P");
+  TLegendEntry *le = legPt->AddEntry(pgV2,"|y|<2.4","P");
+  if (jpsiCategory==1) le->SetTextColor(kRed+1);
+  else if(jpsiCategory==2) le->SetTextColor(kOrange+2);
+  else if(jpsiCategory==3) le->SetTextColor(1);
+  TLegendEntry *le_low = legPt->AddEntry(pgV2_low,"1.6<|y|<2.4","P");
+  le_low->SetTextColor(kViolet+2);
  
-  TLatex *pre = new TLatex(2,0.22,Form("%s",legend[jpsiCategory]));
-  pre->SetTextFont(42);
-  pre->SetTextSize(0.05);
-
-  TLatex *ly     = new TLatex(2.0,0.2,Form("%s",yBinsLegend[0]));
-  ly->SetTextFont(42);
-  ly->SetTextSize(0.04);
-
-  TLatex *lcent = new TLatex(2.0,0.18,Form("%s",centBinsLegend[0]));
-  lcent->SetTextFont(42);
-  lcent->SetTextSize(0.04);
 
   //-------------- Drawing 
   TCanvas *pc = new TCanvas("pc","pc");
   phAxis->Draw();
   CMS_lumi(pc,101,33);
-  pre->Draw();
+  lt1->SetTextSize(0.05);
+  lt1->DrawLatex(0.2,0.85,Form("%s",legend[jpsiCategory]));
+  lt1->SetTextSize(0.04);
+  lt1->DrawLatex(0.2,0.8,Form("%s",yBinsLegend[0]));
+  lt1->SetTextSize(0.04);
+  lt1->DrawLatex(0.2,0.75,Form("%s",centBinsLegend[0]));
   legPt->Draw();
-  ly->Draw();
-  lcent->Draw();
 
   pgV2_sys->Draw("2");
   pgV2_low_sys->Draw("2");
@@ -315,7 +315,13 @@ void v2_pt_plotter(
   pgV2_cont->Draw("P");
   gPad->RedrawAxis();
 
- 
+  line->DrawLine(0,0,30,0);
+  if (lineAt65) {
+    line->SetLineStyle(7);
+    if (jpsiCategory==1) line->DrawLine(6.5,0.005,6.5,0.15);
+    else if (jpsiCategory==2) line->DrawLine(6.5,0.0,6.5,0.17);
+  }
+  
   if(bSavePlots)
   {
     if(npNumBinsHighPt==1 && jpsiCategory==2) 
