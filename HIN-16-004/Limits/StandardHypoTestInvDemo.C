@@ -595,7 +595,8 @@ RooStats::HypoTestInvTool::AnalyzeResult( HypoTestInverterResult * r,
    TCanvas * c1 = new TCanvas(c1Name);
    c1->SetLogy(false);
 
-   plot->Draw("CLb 2CL");  // plot all and Clb
+   // plot->Draw("CLb 2CL");  // plot all and Clb
+   plot->Draw("OBS"); // only the observed CLs+b
 
    c1->SaveAs((c1Name + ".pdf").Data());
    c1->SaveAs((c1Name + ".png").Data());
