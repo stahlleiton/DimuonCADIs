@@ -28,7 +28,7 @@ const double massup = 0.10;
 using namespace HI;
 using namespace std;
 
-void ljpsiresol::Loop(const char* fname, bool isdata)
+void ljpsiresol::Loop(const char* fname, bool isdata, bool ispbpb)
 {
 //   In a ROOT session, you can do:
 //      root> .L ljpsiresol.C
@@ -50,6 +50,7 @@ void ljpsiresol::Loop(const char* fname, bool isdata)
 // METHOD1:
    fChain->SetBranchStatus("*",0);  // disable all branches
    fChain->SetBranchStatus("HLTriggers",1);  
+   fChain->SetBranchStatus("Centrality",1);  
    fChain->SetBranchStatus("Reco_QQ_*",1);  
    fChain->SetBranchStatus("Gen_QQ_*",!isdata);  
 // METHOD2: replace line
@@ -65,7 +66,7 @@ void ljpsiresol::Loop(const char* fname, bool isdata)
    // define the histos
    // we need 2 numerators (with and without ctau3d cut), 1 denominator. Let's make them in arrays
    // TH1F *hnum_centmid = new TH1F("hnum_centmid","hnum_centmid",nbins_centmid,bins_centmid);
-   vector<TH1F*> hists_mid, hists_fwd;
+   vector<TH1F*> hists_mid, hists_fwd, hists_midcent, hists_fwdcent;
    for (int i=0; i<nbins_ptmid; i++) {
       double ptmin = bins_ptmid[i];
       double ptmax = bins_ptmid[i+1];
@@ -77,6 +78,18 @@ void ljpsiresol::Loop(const char* fname, bool isdata)
       double ptmax = bins_ptfwd[i+1];
       TH1F *hist = new TH1F(Form("hfwd_pt%.1f-%.1f",ptmin,ptmax),"",70,-0.15,0.2);
       hists_fwd.push_back(hist);
+   }
+   for (int i=0; i<nbins_centmid; i++) {
+      double centmin = bins_centmid[i];
+      double centmax = bins_centmid[i+1];
+      TH1F *hist = new TH1F(Form("hmid_cent%.1f-%.1f",centmin,centmax),"",70,-0.15,0.2);
+      hists_midcent.push_back(hist);
+   }
+   for (int i=0; i<nbins_centfwd; i++) {
+      double centmin = bins_centfwd[i];
+      double centmax = bins_centfwd[i+1];
+      TH1F *hist = new TH1F(Form("hfwd_cent%.1f-%.1f",centmin,centmax),"",70,-0.15,0.2);
+      hists_fwdcent.push_back(hist);
    }
 
    Long64_t nbytes = 0, nb = 0;
@@ -111,7 +124,7 @@ void ljpsiresol::Loop(const char* fname, bool isdata)
          if (!gen_inbin) continue;
       }
 
-      double weight = 1.;
+      double weight = ispbpb ? fChain->GetWeight()*findNcoll(Centrality) : 1.;
 
       // is there at least one reco dimuon?
       b_Reco_QQ_size->GetEntry(ientry);
@@ -167,11 +180,17 @@ void ljpsiresol::Loop(const char* fname, bool isdata)
       if (rap<1.6) {
          for (int i=0; i<nbins_ptmid; i++)
             if (pt>=bins_ptmid[i]&&pt<bins_ptmid[i+1])
-               hists_mid[i]->Fill(Reco_QQ_ctau3D[ibestqq]);
+               hists_mid[i]->Fill(Reco_QQ_ctau3D[ibestqq],weight);
+         for (int i=0; i<nbins_centmid; i++)
+            if (Centrality>=bins_centmid[i]&&Centrality<bins_centmid[i+1])
+               hists_midcent[i]->Fill(Reco_QQ_ctau3D[ibestqq],weight);
       } else if (rap<2.4) {
          for (int i=0; i<nbins_ptfwd; i++)
             if (pt>=bins_ptfwd[i]&&pt<bins_ptfwd[i+1])
-               hists_fwd[i]->Fill(Reco_QQ_ctau3D[ibestqq]);
+               hists_fwd[i]->Fill(Reco_QQ_ctau3D[ibestqq],weight);
+         for (int i=0; i<nbins_centfwd; i++)
+            if (Centrality>=bins_centfwd[i]&&Centrality<bins_centfwd[i+1])
+               hists_fwdcent[i]->Fill(Reco_QQ_ctau3D[ibestqq],weight);
       }
    } // event loop
 
