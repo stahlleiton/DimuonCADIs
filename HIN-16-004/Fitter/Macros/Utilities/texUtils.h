@@ -12,8 +12,8 @@ using namespace std;
 
 TGraphAsymmErrors* convertGraph(TGraphErrors *tg);
 vector<TGraphAsymmErrors*> convertGraph(vector<TGraphErrors*> tg);
-void printHist(vector<TH1F*> hist, const char* filename);
-void printHist(TH1F* hist, const char* filename);
+void printHist(vector<TH1*> hist, const char* filename);
+void printHist(TH1* hist, const char* filename);
 void printGraph(vector<TGraphAsymmErrors*> tg, const char* filename);
 void printGraph(TGraphAsymmErrors* tg, const char* filename);
 void printGraph(vector<TGraphAsymmErrors*> tg, vector<TGraphAsymmErrors*> tg_syst, const char* filename);
@@ -29,7 +29,7 @@ void addline(const char* filename, string line, int n=1);
 void myReplace(std::string& str, const std::string& oldStr, const std::string& newStr);
 string latexSafe(string s);
 
-void printHist(vector<TH1F*> hist, const char* filename) {
+void printHist(vector<TH1*> hist, const char* filename) {
    ofstream file(filename, ofstream::app);
    file.precision(3);
    if (hist.size()==0) return;
@@ -37,7 +37,7 @@ void printHist(vector<TH1F*> hist, const char* filename) {
    for (int ibin=1; ibin<nbins+1; ibin++) {
       file << "$[" << hist[0]->GetXaxis()->GetBinLowEdge(ibin) << "-" << hist[0]->GetXaxis()->GetBinUpEdge(ibin) << "]$";
       file.setf(ios::fixed);
-      for (vector<TH1F*>::const_iterator ith=hist.begin(); ith!=hist.end(); ith++) {
+      for (vector<TH1*>::const_iterator ith=hist.begin(); ith!=hist.end(); ith++) {
          file << " & $" << (*ith)->GetBinContent(ibin) << " \\pm " << (*ith)->GetBinError(ibin) << "$";
       }
       file.unsetf(ios::fixed);
@@ -47,8 +47,8 @@ void printHist(vector<TH1F*> hist, const char* filename) {
    file.close();
 }
 
-void printHist(TH1F* hist, const char* filename) {
-   vector<TH1F*> v; v.push_back(hist);
+void printHist(TH1* hist, const char* filename) {
+   vector<TH1*> v; v.push_back(hist);
    printHist(v, filename);
 }
 

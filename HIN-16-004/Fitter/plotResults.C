@@ -85,8 +85,8 @@ bool isSignificant(map<anabin, TGraphAsymmErrors*> theGraphs, anabin thebin);
 void plotPt(string workDirName, string workDirNameFail="") {
    string xaxis = "pt";
    vector<anabin> theCats;
-   theCats.push_back(anabin(0,1.6,6.5,30,0,200));
-   theCats.push_back(anabin(1.6,2.4,3,30,0,200));
+   if (!plot12007 || plot12007_mid) theCats.push_back(anabin(0,1.6,6.5,30,0,200));
+   if (!plot12007 || plot12007_fwd) theCats.push_back(anabin(1.6,2.4,3,30,0,200));
 
    plot(theCats,xaxis,workDirName, workDirNameFail);
 };
@@ -96,12 +96,12 @@ void plotCent(string workDirName, string workDirNameFail="") {
    vector<anabin> theCats;
 
    // centrality dependence
-   theCats.push_back(anabin(0,1.6,6.5,30,0,200));
-   theCats.push_back(anabin(1.6,2.4,3,30,0,200));
+   if (!plot12007 || plot12007_mid) theCats.push_back(anabin(0,1.6,6.5,30,0,200));
+   if (!plot12007 || plot12007_fwd) theCats.push_back(anabin(1.6,2.4,3,30,0,200));
 
    // for minimum bias
-   theCats.push_back(anabin(0,1.6,6.5,30,0,-200));
-   theCats.push_back(anabin(1.6,2.4,3,30,0,-200));
+   if (!plot12007 || plot12007_mid) theCats.push_back(anabin(0,1.6,6.5,30,0,-200));
+   if (!plot12007 || plot12007_fwd) theCats.push_back(anabin(1.6,2.4,3,30,0,-200));
 
    plot(theCats,xaxis,workDirName, workDirNameFail);
 };
@@ -483,7 +483,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    }
 
    // prepare for the printing of the result tables
-   const char* xname = (xaxis=="cent") ? "Centrality" : "\\pt";
+   const char* xname = (xaxis=="cent") ? "Centrality" : "\\pt (\\GeVc)";
    gSystem->mkdir(Form("Output/%s/tex/", outputDir.c_str()), kTRUE); 
    char texname[2048]; sprintf(texname, "Output/%s/tex/result_%s%s.tex",outputDir.c_str(),xaxis.c_str(),nameTag);
    string yname("\\doubleRatio");
