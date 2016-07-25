@@ -1,8 +1,8 @@
 // pt-dependent ctau cuts
-const double ctaucut_a_mid_pp = 0.010;
-const double ctaucut_a_fwd_pp = 0.013;
-const double ctaucut_b_mid_pp = 0.25;
-const double ctaucut_b_fwd_pp = 0.29;
+const double ctaucut_a_mid_pp = 0.012;
+const double ctaucut_a_fwd_pp = 0.014;
+const double ctaucut_b_mid_pp = 0.23;
+const double ctaucut_b_fwd_pp = 0.28;
 
 const bool datamc = false;
 
@@ -12,7 +12,7 @@ const bool integrate = true;
 
 void integrateHist(TH1F* hist);
 
-void plot_ljpsi(const char* fdata, const char* fmc) {
+void plot_ljpsi(const char* fdata, const char* fmc, bool ispbpb=false) {
    TFile *tfd = TFile::Open(fdata);
    TFile *tfm = TFile::Open(fmc);
 
@@ -77,8 +77,13 @@ void plot_ljpsi(const char* fdata, const char* fmc) {
          // read the bin from the name
          TString thname(hdata->GetName());
          bool isfwd = (thname.Index("fwd") != kNPOS);
+         bool iscent = (thname.Contains("cent"));
          int pos1 = thname.Index("pt")+2;
          int pos2 = thname.Index("-")-pos1;
+         if (iscent) {
+            pos1 = thname.Index("cent")+4;
+            pos2 = thname.Index("-")-pos1;
+         }
          TString tsubstr(thname(pos1,pos2));
          float ptmin = atof(tsubstr.Data());
          pos1 = thname.Index("-")+1;
@@ -103,7 +108,7 @@ void plot_ljpsi(const char* fdata, const char* fmc) {
          TBox *tb = new TBox(cutmin,gPad->GetUymin(),cutmax,gPad->GetUymax());
          tb->SetFillColor(kBlack);
          tb->SetFillStyle(3003);
-         tb->Draw();
+         if (!iscent) tb->Draw();
 
          if (integrate) {
             TLine *tl = new TLine(hdata->GetXaxis()->GetXmin(),0.9,hdata->GetXaxis()->GetXmax(),0.9);
@@ -152,12 +157,18 @@ void plot_ljpsi(const char* fdata, const char* fmc) {
          tleg->SetBorderSize(0);
          TString header("#splitline{");
          header += isfwd ? "1.6<|y|<2.4" : "|y|<1.6";
-         header += Form("}{%.1f<pt<%.1f GeV/c}",ptmin,ptmax);
+         if (!iscent) header += Form("}{%.1f<pt<%.1f GeV/c}",ptmin,ptmax);
+         else header += Form("}{Centrality: [%.0f, %.0f]%s}",ptmin,ptmax,"\%");
          tleg->SetHeader(header);
          // tleg->AddEntry(hdata,Form("pp data (#sigma = %.3f +/- %.3f)",sigma_data,dsigma_data),"lp");
          // tleg->AddEntry(hmc,Form("pp prompt J/#psi mc (#sigma = %.3f +/- %.3f)",sigma_mc,dsigma_mc),"lp");
-         tleg->AddEntry(hdata,"data","lp");
-         tleg->AddEntry(hmc,"prompt J/#psi mc","lp");
+         if (ispbpb) {
+            tleg->AddEntry(hdata,"PbPb data","lp");
+            tleg->AddEntry(hmc,"PbPb prompt J/#psi mc","lp");
+         } else {
+            tleg->AddEntry(hdata,"pp data","lp");
+            tleg->AddEntry(hmc,"pp prompt J/#psi mc","lp");
+         }
          tleg->Draw();
          c1->SaveAs(Form("%s.pdf",hdata->GetName()));
          c1->SaveAs(Form("%s.png",hdata->GetName()));

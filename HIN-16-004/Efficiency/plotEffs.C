@@ -103,7 +103,7 @@ void plotEffs() {
                TH1F *haxes = new TH1F("haxes","haxes",1,0,(idep==1) ? 100 : 30);
                haxes->GetYaxis()->SetTitle("Efficiency");
                if (icut>=3) haxes->GetYaxis()->SetTitle("#font[12]{l}_{J/#psi}^{3D} cut efficiency");
-               haxes->GetXaxis()->SetTitle((idep==1) ? "Centrality bin" : "p_{T}");
+               haxes->GetXaxis()->SetTitle((idep==1) ? "Centrality percentile [%]" : "p_{T} [GeV/c]");
                TLatex tl; TString cname;
                TString effname = (icut<3) ? "singleff_" : "ctaucuteff_";
                cname = "files/" + effname + colltag + "_" + deptag + "_" + raptag + "_" + cuttag;
@@ -132,7 +132,7 @@ void plotEffs() {
                   tleg->AddEntry(tg_npjpsi,"J/#psi (non-prompt)","lp");
                   tleg->Draw();
 
-                  tl.DrawLatex((idep==0) ? 1.5 : 10, (icut<3) ? 0.9 : 0.7, colltag + TString(", ") 
+                  tl.DrawLatex((idep==0) ? 1.5 : 10, (icut<3) ? 0.9 : 0.7, TString(colltag=="pbpb" ? "PbPb" : "pp") + TString(", ") 
                         + ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
                         + ((icut==0) ? "no #font[12]{l}_{J/#psi}^{3D} cut" : ((icut==1 || icut==3) ? "cst #font[12]{l}_{J/#psi}^{3D} cut" : "pt-dep #font[12]{l}_{J/#psi}^{3D} cut")));
 
@@ -148,7 +148,7 @@ void plotEffs() {
                   yname.push_back("non-prompt \\Jpsi");
                   vector<TGraphAsymmErrors*> tgs;
                   tgs.push_back(tg_jpsi); tgs.push_back(tg_psi2s); tgs.push_back(tg_npjpsi);
-                  inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality bin", yname);
+                  inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality percentile [%]", yname);
                   printGraph(tgs, texname.Data());
                   if (idep==0) closetex(texname.Data());
                } else {
@@ -227,7 +227,7 @@ void plotEffs() {
                   TLegend *tleg2 = new TLegend(0.7,0.17,0.89,0.31);
                   tleg2->SetBorderSize(0);
                   tleg2->AddEntry(hpsi2spp,"pp","lp");
-                  tleg2->AddEntry(hpsi2spbpb,"pbpb","lp");
+                  tleg2->AddEntry(hpsi2spbpb,"PbPb","lp");
                   tleg2->Draw();
 
                   tl.DrawLatex((idep==0) ? 1.5 : 10, 1.4, ((irap==0) ? "|y|<1.6" : "|y|>1.6") + TString(", ") 
@@ -243,7 +243,7 @@ void plotEffs() {
                   yname.push_back("\\pbpb");
                   vector<TH1*> ths;
                   ths.push_back(hpsi2spp); ths.push_back(hpsi2spbpb);
-                  inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality bin", yname);
+                  inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality percentile [%]", yname);
                   printHist(ths, texname.Data());
                   if (idep==0) closetex(texname.Data());
                } else {
@@ -279,7 +279,7 @@ void plotEffs() {
                   yname.push_back("Double ratio of efficiencies");
                   vector<TH1*> ths;
                   ths.push_back(hpsi2spbpb);
-                  inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality bin", yname);
+                  inittex(texname.Data(), deptag=="pt" ? "\\pt" : "Centrality percentile [%]", yname);
                   printHist(ths, texname.Data());
                   if (idep==0) closetex(texname.Data());
                } else {
