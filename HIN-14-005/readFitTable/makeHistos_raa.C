@@ -36,9 +36,9 @@ The output root files of this macro, wich contains the histograms with the yield
 #include "dataBinning_2015.h"
 
 void makeHistos_raa(int sample    = 0,// 0=PbPb,     1= pp
-        int weight    = 0,// 0=noWeight, 1=weight
-        int isEffFile = 0,// 0=no, 1=making efficiency histograms, 2=3Deff uncertainties, 3,4=TnP uncertainties(stat,syst), 5,6=TnP_STA uncertainties(stat,syst)
-        const char* inputFitDataFileLocation = "../data/raa"
+		    int weight    = 1,// 0=noWeight, 1=weight
+		    int isEffFile = 0,// 0=no, 1=making efficiency histograms, 2=3Deff uncertainties, 3,4=TnP uncertainties(stat,syst), 5,6=TnP_STA uncertainties(stat,syst)
+		    const char* inputFitDataFileLocation = "../data/raa"
                    ) 
 {
 

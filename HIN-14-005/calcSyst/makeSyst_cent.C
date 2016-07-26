@@ -984,8 +984,8 @@ void makeSyst_cent( bool bSavePlots     = 1,
             globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack);
             globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack);
 
-            lumi_pr_y024_pt6530  = new TBox(390,1-globalSyst_pr,400.0,1+globalSyst_pr);
-            lumi_npr_y024_pt6530 = new TBox(390,1-globalSyst_npr,400.0,1+globalSyst_npr);
+            lumi_pr_y024_pt6530  = new TBox(375,1-globalSyst_pr,400.0,1+globalSyst_pr);
+            lumi_npr_y024_pt6530 = new TBox(375,1-globalSyst_npr,400.0,1+globalSyst_npr);
           }
           
           outputData_pr << "65300\t" << "0024\t" << centbins_str[ibin-1] << "\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_cent[ibin-1] << "\t"
@@ -1036,8 +1036,8 @@ void makeSyst_cent( bool bSavePlots     = 1,
             globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack);
             globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack);
 
-            lumi_pr_y1624_pt365  = new TBox(380,1-globalSyst_pr,390.0,1+globalSyst_pr);
-            lumi_npr_y1624_pt365 = new TBox(380,1-globalSyst_npr,390.0,1+globalSyst_npr);
+            lumi_pr_y1624_pt365  = new TBox(375,1-globalSyst_pr,400.0,1+globalSyst_pr);
+            lumi_npr_y1624_pt365 = new TBox(375,1-globalSyst_npr,400.0,1+globalSyst_npr);
           }
 
           outputData_pr << "3065\t" << "1624\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_pt365y1624_cent[ibin-1] << "\t"
@@ -1090,8 +1090,8 @@ void makeSyst_cent( bool bSavePlots     = 1,
             globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack);
             globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack);
 
-            lumi_pr_y012_pt6530  = new TBox(390,1-globalSyst_pr,400.0,1+globalSyst_pr);
-            lumi_npr_y012_pt6530 = new TBox(390,1-globalSyst_npr,400.0,1+globalSyst_npr);
+            lumi_pr_y012_pt6530  = new TBox(325,1-globalSyst_pr,350.0,1+globalSyst_pr);
+            lumi_npr_y012_pt6530 = new TBox(325,1-globalSyst_npr,350.0,1+globalSyst_npr);
           }
           
           outputData_pr << "65300\t" << "012\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_pt6530y012_cent[ibin-1] << "\t"
@@ -1140,8 +1140,8 @@ void makeSyst_cent( bool bSavePlots     = 1,
             globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp  + systLumi + systSelection + systTrack);
             globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp + systLumi + systSelection + systTrack);
 
-            lumi_pr_y1216_pt6530  = new TBox(380,1-globalSyst_pr,390,1+globalSyst_pr);
-            lumi_npr_y1216_pt6530 = new TBox(380,1-globalSyst_npr,390,1+globalSyst_npr);
+            lumi_pr_y1216_pt6530  = new TBox(350,1-globalSyst_pr,375,1+globalSyst_pr);
+            lumi_npr_y1216_pt6530 = new TBox(350,1-globalSyst_npr,375,1+globalSyst_npr);
           }
 
           outputData_pr << "65300\t" << "1216\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_pt6530y1216_cent[ibin-1] << "\t"
@@ -1190,11 +1190,11 @@ void makeSyst_cent( bool bSavePlots     = 1,
             globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack);
             globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack);
 
-            lumi_pr_y1624_pt6530  = new TBox(370,1-globalSyst_pr,380.0,1+globalSyst_pr);
-            lumi_npr_y1624_pt6530 = new TBox(370,1-globalSyst_npr,380.0,1+globalSyst_npr);
+            lumi_pr_y1624_pt6530  = new TBox(375,1-globalSyst_pr,400.0,1+globalSyst_pr);
+            lumi_npr_y1624_pt6530 = new TBox(375,1-globalSyst_npr,400.0,1+globalSyst_npr);
             
-            lumi_pr_y1624_pt6530_pty  = new TBox(390,1-globalSyst_pr,400,1+globalSyst_pr);
-            lumi_npr_y1624_pt6530_pty = new TBox(390,1-globalSyst_npr,400.0,1+globalSyst_npr);
+            lumi_pr_y1624_pt6530_pty  = new TBox(350,1-globalSyst_pr,375,1+globalSyst_pr);
+            lumi_npr_y1624_pt6530_pty = new TBox(350,1-globalSyst_npr,375.0,1+globalSyst_npr);
           }
 
           outputData_pr << "65300\t" << "1624\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_pt6530y1624_cent[ibin-1] << "\t"

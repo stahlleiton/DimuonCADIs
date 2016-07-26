@@ -16,7 +16,6 @@ const char* yieldHistFile_pp_systSgnBkg[nFitVariations] = {
   "histsRaaYields_20160304_pp_const.root" 
 };
 const char* yieldHistFile_pp_syst4DCorr[nEff4DVariations] = {
-//  "histsRaaYields_20160304_pp_weighted_prof.root"
   "histsRaaYields_20160304_pp_ctau2mm.root"
 };
 
@@ -38,7 +37,6 @@ const char* yieldHistFile_aa_systSgnBkg[nFitVariations]   = {
   "histsRaaYields_20160304_PbPb_const.root"
 };
 const char* yieldHistFile_aa_syst4DCorr[nEff4DVariations] = {
-//  "histsRaaYields_20160304_PbPb_weighted_prof.root"
   "histsRaaYields_20160304_PbPb_ctau2mm.root"
 };
 

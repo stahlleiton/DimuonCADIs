@@ -38,12 +38,14 @@ Output: the Raa vs pt.
 #include "../tdrstyle.C"
 #endif
 
-void makeRaa_pt( bool bSavePlots=1,
-		 bool bDoDebug = 0, // adds some numbers, numerator, denominator, to help figure out if things are read properly
-		 bool bAddLumi = 1, // add the lumi boxes at raa=1
-		 int  whichSample     = 1,//0: no TnP corrections; 1: w/ TnP corr on Data; 2: w/ TnP corr on MC; 3: lxy w/ TnP on MC
-		 const char* inputDir="../readFitTable", // the place where the input root files, with the histograms are
-		 const char* outputDir="figs")// where the output figures will be
+void makeRaa_pt( bool bSavePlots = 1,
+		 bool bSaveRoot  = 1,
+		 bool bDoDebug   = 0, // adds some numbers, numerator, denominator, to help figure out if things are read properly
+		 bool bAddLumi             = 1, // add the lumi boxes at raa=1
+		 int  whichSample          = 1,//0: no TnP corrections; 1: w/ TnP corr on Data; 2: w/ TnP corr on MC; 3: lxy w/ TnP on MC
+		 const char* inputDir      = "../readFitTable", // the place where the input root files, with the histograms are
+		 const char* outputDir     = "figs",
+		 const char* outputRootDir = "outRoot")// where the output figures will be
 {
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
@@ -229,44 +231,38 @@ void makeRaa_pt( bool bSavePlots=1,
 
   // ***** //Drawing
   // pr
-  TGraphErrors *gPrJpsi     = new TGraphErrors(nBinsPt, binsPt, prJpsi_pt, binsPtErr, prJpsiErr_pt);
-  TGraphErrors *gPrJpsiP    = new TGraphErrors(nBinsPt, binsPt, prJpsi_pt, binsPtErr, prJpsiErr_pt);
-  TGraphErrors *gPrJpsiSyst = (TGraphErrors *)systFile->Get("gPrJpsiSyst");
-//  TGraphErrors *gPrJpsiSyst = new TGraphErrors(nBinsPt, binsPt, prJpsi_pt, binsPtX, prJpsiErrSyst_pt);
+  TGraphErrors *gPrJpsi                   = new TGraphErrors(nBinsPt, binsPt, prJpsi_pt, binsPtErr, prJpsiErr_pt);
+  TGraphErrors *gPrJpsiP                  = new TGraphErrors(nBinsPt, binsPt, prJpsi_pt, binsPtErr, prJpsiErr_pt);
+  TGraphErrors *gPrJpsiSyst               = (TGraphErrors *)systFile->Get("gPrJpsiSyst");
 
-  TGraphErrors *gPrJpsi_mb     = new TGraphErrors(nBinsMB, binsPtMB, prJpsi_pt, binsPtMBErr, prJpsiErr_pt);
-  TGraphErrors *gPrJpsiP_mb    = new TGraphErrors(nBinsMB, binsPtMB, prJpsi_pt, binsPtMBErr, prJpsiErr_pt);
-  TGraphErrors *gPrJpsiSyst_mb = new TGraphErrors(nBinsMB, binsPtMB, prJpsi_pt, binsPtMBX  , prJpsiErrSyst_pt);
+  TGraphErrors *gPrJpsi_mb                = new TGraphErrors(nBinsMB, binsPtMB, prJpsi_pt, binsPtMBErr, prJpsiErr_pt);
+  TGraphErrors *gPrJpsiP_mb               = new TGraphErrors(nBinsMB, binsPtMB, prJpsi_pt, binsPtMBErr, prJpsiErr_pt);
+  TGraphErrors *gPrJpsiSyst_mb            = new TGraphErrors(nBinsMB, binsPtMB, prJpsi_pt, binsPtMBX  , prJpsiErrSyst_pt);
  
-  TGraphErrors *gPrJpsi_y1624_mb     = new TGraphErrors(nBinsPt3, binsPt3_mb, prJpsi_y1624MB_pt, binsPt3Err_mb, prJpsiErr_y1624MB_pt);
-  TGraphErrors *gPrJpsiP_y1624_mb    = new TGraphErrors(nBinsPt3, binsPt3_mb, prJpsi_y1624MB_pt, binsPt3Err_mb, prJpsiErr_y1624MB_pt);
-  TGraphErrors *gPrJpsiSyst_y1624_mb = new TGraphErrors(nBinsPt3, binsPt3_mb, prJpsi_y1624MB_pt, binsPt3X_mb,   prJpsiErrSyst_y1624MB_pt);
+  TGraphErrors *gPrJpsi_y1624_mb          = new TGraphErrors(nBinsPt3, binsPt3_mb, prJpsi_y1624MB_pt, binsPt3Err_mb, prJpsiErr_y1624MB_pt);
+  TGraphErrors *gPrJpsiP_y1624_mb         = new TGraphErrors(nBinsPt3, binsPt3_mb, prJpsi_y1624MB_pt, binsPt3Err_mb, prJpsiErr_y1624MB_pt);
+  TGraphErrors *gPrJpsiSyst_y1624_mb      = new TGraphErrors(nBinsPt3, binsPt3_mb, prJpsi_y1624MB_pt, binsPt3X_mb,   prJpsiErrSyst_y1624MB_pt);
 
-  TGraphErrors *gPrJpsi_pt365y1624     = new TGraphErrors(nBinsPt3, binsPt3, prJpsi_pt365y1624_pt, binsPt3Err, prJpsiErr_pt365y1624_pt);
-  TGraphErrors *gPrJpsiP_pt365y1624    = new TGraphErrors(nBinsPt3, binsPt3, prJpsi_pt365y1624_pt, binsPt3Err, prJpsiErr_pt365y1624_pt);
-  TGraphErrors *gPrJpsiSyst_pt365y1624 = (TGraphErrors*)systFile->Get("gPrJpsiSyst_pt365y1624");
-//  TGraphErrors *gPrJpsiSyst_pt365y1624 = new TGraphErrors(nBinsPt3, binsPt3, prJpsi_pt365y1624_pt, binsPt3X, prJpsiErrSyst_pt365y1624_pt);
-
+  TGraphErrors *gPrJpsi_pt365y1624        = new TGraphErrors(nBinsPt3, binsPt3, prJpsi_pt365y1624_pt, binsPt3Err, prJpsiErr_pt365y1624_pt);
+  TGraphErrors *gPrJpsiP_pt365y1624       = new TGraphErrors(nBinsPt3, binsPt3, prJpsi_pt365y1624_pt, binsPt3Err, prJpsiErr_pt365y1624_pt);
+  TGraphErrors *gPrJpsiSyst_pt365y1624    = (TGraphErrors*)systFile->Get("gPrJpsiSyst_pt365y1624");
  
   // nonPr   
-  TGraphErrors *gNonPrJpsi     = new TGraphErrors(nBinsPt, binsPt, nonPrJpsi_pt, binsPtErr, nonPrJpsiErr_pt);
-  TGraphErrors *gNonPrJpsiP    = new TGraphErrors(nBinsPt, binsPt, nonPrJpsi_pt, binsPtErr, nonPrJpsiErr_pt);
-  TGraphErrors *gNonPrJpsiSyst = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst");
-//  TGraphErrors *gNonPrJpsiSyst = new TGraphErrors(nBinsPt, binsPt, nonPrJpsi_pt, binsPtX, nonPrJpsiErrSyst_pt);
+  TGraphErrors *gNonPrJpsi                = new TGraphErrors(nBinsPt, binsPt, nonPrJpsi_pt, binsPtErr, nonPrJpsiErr_pt);
+  TGraphErrors *gNonPrJpsiP               = new TGraphErrors(nBinsPt, binsPt, nonPrJpsi_pt, binsPtErr, nonPrJpsiErr_pt);
+  TGraphErrors *gNonPrJpsiSyst            = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst");
 
-  TGraphErrors *gNonPrJpsi_mb     = new TGraphErrors(nBinsMB, binsPtMB, nonPrJpsi_pt, binsPtMBErr, nonPrJpsiErr_pt);
-  TGraphErrors *gNonPrJpsiP_mb    = new TGraphErrors(nBinsMB, binsPtMB, nonPrJpsi_pt, binsPtMBErr, nonPrJpsiErr_pt);
-  TGraphErrors *gNonPrJpsiSyst_mb = new TGraphErrors(nBinsMB, binsPtMB, nonPrJpsi_pt, binsPtMBX, nonPrJpsiErrSyst_pt);
+  TGraphErrors *gNonPrJpsi_mb             = new TGraphErrors(nBinsMB, binsPtMB, nonPrJpsi_pt, binsPtMBErr, nonPrJpsiErr_pt);
+  TGraphErrors *gNonPrJpsiP_mb            = new TGraphErrors(nBinsMB, binsPtMB, nonPrJpsi_pt, binsPtMBErr, nonPrJpsiErr_pt);
+  TGraphErrors *gNonPrJpsiSyst_mb         = new TGraphErrors(nBinsMB, binsPtMB, nonPrJpsi_pt, binsPtMBX, nonPrJpsiErrSyst_pt);
 
-  TGraphErrors *gNonPrJpsi_y1624_mb     = new TGraphErrors(nBinsPt3, binsPt3_mb, nonPrJpsi_y1624MB_pt, binsPt3Err_mb, nonPrJpsiErr_y1624MB_pt);
-  TGraphErrors *gNonPrJpsiP_y1624_mb    = new TGraphErrors(nBinsPt3, binsPt3_mb, nonPrJpsi_y1624MB_pt, binsPt3Err_mb, nonPrJpsiErr_y1624MB_pt);
-  TGraphErrors *gNonPrJpsiSyst_y1624_mb = new TGraphErrors(nBinsPt3, binsPt3_mb, nonPrJpsi_y1624MB_pt, binsPt3X_mb,   nonPrJpsiErrSyst_y1624MB_pt);
+  TGraphErrors *gNonPrJpsi_y1624_mb       = new TGraphErrors(nBinsPt3, binsPt3_mb, nonPrJpsi_y1624MB_pt, binsPt3Err_mb, nonPrJpsiErr_y1624MB_pt);
+  TGraphErrors *gNonPrJpsiP_y1624_mb      = new TGraphErrors(nBinsPt3, binsPt3_mb, nonPrJpsi_y1624MB_pt, binsPt3Err_mb, nonPrJpsiErr_y1624MB_pt);
+  TGraphErrors *gNonPrJpsiSyst_y1624_mb   = new TGraphErrors(nBinsPt3, binsPt3_mb, nonPrJpsi_y1624MB_pt, binsPt3X_mb,   nonPrJpsiErrSyst_y1624MB_pt);
 
   TGraphErrors *gNonPrJpsi_pt365y1624     = new TGraphErrors(nBinsPt3, binsPt3, nonPrJpsi_pt365y1624_pt, binsPt3Err, nonPrJpsiErr_pt365y1624_pt);
   TGraphErrors *gNonPrJpsiP_pt365y1624    = new TGraphErrors(nBinsPt3, binsPt3, nonPrJpsi_pt365y1624_pt, binsPt3Err, nonPrJpsiErr_pt365y1624_pt);
   TGraphErrors *gNonPrJpsiSyst_pt365y1624 = (TGraphErrors*)systFile->Get("gNonPrJpsiSyst_pt365y1624");
-//  TGraphErrors *gNonPrJpsiSyst_pt365y1624 = new TGraphErrors(nBinsPt3, binsPt3, nonPrJpsi_pt365y1624_pt, binsPt3X,   nonPrJpsiErrSyst_pt365y1624_pt);
-
 
   //-------------------------------------------------------------------
   // **************** marker colors
@@ -556,7 +552,47 @@ void makeRaa_pt( bool bSavePlots=1,
     c22b->SaveAs(Form("%s/pdf/nonPrJpsi_vsPt_mb_%s.pdf",outputDir,sample[whichSample]));
     c22b->SaveAs(Form("%s/png/nonPrJpsi_vsPt_mb_%s.png",outputDir,sample[whichSample]));
   }
-
   systFile->Close();
+  //----------------------------------------------------
+  if(bSaveRoot)
+    {
+      TFile *pfOutput = new TFile(Form("%s/makeRaa_pt.root",outputRootDir),"RECREATE");
+
+      lumi->Write("lumi");
+      // PROMPT
+      //integrated values
+      gPrJpsiSyst_mb->Write("gPrJpsiSyst_mb");
+      gPrJpsi_mb->Write("gPrJpsi_mb");
+      gPrJpsiSyst_y1624_mb->Write("gPrJpsiSyst_y1624_mb");
+      gPrJpsi_y1624_mb->Write("gPrJpsi_y1624_mb");
+
+      // pt dependence
+      gPrJpsiSyst->Write("gPrJpsiSyst");
+      gPrJpsi->Write("gPrJpsi");
+      gPrJpsiP->Write("gPrJpsiP");
+
+      gPrJpsiSyst_pt365y1624->Write("gPrJpsiSyst_pt365y1624");
+      gPrJpsi_pt365y1624->Write("gPrJpsi_pt365y1624");
+      gPrJpsiP_pt365y1624->Write("gPrJpsiP_pt365y1624");
+
+      //NONPROMPT
+      gNonPrJpsiSyst->Write("gNonPrJpsiSyst");
+      gNonPrJpsi->Write("gNonPrJpsi");
+      gNonPrJpsiP->Write("gNonPrJpsiP");
+
+      gNonPrJpsiSyst_pt365y1624->Write("gNonPrJpsiSyst_pt365y1624");
+      gNonPrJpsi_pt365y1624->Write("gNonPrJpsi_pt365y1624");
+      gNonPrJpsiP_pt365y1624->Write("gNonPrJpsiP_pt365y1624");
+      
+      gNonPrJpsiSyst_mb->Write("gNonPrJpsiSyst_mb");
+      gNonPrJpsi_mb->Write("gNonPrJpsi_mb");
+ 
+      gNonPrJpsiSyst_y1624_mb->Write("gNonPrJpsiSyst_y1624_mb");
+      gNonPrJpsi_y1624_mb->Write("gNonPrJpsi_y1624_mb");
+
+      pfOutput->Write(); 
+  
+    }
+  
 
 }

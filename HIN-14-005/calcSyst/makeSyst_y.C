@@ -589,7 +589,7 @@ void makeSyst_y( bool bSavePlots        = 1,
   gNonPrJpsiSyst_y_y->SetFillColor(kViolet-9);
   //------------------------------- luminosity calcualtion
   double globalSyst  = TMath::Sqrt(systLumi+systSelection+systTrack);
-  TBox *lumi = new TBox(2.33,1-globalSyst,2.4,1+globalSyst);
+  TBox *lumi = new TBox(2.25,1-globalSyst,2.4,1+globalSyst);
   lumi->SetFillColor(kGray+1);
 
   //-------------------------------------------

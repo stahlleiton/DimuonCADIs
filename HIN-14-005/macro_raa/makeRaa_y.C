@@ -38,11 +38,13 @@ Output: the Raa vs rpaidity.
 #endif
 
 void makeRaa_y(bool bSavePlots=1,
+	       bool bSaveRoot  = 1,
 	       bool bDoDebug = 0, // adds some numbers, numerator, denominator, to help figure out if things are read properly
 	       bool bAddLumi = 1, // add the lumi boxes at raa=1
 	       int  whichSample     = 1,//0: no TnP corrections; 1: w/ TnP corr on Data; 2: w/ TnP corr on MC; 3: lxy w/ TnP on MC
 	       const char* inputDir="../readFitTable", // the place where the input root files, with the histograms are
-	       const char* outputDir="figs")// where the output figures will be
+	       const char* outputDir="figs",
+	       const char* outputRootDir = "outRoot")// where the output figures will be
 {
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
@@ -472,5 +474,39 @@ void makeRaa_y(bool bSavePlots=1,
     c22b->SaveAs(Form("%s/nonPrJpsi_vsY_mb_%s.root",outputDir,sample[whichSample]));
   }
 
+  //=======================================================
+  if(bSaveRoot)
+    {
+      TFile *pfOutput = new TFile(Form("%s/makeRaa_y.root",outputRootDir),"RECREATE");
+
+      // LUMIS
+      lumi->Write("lumi");
+      
+	// PROMPT
+      gPrJpsiSyst->Write("gPrJpsiSyst");
+      gPrJpsi->Write("gPrJpsi");
+      gPrJpsiP->Write("gPrJpsiP");
+
+      gPrJpsiSyst_mb->Write("gPrJpsiSyst_mb");
+      gPrJpsi_mb->Write("gPrJpsi_mb");
+  
+      gPrJpsiSyst_y_y->Write("gPrJpsiSyst_y_y");
+      gPrJpsi_y_y->Write("gPrJpsi_y_y");
+  
+      // NONPROMPT
+      gNonPrJpsiSyst->Write("gNonPrJpsiSyst");
+      gNonPrJpsi->Write("gNonPrJpsi");
+      gNonPrJpsiP->Write("gNonPrJpsiP");
+
+      gNonPrJpsiSyst_mb->Write("gNonPrJpsiSyst_mb");
+      gNonPrJpsi_mb->Write("gNonPrJpsi_mb");
+ 
+      gNonPrJpsiSyst_y_y->Write("gNonPrJpsiSyst_y_y");
+      gNonPrJpsi_y_y->Write("gNonPrJpsi_y_y");
+      
+      pfOutput->Write(""); 
+  
+    }
+  
   systFile->Close();
 }

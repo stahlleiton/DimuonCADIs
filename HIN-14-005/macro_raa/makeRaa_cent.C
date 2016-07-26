@@ -40,11 +40,13 @@ Output: the Raa vs cent.
 using namespace std;
 
 void makeRaa_cent( bool bSavePlots=1,
-		 bool bDoDebug = 0, // adds some numbers, numerator, denominator, to help figure out if things are read properly
-		 bool bAddLumi = 1, // add the lumi boxes at raa=1
-		 int  whichSample     = 1,//0: no TnP corrections; 1: w/ TnP corr on Data; 2: w/ TnP corr on MC; 3: lxy w/ TnP on MC
-		 const char* inputDir="../readFitTable", // the place where the input root files, with the histograms are
-		 const char* outputDir="figs")// where the output figures will be
+		   bool bSaveRoot  = 1,
+		   bool bDoDebug = 0, // adds some numbers, numerator, denominator, to help figure out if things are read properly
+		   bool bAddLumi = 1, // add the lumi boxes at raa=1
+		   int  whichSample     = 1,//0: no TnP corrections; 1: w/ TnP corr on Data; 2: w/ TnP corr on MC; 3: lxy w/ TnP on MC
+		   const char* inputDir="../readFitTable", // the place where the input root files, with the histograms are
+		   const char* outputDir="figs",
+		   const char* outputRootDir = "outRoot")// where the output figures will be
 {
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
@@ -720,6 +722,84 @@ void makeRaa_cent( bool bSavePlots=1,
     c21b->SaveAs(Form("%s/png/NonPrJpsi_vsCent_yLowPt_%s.png",outputDir,sample[whichSample]));
     c21b->SaveAs(Form("%s/NonPrJpsi_vsCent_yLowPt_%s.root",outputDir,sample[whichSample]));
   }
- 
+
+  //==========================================================
+  if(bSaveRoot)
+    {
+      TFile *pfOutput = new TFile(Form("%s/makeRaa_cent.root",outputRootDir),"RECREATE");
+
+      lumi_pr_y024_pt6530->Write("lumi_pr_y024_pt6530");
+      lumi_pr_y012_pt6530->Write("lumi_pr_y012_pt6530");
+      lumi_pr_y1216_pt6530->Write("lumi_pr_y1216_pt6530");
+      lumi_pr_y1624_pt6530->Write("lumi_pr_y1624_pt6530");
+    
+      lumi_pr_y1624_pt6530_pty->Write("lumi_pr_y1624_pt6530_pty");
+      lumi_pr_y1624_pt365->Write("lumi_pr_y1624_pt365");
+
+      lumi_npr_y024_pt6530->Write("lumi_npr_y024_pt6530");
+	  
+      lumi_npr_y012_pt6530->Write("lumi_npr_y012_pt6530");
+      lumi_npr_y1216_pt6530->Write("lumi_npr_y1216_pt6530");
+      lumi_npr_y1624_pt6530->Write("lumi_npr_y1624_pt6530");
+    
+      lumi_npr_y1624_pt6530_pty->Write("lumi_npr_y1624_pt6530_pty");
+      lumi_npr_y1624_pt365->Write("lumi_npr_y1624_pt365");
+    
+      // PROMPT
+      gPrJpsiSyst->Write("gPrJpsiSyst");
+      gPrJpsi->Write("gPrJpsi");
+      gPrJpsiP->Write("gPrJpsiP");
+  
+      gPrJpsiSyst_pt6530y1216->Write("gPrJpsiSyst_pt6530y1216");
+      gPrJpsiSyst_pt6530y012->Write("gPrJpsiSyst_pt6530y012");
+      gPrJpsiSyst_pt6530y1624->Write("gPrJpsiSyst_pt6530y1624");
+      
+      gPrJpsi_pt6530y012->Write("gPrJpsi_pt6530y012");
+      gPrJpsi_pt6530y1216->Write("gPrJpsi_pt6530y1216");
+      gPrJpsi_pt6530y1624->Write("gPrJpsi_pt6530y1624");
+      
+      gPrJpsiP_pt6530y012->Write("gPrJpsiP_pt6530y012");
+      gPrJpsiP_pt6530y1216->Write("gPrJpsiP_pt6530y1216");
+      gPrJpsiP_pt6530y1624->Write("gPrJpsiP_pt6530y1624");
+      
+      gPrJpsiSyst_pt365y1624->Write("gPrJpsiSyst_pt365y1624");
+      gPrJpsiSyst_pt6530y1624->Write("gPrJpsiSyst_pt6530y1624");
+      
+      gPrJpsi_pt6530y1624->Write("gPrJpsi_pt6530y1624");
+      gPrJpsi_pt365y1624->Write("gPrJpsi_pt365y1624");
+      
+      gPrJpsiP_pt6530y1624->Write("gPrJpsiP_pt6530y1624");
+      gPrJpsiP_pt365y1624->Write("gPrJpsiP_pt365y1624");
+  
+      //NONPROMPT
+      gNonPrJpsiSyst->Write("gNonPrJpsiSyst");
+      gNonPrJpsi->Write("gNonPrJpsi");
+      gNonPrJpsiP->Write("gNonPrJpsiP");
+  
+      gNonPrJpsiSyst_pt6530y012->Write("gNonPrJpsiSyst_pt6530y012");
+      gNonPrJpsiSyst_pt6530y1216->Write("gNonPrJpsiSyst_pt6530y1216");
+      gNonPrJpsiSyst_pt6530y1624->Write("gNonPrJpsiSyst_pt6530y1624");
+      
+      gNonPrJpsi_pt6530y1216->Write("gNonPrJpsi_pt6530y1216");
+      gNonPrJpsi_pt6530y012->Write("gNonPrJpsi_pt6530y012");
+      gNonPrJpsi_pt6530y1624->Write("gNonPrJpsi_pt6530y1624");
+      
+      gNonPrJpsiP_pt6530y1216->Write("gNonPrJpsiP_pt6530y1216");
+      gNonPrJpsiP_pt6530y012->Write("gNonPrJpsiP_pt6530y012");
+      gNonPrJpsiP_pt6530y1624->Write("gNonPrJpsiP_pt6530y1624");
+      
+      gNonPrJpsiSyst_pt6530y1624->Write("gNonPrJpsiSyst_pt6530y1624");
+      gNonPrJpsiSyst_pt365y1624->Write("gNonPrJpsiSyst_pt365y1624");
+    
+      gNonPrJpsi_pt6530y1624->Write("gNonPrJpsi_pt6530y1624");
+      gNonPrJpsi_pt365y1624->Write("gNonPrJpsi_pt365y1624");
+
+      gNonPrJpsiP_pt6530y1624->Write("gNonPrJpsiP_pt6530y1624");
+      gNonPrJpsiP_pt365y1624->Write("gNonPrJpsiP_pt365y1624");
+
+      pfOutput->Write(); 
+  
+    }
+  
   systFile->Close();
 }
