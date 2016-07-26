@@ -75,7 +75,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
      frame->GetYaxis()->SetTitleOffset(1.7);
      frame->GetYaxis()->SetTitleFont(42);
   } else {
-     frame->GetXaxis()->SetTitle("m_{#mu^{+}#mu^{-}} (GeV/c^{2})");
+     frame->GetXaxis()->SetTitle("#font[12]{l}_{J/#psi} (mm)");
      frame->GetXaxis()->SetTitleOffset(1.1);
      frame->GetYaxis()->SetTitleOffset(1.45);
      frame->GetXaxis()->SetTitleSize(0.05);
@@ -183,8 +183,9 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
 void setRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLogScale, double dMuonYmin)
 { 
   // Find maximum and minimum points of Plot to rescale Y axis
-  TH1* h = myws.data(dsName.c_str())->createHistogram("hist", *myws.var("invMass"), Binning(frame->GetNbinsX(),frame->GetXaxis()->GetXmin(),frame->GetXaxis()->GetXmax()));
+  TH1* h = myws.data(dsName.c_str())->createHistogram("hist", *myws.var("ctau"), Binning(frame->GetNbinsX(),frame->GetXaxis()->GetXmin(),frame->GetXaxis()->GetXmax()));
   Double_t YMax = h->GetBinContent(h->GetMaximumBin());
+  cout << YMax << endl;
   // Double_t YMin = min( h->GetBinContent(h->FindFirstBinAbove(0.0)), h->GetBinContent(h->FindLastBinAbove(0.0)) );
   Double_t YMin = 1e99;
   for (int i=1; i<=h->GetNbinsX(); i++) if (h->GetBinContent(i)>0) YMin = min(YMin, h->GetBinContent(i));
@@ -204,6 +205,7 @@ void setRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLogScal
     Ydown = max(YMin-(YMax-YMin)*(0.1/(1.0-0.1-0.4)),0.0);
     Yup = YMax+(YMax-YMin)*(0.4/(1.0-0.1-0.4));
   }
+  cout << Ydown << " " << Yup << endl;
   frame->GetYaxis()->SetRangeUser(Ydown,Yup);
   delete h;
   
@@ -244,7 +246,12 @@ void makeAllCtauPlots(const char* workDirName, const char* DSTag, bool paperStyl
    for (vector<TString>::const_iterator it=theFiles.begin(); it!=theFiles.end(); it++) {
       // if this is not a MB bin, skip it
       anabin thebin = binFromFile(*it);
-      if (!(thebin==anabin(0,1.6,6.5,30,0,200) || thebin==anabin(1.6,2.4,3,30,0,200))) continue;
+      // if (!(thebin==anabin(0,1.6,6.5,30,0,200) || thebin==anabin(1.6,2.4,3,30,0,200))) continue;
+      if (!(thebin==anabin(0,1.6,9,12,0,200) || 
+               thebin==anabin(1.6,2.4,20,30,0,200) ||
+               thebin==anabin(1.6,2.4,3,30,40,80) ||
+               thebin==anabin(0,1.6,6.5,30,0,200) || thebin==anabin(1.6,2.4,3,30,0,200)
+           )) continue;
 
       TFile *f = TFile::Open(*it);
       TString t; Int_t from = 0;
