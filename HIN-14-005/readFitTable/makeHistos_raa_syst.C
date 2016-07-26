@@ -35,14 +35,14 @@ The output root files of this macro, wich contains the histograms with the yield
 #include "Riostream.h"
 #include "dataBinning_2015.h"
 
-void makeHistos_raa_syst(int sample   = 1,// 0=PbPb,     1= pp
+void makeHistos_raa_syst(int sample   = 0,// 0=PbPb,     1= pp
                          int varStart = 0,// the variations to read; all listed in 'whichVariation' array
                          const char* inputFitDataFileLocation = "../data/raa"
                         ) 
 {
   const char* whichSample[2]              = {"20160304_PbPb",      "20160304_pp"};
   const int nVariations = 7; 
-  const char* whichVariation[nVariations] = {"MLAR","const","polFunct","resOpt2","sigG1G2","weighted_prof", "weighted_noTnPSF"};
+  const char* whichVariation[nVariations] = {"MLAR","const","polFunct","resOpt2","sigG1G2","ctau2mm", "weighted_noTnPSF"};
 
   const char* outputHistDataFile[1] = {"histsRaaYields"};
 
