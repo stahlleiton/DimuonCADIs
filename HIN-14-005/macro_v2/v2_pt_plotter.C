@@ -39,7 +39,7 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #endif
 
 void v2_pt_plotter(
-       int jpsiCategory         = -1, // -1: All; 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+       int jpsiCategory         = 2, // -1: All; 1 : Prompt, 2 : Non-Prompt, 3: Bkg
        int npNumBinsHighPt      = 1, // possible number of bins for non-prompt high-pt: 1 or 2
        string nDphiBins         = "4",
        const char* outputDir    = "output", 
@@ -75,7 +75,6 @@ void v2_pt_plotter(
   if (jpsiCategory==2) {categStart=2; categEnd=3;}
   if (jpsiCategory==3) {categStart=3;}
 
-  // Reminder for TGraphAssymError: gr = new TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);// n,x,y,err_x, err_y
   int nBins                   =  nPtBins_pr-1; // remove the low-pt bin, which is treated/read separatelly
   for(int iCateg=categStart; iCateg<categEnd; iCateg++)
     {
@@ -87,18 +86,18 @@ void v2_pt_plotter(
 	}
       cout<<" !!!!! Number of pT bins: "<< nBins<<endl;
   
-      double adXaxis[nBins];//   location on x-axis  
-      double adXaxis_l[nBins];// bin width to the left
-      double adXaxis_h[nBins];// bin width to the right
+      double *adXaxis  = new double[nBins];//   location on x-axis  
+      double *adXaxis_l = new double[nBins];// bin width to the left
+      double *adXaxis_h = new double[nBins];// bin width to the right
 
-      double adV2[nBins]      ; // v2 values
-      double adV2_stat[nBins] ;// stat uncert
-      double adV2_syst[nBins] ;// stat uncert
-      double adV2_err0[nBins] ;// error  0
-      double adV2_low[1]        = {0}; //low-pt, 1 bin, 3-6.5
-      double adV2_low_stat[1]   = {0};
-      double adV2_low_syst[1]   = {0};
-      double adV2_low_err0[1]   = {0};
+      double *adV2 = new double[nBins]      ; // v2 values
+      double *adV2_stat = new double[nBins] ;// stat uncert
+      double *adV2_syst = new double[nBins] ;// stat uncert
+      double *adV2_err0 = new double[nBins] ;// error  0
+      double *adV2_low = new double[1]; //low-pt, 1 bin, 3-6.5
+      double *adV2_low_stat = new double[1];
+      double *adV2_low_syst = new double[1];
+      double *adV2_low_err0 = new double[1];
 
       for(int ib=0; ib<nBins; ib++) {
 	adWidth_systBox[ib] = 0.5;
@@ -157,7 +156,7 @@ void v2_pt_plotter(
 	iline++;
       }
       in.close();
-
+      fitprob = 0;
       if(npNumBinsHighPt==1 && iCateg==2)
 	{
 	  cout << "!!!!!! Input mb file name: "<< inputFile_mb <<endl;
@@ -187,11 +186,12 @@ void v2_pt_plotter(
       
       if (!in.good()) {cout << "######### Fail to open syst_input.txt file.##################" << endl;}
       
-      double y[6] = {0};
+      double y[5] = {0};
+      fitprob = 0;
       iline       = 0;
       getline(in,tmpstring);
       while ( in.good() && iline<nBins+1) {
-	in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> y[0] >> y[1] >> y[2] >> y[3] >> y[4] >> y[5] >> fitprob;
+	in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> y[0] >> y[1] >> y[2] >> y[3] >> y[4] >> fitprob;
 	
 	if(iline==0 ) { adV2_low_syst[iline] = y[1];
 	} else {
@@ -213,9 +213,10 @@ void v2_pt_plotter(
 	if (!in.good()) {cout << "######### Fail to open syst_input.txt file.##################" << endl;}
   
 	iline=0;
+	fitprob = 0;
 	getline(in,tmpstring);
 	while ( in.good() && iline<nBins ){
-	  in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> y[0] >> y[1] >> y[2] >> y[3] >> y[4] >> y[5] >> fitprob;
+	  in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> y[0] >> y[1] >> y[2] >> y[3] >> y[4] >> fitprob;
 	  adV2_syst[iline]      = y[1];
 	  
 	  cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
@@ -362,7 +363,19 @@ void v2_pt_plotter(
   
 	}
 
-    }
+      delete[] adXaxis;
+      delete[] adXaxis_l;
+      delete[] adXaxis_h;
+
+      delete[] adV2;
+      delete[] adV2_stat;
+      delete[] adV2_syst;
+      delete[] adV2_err0;
+      delete[] adV2_low;
+      delete[] adV2_low_stat;
+      delete[] adV2_low_syst;
+      delete[] adV2_low_err0;
+    }//jpsi categ
 
 }
 

@@ -79,14 +79,14 @@ void v2_y_plotter(
   
       cout<<" !!!!! Number of Y bins: "<< nBins<<endl;
   
-      double adXaxis[nBins];//   location on x-axis  
-      double adXaxis_l[nBins];// bin width to the left
-      double adXaxis_h[nBins];// bin width to the right
+      double *adXaxis= new double[nBins];//   location on x-axis  
+      double *adXaxis_l= new double[nBins];// bin width to the left
+      double *adXaxis_h= new double[nBins];// bin width to the right
 
-      double adV2[nBins]      ; // v2 values
-      double adV2_stat[nBins] ;// stat uncert
-      double adV2_syst[nBins] ;// stat uncert
-      double adV2_err0[nBins] ;// error  0
+      double *adV2= new double[nBins]      ; // v2 values
+      double *adV2_stat= new double[nBins] ;// stat uncert
+      double *adV2_syst= new double[nBins] ;// stat uncert
+      double *adV2_err0= new double[nBins] ;// error  0
       
       for(int ib=0; ib<nBins; ib++)
 	{
@@ -143,11 +143,12 @@ void v2_y_plotter(
       
       if (!in.good()) {cout << "######### Fail to open syst_input.txt file.##################" << endl;}
 
-      double y[6] = {0};
+      double y[5] = {0};
+      fitprob = 0;
       iline       = 0;
       getline(in,tmpstring);
       while ( in.good() && iline<nBins) {
-	in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> y[0] >> y[1] >> y[2] >> y[3] >> y[4] >> y[5] >> fitprob;
+	in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> y[0] >> y[1] >> y[2] >> y[3] >> y[4] >> fitprob;
 	adV2_syst[iline]      = y[1];
 	
 	cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";
@@ -248,8 +249,16 @@ void v2_y_plotter(
 	  pfOutput->Write(); 
   
 	}
+      delete[] adXaxis;
+      delete[] adXaxis_l;
+      delete[] adXaxis_h;
+
+      delete[] adV2;
+      delete[] adV2_stat;
+      delete[] adV2_syst;
+      delete[] adV2_err0;
       
-    }
+    }// jpsi category
   
 }
   

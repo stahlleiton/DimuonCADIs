@@ -53,34 +53,35 @@ void plotSyst_all(
   setTDRStyle();
  
   // input files: prompt and non-prompt ones
-  const int nFiles = 10;
-  // the position of the variations in the array is used later; make sure it corresponds to wht's in array
-  int iVar_4d  = 1;
-  int iVar_3d  = 2;
-  int iVar_tnp = 4;
-  int iVar_fit = 5;
-  const char* v2InFileDirs[nFiles] = {"histsV2Yields_20160304_v2W_dPhiBins4",  //0
-              "histsV2Yields_20160304_v2W_ctau2mm_dPhiBins4",//1
-              "histsV2Yields_20160304_v2W_minVar_dPhiBins4",//2
-              "histsV2Yields_20160304_v2W_maxVar_dPhiBins4", //3
-              "histsV2Yields_20160304_v2W_noTnPSF_dPhiBins4",//4
-              "histsV2Yields_20160304_v2W_sigG1G2_dPhiBins4",//5
+  const int nFiles = 9;
+  // the position in the array where a specific type of set of variations starts;
+  // it's used later; make sure it corresponds to what's in array
+  int iVar_tnp = 1;
+  int iVar_4d  = 2;
+  int iVar_3d  = 3;
+  int iVar_fit = 4;
+  const char* v2InFileDirs[nFiles] = {
+              "histsV2Yields_20160304_v2W_dPhiBins4",  //0
+              "histsV2Yields_20160304_v2W_noTnPSF_dPhiBins4",//1
+              "histsV2Yields_20160304_v2W_ctau2mm_dPhiBins4",//2
+              "histsV2Yields_20160304_v2W_4DEffOnly_dPhiBins4", //3
+	      "histsV2Yields_20160304_v2W_const_dPhiBins4",//4
+              "histsV2Yields_20160304_v2W_MLAR_dPhiBins4",//5
               "histsV2Yields_20160304_v2W_polFunct_dPhiBins4",//6
               "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",//7
-              "histsV2Yields_20160304_v2W_MLAR_dPhiBins4",//8
-              "histsV2Yields_20160304_v2W_const_dPhiBins4"//9
+              "histsV2Yields_20160304_v2W_sigG1G2_dPhiBins4"//8
   };
 // legend or systm variation
 const char* legendSyst[] = {"",
-          "4DEff", 
-          "3DEff_min",
-          "3DEff_max",
-          "no_TnP", 
-          "signal_2Gaus",
-          "bkg_polFunct",
-          "signal_resOpt2", 
-          "bFrac_MLAR",
-          "constrained"};
+			    "no_TnP",
+			    "4DEff", 
+			    "3DEff",
+			    "constrained",
+			    "bFrac_MLAR",
+			    "bkg_polFunct",
+			    "signal_resOpt2", 
+			    "signal_2Gaus"
+			    };
 
  const char* variable[4] = {"0-100\%", "p_{T} (GeV/c)", "|y|", "N_{part}"};
  const char* signal[4]   = {"", "Prp","NPrp","Bkg"};
@@ -144,14 +145,15 @@ const char* legendSyst[] = {"",
         
         string whatBin[3];
         double x[4] = {0};
-        int   iline = 0;
+	double fitprob = 0;
+	int   iline = 0;
         string tmpstring;
         in.open(Form("%s/%s/data/%s",inputDir,nameDir.c_str(),inputFile.c_str()));
-        
+        if ( !in.good()) cout <<"Could not open input file!!!!! "<<endl;
         getline(in,tmpstring);
         
         while ( in.good() && iline<nBins ) {
-          in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> x[0] >> x[1] >> x[2] >> x[3];
+          in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> x[0] >> x[1] >> x[2] >> x[3] >> fitprob;
           str_kin[iline][0] = whatBin[0];
           str_kin[iline][1] = whatBin[1];
           str_kin[iline][2] = whatBin[2];
@@ -176,14 +178,13 @@ const char* legendSyst[] = {"",
       // calculate the systm. uncertainty: 
       // A) for TnP: full difference between with and without TnP -- var #4
       // B) for 4D efficiency: -- variation # 1
-      // C) for 3D efficiency: full difference between max and min variation -- #3 and #2
-      // D) for fit(sgn+bkg) systm: RMS of all variations -- #5--#9
+      // C) for 3D efficiency:  -- #3 3/4D efficiency only from the non-prompt samples, to test the 3D efficiency binning, fitting, uncert.
+      // D) for fit(sgn+bkg) systm: RMS of all variations -- #4--#8
       
       double v2[nBins];
       double contrib_tnp[nBins];
       double contrib_4d[nBins];
-      double contrib_3d_min[nBins];
-      double contrib_3d_max[nBins];
+      double contrib_3d[nBins];
       double contrib_fit_0[nBins];
       double contrib_fit_1[nBins];
       double contrib_fit_2[nBins];
@@ -202,10 +203,8 @@ const char* legendSyst[] = {"",
         double relContrib_4d = (v2-adV2[iVar_4d][ib])/v2;
         contrib_4d[ib]       = 100 * relContrib_4d;
     
-        double relContrib_3d_max = (v2-adV2[iVar_3d][ib])/v2;
-        double relContrib_3d_min = (v2-adV2[iVar_3d+1][ib])/v2;
-        contrib_3d_min[ib]       = 100 * relContrib_3d_min;
-        contrib_3d_max[ib]       = 100 * relContrib_3d_max;
+        double relContrib_3d= (v2-adV2[iVar_3d][ib])/v2;
+        contrib_3d[ib]       = 100 * relContrib_3d;
   
         for (int iFit=iVar_fit; iFit<nFiles; iFit++)
         {
@@ -234,8 +233,7 @@ const char* legendSyst[] = {"",
  
 
       TGraph *gSyst_4d    = new TGraph(nBins, adXaxis_mb, contrib_4d);
-      TGraph *gSyst_3dmin = new TGraph(nBins, adXaxis_mb, contrib_3d_min);
-      TGraph *gSyst_3dmax = new TGraph(nBins, adXaxis_mb, contrib_3d_max);
+      TGraph *gSyst_3d    = new TGraph(nBins, adXaxis_mb, contrib_3d);
       TGraph *gSyst_tnp   = new TGraph(nBins, adXaxis_mb, contrib_tnp);
 
       if(iVar==1) //pt
@@ -249,9 +247,8 @@ const char* legendSyst[] = {"",
           gSyst_fit4  = new TGraph(nBins, ptBins_pr, contrib_fit_4);
    
           gSyst_4d    = new TGraph(nBins, ptBins_pr, contrib_4d);
-          gSyst_3dmin = new TGraph(nBins, ptBins_pr, contrib_3d_min);
-          gSyst_3dmax = new TGraph(nBins, ptBins_pr, contrib_3d_max);
-          gSyst_tnp   = new TGraph(nBins, ptBins_pr, contrib_tnp);
+          gSyst_3d    = new TGraph(nBins, ptBins_pr, contrib_3d);
+	  gSyst_tnp   = new TGraph(nBins, ptBins_pr, contrib_tnp);
         }
         if(iCateg==2)
         {
@@ -262,9 +259,8 @@ const char* legendSyst[] = {"",
           gSyst_fit4  = new TGraph(nBins, ptBins_np, contrib_fit_4);
    
           gSyst_4d    = new TGraph(nBins, ptBins_np, contrib_4d);
-          gSyst_3dmin = new TGraph(nBins, ptBins_np, contrib_3d_min);
-          gSyst_3dmax = new TGraph(nBins, ptBins_np, contrib_3d_max);
-          gSyst_tnp   = new TGraph(nBins, ptBins_np, contrib_tnp);
+          gSyst_3d    = new TGraph(nBins, ptBins_np, contrib_3d);
+	  gSyst_tnp   = new TGraph(nBins, ptBins_np, contrib_tnp);
         }
       }
 
@@ -279,9 +275,8 @@ const char* legendSyst[] = {"",
           gSyst_fit4  = new TGraph(nBins, adXaxisY_pr, contrib_fit_4);
    
           gSyst_4d    = new TGraph(nBins, adXaxisY_pr, contrib_4d);
-          gSyst_3dmin = new TGraph(nBins, adXaxisY_pr, contrib_3d_min);
-          gSyst_3dmax = new TGraph(nBins, adXaxisY_pr, contrib_3d_max);
-          gSyst_tnp   = new TGraph(nBins, adXaxisY_pr, contrib_tnp);
+          gSyst_3d    = new TGraph(nBins, adXaxisY_pr, contrib_3d);
+	  gSyst_tnp   = new TGraph(nBins, adXaxisY_pr, contrib_tnp);
         }
         if(iCateg==2)
         {
@@ -292,9 +287,8 @@ const char* legendSyst[] = {"",
           gSyst_fit4  = new TGraph(nBins, adXaxisY_np, contrib_fit_4);
    
           gSyst_4d    = new TGraph(nBins, adXaxisY_np, contrib_4d);
-          gSyst_3dmin = new TGraph(nBins, adXaxisY_np, contrib_3d_min);
-          gSyst_3dmax = new TGraph(nBins, adXaxisY_np, contrib_3d_max);
-          gSyst_tnp   = new TGraph(nBins, adXaxisY_np, contrib_tnp);
+          gSyst_3d    = new TGraph(nBins, adXaxisY_np, contrib_3d);
+	  gSyst_tnp   = new TGraph(nBins, adXaxisY_np, contrib_tnp);
         }
       }
       if(iVar==3) //centrality
@@ -308,9 +302,8 @@ const char* legendSyst[] = {"",
           gSyst_fit4  = new TGraph(nBins, flip_adXaxisCent_pr, contrib_fit_4);
    
           gSyst_4d    = new TGraph(nBins, flip_adXaxisCent_pr, contrib_4d);
-          gSyst_3dmin = new TGraph(nBins, flip_adXaxisCent_pr, contrib_3d_min);
-          gSyst_3dmax = new TGraph(nBins, flip_adXaxisCent_pr, contrib_3d_max);
-          gSyst_tnp   = new TGraph(nBins, flip_adXaxisCent_pr, contrib_tnp);
+          gSyst_3d    = new TGraph(nBins, flip_adXaxisCent_pr, contrib_3d);
+	  gSyst_tnp   = new TGraph(nBins, flip_adXaxisCent_pr, contrib_tnp);
         }
         if(iCateg==2)
         {
@@ -321,9 +314,8 @@ const char* legendSyst[] = {"",
           gSyst_fit4  = new TGraph(nBins, flip_adXaxisCent_np, contrib_fit_4);
    
           gSyst_4d    = new TGraph(nBins, flip_adXaxisCent_np, contrib_4d);
-          gSyst_3dmin = new TGraph(nBins, flip_adXaxisCent_np, contrib_3d_min);
-          gSyst_3dmax = new TGraph(nBins, flip_adXaxisCent_np, contrib_3d_max);
-          gSyst_tnp   = new TGraph(nBins, flip_adXaxisCent_np, contrib_tnp);
+          gSyst_3d    = new TGraph(nBins, flip_adXaxisCent_np, contrib_3d);
+	  gSyst_tnp   = new TGraph(nBins, flip_adXaxisCent_np, contrib_tnp);
         }
         // remove 1st point which is 0-10%
         gSyst_fit0->RemovePoint(0); 
@@ -333,9 +325,8 @@ const char* legendSyst[] = {"",
         gSyst_fit4->RemovePoint(0); 
      
         gSyst_4d->RemovePoint(0); 
-        gSyst_3dmin->RemovePoint(0); 
-        gSyst_3dmax->RemovePoint(0); 
-        gSyst_tnp->RemovePoint(0); 
+        gSyst_3d->RemovePoint(0); 
+	gSyst_tnp->RemovePoint(0); 
       }
 
       // marker styles
@@ -347,8 +338,7 @@ const char* legendSyst[] = {"",
  
 
       gSyst_4d->SetMarkerStyle(25);
-      gSyst_3dmin->SetMarkerStyle(26);
-      gSyst_3dmax->SetMarkerStyle(27);
+      gSyst_3d->SetMarkerStyle(26);
       gSyst_tnp->SetMarkerStyle(28);  
 
       gSyst_fit0->SetMarkerSize(1.2);
@@ -359,8 +349,7 @@ const char* legendSyst[] = {"",
  
 
       gSyst_4d->SetMarkerSize(1.2);  
-      gSyst_3dmin->SetMarkerSize(1.2);
-      gSyst_3dmax->SetMarkerSize(1.2);
+      gSyst_3d->SetMarkerSize(1.2);
       gSyst_tnp->SetMarkerSize(1.2);
 
       // --------- draw in each canvas
@@ -384,11 +373,11 @@ const char* legendSyst[] = {"",
       leg1->SetBorderSize(0);
       leg1->SetMargin(0.2);
       leg1->SetTextSize(0.04);
-      leg1->AddEntry(gSyst_fit0,Form("%s",legendSyst[5]),"P");
-      leg1->AddEntry(gSyst_fit1,Form("%s",legendSyst[6]),"P");
-      leg1->AddEntry(gSyst_fit2,Form("%s",legendSyst[7]),"P");
-      leg1->AddEntry(gSyst_fit3,Form("%s",legendSyst[8]),"P");
-      leg1->AddEntry(gSyst_fit4,Form("%s",legendSyst[9]),"P");
+      leg1->AddEntry(gSyst_fit0,Form("%s",legendSyst[4]),"P");
+      leg1->AddEntry(gSyst_fit1,Form("%s",legendSyst[5]),"P");
+      leg1->AddEntry(gSyst_fit2,Form("%s",legendSyst[6]),"P");
+      leg1->AddEntry(gSyst_fit3,Form("%s",legendSyst[7]),"P");
+      leg1->AddEntry(gSyst_fit4,Form("%s",legendSyst[8]),"P");
       
       // legend for rest of variations
       TLegend *leg2 = new TLegend(0.65,0.15,0.8,0.35);
@@ -397,14 +386,11 @@ const char* legendSyst[] = {"",
       leg2->SetBorderSize(0);
       leg2->SetMargin(0.2);
       leg2->SetTextSize(0.04);
-      leg2->AddEntry(gSyst_4d,Form("%s",legendSyst[4]),"P");
-      leg2->AddEntry(gSyst_3dmin,Form("%s",legendSyst[3]),"P");
-      leg2->AddEntry(gSyst_3dmax,Form("%s",legendSyst[2]),"P");
       leg2->AddEntry(gSyst_tnp,Form("%s",legendSyst[1]),"P");
-
-
-
-      //----------------------------------------
+      leg2->AddEntry(gSyst_4d,Form("%s",legendSyst[2]),"P");
+      leg2->AddEntry(gSyst_3d,Form("%s",legendSyst[3]),"P");
+ 
+  //----------------------------------------
       TLatex *lcent = new TLatex(20,-80,"Cent. 10-60%");
       lcent->SetTextFont(42);
       lcent->SetTextSize(0.05);
@@ -430,10 +416,9 @@ const char* legendSyst[] = {"",
       gSyst_fit4->Draw("P");
      
       pc->cd(2);
-      gSyst_4d->Draw("P");
-      gSyst_3dmin->Draw("P");
-      gSyst_3dmax->Draw("P");
       gSyst_tnp->Draw("P");
+      gSyst_4d->Draw("P");
+      gSyst_3d->Draw("P");
 
       // //---------------------------------- legends and labels
       TLatex *lCateg = new TLatex(20,85,Form("%s",legend[iCateg]));

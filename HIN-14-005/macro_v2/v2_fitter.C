@@ -38,7 +38,7 @@ Note: binning, labels, etc, are defined in v2_dataNumbers_2015.h
 
 #endif
 
-void v2_fitter(int jpsiCategory      = 3, // -1 all; 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+void v2_fitter(int jpsiCategory      = 1, // -1 all; 1 : Prompt, 2 : Non-Prompt, 3: Bkg
                int nChoseCategory    = -1, // -1 = all; 0 integrated; 1 pt; 2: rapidity; 3: centrality;
                int nChoseSetting     = 1, // 0: nominal weighted; 1: systm. uncert (all fit settings in histYieldFile)
                int nDphiBins         = 4,
@@ -48,12 +48,12 @@ void v2_fitter(int jpsiCategory      = 3, // -1 all; 1 : Prompt, 2 : Non-Prompt,
 	       bool doV2ZeroFit      = false)
 {
   const char* signal[4]      = {"", "Prp","NPrp","Bkg"};
+  // the order does not matter here
   string histYieldFile[] = {
   "histsV2Yields_20160304_v2noW_dPhiBins4",
   "histsV2Yields_20160304_v2W_dPhiBins4",
   "histsV2Yields_20160304_v2W_const_dPhiBins4",
-  "histsV2Yields_20160304_v2W_maxVar_dPhiBins4",
-  "histsV2Yields_20160304_v2W_minVar_dPhiBins4",
+  "histsV2Yields_20160304_v2W_4DEffOnly_dPhiBins4",
   "histsV2Yields_20160304_v2W_MLAR_dPhiBins4",
   "histsV2Yields_20160304_v2W_muIDTrig_dPhiBins4",
   "histsV2Yields_20160304_v2W_noTnPSF_dPhiBins4",

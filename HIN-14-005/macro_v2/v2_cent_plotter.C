@@ -39,7 +39,7 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 
 
 void v2_cent_plotter(
-		     int jpsiCategory      = -1, // -1: all; 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+		     int jpsiCategory      = 1, // -1: all; 1 : Prompt, 2 : Non-Prompt, 3: Bkg
 		     string nDphiBins      = "4",
 		     const char* outputDir = "output", 
 		     const char* outputRootDir= "outRoot",
@@ -80,9 +80,8 @@ void v2_cent_plotter(
   
       cout<<" !!!!! Number of cent bins: "<< nBins<<endl;
       
-      double *adXaxis = new double[nBins];//   location on x-axis  
-      
-      double *adV2 = new double[nBins]      ; // v2 values
+      double *adXaxis = new double[nBins];   //   location on x-axis  
+      double *adV2      = new double[nBins]; // v2 values
       double *adV2_stat = new double[nBins] ;// stat uncert
       double *adV2_syst = new double[nBins] ;// stat uncert
       double *adV2_err0 = new double[nBins] ;// error  0
@@ -137,12 +136,13 @@ void v2_cent_plotter(
       
       if (!in.good()) {cout << "######### Fail to open syst_input.txt file.##################" << endl;}
       
-      double y[6] = {0};
+      double y[5] = {0};
+      fitprob     = 0;
       iline       = 0;
       getline(in,tmpstring);
       if(!bAddCent010) getline(in,tmpstring); // pr J/psi v2 doesn't include 0-10% bin
       while ( in.good() && iline<nBins) {
-	in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> y[0] >> y[1] >> y[2] >> y[3] >> y[4] >> y[5] >> fitprob;
+	in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> y[0] >> y[1] >> y[2] >> y[3] >> y[4] >> fitprob;
 	adV2_syst[nBins-iline-1]      = y[1];
 
 	cout<< "Bin " << whatBin[0] << "\t"<< whatBin[1] << "\t" << whatBin[2]<<"\t";

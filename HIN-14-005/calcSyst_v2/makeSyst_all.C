@@ -51,23 +51,23 @@ void makeSyst_all(
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
   
   // input files: prompt and non-prompt ones
-  const int nFiles = 10;
-  // the position of the variations in the array is used later; make sure it corresponds to wht's in array
+  const int nFiles = 9;
+  // the position in the array where a specific type of set of variations starts;
+  // it's used later; make sure it corresponds to what's in array
   int iVar_tnp = 1;
   int iVar_4d  = 2;
   int iVar_3d  = 3;
-  int iVar_fit = 5;
+  int iVar_fit = 4;
   const char* v2InFileDirs[nFiles] = {
               "histsV2Yields_20160304_v2W_dPhiBins4",  //0
               "histsV2Yields_20160304_v2W_noTnPSF_dPhiBins4",//1
               "histsV2Yields_20160304_v2W_ctau2mm_dPhiBins4",//2
-              "histsV2Yields_20160304_v2W_maxVar_dPhiBins4", //3
-              "histsV2Yields_20160304_v2W_minVar_dPhiBins4",//4
-              "histsV2Yields_20160304_v2W_const_dPhiBins4",//5
-              "histsV2Yields_20160304_v2W_MLAR_dPhiBins4",//6
-              "histsV2Yields_20160304_v2W_polFunct_dPhiBins4",//7
-              "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",//8
-              "histsV2Yields_20160304_v2W_sigG1G2_dPhiBins4"//9
+              "histsV2Yields_20160304_v2W_4DEffOnly_dPhiBins4", //3
+	      "histsV2Yields_20160304_v2W_const_dPhiBins4",//4
+              "histsV2Yields_20160304_v2W_MLAR_dPhiBins4",//5
+              "histsV2Yields_20160304_v2W_polFunct_dPhiBins4",//6
+              "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",//7
+              "histsV2Yields_20160304_v2W_sigG1G2_dPhiBins4"//8
   };
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
  
@@ -160,9 +160,9 @@ void makeSyst_all(
       //-------------------------------------------
       // calculate the systm. uncertainty: 
       // A) for TnP: full difference between with and without TnP -- variation #1
-      // B) for 4D efficiency: -- variation # 2
-      // C) for 3D efficiency: full difference between max and min variation -- #3 and #4
-      // D) for fit(sgn+bkg) systm: RMS of all variations -- #5--#9
+      // B) for 4D efficiency: -- variation #2
+      // C) for 3D efficiency:  -- #3 3/4D efficiency only from the non-prompt samples, to test the 3D efficiency binning, fitting, uncert.
+      // D) for fit(sgn+bkg) systm: RMS of all variations -- #4--#8
       // finaly uncert: sqrt of sum in quadrature of A->D
       
       // we'll calculate each individually, and store them too (for future plotting if needed), and then calculate the final uncertainty
@@ -185,9 +185,8 @@ void makeSyst_all(
         double relContrib_4d = (v2-adV2[iVar_4d][ib])/v2;
         contrib_4d[ib]       = TMath::Power(relContrib_4d,2);
     
-        double relContrib_3d_max = (v2-adV2[iVar_3d][ib])/v2;
-        double relContrib_3d_min = (v2-adV2[iVar_3d+1][ib])/v2;
-        contrib_3d[ib]           = TMath::Power(relContrib_3d_max+relContrib_3d_min,2)/2; // RMS is taken
+        double relContrib_3d = (v2-adV2[iVar_3d][ib])/v2;
+        contrib_3d[ib]       = TMath::Power(relContrib_3d,2); 
         
         for (int iFit=iVar_fit; iFit<nFiles; iFit++)
         {
@@ -203,7 +202,7 @@ void makeSyst_all(
         if(bDoDebug)
         {
           cout<<"Bin "<<ib <<" v2 = "<< v2<<"\t Total_systm= " << v2Syst[ib] <<endl;
-          cout<<"Relative contributions: \t TnP: "<<relContrib_tnp<<"\t 4D= "<<relContrib_4d<<"\t 3D_max= "<< relContrib_3d_max <<"\t 3D_min "<<relContrib_3d_min<<endl;
+          cout<<"Relative contributions: \t TnP: "<<relContrib_tnp<<"\t 4D= "<<relContrib_4d<<"\t 3D "<<relContrib_3d<<endl;
         }
       }//for each bin
         
