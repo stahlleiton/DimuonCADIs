@@ -1,2 +1,2 @@
-pT  rapidity  cent  v2Raw  v2RawErr  v2  v2Err 
-65300 0024 1060 0.088038 0.0119385 0.107784 0.0146172
+pT  rapidity  cent  v2Raw  v2RawErr  v2  v2Err  fitProb 
+65300 0024 1060 0.0880415 0.0119385 0.107788 0.0146172 0.305302

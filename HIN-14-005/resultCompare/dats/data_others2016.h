@@ -56,15 +56,20 @@ double raaAliceSystCorrHigh_cent_dpt612[nNpartBins5_alice]   = {0.03, 0.03, 0.05
 double raaAliceSystCorrLow_cent_dpt612[nNpartBins5_alice]    = {0.03, 0.04, 0.06, 0.08, 0.12};
 
 //================================== ALICE v2
-  double ALdMesonX[]      = {2.499, 3.482, 4.897, 6.963, 9.717, 13.475};
-  double ALdMesonY[]      = {0.164, 0.192, 0.23, 0.148, 0.265, 0.015};
-  double ALdMesonYl[]     = {0.065, 0.052, 0.044, 0.056, 0.061, 0.099};
-  double ALdMesonSysl[]   = {0.058, 0.028, 0.024, 0.034, 0.042, 0.105};
-  double ALdMesonSysBdl[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.01};
-  double ALdMesonSysBdh[] = {0.094, 0.094, 0.09, 0.058, 0.14, 0.0};
-  double ALdMesonXerr[]   = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-  double ALdMesonXl[]     = {0.25, 0.25, 0.25, 0.25, 0.25, 0.25};
-  double ALdMesonXl2[]    = {0.25, 0.25, 0.25, 0.25, 0.25, 0.25};
+//http://arxiv.org/pdf/1305.2707v3.pdf
+//http://hepdata.cedar.ac.uk/view/ins1233087 Fig. 3
+  double v2AliceX_pt[]    = {2.499, 3.482, 4.897, 6.963, 9.717, 13.475};
+  double v2AliceXErr_pt[] = {0.0,   0.0,   0.0,   0.0,   0.0,  0.0};
+  double v2AliceXl[]      = {0.25,  0.25,  0.25,  0.25,  0.25, 0.25};
+  double v2AliceXl2[]     = {0.25,  0.25,  0.25,  0.25,  0.25, 0.25};
+
+  double v2Alice_pt[]          = {0.164, 0.192, 0.23, 0.148, 0.265, 0.015};
+  double v2AliceStat_pt[]      = {0.065, 0.052, 0.044, 0.056, 0.061, 0.099};
+  double v2AliceSyst_pt[]      = {0.058, 0.028, 0.024, 0.034, 0.042, 0.105};
+  double v2AliceSystBHigh_pt[] = {0.094, 0.094, 0.09, 0.058, 0.14, 0.0};
+  double v2AliceSystBLow_pt[]  = {0.0, 0.0, 0.0, 0.0, 0.0, 0.01};
+  
+ 
 
 #endif
 

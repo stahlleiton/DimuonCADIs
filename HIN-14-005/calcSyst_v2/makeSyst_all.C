@@ -129,6 +129,7 @@ void makeSyst_all(
         
         string whatBin[3];
         double x[4] = {0};
+	double fitprob = 0;
         int   iline = 0;
         string tmpstring;
         in.open(Form("%s/%s/data/%s",inputDir,nameDir.c_str(),inputFile.c_str()));
@@ -136,7 +137,7 @@ void makeSyst_all(
         getline(in,tmpstring);
         
         while ( in.good() && iline<nBins ) {
-          in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> x[0] >> x[1] >> x[2] >> x[3];
+          in >> whatBin[0] >> whatBin[1] >> whatBin[2] >> x[0] >> x[1] >> x[2] >> x[3] >> fitprob;
           str_kin[iline][0] = whatBin[0];
           str_kin[iline][1] = whatBin[1];
           str_kin[iline][2] = whatBin[2];
