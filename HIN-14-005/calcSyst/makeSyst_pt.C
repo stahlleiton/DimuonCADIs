@@ -921,11 +921,11 @@ void makeSyst_pt( bool bSavePlots       = 1,
   //-------------------------------------------------------------------
   //syst boxes
   gPrJpsiSyst->SetFillColor(kRed-9);
-  gPrJpsiSyst_pt365y1624->SetFillColor(kViolet-9);
+  gPrJpsiSyst_pt365y1624->SetFillColorAlpha(kViolet-9,0.5);
 
   // non-pr
   gNonPrJpsiSyst->SetFillColor(kOrange-9);
-  gNonPrJpsiSyst_pt365y1624->SetFillColor(kViolet-9);
+  gNonPrJpsiSyst_pt365y1624->SetFillColorAlpha(kViolet-9,05);
 
   // minbias 
   gNonPrJpsiSyst_mb->SetFillColor(kRed-9);
@@ -941,6 +941,8 @@ void makeSyst_pt( bool bSavePlots       = 1,
   //-------------------------------------------
   TF1 *f4 = new TF1("f4","1",0,30);
   f4->SetLineWidth(1);
+  f4->SetLineStyle(1);
+  f4->SetLineColor(1);
   f4->GetXaxis()->SetTitle("p_{T} (GeV/c)");
   f4->GetYaxis()->SetTitle("R_{AA}");
   f4->GetYaxis()->SetRangeUser(0.0,1.5);
@@ -954,13 +956,15 @@ void makeSyst_pt( bool bSavePlots       = 1,
   lcent->SetTextFont(42);
   lcent->SetTextSize(0.05);
 
-  TLatex *lPr = new TLatex(2,1.35,"Prompt J/#psi");
-  lPr->SetTextFont(42);
-  lPr->SetTextSize(0.05);
+  TLatex *lPr = new TLatex(0.21,0.83,"Prompt J/#psi");
+  lPr->SetNDC();
+  lPr->SetTextFont(22);
+  lPr->SetTextSize(0.052);
 
-  TLatex *lNpr = new TLatex(2,1.35,"Non-prompt J/#psi");
-  lNpr->SetTextFont(42);
-  lNpr->SetTextSize(0.05);
+  TLatex *lNpr = new TLatex(0.21,0.83,"Non-prompt J/#psi");
+  lNpr->SetNDC();
+  lNpr->SetTextFont(22);
+  lNpr->SetTextSize(0.055);
 
   TLegend *leg11a = new TLegend(0.65,0.52,0.8,0.65);
   leg11a->SetFillStyle(0);
@@ -1008,7 +1012,8 @@ void makeSyst_pt( bool bSavePlots       = 1,
   lumi->Draw();
   f4->Draw("same");
  
-  CMS_lumi(c1,103,33);
+  CMS_lumi(c1,12014000,0);
+
   lcent->Draw();
   lPr->Draw();
   leg11a->Draw();
@@ -1017,6 +1022,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
   gPrJpsiSyst->Draw("2");
   
   //-------------------minbias dependence
+
   TCanvas *c11b = new TCanvas("c11b","c11b");
   f4->Draw();
   lumi->Draw();
@@ -1029,7 +1035,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
   gPrJpsiSyst_mb->Draw("2");
   gPrJpsiSyst_y1624_mb->Draw("2");
   gPad->RedrawAxis();
-
+ 
 
   //   // ############################################## non-pr 
   //   // ############################################## non-pr
@@ -1040,7 +1046,8 @@ void makeSyst_pt( bool bSavePlots       = 1,
   lumi->Draw();
   f4->Draw("same");
   
-  CMS_lumi(c2,103,33);
+  CMS_lumi(c1,12014000,0);
+
   lcent->Draw();
   lNpr->Draw(0);
   leg22a->Draw();
@@ -1049,6 +1056,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
   gNonPrJpsiSyst_pt365y1624->Draw("2");
   
   //-------------------minbias dependence
+  
   TCanvas *c22b = new TCanvas("c22b","c22b");
   f4->Draw();
   lumi->Draw();
@@ -1063,7 +1071,7 @@ void makeSyst_pt( bool bSavePlots       = 1,
   gNonPrJpsiSyst_mb->Draw("2");
     
   gPad->RedrawAxis();
-    
+  
   //------------------ write the output file with the Graphs of systematic uncertainties
   TFile *pfOutput = new TFile(Form("%s/raaSystUncert_pt.root",outputDir),"RECREATE");
 

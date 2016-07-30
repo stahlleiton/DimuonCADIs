@@ -6,21 +6,11 @@ double ppLumi    = 5400;
 int npartShift=2;
 
 /// ------------------------------ binning 
-// 40-100, 40-20, 20-0
-const unsigned int nBinsNpart3 = 3;
-double binsNpart3[nBinsNpart3]   = {32.75, 158.5653, 308.3853};
-double binsNpart3Err[nBinsNpart3]= {0,0,0};
-double binsNpart3X[nBinsNpart3]  = {10,10,10};
-
-double adTaa3[nBinsNpart3]       = {0.85, 6.95, 18.84};
-double adTaa3Err[nBinsNpart3]    = {0.11, 0.58, 0.99}; // this is wrong. to be fixed later
-double adDeltaCent3[nBinsNpart3] = {0.6,  0.2,  0.2};
-
 // 50-100, 50-40, 40-30,30-20, 20-10, 10-0
-const unsigned int nBinsNpart6 = 6;
+const unsigned int nBinsNpart6    = 6;
 double binsNpart6[nBinsNpart6]    = {22.0709, 86.2622, 129.9835, 187.1470, 261.4178, 355.3528};
 double binsNpart6Err[nBinsNpart6] = {0,0,0,0,0,0};
-double binsNpart6X[nBinsNpart6]   = {10,10,10,10,10,10};
+double binsNpart6X[nBinsNpart6]   = {7,7,7,7,8,8};
 
 double binsNpart6_shiftMinus[nBinsNpart6] = {binsNpart6[0]-npartShift,binsNpart6[1]-npartShift,binsNpart6[2]-npartShift,
 					     binsNpart6[3]-npartShift,binsNpart6[4]-npartShift,binsNpart6[5]-npartShift};
@@ -31,21 +21,13 @@ double adTaa6[nBinsNpart6]       = {0.47, 2.75, 5.09, 8.8, 14.48, 23.2};
 double adTaa6Err[nBinsNpart6]    = {0.07, 0.3, 0.43, 0.58, 0.76,  0.99};
 double adDeltaCent6[nBinsNpart6] = {0.5,  0.1, 0.1,  0.1,  0.1,   0.1};
 
-// 40-100 40-30,30-20, 20-10, 10-0
-const unsigned int nBinsNpart5 = 5;
-double binsNpart5[nBinsNpart5]   = {32.75, 129.9835, 187.1470, 261.4178,355.3528};
-double binsNpart5Err[nBinsNpart5]= {0,0,0,0,0};
-double binsNpart5X[nBinsNpart5]  = {10,10,10,10,10};
-
-double adTaa5[nBinsNpart5]       = {0.85, 5.09, 8.8, 14.48, 23.2};
-double adTaa5Err[nBinsNpart5]    = {0.11, 0.43, 0.58, 0.76, 0.99};
-double adDeltaCent5[nBinsNpart5] = {0.6,  0.1,  0.1,  0.1,  0.1};
-
 // 0-5,5-10,10-15,15-20,20-25,25-30,30-35,35-40,40-45,45-50,50-60,60-100 (in reversed: first is 60-100%)
 const unsigned int nBinsNpart12  = 12;
 double binsNpart12[nBinsNpart12] = {14.19, 53.53, 76.68, 95.78, 117.54, 142.58, 171.08, 203.62, 240.31, 282.67, 329.48,381.41};
 double binsNpart12Err[nBinsNpart12] = {0,0,0,0,0,0,0,0,0,0,0,0};
-double binsNpart12X[nBinsNpart12]   = {10,10,10,10,10,10,10,10,10,10,10,10};
+//double binsNpart12X[nBinsNpart12]   = {10,10,10,10,10,10,10,10,10,10,10,10};
+double binsNpart12X[nBinsNpart12]   = {7,7,7,7,7,7,7,7,7,8,8,8};
+
 
 double adTaa12[nBinsNpart12]  = {0.25, 1.36, 2.29, 3.2, 4.36, 5.83, 7.66, 9.94, 12.73, 16.23, 20.48, 25.91};
 double adTaa12Err[nBinsNpart12] = {0.04, 0.19, 0.26, 0.33, 0.39, 0.47, 0.53, 0.64, 0.72, 0.8, 0.94, 1.06};
@@ -80,9 +62,9 @@ double binsPt3_mb[nBinsPt3]   = {4.5, 10.0, 15}; // mb in the fwd region
 double binsPtErr[nBinsPt]     = {0,0,0,0,0,0,};
 double binsPt3Err[nBinsPt3]   = {0,0,0}; 
 double binsPt3Err_mb[nBinsPt3]= {0,0,0};
-double binsPtX[nBinsPt]     = {0.35,0.35,0.35,0.35,0.35,0.35};
-double binsPt3X[nBinsPt3]   = {0.35,0.35,0.35}; 
-double binsPt3X_mb[nBinsPt3]= {0.35,0.35,0.35};
+double binsPtX[nBinsPt]     = {0.5,0.5,0.5,0.5,0.5,0.5};
+double binsPt3X[nBinsPt3]   = {0.4,0.4,0.4}; 
+double binsPt3X_mb[nBinsPt3]= {0.4,0.4,0.4};
 
 // rapidity: <|y|> values are written here
 const unsigned int nBinsY       = 6;

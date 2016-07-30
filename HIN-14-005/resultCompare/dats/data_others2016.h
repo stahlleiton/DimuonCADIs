@@ -36,7 +36,7 @@ double raaAliceSystCorrHigh_cent_dpt816[nNpartBins_alice]   = {0.03, 0.04, 0.05,
 double raaAliceSystCorrLow_cent_dpt816[nNpartBins_alice]    = {0.03, 0.04, 0.05, 0.06, 0.07, 0.13};
 
 //--------------------------
-// D closed to the prompt bins
+// D closed to the prompt Jpsi bin
 // ALICE D: <Npart>
 //http://arxiv.org/pdf/1203.2160v4.pdf table 6
 // Average D meson RAA (average of D0, D+ and D∗+) in 6<pT<12 GeV/c, |y|<0.8
@@ -55,13 +55,25 @@ double raaAliceSystLow_cent_dpt612[nNpartBins_alice]   = {0.06, 0.07, 0.11, 0.13
 double raaAliceSystCorrHigh_cent_dpt612[nNpartBins5_alice]   = {0.03, 0.03, 0.05, 0.07, 0.11};
 double raaAliceSystCorrLow_cent_dpt612[nNpartBins5_alice]    = {0.03, 0.04, 0.06, 0.08, 0.12};
 
+/// low-pt bin
+// http://hepdata.cedar.ac.uk/view/ins1093488/next
+double raaAlice_cent_dpt25[nNpartBins5_alice]         = {0.31, 0.40, 0.49, 0.53, 0.62}; 
+double raaAliceStat_cent_dpt25[nNpartBins5_alice]     = {0.05, 0.05, 0.05, 0.06, 0.09};// hep data of 5th point seems wrong: 0.01
+
+double raaAliceSystHigh_cent_dpt25[nNpartBins5_alice] = {0.10, 0.13, 0.14, 0.13, 0.14};//
+double raaAliceSystLow_cent_dpt25[nNpartBins_alice]   = {0.09, 0.12, 0.14, 0.14,0.16};// hep data 5th and 6th point seem wrong 0.005 and 0.011
+
+double raaAliceSystCorrHigh_cent_dpt25[nNpartBins5_alice]   = {0.05, 0.06, 0.07, 0.08, 0.09};
+double raaAliceSystCorrLow_cent_dpt25[nNpartBins5_alice]    = {0.08, 0.1, 0.12, 0.13, 0.16};
+
+
 //================================== ALICE v2
 //http://arxiv.org/pdf/1305.2707v3.pdf
 //http://hepdata.cedar.ac.uk/view/ins1233087 Fig. 3
   double v2AliceX_pt[]    = {2.499, 3.482, 4.897, 6.963, 9.717, 13.475};
-  double v2AliceXErr_pt[] = {0.0,   0.0,   0.0,   0.0,   0.0,  0.0};
-  double v2AliceXl[]      = {0.25,  0.25,  0.25,  0.25,  0.25, 0.25};
-  double v2AliceXl2[]     = {0.25,  0.25,  0.25,  0.25,  0.25, 0.25};
+  double v2AliceXErr_pt[] = {0.15,   0.15,   0.15,   0.15,   0.15,  0.15};
+  double v2AliceXl[]      = {0.2,   0.25,   0.25,   0.25,   0.25,  0.25};
+  double v2AliceXl2[]     = {0.25,  0.25,   0.25,   0.25,   0.25,  0.25};
 
   double v2Alice_pt[]          = {0.164, 0.192, 0.23, 0.148, 0.265, 0.015};
   double v2AliceStat_pt[]      = {0.065, 0.052, 0.044, 0.056, 0.061, 0.099};

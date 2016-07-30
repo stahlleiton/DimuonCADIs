@@ -37,13 +37,13 @@ Output: the Raa vs rpaidity.
 #include "../tdrstyle.C"
 #endif
 
-void makeRaa_y(bool bSavePlots=1,
-	       bool bSaveRoot  = 1,
-	       bool bDoDebug = 0, // adds some numbers, numerator, denominator, to help figure out if things are read properly
-	       bool bAddLumi = 1, // add the lumi boxes at raa=1
-	       int  whichSample     = 1,//0: no TnP corrections; 1: w/ TnP corr on Data; 2: w/ TnP corr on MC; 3: lxy w/ TnP on MC
-	       const char* inputDir="../readFitTable", // the place where the input root files, with the histograms are
-	       const char* outputDir="figs",
+void makeRaa_y(bool bSavePlots           = 1,
+	       bool bSaveRoot            = 1,
+	       bool bDoDebug             = 0, // adds some numbers, numerator, denominator, to help figure out if things are read properly
+	       bool bAddLumi             = 1, // add the lumi boxes at raa=1
+	       int  whichSample          = 1,//0: no TnP corrections; 1: w/ TnP corr on Data; 2: w/ TnP corr on MC; 3: lxy w/ TnP on MC
+	       const char* inputDir      = "../readFitTable", // the place where the input root files, with the histograms are
+	       const char* outputDir     = "figs",
 	       const char* outputRootDir = "outRoot")// where the output figures will be
 {
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
@@ -324,45 +324,46 @@ void makeRaa_y(bool bSavePlots=1,
   gNonPrJpsi_y_y->SetMarkerSize(1.7);
 
   //stat boxes
-  gPrJpsiSyst->SetFillColor(kRed-9);
-  gPrJpsiSyst_y_y->SetFillColor(kViolet-9);
+  gPrJpsiSyst->SetFillColorAlpha(kRed-9,0.5);
+  gPrJpsiSyst_y_y->SetFillColorAlpha(kViolet-9,0.5);
 
   // non-pr
-  gNonPrJpsiSyst->SetFillColor(kOrange-9);
-  gNonPrJpsiSyst_y_y->SetFillColor(kViolet-9);
+  gNonPrJpsiSyst->SetFillColorAlpha(kOrange-9,0.5);
+  gNonPrJpsiSyst_y_y->SetFillColorAlpha(kViolet-9,0.5);
 
   //-------------------------------------------
   TF1 *f4 = new TF1("f4","1",0,2.4);
   f4->SetLineWidth(1);
+  f4->SetLineColor(1);
+  f4->SetLineStyle(1);
   f4->GetXaxis()->SetTitle("|y|");
   f4->GetXaxis()->SetNdivisions(-6);
   f4->GetYaxis()->SetTitle("R_{AA}");
   f4->GetYaxis()->SetRangeUser(0.0,1.5);
   f4->GetXaxis()->CenterTitle(kTRUE);
 
- // sqrt(sig_lumi(6%)*sig_lumi(6%)+sig_taa(5.7%)*sig_taa(5.7%)) = 0.083
   TBox *lumi = (TBox*)systFile->Get("lumi");
 
   //---------------- general stuff
-  TLatex *lPr = new TLatex(0.2,0.85,"Prompt J/#psi");
-  lPr->SetNDC();
-  lPr->SetTextFont(42);
-  lPr->SetTextSize(0.05);
-
-  TLatex *lNpr = new TLatex(0.2,0.85,"Non-prompt J/#psi");
-  lNpr->SetNDC();
-  lNpr->SetTextFont(42);
-  lNpr->SetTextSize(0.05);
-
-  TLatex *lpt = new TLatex(0.2,0.8,"6.5 < p_{T} < 30 GeV/c");
-  lpt->SetNDC();
-  lpt->SetTextFont(42);
-  lpt->SetTextSize(0.04);
-
-  TLatex *lcent = new TLatex(0.2,0.75,"Cent. 0-100%");
+  TLatex *lcent = new TLatex(0.62,0.83,"Cent. 0-100%");
   lcent->SetNDC();
   lcent->SetTextFont(42);
   lcent->SetTextSize(0.04);
+
+  TLatex *lpt     = new TLatex(0.62,0.78,"6.5 < p_{T} < 30 GeV/c");
+  lpt->SetNDC();
+  lpt->SetTextFont(42);
+  lpt->SetTextSize(0.04);
+  
+  TLatex *lPr = new TLatex(0.21,0.83,"Prompt J/#psi");
+  lPr->SetNDC();
+  lPr->SetTextFont(22);
+  lPr->SetTextSize(0.055);
+
+  TLatex *lNpr = new TLatex(0.21,0.83,"Non-prompt J/#psi");
+  lNpr->SetNDC();
+  lNpr->SetTextFont(22);
+  lNpr->SetTextSize(0.055);
 
 
   // ##################################################### pr plots
@@ -374,7 +375,7 @@ void makeRaa_y(bool bSavePlots=1,
     lumi->Draw();
     f4->Draw("same");
   }
-  CMS_lumi(c1,103,33);
+  CMS_lumi(c1,12014000,0);
   lPr->Draw();
   lcent->Draw();
   lpt->Draw();
@@ -382,6 +383,8 @@ void makeRaa_y(bool bSavePlots=1,
   gPrJpsiSyst->Draw("2");
   gPrJpsi->Draw("P");
   gPrJpsiP->Draw("P");
+
+  c1->Update();
 
   if(bSavePlots)
   {
@@ -411,7 +414,7 @@ void makeRaa_y(bool bSavePlots=1,
   gPrJpsi_y_y->Draw("P");
  
   gPad->RedrawAxis();
-
+  c11b->Update();
   if(bSavePlots)
   {
     c11b->SaveAs(Form("%s/pdf/PrJpsi_vsY_mb_%s.pdf",outputDir,sample[whichSample]));
@@ -430,7 +433,7 @@ void makeRaa_y(bool bSavePlots=1,
     lumi->Draw();
     f4->Draw("same");
   }
-  CMS_lumi(c2,103,33);
+  CMS_lumi(c2,12014000,0);
   lNpr->Draw();
   lcent->Draw();
   lpt->Draw();
@@ -439,6 +442,7 @@ void makeRaa_y(bool bSavePlots=1,
   gNonPrJpsi->Draw("P");
   gNonPrJpsiP->Draw("P");
 
+  c2->Update();
   if(bSavePlots)
   {
     c2->SaveAs(Form("%s/pdf/nonPrJpsi_vsY_%s.pdf",outputDir,sample[whichSample]));
@@ -454,7 +458,7 @@ void makeRaa_y(bool bSavePlots=1,
     lumi->Draw();
     f4->Draw("same");
   }
-  CMS_lumi(c22b,103,33);
+  CMS_lumi(c22b,12014000,0);
   lNpr->Draw();
   lcent->Draw();
   lpt->Draw();
@@ -467,6 +471,8 @@ void makeRaa_y(bool bSavePlots=1,
 
   gPad->RedrawAxis();
 
+  c22b->Update();
+  
   if(bSavePlots)
   {
     c22b->SaveAs(Form("%s/pdf/nonPrJpsi_vsY_mb_%s.pdf",outputDir,sample[whichSample]));

@@ -32,18 +32,18 @@
 
 #endif
 
-void v2Exp_pt(bool bSavePlots     = false, 
+void v2ExpOpen_pt(bool bSavePlots = false, 
 	      float rangeYAxis    = 0.6,
 	      float rangeXAxis    = 20,
-	      const char* inputDir      = "../macro_v2/outRoot", // the place where the input root files, with the histograms are
-	      const char* figNamePrefix="v2Exp_pt")
+	      const char* inputDir= "../macro_v2/outRoot", // the place where the input root files, with the histograms are
+	      const char* figNamePrefix="v2ExpOpen_pt")
 {
   gSystem->mkdir(Form("./figs/png"), kTRUE);
   gSystem->mkdir(Form("./figs/pdf"), kTRUE);
   setTDRStyle();
   
  // read CMS graphs
-  TFile *pfV2Cms_cent   = new TFile(Form("%s/Prp_v2_pt_plotter.root",inputDir));
+  TFile *pfV2Cms_cent   = new TFile(Form("%s/NPrp_v2_pt_plotter.root",inputDir));
   
   TGraphAsymmErrors *pgV2Low  = (TGraphAsymmErrors *)pfV2Cms_cent->Get("pgV2_low");
   TGraphErrors *pgV2LowSyst   = (TGraphErrors *)pfV2Cms_cent->Get("pgV2_low_sys");
@@ -65,8 +65,8 @@ void v2Exp_pt(bool bSavePlots     = false,
  gChar->SetLineColor(kAzure+1);
  gChar->SetMarkerSize(1.3);
  gChar2->SetMarkerStyle(24);
- gChar2->SetMarkerColor(kAzure+2);
- gChar2->SetLineColor(kAzure+2);
+ gChar2->SetMarkerColor(kBlue+2);
+ gChar2->SetLineColor(kBlue+2);
  gChar2->SetMarkerSize(1.3);
 
  gCharSys->SetFillColor(kAzure+9);
@@ -83,6 +83,7 @@ void v2Exp_pt(bool bSavePlots     = false,
   pgAlice->SetMarkerSize(1.8);
   
   pgAliceSys->SetFillStyle(0);
+  pgAliceSys->SetMarkerStyle(27);
   pgAliceSys->SetMarkerColor(kGray+2);
   pgAliceSys->SetLineColor(kGray+2);
   pgAliceSys->SetMarkerSize(1.7);
@@ -103,6 +104,7 @@ void v2Exp_pt(bool bSavePlots     = false,
  phAxis_v2->Draw();
  CMS_lumi(pcCombi,120015000,33);
 
+ 
  pgAliceSysB->Draw("2");
  pgAliceSys->Draw("2");
  pgAlice->Draw("pz");
@@ -119,7 +121,7 @@ void v2Exp_pt(bool bSavePlots     = false,
  pgV2High->Draw("PZ");
  pgV2HighP->Draw("P");
  
- // --------- legends ----
+  // --------- legends ----
  TLegend *leg = new TLegend(0.2,0.77,0.7,0.89,NULL,"brNDC");
  leg->SetBorderSize(0);
  leg->SetTextFont(62);
@@ -131,7 +133,7 @@ void v2Exp_pt(bool bSavePlots     = false,
  leg->SetFillStyle(0);
 
  TLegendEntry *entry, *entry11;
- entry=leg->AddEntry("cmspr","Closed charm: prompt J/#psi (CMS)","");
+ entry=leg->AddEntry("cmspr","Open beuty: non-prompt J/#psi (CMS)","");
  entry->SetTextSize(0.035);
  entry->SetFillStyle(1001);
  entry->SetLineColor(1);
@@ -152,9 +154,9 @@ void v2Exp_pt(bool bSavePlots     = false,
  entry->SetTextFont(42);
  entry->SetTextSize(0.03);
  entry->SetMarkerStyle(21);
- entry->SetMarkerColor(kRed+2);
+ entry->SetMarkerColor(kOrange+2);
  entry->SetMarkerSize(1.);
- entry->SetFillColor(kRed-9);
+ entry->SetFillColor(kOrange-9);
  entry->SetFillStyle(1001);
 
  //--------------------------- 
@@ -203,6 +205,7 @@ void v2Exp_pt(bool bSavePlots     = false,
  entry1->SetFillColor(kAzure-9);
  entry1->SetTextFont(42);
  entry1->SetTextSize(0.03);
+
 
  leg->Draw();
  leg_alice->Draw();

@@ -88,7 +88,7 @@ CMS_lumi( TPad* pad, int iPeriod, int iPosX )
       lumiText2 += " #sqrt{s} = 2.76 TeV";
       // lumiText += " (2.76 TeV)";
     }
-    else if (iPeriod==103)
+  else if (iPeriod==103)
     {
       lumiText += lumi_PbPb2011;
       lumiText += ", ";
@@ -96,7 +96,27 @@ CMS_lumi( TPad* pad, int iPeriod, int iPosX )
       lumiText2 += " #sqrt{s_{NN}} = 2.76 TeV";
       // lumiText += " (2.76 TeV)";
     }
-   
+  else if (iPeriod==14005000)
+    {
+      lumiText += lumi_PbPbXX;
+      lumiText += ", ";
+      lumiText += lumi_ppXX;
+      lumiText2 += " #sqrt{s_{NN}} = 2.76 TeV";
+    }
+  else if (iPeriod==120015000)
+    {
+      lumiText += lumi_PbPbXX;
+      lumiText += " Cent. 10-60\%";
+      lumiText2 += " #sqrt{s_{NN}} = 2.76 TeV";
+    }
+   else if (iPeriod==12014000)
+    {
+      // lumiText += lumi_PbPbXX;
+      //lumiText += ", ";
+      // lumiText += lumi_ppXX;
+      lumiText2 += " #sqrt{s_{NN}} = 2.76 TeV";
+    }
+  
   cout << lumiText << endl;
 
   TLatex latex;
@@ -118,8 +138,9 @@ CMS_lumi( TPad* pad, int iPeriod, int iPosX )
     {
       latex.SetTextFont(cmsTextFont);
       latex.SetTextAlign(11); 
-      latex.SetTextSize(cmsTextSize*t);    
-      latex.DrawLatex(l,1-t+lumiTextOffset*t,cmsText);
+      latex.SetTextSize(cmsTextSize*t);
+      if(iPeriod!=14005000 && iPeriod!=120015000)
+	latex.DrawLatex(l,1-t+lumiTextOffset*t,cmsText);
     }
   
   pad->cd();
@@ -164,7 +185,8 @@ CMS_lumi( TPad* pad, int iPeriod, int iPosX )
 	  latex.SetTextFont(cmsTextFont);
 	  latex.SetTextSize(cmsTextSize*t);
 	  latex.SetTextAlign(align_);
-	  latex.DrawLatex(posX_, posY_, cmsText);
+	  if(iPeriod!=14005000&& iPeriod!=120015000)
+	    latex.DrawLatex(posX_, posY_, cmsText);
 	  if( writeExtraText ) 
 	    {
 	      latex.SetTextFont(extraTextFont);
