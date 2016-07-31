@@ -32,7 +32,7 @@
 
 #endif
 
-void v2Exp_pt(bool bSavePlots     = false, 
+void v2Exp_pt(bool bSavePlots     = true, 
 	      float rangeYAxis    = 0.6,
 	      float rangeXAxis    = 20,
 	      const char* inputDir      = "../macro_v2/outRoot", // the place where the input root files, with the histograms are
@@ -53,7 +53,8 @@ void v2Exp_pt(bool bSavePlots     = false,
   TGraphErrors *pgV2HighSyst  = (TGraphErrors *)pfV2Cms_cent->Get("pgV2_sys");
   TGraphErrors *pgV2HighP     = (TGraphErrors *)pfV2Cms_cent->Get("pgV2_cont");
   
-
+  pgV2LowSyst->SetFillColorAlpha(kViolet-9,0.5);
+  pgV2HighSyst->SetFillColorAlpha(kRed-9,0.5);
   // -----------------------------------------------------------------------------------------
   // ----- charged hadrons
  TGraphErrors *gChar    = new TGraphErrors(19, pTChar, v2Char, chxerr, v2CharSt);

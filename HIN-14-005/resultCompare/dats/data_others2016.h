@@ -23,7 +23,7 @@
 const int nNpartBins_alice = 6; 
 double npartBins_alice[nNpartBins_alice]    = {356.0, 260.1,185.8, 128.5, 84.7, 32.2}; 
 double npartBinsErr_alice[nNpartBins_alice] = {.0,.0, .0,.0,.0,0};
-double npartSystX_alice[nNpartBins_alice]   = {10,10,10, 10,10,10};
+double npartSystX_alice[nNpartBins_alice]   = {7,7,7, 6,6,6};
   
 // D alice RAA _Npart
 double raaAlice_cent_dpt816[nNpartBins_alice]         = {0.15, 0.20, 0.27, 0.32, 0.37, 0.66}; 
@@ -43,7 +43,7 @@ double raaAliceSystCorrLow_cent_dpt816[nNpartBins_alice]    = {0.03, 0.04, 0.05,
 const int nNpartBins5_alice = 5; 
 double npartBins5_alice[nNpartBins5_alice]    = {357, 261,157, 69, 23}; 
 double npartBinsErr5_alice[nNpartBins5_alice] = {.0,.0,.0,.0,0};
-double npartSystX5_alice[nNpartBins5_alice]   = {10,10,10,10,10};
+double npartSystX5_alice[nNpartBins5_alice]   = {7,7,6,6,6};
   
 // D alice RAA _Npart
 double raaAlice_cent_dpt612[nNpartBins5_alice]         = {0.23, 0.28, 0.42, 0.54, 0.81}; 

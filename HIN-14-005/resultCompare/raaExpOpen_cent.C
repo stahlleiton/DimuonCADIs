@@ -50,7 +50,7 @@ void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot", // the 
   TGraphErrors *pgCmsSyst = (TGraphErrors *)pfRaaCms_cent->Get("gNonPrJpsiSyst");
   TBox *lumi = (TBox*)pfRaaCms_cent->Get("lumi_npr_y024_pt6530");
   //lumi->SetFillColor(kOrange-9);
-
+  //  pgCmsSyst->SetFillColorAlpha(kOrange-9,0.5);
 
   //-------------------------------------------------------------------- 
   // *********** alice points
@@ -69,7 +69,7 @@ void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot", // the 
 								    raaAliceSystCorrLow_cent_dpt816,raaAliceSystCorrHigh_cent_dpt816);
   
   pgAlice_dpt816->SetMarkerStyle(21);
-  pgAlice_dpt816->SetMarkerSize(1.5);
+  pgAlice_dpt816->SetMarkerSize(1.2);
   // systmatic boxes
   // uncorrelated, open
   pgAliceSyst_dpt816->SetLineColor(1);

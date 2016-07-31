@@ -52,8 +52,7 @@ void raaExpOpenClose_cent(const char* inputDir      = "../macro_raa/outRoot", //
   TGraphErrors *pgCmsP    = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsiP");
   TGraphErrors *pgCmsSyst = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsiSyst");
   TBox *lumi = (TBox*)pfRaaCms_cent->Get("lumi_pr_y024_pt6530");
-  lumi->SetFillColor(kRed-9);
-
+  pgCms->SetFillColorAlpha(kRed-9,0.5);
 
   //-------------------------------------------------------------------- 
   // *********** alice points:

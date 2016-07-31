@@ -9,20 +9,27 @@
 #include <Riostream.h>
 #include "TROOT.h"
 
-#include "TCanvas.h"
-#include "TColor.h"
-#include "TF1.h"
-#include "TFile.h"
-#include "TH1.h"
-#include "TGraph.h"
-#include "TGraphErrors.h"
-#include "TGraphAsymmErrors.h"
-#include "TLatex.h"
-#include "TLegend.h"
-#include "TLegendEntry.h"
-#include "TMath.h"
-#include "TSystem.h"
-#include "TStyle.h"
+#include <Riostream.h>
+#include <TSystem.h>
+#include <TProfile.h>
+#include <TBrowser.h>
+#include <TROOT.h>
+#include <TGraph.h>
+#include <TNtuple.h>
+#include <TString.h>
+#include <TFile.h>
+#include <TF1.h>
+#include <TMath.h>
+#include <TH1D.h>
+#include <TH2D.h>
+#include <TCanvas.h>
+#include <TLegend.h>
+#include <TLegendEntry.h>
+#include <TStyle.h>
+#include <TLatex.h>
+#include <TInterpreter.h>
+#include <TGraphAsymmErrors.h>
+#include <TGraphErrors.h>
 
 #include "dats/data_cms2016.h"
 #include "dats/data_others2016.h"
@@ -33,15 +40,15 @@
 #endif
 
 void v2ExpOpen_pt(bool bSavePlots = false, 
-	      float rangeYAxis    = 0.6,
-	      float rangeXAxis    = 20,
-	      const char* inputDir= "../macro_v2/outRoot", // the place where the input root files, with the histograms are
-	      const char* figNamePrefix="v2ExpOpen_pt")
+		  float rangeYAxis    = 0.6,
+		  float rangeXAxis    = 20,
+		  const char* inputDir= "../macro_v2/outRoot", // the place where the input root files, with the histograms are
+		  const char* figNamePrefix="v2ExpOpen_pt")
 {
   gSystem->mkdir(Form("./figs/png"), kTRUE);
   gSystem->mkdir(Form("./figs/pdf"), kTRUE);
   setTDRStyle();
-  
+  //  gStyle->SetCanvasPreferGL(1);
  // read CMS graphs
   TFile *pfV2Cms_cent   = new TFile(Form("%s/NPrp_v2_pt_plotter.root",inputDir));
   
@@ -53,6 +60,8 @@ void v2ExpOpen_pt(bool bSavePlots = false,
   TGraphErrors *pgV2HighSyst  = (TGraphErrors *)pfV2Cms_cent->Get("pgV2_sys");
   TGraphErrors *pgV2HighP     = (TGraphErrors *)pfV2Cms_cent->Get("pgV2_cont");
   
+  pgV2LowSyst->SetFillColorAlpha(kViolet-9,0.5);
+  pgV2HighSyst->SetFillColorAlpha(kOrange-9,0.5);
 
   // -----------------------------------------------------------------------------------------
   // ----- charged hadrons
@@ -104,7 +113,6 @@ void v2ExpOpen_pt(bool bSavePlots = false,
  phAxis_v2->Draw();
  CMS_lumi(pcCombi,120015000,33);
 
- 
  pgAliceSysB->Draw("2");
  pgAliceSys->Draw("2");
  pgAlice->Draw("pz");
@@ -153,9 +161,9 @@ void v2ExpOpen_pt(bool bSavePlots = false,
  entry=leg->AddEntry("pgV2High", "|y|<2.4","Pf");
  entry->SetTextFont(42);
  entry->SetTextSize(0.03);
- entry->SetMarkerStyle(21);
+ entry->SetMarkerStyle(29);
  entry->SetMarkerColor(kOrange+2);
- entry->SetMarkerSize(1.);
+ entry->SetMarkerSize(1.7);
  entry->SetFillColor(kOrange-9);
  entry->SetFillStyle(1001);
 
@@ -176,7 +184,7 @@ void v2ExpOpen_pt(bool bSavePlots = false,
  entry_alice=leg_alice->AddEntry("pgAlice","|y|<0.8, Cent. 30-50\%","Pf");
  entry_alice->SetMarkerStyle(27);
  entry_alice->SetMarkerColor(kGray+2);
- entry_alice->SetMarkerSize(1);
+ entry_alice->SetMarkerSize(1.7);
  entry_alice->SetFillStyle(1001);
  entry_alice->SetTextFont(42);
  entry_alice->SetTextSize(0.03);
@@ -212,7 +220,7 @@ void v2ExpOpen_pt(bool bSavePlots = false,
  leg1->Draw();
 
  gPad->RedrawAxis();
-      
+ pcCombi->Update();
  if(bSavePlots)
    {
      pcCombi->SaveAs(Form("figs/pdf/%s.pdf",figNamePrefix));
