@@ -29,6 +29,7 @@
 
 #include "../CMS_lumi.C"
 #include "../tdrstyle.C"
+#include "../textPosition.h"
 
 #endif
 
@@ -121,7 +122,7 @@ void v2Exp_pt(bool bSavePlots     = true,
  pgV2HighP->Draw("P");
  
  // --------- legends ----
- TLegend *leg = new TLegend(0.2,0.77,0.7,0.89,NULL,"brNDC");
+ TLegend *leg = new TLegend(0.2,0.78,0.7,0.89,NULL,"brNDC");
  leg->SetBorderSize(0);
  leg->SetTextFont(62);
  leg->SetTextSize(0.03);
@@ -133,15 +134,15 @@ void v2Exp_pt(bool bSavePlots     = true,
 
  TLegendEntry *entry, *entry11;
  entry=leg->AddEntry("cmspr","Closed charm: prompt J/#psi (CMS)","");
- entry->SetTextSize(0.035);
+ entry->SetTextSize(ltxSetTextSize3);
  entry->SetFillStyle(1001);
  entry->SetLineColor(1);
  entry->SetLineStyle(1);
  entry->SetLineWidth(1);
 
- entry=leg->AddEntry("pgV2Low", "1.6<|y|<2.4","pf");
+ entry=leg->AddEntry("pgV2Low", "1.6 < |y| < 2.4","p");
  entry->SetTextFont(42);
- entry->SetTextSize(0.03);
+ entry->SetTextSize(entrySize);
  entry->SetMarkerStyle(34);
  entry->SetMarkerColor(kViolet+2);
  entry->SetMarkerSize(1.7);
@@ -149,9 +150,9 @@ void v2Exp_pt(bool bSavePlots     = true,
  entry->SetFillStyle(1001);
 
 
- entry=leg->AddEntry("pgV2High", "|y|<2.4","Pf");
+ entry=leg->AddEntry("pgV2High", "|y| < 2.4","P");
  entry->SetTextFont(42);
- entry->SetTextSize(0.03);
+ entry->SetTextSize(entrySize);
  entry->SetMarkerStyle(21);
  entry->SetMarkerColor(kRed+2);
  entry->SetMarkerSize(1.);
@@ -159,10 +160,10 @@ void v2Exp_pt(bool bSavePlots     = true,
  entry->SetFillStyle(1001);
 
  //--------------------------- 
- TLegend *leg_alice = new TLegend(0.2,0.68,0.7,0.77,NULL,"brNDC");
+ TLegend *leg_alice = new TLegend(0.2,0.70,0.7,0.77,NULL,"brNDC");
  leg_alice->SetBorderSize(0);
  leg_alice->SetTextFont(62);
- leg_alice->SetTextSize(0.03);
+ leg_alice->SetTextSize(ltxSetTextSize3);
  leg_alice->SetLineColor(1);
  leg_alice->SetLineStyle(1);
  leg_alice->SetLineWidth(1);
@@ -172,19 +173,19 @@ void v2Exp_pt(bool bSavePlots     = true,
  entry_alice->SetLineColor(1);
  entry_alice->SetLineStyle(1);
  entry_alice->SetLineWidth(1);
- entry_alice=leg_alice->AddEntry("pgAlice","|y|<0.8, Cent. 30-50\%","Pf");
+ entry_alice=leg_alice->AddEntry("pgAlice","|y| < 0.8, Cent. 30-50\%","P");
  entry_alice->SetMarkerStyle(27);
  entry_alice->SetMarkerColor(kGray+2);
  entry_alice->SetMarkerSize(1);
  entry_alice->SetFillStyle(1001);
  entry_alice->SetTextFont(42);
- entry_alice->SetTextSize(0.03);
+ entry_alice->SetTextSize(entrySize);
 
 
  TLegend *leg1 = new TLegend(0.2,0.61,0.7,0.68,NULL,"brNDC");
  leg1->SetBorderSize(0);
  leg1->SetTextFont(62);
- leg1->SetTextSize(0.03);
+ leg1->SetTextSize(ltxSetTextSize3);
  leg1->SetLineColor(1);
  leg1->SetLineStyle(1);
  leg1->SetLineWidth(1);
@@ -195,15 +196,15 @@ void v2Exp_pt(bool bSavePlots     = true,
  entry1->SetLineColor(1);
  entry1->SetLineStyle(1);
  entry1->SetLineWidth(1);
- entry1->SetTextSize(0.035);
- entry1=leg1->AddEntry("gChar","|#eta|<0.8","Pf");
+ entry1->SetTextSize(ltxSetTextSize3);
+ entry1=leg1->AddEntry("gChar","|#eta| < 0.8","P");
  entry1->SetMarkerStyle(20);
  entry1->SetMarkerColor(kAzure+2);
  entry1->SetMarkerSize(1.2);
  entry1->SetFillStyle(1001);
  entry1->SetFillColor(kAzure-9);
  entry1->SetTextFont(42);
- entry1->SetTextSize(0.03);
+ entry1->SetTextSize(entrySize);
 
  leg->Draw();
  leg_alice->Draw();

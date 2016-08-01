@@ -35,6 +35,7 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #include <TGraphErrors.h>
 #include "../CMS_lumi.C"
 #include "../tdrstyle.C"
+#include "../textPosition.h"
 #include "v2_dataNumbers_2015.h"
 #endif
 
@@ -48,8 +49,8 @@ void v2_pt_plotter(
        const char* inputDirSyst = "../calcSyst_v2/histSyst",// where phi and v2 numbers are (root, and txt format)
        bool lineAt65            = true,
        bool bDoDebug            = false,
-       bool bSavePlots          = true,
-       bool bSaveRoot           = true
+       bool bSavePlots          = 1,
+       bool bSaveRoot           = 1
         ) {
   using namespace std;
 
@@ -61,9 +62,6 @@ void v2_pt_plotter(
   
   // set the style
   setTDRStyle();
-  gStyle->SetOptFit(0);
-  gStyle->SetOptStat(0);
-  gStyle->SetOptTitle(kFALSE);
 
   // input files: prompt and non-prompt ones
   const char* v2InFileDirs[1] = {"histsV2Yields_20160304_v2W_dPhiBins4"};
@@ -75,6 +73,15 @@ void v2_pt_plotter(
   if (jpsiCategory==2) {categStart=2; categEnd=3;}
   if (jpsiCategory==3) {categStart=3;}
 
+  TGraphAsymmErrors *pgV2;
+  TGraphErrors *pgV2_sys;
+  TGraphErrors *pgV2_cont;
+  
+  // low-pt
+  TGraphAsymmErrors *pgV2_low;
+  TGraphErrors *pgV2_low_sys;
+  TGraphErrors *pgV2_low_cont;
+      
   int nBins                   =  nPtBins_pr-1; // remove the low-pt bin, which is treated/read separatelly
   for(int iCateg=categStart; iCateg<categEnd; iCateg++)
     {
@@ -237,86 +244,86 @@ void v2_pt_plotter(
 	cout<<"Bin 00 "<<"\t stat. uncert.: "<<adV2_low_stat[0]<< "\t syst. uncer.: "<< adV2_low_syst[0]<< endl;
       }
       // high-pt
-      TGraphAsymmErrors *pgV2= new TGraphAsymmErrors(nBins, adXaxis, adV2, adXaxis_l, adXaxis_h, adV2_stat, adV2_stat);
-      TGraphErrors *pgV2_sys = new TGraphErrors(nBins, adXaxis, adV2, adWidth_systBox,adV2_syst);
-      TGraphErrors *pgV2_cont= new TGraphErrors(nBins, adXaxis, adV2, adV2_err0, adV2_err0);
+      pgV2     = new TGraphAsymmErrors(nBins, adXaxis, adV2, adXaxis_l, adXaxis_h, adV2_stat, adV2_stat);
+      pgV2_sys = new TGraphErrors(nBins, adXaxis, adV2, adWidth_systBox,adV2_syst);
+      pgV2_cont= new TGraphErrors(nBins, adXaxis, adV2, adV2_err0, adV2_err0);
       
       // low-pt
-      TGraphAsymmErrors *pgV2_low= new TGraphAsymmErrors(1, adXaxis_low, adV2_low, adXaxis_low_l, adXaxis_low_h, adV2_low_stat, adV2_low_stat);
-      TGraphErrors *pgV2_low_sys = new TGraphErrors(1, adXaxis_low, adV2_low, adWidth_systBox,adV2_low_syst);
-      TGraphErrors *pgV2_low_cont= new TGraphErrors(1, adXaxis_low, adV2_low, adV2_low_err0, adV2_low_err0);
+      pgV2_low     = new TGraphAsymmErrors(1, adXaxis_low, adV2_low, adXaxis_low_l, adXaxis_low_h, adV2_low_stat, adV2_low_stat);
+      pgV2_low_sys = new TGraphErrors(1, adXaxis_low, adV2_low, adWidth_systBox,adV2_low_syst);
+      pgV2_low_cont= new TGraphErrors(1, adXaxis_low, adV2_low, adV2_low_err0, adV2_low_err0);
       
       // //-------------------------------------------------- Drawing stuff
       // colors and symbols
       // high-pt
       pgV2->SetMarkerColor(kRed+1);
-      pgV2_sys->SetFillColor(kRed-9);
-      
       pgV2->SetMarkerStyle(21);
-      pgV2_sys->SetMarkerStyle(21);
-      pgV2_cont->SetMarkerStyle(25); 
-      
       pgV2->SetMarkerSize(1.1);
+
+      pgV2_sys->SetFillColorAlpha(kRed-9,0.5);      
+      pgV2_sys->SetMarkerStyle(21);
+      pgV2_sys->SetMarkerSize(1.1);
+
+      pgV2_cont->SetMarkerStyle(25);      
       pgV2_cont->SetMarkerSize(1.1);
       
       if(jpsiCategory==2)
 	{
 	  pgV2->SetMarkerColor(kOrange+2);
-	  pgV2_sys->SetFillColor(kOrange-9);
+	  pgV2->SetMarkerStyle(29);
+	  pgV2->SetMarkerSize(2);
+
+	  pgV2_sys->SetFillColorAlpha(kOrange-9,0.5);
+	  pgV2_sys->SetMarkerStyle(30);
+	  pgV2_sys->SetMarkerSize(2);
+	  
+	  pgV2_cont->SetMarkerStyle(30); 
+	  pgV2_cont->SetMarkerSize(2);
 	}
       if(jpsiCategory==3)// bkg
 	{
 	  pgV2->SetMarkerColor(1);
-	  pgV2_sys->SetFillColor(19);
+	  pgV2_sys->SetFillColorAlpha(19,0.5);
 	}
       // low-pt
       pgV2_low->SetMarkerColor(kViolet+2);
-      pgV2_low_sys->SetFillColor(kViolet-9);
-      pgV2_low->SetMarkerStyle(20);
-      pgV2_low->SetMarkerSize(1.2);
-      pgV2_low_cont->SetMarkerStyle(24); 
-      pgV2_low_cont->SetMarkerSize(1.2);
+      pgV2_low->SetMarkerStyle(34);
+      pgV2_low->SetMarkerSize(1.7);
+
+      pgV2_low_sys->SetFillColorAlpha(kViolet-9,0.5);
+      pgV2_low_sys->SetMarkerStyle(28);
+      pgV2_low_sys->SetMarkerSize(1.7);
+
+      pgV2_low_cont->SetMarkerStyle(28); 
+      pgV2_low_cont->SetMarkerSize(1.7);
       //-------------------------------------------------------
       // general labels 
       TLatex *lt1  = new TLatex();
       lt1->SetNDC();
       lt1->SetTextFont(42);
-      lt1->SetTextSize(0.04);
+      lt1->SetTextSize(ltxSetTextSize2);
       
       TH1F *phAxis = new TH1F("phAxis",";p_{T} (GeV/c);v_{2}",10,0,30);
       phAxis->GetYaxis()->SetRangeUser(0,0.25);
+      if(jpsiCategory==1){phAxis->GetYaxis()->SetRangeUser(0,0.2);phAxis->GetYaxis()->SetNdivisions(505);}
       phAxis->GetXaxis()->CenterTitle();
       phAxis->GetYaxis()->CenterTitle();
       
-      TLine *line    = new TLine();//"line","0",0,400);
+      TLine *line    = new TLine();
       line->SetLineWidth(1);
-      
-      TLegend *legPt = new TLegend(0.7,0.6,0.8,0.7);
-      legPt->SetFillStyle(0);
-      legPt->SetFillColor(0);
-      legPt->SetBorderSize(0);
-      legPt->SetMargin(0.2);
-      legPt->SetTextSize(0.045);
-      legPt->SetTextFont(42);
-      TLegendEntry *le = legPt->AddEntry(pgV2,"|y|<2.4","P");
-      if (iCateg==1) le->SetTextColor(kRed+1);
-      else if(iCateg==2) le->SetTextColor(kOrange+2);
-      else if(iCateg==3) le->SetTextColor(1);
-      TLegendEntry *le_low = legPt->AddEntry(pgV2_low,"1.6<|y|<2.4","P");
-      le_low->SetTextColor(kViolet+2);
-      
-      
+          
       //-------------- Drawing 
       TCanvas *pc = new TCanvas("pc","pc");
       phAxis->Draw();
-      CMS_lumi(pc,101,33);
-      lt1->SetTextSize(0.05);
-      lt1->DrawLatex(0.2,0.85,Form("%s",legend[iCateg]));
-      lt1->SetTextSize(0.04);
-      lt1->DrawLatex(0.2,0.8,Form("%s",yBinsLegend[0]));
-      lt1->SetTextSize(0.04);
-      lt1->DrawLatex(0.2,0.75,Form("%s",centBinsLegend[0]));
-      legPt->Draw();
+      CMS_lumi(pc,12001000,0);
+      lt1->SetTextSize(ltxSetTextSize1);
+      lt1->SetTextFont(22);
+      lt1->DrawLatex(ltxText_xStart,ltxText_yStart,Form("%s",legend[iCateg]));
+
+      lt1->SetTextSize(ltxSetTextSize2);
+      lt1->SetTextFont(42);
+      lt1->DrawLatex(ltxCentOnly_x,ltxCentOnly_y,Form("%s",centBinsLegend[0]));
+
       
       pgV2_sys->Draw("2");
       pgV2_low_sys->Draw("2");
@@ -331,9 +338,62 @@ void v2_pt_plotter(
       line->DrawLine(0,0,30,0);
       if (lineAt65) {
 	line->SetLineStyle(7);
-	if (iCateg==1) line->DrawLine(6.5,0.005,6.5,0.15);
+	if (iCateg==1) line->DrawLine(6.5,0.005,6.5,0.12);
 	else if (iCateg==2) line->DrawLine(6.5,0.0,6.5,0.17);
       }
+
+      TLegend *leg1 = new TLegend(legRaaPt_xLowStart,legRaaPt_y,legRaaPt_xLowEnd,legRaaPt_y,NULL,"brNDC");
+      leg1->SetBorderSize(0);
+      leg1->SetTextFont(22);
+      leg1->SetTextSize(ltxSetTextSize2);
+      leg1->SetTextColor(kViolet+2);
+      leg1->SetLineColor(1);
+      leg1->SetLineStyle(1);
+      leg1->SetLineWidth(1);
+      leg1->SetFillColor(19);
+      leg1->SetFillStyle(0);
+      TLegendEntry *entry1 = leg1->AddEntry("pgV2_low","1.6 < |y| < 2.4","P");
+      entry1->SetMarkerStyle(34);
+      entry1->SetMarkerColor(kViolet+2);
+      entry1->SetMarkerSize(1.7);
+      entry1->SetFillStyle(1001);
+      entry1->SetFillColor(kViolet-9);
+      
+      TLegend *leg2 = new TLegend(legRaaPt_xHighStart,legRaaPt_y,legRaaPt_xHighEnd,legRaaPt_y,NULL,"brNDC");
+      leg2->SetBorderSize(0);
+      leg2->SetTextFont(22);
+      leg2->SetTextSize(ltxSetTextSize2);
+      if (iCateg==1) leg2->SetTextColor(kRed+1);
+      else if(iCateg==2) leg2->SetTextColor(kOrange+2);
+      else if(iCateg==3) leg2->SetTextColor(1);
+      
+      leg2->SetLineColor(1);
+      leg2->SetLineStyle(1);
+      leg2->SetLineWidth(1);
+      leg2->SetFillColor(19);
+      leg2->SetFillStyle(0);
+      TLegendEntry *entry2 = leg2->AddEntry("pgV2","|y|<2.4","P");
+      entry2->SetFillStyle(1001);
+      if (iCateg==1)
+	{
+	  entry2->SetMarkerStyle(21);
+	  entry2->SetMarkerColor(kRed+2);
+	  entry2->SetMarkerSize(1.2);
+	  entry2->SetFillColor(kRed-9);
+
+	}
+      else if(iCateg==2)
+	{
+	  entry2->SetMarkerStyle(29);
+	  entry2->SetMarkerColor(kOrange+2);
+	  entry2->SetMarkerSize(1.7);
+	  entry2->SetFillColor(kOrange-9);
+
+	}
+      else if(iCateg==3) leg2->SetTextColor(1);
+      leg1->Draw();
+      leg2->Draw();
+      pc->Update();
       
       if(bSavePlots)
 	{

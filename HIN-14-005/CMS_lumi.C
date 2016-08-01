@@ -116,7 +116,13 @@ CMS_lumi( TPad* pad, int iPeriod, int iPosX )
       // lumiText += lumi_ppXX;
       lumiText2 += " #sqrt{s_{NN}} = 2.76 TeV";
     }
-  
+  else if (iPeriod==12001000)
+    {
+      // lumiText += lumi_PbPbXX;
+      //lumiText += ", ";
+      // lumiText += lumi_ppXX;
+      lumiText2 += " PbPb #sqrt{s_{NN}} = 2.76 TeV";
+    }
   cout << lumiText << endl;
 
   TLatex latex;

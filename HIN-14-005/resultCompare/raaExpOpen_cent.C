@@ -31,6 +31,7 @@
 
 #include "../CMS_lumi.C"
 #include "../tdrstyle.C"
+#include "../textPosition.h"
 
 #endif
 void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot", // the place where the input root files, with the histograms are
@@ -49,8 +50,8 @@ void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot", // the 
   TGraphErrors *pgCmsP    = (TGraphErrors *)pfRaaCms_cent->Get("gNonPrJpsiP");
   TGraphErrors *pgCmsSyst = (TGraphErrors *)pfRaaCms_cent->Get("gNonPrJpsiSyst");
   TBox *lumi = (TBox*)pfRaaCms_cent->Get("lumi_npr_y024_pt6530");
-  //lumi->SetFillColor(kOrange-9);
-  //  pgCmsSyst->SetFillColorAlpha(kOrange-9,0.5);
+  lumi->SetFillColor(kOrange-9);
+  pgCmsSyst->SetFillColorAlpha(kOrange-9,0.5);
 
   //-------------------------------------------------------------------- 
   // *********** alice points
@@ -112,7 +113,7 @@ void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot", // the 
   // additional info
   CMS_lumi(pc,14005000,33);
 
-  TLegend *leg_cent = new TLegend(0.2,0.78,0.7,0.88,NULL,"brNDC");
+  TLegend *leg_cent = new TLegend(0.2,0.78,0.7,0.85,NULL,"brNDC");
   leg_cent->SetBorderSize(0);
   leg_cent->SetTextFont(62);
   leg_cent->SetTextSize(0.03);
@@ -123,7 +124,7 @@ void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot", // the 
   leg_cent->SetFillStyle(0);
 
   TLegendEntry *entry_cent;
-  entry_cent=leg_cent->AddEntry("raab","b quark: non-prompt J/#psi (CMS)","pf");
+  entry_cent=leg_cent->AddEntry("raab","b quark: non-prompt J/#psi (CMS)","p");
   entry_cent->SetFillColor(kOrange-9);
   entry_cent->SetFillStyle(1001);
   entry_cent->SetLineColor(1);
@@ -132,10 +133,10 @@ void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot", // the 
   entry_cent->SetMarkerStyle(29);
   entry_cent->SetMarkerColor(kOrange+2);
   entry_cent->SetMarkerSize(2.);
-  entry_cent->SetTextSize(0.035);
-  entry_cent=leg_cent->AddEntry("raabjpsi", "6.5<p_{T}<30 GeV/c),|y|<2.4","");
+  entry_cent->SetTextSize(ltxSetTextSize3);
+  entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c),|y| < 2.4","");
   entry_cent->SetTextFont(42);
-  entry_cent->SetTextSize(0.03);
+  entry_cent->SetTextSize(entrySize);
 
   TLegend *leg_alice_cent = new TLegend(0.2,0.67,0.7,0.77,NULL,"brNDC");
   leg_alice_cent->SetBorderSize(0);
@@ -147,17 +148,17 @@ void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot", // the 
   leg_alice_cent->SetFillColor(19);
   leg_alice_cent->SetFillStyle(0);
   
-  TLegendEntry *entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","c quark: prompt D (ALICE)","fP");
+  TLegendEntry *entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","c quark: prompt D (ALICE)","P");
   entry_alice_cent->SetFillStyle(1001);
   entry_alice_cent->SetLineColor(1);
   entry_alice_cent->SetLineStyle(1);
   entry_alice_cent->SetLineWidth(1);
-  entry_alice_cent->SetTextSize(0.035);
+  entry_alice_cent->SetTextSize(ltxSetTextSize3);
   entry_alice_cent->SetMarkerStyle(21);
   entry_alice_cent->SetMarkerSize(1);
-  entry_alice_cent=leg_alice_cent->AddEntry("alicewhat","8<p_{T}<16 GeV/c, |y|<0.5","");
+  entry_alice_cent=leg_alice_cent->AddEntry("alicewhat","8 < p_{T} < 16 GeV/c, |y| < 0.5","");
   entry_alice_cent->SetTextFont(42);
-  entry_alice_cent->SetTextSize(0.03);
+  entry_alice_cent->SetTextSize(entrySize);
 
   leg_cent->Draw();
   leg_alice_cent->Draw();

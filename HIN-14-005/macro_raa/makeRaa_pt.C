@@ -36,9 +36,11 @@ Output: the Raa vs pt.
 
 #include "../CMS_lumi.C"
 #include "../tdrstyle.C"
+#include "../textPosition.h"
+
 #endif
 
-void makeRaa_pt( bool bSavePlots           = true,
+void makeRaa_pt( bool bSavePlots           = 1,
 		 bool bSaveRoot            = 1,
 		 bool bDoDebug             = 0, // adds some numbers, numerator, denominator, to help figure out if things are read properly
 		 bool bAddLumi             = 1, // add the lumi boxes at raa=1
@@ -357,25 +359,9 @@ void makeRaa_pt( bool bSavePlots           = true,
   TBox *lumi = (TBox*)systFile->Get("lumi");
 
   //---------------- general stuff
-  TLatex *ly     = new TLatex(0.2,0.8,"|y| < 2.4");
-  ly->SetNDC();
-  ly->SetTextFont(42);
-  ly->SetTextSize(0.04);
-  
-  TLatex *lcent = new TLatex(0.68,0.83,"Cent. 0-100%");
-  lcent->SetNDC();
-  lcent->SetTextFont(42);
-  lcent->SetTextSize(0.04);
-
-  TLatex *lPr = new TLatex(0.21,0.83,"Prompt J/#psi");
-  lPr->SetNDC();
-  lPr->SetTextFont(22);
-  lPr->SetTextSize(0.055);
-
-  TLatex *lNpr = new TLatex(0.21,0.83,"Non-prompt J/#psi");
-  lNpr->SetNDC();
-  lNpr->SetTextFont(22);
-  lNpr->SetTextSize(0.055);
+  TLatex *lat = new TLatex();
+  lat->SetNDC();
+  lat->SetTextFont(42);
 
   // ##################################################### pr plots
   TCanvas *c1 = new TCanvas("c1","c1");
@@ -388,8 +374,14 @@ void makeRaa_pt( bool bSavePlots           = true,
   }
  
   CMS_lumi(c1,12014000,0);
-  lcent->Draw();
-  lPr->Draw();
+  lat->SetTextSize(ltxSetTextSize1);
+  lat->SetTextFont(22);
+  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Prompt J/#psi");
+ 
+  lat->SetTextFont(42);
+  lat->SetTextSize(ltxSetTextSize2);
+  lat->DrawLatex(ltxCentOnly_x,ltxCentOnly_y,"Cent. 0-100%");
+
   
   gPrJpsiSyst->Draw("2");
   gPrJpsi->Draw("P");
@@ -400,10 +392,10 @@ void makeRaa_pt( bool bSavePlots           = true,
   gPrJpsiP_pt365y1624->Draw("P");
 
   //------ the legend
-  TLegend *leg11a = new TLegend(0.6,0.7,0.9,0.75,NULL,"brNDC");
+  TLegend *leg11a = new TLegend(legRaaPt_xLowStart,legRaaPt_y,legRaaPt_xLowEnd,legRaaPt_y,NULL,"brNDC");
   leg11a->SetBorderSize(0);
   leg11a->SetTextFont(22);
-  leg11a->SetTextSize(0.04);
+  leg11a->SetTextSize(ltxSetTextSize2);
   leg11a->SetTextColor(kViolet+2);
   leg11a->SetLineColor(1);
   leg11a->SetLineStyle(1);
@@ -417,10 +409,10 @@ void makeRaa_pt( bool bSavePlots           = true,
   entry1->SetFillStyle(1001);
   entry1->SetFillColor(kViolet-9);
  
-  TLegend *leg11a_1 = new TLegend(0.6,0.65,0.9,0.7,NULL,"brNDC");
+  TLegend *leg11a_1 = new TLegend(legRaaPt_xHighStart,legRaaPt_y,legRaaPt_xHighEnd,legRaaPt_y,NULL,"brNDC");
   leg11a_1->SetBorderSize(0);
   leg11a_1->SetTextFont(22);
-  leg11a_1->SetTextSize(0.04);
+  leg11a_1->SetTextSize(ltxSetTextSize2);
   leg11a_1->SetTextColor(kRed+2);
 
   leg11a_1->SetLineColor(1);
@@ -453,8 +445,14 @@ void makeRaa_pt( bool bSavePlots           = true,
     f4->Draw("same");
   }
   CMS_lumi(c11b,12014000,0);
-  lcent->Draw();
-  lPr->Draw();
+  lat->SetTextSize(ltxSetTextSize1);
+  lat->SetTextFont(22);
+  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Prompt J/#psi");
+ 
+  lat->SetTextFont(42);
+  lat->SetTextSize(ltxSetTextSize2);
+  lat->DrawLatex(ltxCentOnly_x,ltxCentOnly_y,"Cent. 0-100%");
+
   
   gPrJpsiSyst_mb->Draw("2");
   gPrJpsi_mb->Draw("P");
@@ -466,7 +464,7 @@ void makeRaa_pt( bool bSavePlots           = true,
   leg11b->SetFillColor(0);
   leg11b->SetBorderSize(0);
   leg11b->SetMargin(0.2);
-  leg11b->SetTextSize(0.045);
+  leg11b->SetTextSize(ltxSetTextSize2);
   
   leg11b->AddEntry(gPrJpsi_mb,"|y|<2.4","P");
   leg11b->AddEntry(gPrJpsi_y1624_mb,"1.6<|y|<2.4","P");
@@ -493,8 +491,14 @@ void makeRaa_pt( bool bSavePlots           = true,
   }
  
   CMS_lumi(c2,12014000,0);
-  lcent->Draw();
-  lNpr->Draw(0);
+  lat->SetTextSize(ltxSetTextSize1);
+  lat->SetTextFont(22);
+  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Non-prompt J/#psi");
+ 
+  lat->SetTextFont(42);
+  lat->SetTextSize(ltxSetTextSize2);
+  lat->DrawLatex(ltxCentOnly_x,ltxCentOnly_y,"Cent. 0-100%");
+
 
   gNonPrJpsiSyst->Draw("2");
   gNonPrJpsi->Draw("P");
@@ -505,10 +509,10 @@ void makeRaa_pt( bool bSavePlots           = true,
   gNonPrJpsiP_pt365y1624->Draw("P");
 
   //-------- legends
-   TLegend *leg22a = new TLegend(0.6,0.7,0.9,0.75,NULL,"brNDC");
+   TLegend *leg22a = new TLegend(legRaaPt_xLowStart,legRaaPt_y,legRaaPt_xLowEnd,legRaaPt_y,NULL,"brNDC");
   leg22a->SetBorderSize(0);
   leg22a->SetTextFont(22);
-  leg22a->SetTextSize(0.04);
+  leg22a->SetTextSize(ltxSetTextSize2);
   leg22a->SetTextColor(kViolet+2);
   leg22a->SetLineColor(1);
   leg22a->SetLineStyle(1);
@@ -522,10 +526,10 @@ void makeRaa_pt( bool bSavePlots           = true,
   entry3->SetFillStyle(1001);
   entry3->SetFillColor(kViolet-9);
  
-  TLegend *leg22a_1 = new TLegend(0.6,0.65,0.9,0.7,NULL,"brNDC");
+  TLegend *leg22a_1 = new TLegend(legRaaPt_xHighStart,legRaaPt_y,legRaaPt_xHighEnd,legRaaPt_y,NULL,"brNDC");
   leg22a_1->SetBorderSize(0);
   leg22a_1->SetTextFont(22);
-  leg22a_1->SetTextSize(0.04);
+  leg22a_1->SetTextSize(ltxSetTextSize2);
   leg22a_1->SetTextColor(kOrange+2);
 
   leg22a_1->SetLineColor(1);
@@ -560,8 +564,14 @@ void makeRaa_pt( bool bSavePlots           = true,
     f4->Draw("same");
   }
   CMS_lumi(c22b,12014000,0);
-  lcent->Draw();
-  lNpr->Draw();
+ lat->SetTextSize(ltxSetTextSize1);
+  lat->SetTextFont(22);
+  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Non-rompt J/#psi");
+ 
+  lat->SetTextFont(42);
+  lat->SetTextSize(ltxSetTextSize2);
+  lat->DrawLatex(ltxCentOnly_x,ltxCentOnly_y,"#splitline{Cent. 0-100%}{ }");
+
    
   gNonPrJpsiSyst_mb->Draw("2");
   gNonPrJpsi_mb->Draw("P");
@@ -573,7 +583,7 @@ void makeRaa_pt( bool bSavePlots           = true,
   leg22b->SetFillColor(0);
   leg22b->SetBorderSize(0);
   leg22b->SetMargin(0.2);
-  leg22b->SetTextSize(0.045);
+  leg22b->SetTextSize(ltxSetTextSize2);
   leg22b->AddEntry(gNonPrJpsi_mb,"|y|<2.4","P");
   leg22b->AddEntry(gNonPrJpsi_y1624_mb,"1.6<|y|<2.4","P");
   leg22b->Draw();

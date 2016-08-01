@@ -35,6 +35,8 @@ Output: the Raa vs rpaidity.
 
 #include "../CMS_lumi.C"
 #include "../tdrstyle.C"
+#include "../textPosition.h"
+
 #endif
 
 void makeRaa_y(bool bSavePlots           = 1,
@@ -345,26 +347,8 @@ void makeRaa_y(bool bSavePlots           = 1,
   TBox *lumi = (TBox*)systFile->Get("lumi");
 
   //---------------- general stuff
-  TLatex *lcent = new TLatex(0.62,0.83,"Cent. 0-100%");
-  lcent->SetNDC();
-  lcent->SetTextFont(42);
-  lcent->SetTextSize(0.04);
-
-  TLatex *lpt     = new TLatex(0.62,0.78,"6.5 < p_{T} < 30 GeV/c");
-  lpt->SetNDC();
-  lpt->SetTextFont(42);
-  lpt->SetTextSize(0.04);
-  
-  TLatex *lPr = new TLatex(0.21,0.83,"Prompt J/#psi");
-  lPr->SetNDC();
-  lPr->SetTextFont(22);
-  lPr->SetTextSize(0.055);
-
-  TLatex *lNpr = new TLatex(0.21,0.83,"Non-prompt J/#psi");
-  lNpr->SetNDC();
-  lNpr->SetTextFont(22);
-  lNpr->SetTextSize(0.055);
-
+  TLatex *lat = new TLatex();
+  lat->SetNDC();
 
   // ##################################################### pr plots
   TCanvas *c1 = new TCanvas("c1","c1");
@@ -376,9 +360,14 @@ void makeRaa_y(bool bSavePlots           = 1,
     f4->Draw("same");
   }
   CMS_lumi(c1,12014000,0);
-  lPr->Draw();
-  lcent->Draw();
-  lpt->Draw();
+  lat->SetTextSize(ltxSetTextSize1);
+  lat->SetTextFont(22);
+  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Prompt J/#psi");
+ 
+  lat->SetTextFont(42);
+  lat->SetTextSize(ltxSetTextSize2);
+  lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{Cent. 0-100%}{6.5 < p_{T} < 30 GeV/c}");
+  
 
   gPrJpsiSyst->Draw("2");
   gPrJpsi->Draw("P");
@@ -402,9 +391,14 @@ void makeRaa_y(bool bSavePlots           = 1,
     f4->Draw("same");
   }
  
-  lPr->Draw();
-  lcent->Draw();
-  lpt->Draw();
+  lat->SetTextSize(ltxSetTextSize1);
+  lat->SetTextFont(22);
+  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Prompt J/#psi");
+ 
+  lat->SetTextFont(42);
+  lat->SetTextSize(ltxSetTextSize2);
+  lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{Cent. 0-100%}{6.5 < p_{T} < 30 GeV/c}");
+  
   CMS_lumi(c11b,103,33);
 
   gPrJpsiSyst_mb->Draw("2");
@@ -434,9 +428,14 @@ void makeRaa_y(bool bSavePlots           = 1,
     f4->Draw("same");
   }
   CMS_lumi(c2,12014000,0);
-  lNpr->Draw();
-  lcent->Draw();
-  lpt->Draw();
+  lat->SetTextSize(ltxSetTextSize1);
+  lat->SetTextFont(22);
+  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Non-prompt J/#psi");
+ 
+  lat->SetTextFont(42);
+  lat->SetTextSize(ltxSetTextSize2);
+  lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{Cent. 0-100%}{6.5 < p_{T} < 30 GeV/c}");
+  
 
   gNonPrJpsiSyst->Draw("2");
   gNonPrJpsi->Draw("P");
@@ -459,9 +458,14 @@ void makeRaa_y(bool bSavePlots           = 1,
     f4->Draw("same");
   }
   CMS_lumi(c22b,12014000,0);
-  lNpr->Draw();
-  lcent->Draw();
-  lpt->Draw();
+  lat->SetTextSize(ltxSetTextSize1);
+  lat->SetTextFont(22);
+  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Non-prompt J/#psi");
+ 
+  lat->SetTextFont(42);
+  lat->SetTextSize(ltxSetTextSize2);
+  lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{Cent. 0-100%}{6.5 < p_{T} < 30 GeV/c}");
+  
 
   gNonPrJpsiSyst_mb->Draw("2");
   gNonPrJpsi_mb->Draw("P");

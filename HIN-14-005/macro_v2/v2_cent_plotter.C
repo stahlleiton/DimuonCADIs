@@ -34,6 +34,7 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #include <TGraphErrors.h>
 #include "../CMS_lumi.C"
 #include "../tdrstyle.C"
+#include "../textPosition.h"
 #include "v2_dataNumbers_2015.h"
 #endif
 
@@ -45,10 +46,10 @@ void v2_cent_plotter(
 		     const char* outputRootDir= "outRoot",
 		     const char* inputDir  = "outputNumbers",// where phi and v2 numbers are (root, and txt format)
 		     const char* inputDirSyst = "../calcSyst_v2/histSyst",// where phi and v2 numbers are (root, and txt format)
-		     bool bDoDebug         = true,
+		     bool bDoDebug         = 0,
 		     bool bAddCent010      = false, 
-		     bool bSavePlots       = true,
-		     bool bSaveRoot        = true
+		     bool bSavePlots       = 1,
+		     bool bSaveRoot        = 1
 		     ) {
   using namespace std;
   gSystem->mkdir(Form("./%s",outputRootDir), kTRUE);
@@ -57,10 +58,7 @@ void v2_cent_plotter(
   
   // set the style
   setTDRStyle();
-  gStyle->SetOptFit(0);
-  gStyle->SetOptStat(0);
-  gStyle->SetOptTitle(kFALSE);
-
+  
   // input files: prompt and non-prompt ones
   const char* v2InFileDirs[1] = {"histsV2Yields_20160304_v2W_dPhiBins4"};
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
@@ -167,7 +165,7 @@ void v2_cent_plotter(
       // colors and symbols
       // high-pt
       pgV2->SetMarkerColor(kRed+1);
-      pgV2_sys->SetFillColor(kRed-9);
+      pgV2_sys->SetFillColorAlpha(kRed-9,0.5);
       
       pgV2->SetMarkerStyle(21);
       pgV2_sys->SetMarkerStyle(21);
@@ -179,7 +177,7 @@ void v2_cent_plotter(
       if(iCateg==2)
 	{
 	  pgV2->SetMarkerColor(kOrange+2);
-	  pgV2_sys->SetFillColor(kOrange-9);
+	  pgV2_sys->SetFillColorAlpha(kOrange-9,0.5);
 	}
       if(iCateg==3)// bkg
 	{
@@ -192,13 +190,14 @@ void v2_cent_plotter(
       TLatex *lt1  = new TLatex();
       lt1->SetNDC();
       lt1->SetTextFont(42);
-      lt1->SetTextSize(0.04);
+      lt1->SetTextSize(ltxSetTextSize2);
       
       TH1F *phAxis = new TH1F("phAxis",";N_{part};v_{2}",10,0,400);
       if(iCateg==2) {
 	phAxis->GetYaxis()->SetRangeUser(-0.07,0.25);
       } else {
 	phAxis->GetYaxis()->SetRangeUser(0,0.25);
+	if(jpsiCategory==1){phAxis->GetYaxis()->SetRangeUser(0,0.2);phAxis->GetYaxis()->SetNdivisions(505);}
       }
       phAxis->GetXaxis()->CenterTitle();
       phAxis->GetYaxis()->CenterTitle();
@@ -209,31 +208,32 @@ void v2_cent_plotter(
       //-------------- Drawing 
       TCanvas *pc = new TCanvas("pc","pc");
       phAxis->Draw();
-      CMS_lumi(pc,101,33);
-      lt1->SetTextSize(0.05);
-      lt1->DrawLatex(0.2,0.85,Form("%s",legend[iCateg]));
-      lt1->SetTextSize(0.04);
-      lt1->DrawLatex(0.2,0.80,Form("%s",ptBinsLegend[0]));
-      lt1->SetTextSize(0.04);
-      lt1->DrawLatex(0.2,0.75,Form("%s",yBinsLegend[0]));
-      lt1->SetTextSize(0.04);
-      lt1->DrawLatex(0.2,0.20,Form("Cent."));
+      CMS_lumi(pc,12001000,0);
+      lt1->SetTextSize(ltxSetTextSize1);
+      lt1->SetTextFont(22);
+      lt1->DrawLatex(ltxText_xStart,ltxText_yStart,Form("%s",legend[iCateg]));
+
+      lt1->SetTextFont(42);
+      lt1->SetTextSize(ltxSetTextSize2);
+      lt1->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{6.5 < p_{T} < 30 GeV/c}{|y| < 2.4}");
+
   
       if(iCateg==2) {
-	lt1->DrawLatex((adXaxis[0]+30)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-1]));
-	lt1->DrawLatex((adXaxis[1]+5)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-1-1]));
-	lt1->DrawLatex((adXaxis[2]-5)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-1-2]));
+	lt1->DrawLatex((adXaxis[0]+20)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-1]));
+	lt1->DrawLatex((adXaxis[1]+1)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-1-1]));
+	lt1->DrawLatex((adXaxis[2]-1)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-1-2]));
       } else {
-	lt1->DrawLatex((adXaxis[0]+30)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-nBins-1]));
-	lt1->DrawLatex((adXaxis[1]+5)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-nBins-2]));
-	lt1->DrawLatex((adXaxis[2]-5)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-nBins-3]));
+	lt1->DrawLatex((adXaxis[0]+20)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-nBins-1]));
+	lt1->DrawLatex((adXaxis[1]+1)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-nBins-2]));
+	lt1->DrawLatex((adXaxis[2]-1)/400.0,0.20,Form("%s",centBinsLegend[nCentBins-nBins-3]));
       }
   
       pgV2_sys->Draw("2");
       pgV2->Draw("PZ");
       pgV2_cont->Draw("P");
       gPad->RedrawAxis();
- 
+      pc->Update();
+      
       if(bSavePlots)
 	{
 	  pc->SaveAs(Form("%s/png/v2_%s_%s_nphi%s.png",outputDir,nameVar.c_str(),nameSig.c_str(),nDphiBins.c_str()));

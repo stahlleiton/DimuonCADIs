@@ -8,7 +8,6 @@
 //
 // Global variables
 //
-
 TString cmsText     = "CMS";
 float cmsTextFont   = 61;  // default is helvetic-bold
 
