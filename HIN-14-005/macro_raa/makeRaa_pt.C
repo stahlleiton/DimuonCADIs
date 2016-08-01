@@ -38,9 +38,9 @@ Output: the Raa vs pt.
 #include "../tdrstyle.C"
 #endif
 
-void makeRaa_pt( bool bSavePlots = 1,
-		 bool bSaveRoot  = 1,
-		 bool bDoDebug   = 0, // adds some numbers, numerator, denominator, to help figure out if things are read properly
+void makeRaa_pt( bool bSavePlots           = true,
+		 bool bSaveRoot            = 1,
+		 bool bDoDebug             = 0, // adds some numbers, numerator, denominator, to help figure out if things are read properly
 		 bool bAddLumi             = 1, // add the lumi boxes at raa=1
 		 int  whichSample          = 1,//0: no TnP corrections; 1: w/ TnP corr on Data; 2: w/ TnP corr on MC; 3: lxy w/ TnP on MC
 		 const char* inputDir      = "../readFitTable", // the place where the input root files, with the histograms are
@@ -334,12 +334,12 @@ void makeRaa_pt( bool bSavePlots = 1,
 
 
   //stat boxes
-  gPrJpsiSyst->SetFillColor(kRed-9);
-  gPrJpsiSyst_pt365y1624->SetFillColor(kViolet-9);
+  gPrJpsiSyst->SetFillColorAlpha(kRed-9,0.5);
+  gPrJpsiSyst_pt365y1624->SetFillColorAlpha(kViolet-9,0.5);
 
   // non-pr
-  gNonPrJpsiSyst->SetFillColor(kOrange-9);
-  gNonPrJpsiSyst_pt365y1624->SetFillColor(kViolet-9);
+  gNonPrJpsiSyst->SetFillColorAlpha(kOrange-9,0.5);
+  gNonPrJpsiSyst_pt365y1624->SetFillColorAlpha(kViolet-9,0.5);
 
   //mb
   // gPrJpsiP_mb->SetFillColor(kBlue-9);
@@ -347,12 +347,13 @@ void makeRaa_pt( bool bSavePlots = 1,
   //-------------------------------------------
   TF1 *f4 = new TF1("f4","1",0,30);
   f4->SetLineWidth(1);
+  f4->SetLineColor(1);
+  f4->SetLineStyle(1);
   f4->GetXaxis()->SetTitle("p_{T} (GeV/c)");
   f4->GetYaxis()->SetTitle("R_{AA}");
   f4->GetYaxis()->SetRangeUser(0.0,1.5);
   f4->GetXaxis()->CenterTitle(kTRUE);
 
- // sqrt(sig_lumi(6%)*sig_lumi(6%)+sig_taa(5.7%)*sig_taa(5.7%)) = 0.083
   TBox *lumi = (TBox*)systFile->Get("lumi");
 
   //---------------- general stuff
@@ -360,79 +361,21 @@ void makeRaa_pt( bool bSavePlots = 1,
   ly->SetNDC();
   ly->SetTextFont(42);
   ly->SetTextSize(0.04);
-  TLatex *lcent = new TLatex(0.2,0.8,"Cent. 0-100%");
+  
+  TLatex *lcent = new TLatex(0.68,0.83,"Cent. 0-100%");
   lcent->SetNDC();
   lcent->SetTextFont(42);
   lcent->SetTextSize(0.04);
 
-  TLatex *lPr = new TLatex(0.2,0.85,"Prompt J/#psi");
+  TLatex *lPr = new TLatex(0.21,0.83,"Prompt J/#psi");
   lPr->SetNDC();
-  lPr->SetTextFont(42);
-  lPr->SetTextSize(0.05);
+  lPr->SetTextFont(22);
+  lPr->SetTextSize(0.055);
 
-  TLatex *lNpr = new TLatex(0.2,0.85,"Non-prompt J/#psi");
+  TLatex *lNpr = new TLatex(0.21,0.83,"Non-prompt J/#psi");
   lNpr->SetNDC();
-  lNpr->SetTextFont(42);
-  lNpr->SetTextSize(0.05);
-
-//  TLegend *leg11a = new TLegend(0.65,0.5,0.8,0.63);
-  TLegend *leg11a = new TLegend(0.18,0.49,0.4,0.54);
-  leg11a->SetFillStyle(0);
-  leg11a->SetFillColor(0);
-  leg11a->SetBorderSize(0);
-  leg11a->SetMargin(0.2);
-  leg11a->SetTextSize(0.045);
-  TLegendEntry *leg11a2 = leg11a->AddEntry(gPrJpsi_pt365y1624,"1.6<|y|<2.4","P");
-  leg11a2->SetTextColor(kViolet+2);
-
-  TLegend *leg11a_1 = new TLegend(0.45,0.49,0.6,0.54);
-  leg11a_1->SetFillStyle(0);
-  leg11a_1->SetFillColor(0);
-  leg11a_1->SetBorderSize(0);
-  leg11a_1->SetMargin(0.2);
-  leg11a_1->SetTextSize(0.045);
-  TLegendEntry *leg11a1 = leg11a_1->AddEntry(gPrJpsi,"|y|<2.4","P");
-  leg11a1->SetTextColor(kRed);
-  
-  TLegend *leg11b = new TLegend(0.65,0.5,0.8,0.63);
-  leg11b->SetFillStyle(0);
-  leg11b->SetFillColor(0);
-  leg11b->SetBorderSize(0);
-  leg11b->SetMargin(0.2);
-  leg11b->SetTextSize(0.045);
-  
-  leg11b->AddEntry(gPrJpsi_mb,"|y|<2.4","P");
-  leg11b->AddEntry(gPrJpsi_y1624_mb,"1.6<|y|<2.4","P");
-
-//  TLegend *leg22a = new TLegend(0.65,0.52,0.8,0.65);
-  TLegend *leg22a = new TLegend(0.18,0.68,0.4,0.73);
-  leg22a->SetFillStyle(0);
-  leg22a->SetFillColor(0);
-  leg22a->SetBorderSize(0);
-  leg22a->SetMargin(0.2);
-  leg22a->SetTextSize(0.045);
-  TLegendEntry *leg22a2 = leg22a->AddEntry(gNonPrJpsi_pt365y1624,"1.6<|y|<2.4","P");
-  leg22a2->SetTextColor(kViolet+2);
-
-  TLegend *leg22a_1 = new TLegend(0.45,0.68,0.6,0.73);
-  leg22a_1->SetFillStyle(0);
-  leg22a_1->SetFillColor(0);
-  leg22a_1->SetBorderSize(0);
-  leg22a_1->SetMargin(0.2);
-  leg22a_1->SetTextSize(0.045);
-  TLegendEntry *leg22a1_1 = leg22a_1->AddEntry(gNonPrJpsi,"|y|<2.4","P");
-  leg22a1_1->SetTextColor(kOrange+2);
- 
-  TLegend *leg22b = new TLegend(0.65,0.52,0.8,0.65);
-  leg22b->SetFillStyle(0);
-  leg22b->SetFillColor(0);
-  leg22b->SetBorderSize(0);
-  leg22b->SetMargin(0.2);
-  leg22b->SetTextSize(0.045);
-  
-  leg22b->AddEntry(gNonPrJpsi_mb,"|y|<2.4","P");
-  leg22b->AddEntry(gNonPrJpsi_y1624_mb,"1.6<|y|<2.4","P");
- 
+  lNpr->SetTextFont(22);
+  lNpr->SetTextSize(0.055);
 
   // ##################################################### pr plots
   TCanvas *c1 = new TCanvas("c1","c1");
@@ -444,11 +387,9 @@ void makeRaa_pt( bool bSavePlots = 1,
     f4->Draw("same");
   }
  
-  CMS_lumi(c1,103,33);
+  CMS_lumi(c1,12014000,0);
   lcent->Draw();
   lPr->Draw();
-  leg11a->Draw();
-  leg11a_1->Draw();
   
   gPrJpsiSyst->Draw("2");
   gPrJpsi->Draw("P");
@@ -458,13 +399,51 @@ void makeRaa_pt( bool bSavePlots = 1,
   gPrJpsi_pt365y1624->Draw("P");
   gPrJpsiP_pt365y1624->Draw("P");
 
+  //------ the legend
+  TLegend *leg11a = new TLegend(0.6,0.7,0.9,0.75,NULL,"brNDC");
+  leg11a->SetBorderSize(0);
+  leg11a->SetTextFont(22);
+  leg11a->SetTextSize(0.04);
+  leg11a->SetTextColor(kViolet+2);
+  leg11a->SetLineColor(1);
+  leg11a->SetLineStyle(1);
+  leg11a->SetLineWidth(1);
+  leg11a->SetFillColor(19);
+  leg11a->SetFillStyle(0);
+  TLegendEntry *entry1 = leg11a->AddEntry("gPrJpsi_pt365y1624","1.6 < |y| < 2.4","Pf");
+  entry1->SetMarkerStyle(34);
+  entry1->SetMarkerColor(kViolet+2);
+  entry1->SetMarkerSize(1.7);
+  entry1->SetFillStyle(1001);
+  entry1->SetFillColor(kViolet-9);
+ 
+  TLegend *leg11a_1 = new TLegend(0.6,0.65,0.9,0.7,NULL,"brNDC");
+  leg11a_1->SetBorderSize(0);
+  leg11a_1->SetTextFont(22);
+  leg11a_1->SetTextSize(0.04);
+  leg11a_1->SetTextColor(kRed+2);
 
+  leg11a_1->SetLineColor(1);
+  leg11a_1->SetLineStyle(1);
+  leg11a_1->SetLineWidth(1);
+  leg11a_1->SetFillColor(19);
+  leg11a_1->SetFillStyle(0);
+  TLegendEntry *entry2 = leg11a_1->AddEntry("gPrJpsi","|y|<2.4","Pf");
+  entry2->SetMarkerStyle(21);
+  entry2->SetMarkerColor(kRed+2);
+  entry2->SetMarkerSize(1.2);
+  entry2->SetFillStyle(1001);
+  entry2->SetFillColor(kRed-9);
+  
+  leg11a->Draw();
+  leg11a_1->Draw();
+  c1->Update();
   if(bSavePlots)
   {
     c1->SaveAs(Form("%s/pdf/PrJpsi_vsPt_%s.pdf",outputDir,sample[whichSample]));
     c1->SaveAs(Form("%s/png/PrJpsi_vsPt_%s.png",outputDir,sample[whichSample]));
   }
-  
+
   //-------------------minbias dependence
   TCanvas *c11b = new TCanvas("c11b","c11b");
   f4->Draw();
@@ -473,25 +452,34 @@ void makeRaa_pt( bool bSavePlots = 1,
     lumi->Draw();
     f4->Draw("same");
   }
-  CMS_lumi(c11b,103,33);
+  CMS_lumi(c11b,12014000,0);
   lcent->Draw();
   lPr->Draw();
-  leg11b->Draw();
   
   gPrJpsiSyst_mb->Draw("2");
   gPrJpsi_mb->Draw("P");
- 
   gPrJpsiSyst_y1624_mb->Draw("2");
   gPrJpsi_y1624_mb->Draw("P");
- 
+
+  TLegend *leg11b = new TLegend(0.65,0.5,0.8,0.63);
+  leg11b->SetFillStyle(0);
+  leg11b->SetFillColor(0);
+  leg11b->SetBorderSize(0);
+  leg11b->SetMargin(0.2);
+  leg11b->SetTextSize(0.045);
+  
+  leg11b->AddEntry(gPrJpsi_mb,"|y|<2.4","P");
+  leg11b->AddEntry(gPrJpsi_y1624_mb,"1.6<|y|<2.4","P");
+  leg11b->Draw();
   gPad->RedrawAxis();
 
+  c11b->Update();
   if(bSavePlots)
   {
     c11b->SaveAs(Form("%s/pdf/PrJpsi_vsPt_mb_%s.pdf",outputDir,sample[whichSample]));
     c11b->SaveAs(Form("%s/png/PrJpsi_vsPt_mb_%s.png",outputDir,sample[whichSample]));
   }
-
+  
   //   // ############################################## non-pr 
   //   // ############################################## non-pr
   //   // ############################################## non-pr
@@ -504,11 +492,9 @@ void makeRaa_pt( bool bSavePlots = 1,
     f4->Draw("same");
   }
  
-  CMS_lumi(c2,103,33);
+  CMS_lumi(c2,12014000,0);
   lcent->Draw();
   lNpr->Draw(0);
-  leg22a->Draw();
-  leg22a_1->Draw();
 
   gNonPrJpsiSyst->Draw("2");
   gNonPrJpsi->Draw("P");
@@ -518,12 +504,53 @@ void makeRaa_pt( bool bSavePlots = 1,
   gNonPrJpsi_pt365y1624->Draw("P");
   gNonPrJpsiP_pt365y1624->Draw("P");
 
+  //-------- legends
+   TLegend *leg22a = new TLegend(0.6,0.7,0.9,0.75,NULL,"brNDC");
+  leg22a->SetBorderSize(0);
+  leg22a->SetTextFont(22);
+  leg22a->SetTextSize(0.04);
+  leg22a->SetTextColor(kViolet+2);
+  leg22a->SetLineColor(1);
+  leg22a->SetLineStyle(1);
+  leg22a->SetLineWidth(1);
+  leg22a->SetFillColor(19);
+  leg22a->SetFillStyle(0);
+  TLegendEntry *entry3 = leg22a->AddEntry("gNonPrJpsi_pt365y1624","1.6 < |y| < 2.4","Pf");
+  entry3->SetMarkerStyle(34);
+  entry3->SetMarkerColor(kViolet+2);
+  entry3->SetMarkerSize(1.7);
+  entry3->SetFillStyle(1001);
+  entry3->SetFillColor(kViolet-9);
+ 
+  TLegend *leg22a_1 = new TLegend(0.6,0.65,0.9,0.7,NULL,"brNDC");
+  leg22a_1->SetBorderSize(0);
+  leg22a_1->SetTextFont(22);
+  leg22a_1->SetTextSize(0.04);
+  leg22a_1->SetTextColor(kOrange+2);
+
+  leg22a_1->SetLineColor(1);
+  leg22a_1->SetLineStyle(1);
+  leg22a_1->SetLineWidth(1);
+  leg22a_1->SetFillColor(19);
+  leg22a_1->SetFillStyle(0);
+  TLegendEntry *entry4 = leg22a_1->AddEntry("gNonPrJpsi","|y|<2.4","Pf");
+  entry4->SetMarkerStyle(34);
+  entry4->SetMarkerColor(kOrange+2);
+  entry4->SetMarkerSize(1.7);
+  entry4->SetFillStyle(1001);
+  entry4->SetFillColor(kOrange-9);
+
+  leg22a->Draw();
+  leg22a_1->Draw();
+  c2->Update();
+  //-----------------------
+
   if(bSavePlots)
   {
     c2->SaveAs(Form("%s/pdf/nonPrJpsi_vsPt_%s.pdf",outputDir,sample[whichSample]));
     c2->SaveAs(Form("%s/png/nonPrJpsi_vsPt_%s.png",outputDir,sample[whichSample]));
   }
-  
+ 
   //-------------------minbias dependence
   TCanvas *c22b = new TCanvas("c22b","c22b");
   f4->Draw();
@@ -532,26 +559,34 @@ void makeRaa_pt( bool bSavePlots = 1,
     lumi->Draw();
     f4->Draw("same");
   }
-
-  CMS_lumi(c22b,103,33);
+  CMS_lumi(c22b,12014000,0);
   lcent->Draw();
-  lNpr->Draw(0);
-  leg22b->Draw();
+  lNpr->Draw();
    
   gNonPrJpsiSyst_mb->Draw("2");
   gNonPrJpsi_mb->Draw("P");
- 
   gNonPrJpsiSyst_y1624_mb->Draw("2");
   gNonPrJpsi_y1624_mb->Draw("P");
 
- 
+  TLegend *leg22b = new TLegend(0.65,0.52,0.8,0.65);
+  leg22b->SetFillStyle(0);
+  leg22b->SetFillColor(0);
+  leg22b->SetBorderSize(0);
+  leg22b->SetMargin(0.2);
+  leg22b->SetTextSize(0.045);
+  leg22b->AddEntry(gNonPrJpsi_mb,"|y|<2.4","P");
+  leg22b->AddEntry(gNonPrJpsi_y1624_mb,"1.6<|y|<2.4","P");
+  leg22b->Draw();
+    
   gPad->RedrawAxis();
 
+  c22b->Update();
   if(bSavePlots)
   {
     c22b->SaveAs(Form("%s/pdf/nonPrJpsi_vsPt_mb_%s.pdf",outputDir,sample[whichSample]));
     c22b->SaveAs(Form("%s/png/nonPrJpsi_vsPt_mb_%s.png",outputDir,sample[whichSample]));
   }
+  
   systFile->Close();
   //----------------------------------------------------
   if(bSaveRoot)

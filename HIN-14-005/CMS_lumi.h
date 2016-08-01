@@ -37,6 +37,10 @@ TString lumi_5TeV  = "pPb 34.6 nb^{-1}";
 TString lumi_PbPb2011  = "PbPb 166 #mub^{-1}";
 TString lumi_pp2013  = "pp 5.4 pb^{-1}";
 
+TString lumi_PbPbXX  = "PbPb";
+TString lumi_ppXX    = "pp";
+
+
 bool drawLogo      = false;
 
 void CMS_lumi( TPad* pad, int iPeriod=3, int iPosX=10 );

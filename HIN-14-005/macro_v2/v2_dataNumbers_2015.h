@@ -75,7 +75,7 @@ double adXaxisPt_pr_h[]  = {0.8, 1.2, 16.9};// bin width to the right
 double adXaxis_low[1]         = {4.4}; // bin width to the left
 double adXaxis_low_l[1]       = {1.4}; // bin width to the left
 double adXaxis_low_h[1]       = {2.1};// bin width to the right
-double adWidth_low_systBox[1] = {0.5}; // width of the systm. uncert.
+double adWidth_low_systBox[1] = {0.25}; // width of the systm. uncert.
 
 // rapidity axis
 // 2 <|y|> bins for high-pt non-prompt
@@ -95,6 +95,6 @@ double adXaxisCent_np[]   = {90,224,355}; // Npart (60-30, 30-10, 10-0)
 double flip_adXaxisCent_pr[]   = {355, 261, 187, 90}; // Npart (10-0, 20-10, 30-20, 60-30)
 double flip_adXaxisCent_np[]   = {355, 224, 90}; // Npart (10-0, 30-10, 60-30)
 
-double adWidth_systBox[] = {0.5, 0.5, 0.5}; // width of the systm. uncert.
+double adWidth_systBox[] = {0.25, 0.25, 0.25}; // width of the systm. uncert.
 
 #endif

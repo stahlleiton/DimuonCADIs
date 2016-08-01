@@ -9,6 +9,7 @@
 #include "TROOT.h"
 #include "TStyle.h"
 
+#include "TAttMarker.h"
 #include "TFile.h"
 #include "TBox.h"
 #include "TCanvas.h"
@@ -32,7 +33,8 @@
 #include "../tdrstyle.C"
 
 #endif
-void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot" // the place where the input root files, with the histograms are
+void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot", // the place where the input root files, with the histograms are
+		     bool bSavePlots = true
 		     )
 {
    // set the style
@@ -47,8 +49,8 @@ void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot" // the p
   TGraphErrors *pgCmsP    = (TGraphErrors *)pfRaaCms_cent->Get("gNonPrJpsiP");
   TGraphErrors *pgCmsSyst = (TGraphErrors *)pfRaaCms_cent->Get("gNonPrJpsiSyst");
   TBox *lumi = (TBox*)pfRaaCms_cent->Get("lumi_npr_y024_pt6530");
-  lumi->SetFillColor(kOrange-9);
-
+  //lumi->SetFillColor(kOrange-9);
+  //  pgCmsSyst->SetFillColorAlpha(kOrange-9,0.5);
 
   //-------------------------------------------------------------------- 
   // *********** alice points
@@ -67,7 +69,7 @@ void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot" // the p
 								    raaAliceSystCorrLow_cent_dpt816,raaAliceSystCorrHigh_cent_dpt816);
   
   pgAlice_dpt816->SetMarkerStyle(21);
-  pgAlice_dpt816->SetMarkerSize(1.5);
+  pgAlice_dpt816->SetMarkerSize(1.2);
   // systmatic boxes
   // uncorrelated, open
   pgAliceSyst_dpt816->SetLineColor(1);
@@ -80,15 +82,9 @@ void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot" // the p
   // pgAliceSystCorr_dpt816->SetFillStyle(0);
 
    //---------------------------------------------------------
-  TF1 *f1 = new TF1("f1","1",0,30);
-  f1->SetLineWidth(1);
-  f1->GetXaxis()->SetTitle("p_{T} (GeV/c)");
-  f1->GetYaxis()->SetTitle("R_{AA}");
-  f1->GetYaxis()->SetRangeUser(0.0,1.5);
-  f1->GetXaxis()->CenterTitle(kTRUE);
-  
-  TLine *line = new TLine(0.,1,30,1);
-  line->SetLineStyle(2);
+  TLine *line = new TLine(0.,1,400,1);
+  line->SetLineStyle(1);
+  line->SetLineWidth(1);
 
   TCanvas *pc = new TCanvas("pc","pc");
 
@@ -98,7 +94,6 @@ void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot" // the p
   f4->GetYaxis()->SetTitle("R_{AA}");
   f4->GetYaxis()->SetRangeUser(0.0,1.5);
   f4->GetXaxis()->CenterTitle(kTRUE);
-
  
   f4->Draw();
   lumi->Draw();
@@ -115,9 +110,9 @@ void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot" // the p
   pgAlice_dpt816->Draw("P");
 
   // additional info
-  CMS_lumi(pc,103,33);
+  CMS_lumi(pc,14005000,33);
 
-  TLegend *leg_cent = new TLegend(0.2,0.77,0.5,0.85,NULL,"brNDC");
+  TLegend *leg_cent = new TLegend(0.2,0.78,0.7,0.88,NULL,"brNDC");
   leg_cent->SetBorderSize(0);
   leg_cent->SetTextFont(62);
   leg_cent->SetTextSize(0.03);
@@ -128,7 +123,7 @@ void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot" // the p
   leg_cent->SetFillStyle(0);
 
   TLegendEntry *entry_cent;
-  entry_cent=leg_cent->AddEntry("raab","b quark: non-prompt J/#psi","pf");
+  entry_cent=leg_cent->AddEntry("raab","b quark: non-prompt J/#psi (CMS)","pf");
   entry_cent->SetFillColor(kOrange-9);
   entry_cent->SetFillStyle(1001);
   entry_cent->SetLineColor(1);
@@ -137,12 +132,12 @@ void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot" // the p
   entry_cent->SetMarkerStyle(29);
   entry_cent->SetMarkerColor(kOrange+2);
   entry_cent->SetMarkerSize(2.);
-  entry_cent->SetTextSize(0.025);
+  entry_cent->SetTextSize(0.035);
   entry_cent=leg_cent->AddEntry("raabjpsi", "6.5<p_{T}<30 GeV/c),|y|<2.4","");
-  entry_cent->SetTextSize(0.02);
+  entry_cent->SetTextFont(42);
+  entry_cent->SetTextSize(0.03);
 
-
-  TLegend *leg_alice_cent = new TLegend(0.2,0.68,0.5,0.75,NULL,"brNDC");
+  TLegend *leg_alice_cent = new TLegend(0.2,0.67,0.7,0.77,NULL,"brNDC");
   leg_alice_cent->SetBorderSize(0);
   leg_alice_cent->SetTextFont(62);
   leg_alice_cent->SetTextSize(0.03);
@@ -151,25 +146,28 @@ void raaExpOpen_cent(const char* inputDir      = "../macro_raa/outRoot" // the p
   leg_alice_cent->SetLineWidth(1);
   leg_alice_cent->SetFillColor(19);
   leg_alice_cent->SetFillStyle(0);
-  TLegendEntry *entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","c quark: D mesons (ALICE)","fP");
+  
+  TLegendEntry *entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","c quark: prompt D (ALICE)","fP");
   entry_alice_cent->SetFillStyle(1001);
   entry_alice_cent->SetLineColor(1);
   entry_alice_cent->SetLineStyle(1);
   entry_alice_cent->SetLineWidth(1);
-  entry_alice_cent->SetTextSize(0.025);
-  entry_alice_cent->SetMarkerStyle(25);
+  entry_alice_cent->SetTextSize(0.035);
+  entry_alice_cent->SetMarkerStyle(21);
   entry_alice_cent->SetMarkerSize(1);
   entry_alice_cent=leg_alice_cent->AddEntry("alicewhat","8<p_{T}<16 GeV/c, |y|<0.5","");
-  entry_alice_cent->SetTextSize(0.02);
+  entry_alice_cent->SetTextFont(42);
+  entry_alice_cent->SetTextSize(0.03);
 
   leg_cent->Draw();
   leg_alice_cent->Draw();
   line->Draw();
   gPad->RedrawAxis();
-
-  // pc->SaveAs("figs/pdf/raaExpOpen_cent.pdf");
-  // pc->SaveAs("figs/png/raaExpOpen_cent.png");
-  
+  if(bSavePlots)
+    {
+      pc->SaveAs("figs/pdf/raaExpOpen_cent.pdf");
+      pc->SaveAs("figs/png/raaExpOpen_cent.png");
+    }
 }
 
 

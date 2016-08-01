@@ -9,20 +9,27 @@
 #include <Riostream.h>
 #include "TROOT.h"
 
-#include "TCanvas.h"
-#include "TColor.h"
-#include "TF1.h"
-#include "TFile.h"
-#include "TH1.h"
-#include "TGraph.h"
-#include "TGraphErrors.h"
-#include "TGraphAsymmErrors.h"
-#include "TLatex.h"
-#include "TLegend.h"
-#include "TLegendEntry.h"
-#include "TMath.h"
-#include "TSystem.h"
-#include "TStyle.h"
+#include <Riostream.h>
+#include <TSystem.h>
+#include <TProfile.h>
+#include <TBrowser.h>
+#include <TROOT.h>
+#include <TGraph.h>
+#include <TNtuple.h>
+#include <TString.h>
+#include <TFile.h>
+#include <TF1.h>
+#include <TMath.h>
+#include <TH1D.h>
+#include <TH2D.h>
+#include <TCanvas.h>
+#include <TLegend.h>
+#include <TLegendEntry.h>
+#include <TStyle.h>
+#include <TLatex.h>
+#include <TInterpreter.h>
+#include <TGraphAsymmErrors.h>
+#include <TGraphErrors.h>
 
 #include "dats/data_cms2016.h"
 #include "dats/data_others2016.h"
@@ -32,18 +39,18 @@
 
 #endif
 
-void v2Exp_pt(bool bSavePlots     = true, 
-	      float rangeYAxis    = 0.6,
-	      float rangeXAxis    = 20,
-	      const char* inputDir      = "../macro_v2/outRoot", // the place where the input root files, with the histograms are
-	      const char* figNamePrefix="v2Exp_pt")
+void v2ExpOpen_pt(bool bSavePlots = false, 
+		  float rangeYAxis    = 0.6,
+		  float rangeXAxis    = 20,
+		  const char* inputDir= "../macro_v2/outRoot", // the place where the input root files, with the histograms are
+		  const char* figNamePrefix="v2ExpOpen_pt")
 {
   gSystem->mkdir(Form("./figs/png"), kTRUE);
   gSystem->mkdir(Form("./figs/pdf"), kTRUE);
   setTDRStyle();
-  
+  //  gStyle->SetCanvasPreferGL(1);
  // read CMS graphs
-  TFile *pfV2Cms_cent   = new TFile(Form("%s/Prp_v2_pt_plotter.root",inputDir));
+  TFile *pfV2Cms_cent   = new TFile(Form("%s/NPrp_v2_pt_plotter.root",inputDir));
   
   TGraphAsymmErrors *pgV2Low  = (TGraphAsymmErrors *)pfV2Cms_cent->Get("pgV2_low");
   TGraphErrors *pgV2LowSyst   = (TGraphErrors *)pfV2Cms_cent->Get("pgV2_low_sys");
@@ -54,7 +61,8 @@ void v2Exp_pt(bool bSavePlots     = true,
   TGraphErrors *pgV2HighP     = (TGraphErrors *)pfV2Cms_cent->Get("pgV2_cont");
   
   pgV2LowSyst->SetFillColorAlpha(kViolet-9,0.5);
-  pgV2HighSyst->SetFillColorAlpha(kRed-9,0.5);
+  pgV2HighSyst->SetFillColorAlpha(kOrange-9,0.5);
+
   // -----------------------------------------------------------------------------------------
   // ----- charged hadrons
  TGraphErrors *gChar    = new TGraphErrors(19, pTChar, v2Char, chxerr, v2CharSt);
@@ -66,8 +74,8 @@ void v2Exp_pt(bool bSavePlots     = true,
  gChar->SetLineColor(kAzure+1);
  gChar->SetMarkerSize(1.3);
  gChar2->SetMarkerStyle(24);
- gChar2->SetMarkerColor(kAzure+2);
- gChar2->SetLineColor(kAzure+2);
+ gChar2->SetMarkerColor(kBlue+2);
+ gChar2->SetLineColor(kBlue+2);
  gChar2->SetMarkerSize(1.3);
 
  gCharSys->SetFillColor(kAzure+9);
@@ -84,6 +92,7 @@ void v2Exp_pt(bool bSavePlots     = true,
   pgAlice->SetMarkerSize(1.8);
   
   pgAliceSys->SetFillStyle(0);
+  pgAliceSys->SetMarkerStyle(27);
   pgAliceSys->SetMarkerColor(kGray+2);
   pgAliceSys->SetLineColor(kGray+2);
   pgAliceSys->SetMarkerSize(1.7);
@@ -120,7 +129,7 @@ void v2Exp_pt(bool bSavePlots     = true,
  pgV2High->Draw("PZ");
  pgV2HighP->Draw("P");
  
- // --------- legends ----
+  // --------- legends ----
  TLegend *leg = new TLegend(0.2,0.77,0.7,0.89,NULL,"brNDC");
  leg->SetBorderSize(0);
  leg->SetTextFont(62);
@@ -132,7 +141,7 @@ void v2Exp_pt(bool bSavePlots     = true,
  leg->SetFillStyle(0);
 
  TLegendEntry *entry, *entry11;
- entry=leg->AddEntry("cmspr","Closed charm: prompt J/#psi (CMS)","");
+ entry=leg->AddEntry("cmspr","Open beuty: non-prompt J/#psi (CMS)","");
  entry->SetTextSize(0.035);
  entry->SetFillStyle(1001);
  entry->SetLineColor(1);
@@ -152,10 +161,10 @@ void v2Exp_pt(bool bSavePlots     = true,
  entry=leg->AddEntry("pgV2High", "|y|<2.4","Pf");
  entry->SetTextFont(42);
  entry->SetTextSize(0.03);
- entry->SetMarkerStyle(21);
- entry->SetMarkerColor(kRed+2);
- entry->SetMarkerSize(1.);
- entry->SetFillColor(kRed-9);
+ entry->SetMarkerStyle(29);
+ entry->SetMarkerColor(kOrange+2);
+ entry->SetMarkerSize(1.7);
+ entry->SetFillColor(kOrange-9);
  entry->SetFillStyle(1001);
 
  //--------------------------- 
@@ -175,7 +184,7 @@ void v2Exp_pt(bool bSavePlots     = true,
  entry_alice=leg_alice->AddEntry("pgAlice","|y|<0.8, Cent. 30-50\%","Pf");
  entry_alice->SetMarkerStyle(27);
  entry_alice->SetMarkerColor(kGray+2);
- entry_alice->SetMarkerSize(1);
+ entry_alice->SetMarkerSize(1.7);
  entry_alice->SetFillStyle(1001);
  entry_alice->SetTextFont(42);
  entry_alice->SetTextSize(0.03);
@@ -205,12 +214,13 @@ void v2Exp_pt(bool bSavePlots     = true,
  entry1->SetTextFont(42);
  entry1->SetTextSize(0.03);
 
+
  leg->Draw();
  leg_alice->Draw();
  leg1->Draw();
 
  gPad->RedrawAxis();
-      
+ pcCombi->Update();
  if(bSavePlots)
    {
      pcCombi->SaveAs(Form("figs/pdf/%s.pdf",figNamePrefix));
