@@ -176,7 +176,7 @@ void v2Exp_pt(bool bSavePlots     = true,
  entry_alice=leg_alice->AddEntry("pgAlice","|y| < 0.8, Cent. 30-50\%","P");
  entry_alice->SetMarkerStyle(27);
  entry_alice->SetMarkerColor(kGray+2);
- entry_alice->SetMarkerSize(1);
+ entry_alice->SetMarkerSize(1.7);
  entry_alice->SetFillStyle(1001);
  entry_alice->SetTextFont(42);
  entry_alice->SetTextSize(entrySize);

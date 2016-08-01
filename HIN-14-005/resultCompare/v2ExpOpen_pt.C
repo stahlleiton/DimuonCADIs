@@ -183,7 +183,7 @@ void v2ExpOpen_pt(bool bSavePlots = true,
  entry_alice->SetLineColor(1);
  entry_alice->SetLineStyle(1);
  entry_alice->SetLineWidth(1);
- entry_alice=leg_alice->AddEntry("pgAlice","|y|<0.8, Cent. 30-50\%","Pf");
+ entry_alice=leg_alice->AddEntry("pgAlice","|y|<0.8, Cent. 30-50\%","P");
  entry_alice->SetMarkerStyle(27);
  entry_alice->SetMarkerColor(kGray+2);
  entry_alice->SetMarkerSize(1.7);

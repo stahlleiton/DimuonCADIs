@@ -126,7 +126,7 @@ void raaExpOpenClose_cent(const char* inputDir      = "../macro_raa/outRoot", //
   leg_cent->SetFillStyle(0);
 
   TLegendEntry *entry_cent;
-  entry_cent=leg_cent->AddEntry("raab","Closed charm: prompt J/#psi (CMS)","pf");
+  entry_cent=leg_cent->AddEntry("raab","Closed charm: prompt J/#psi (CMS)","p");
   entry_cent->SetFillColor(kRed-9);
   entry_cent->SetFillStyle(1001);
   entry_cent->SetLineColor(1);
@@ -149,7 +149,7 @@ void raaExpOpenClose_cent(const char* inputDir      = "../macro_raa/outRoot", //
   leg_alice_cent->SetLineWidth(1);
   leg_alice_cent->SetFillColor(19);
   leg_alice_cent->SetFillStyle(0);
-  TLegendEntry *entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","Open charm: prompt D (ALICE)","fP");
+  TLegendEntry *entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","Open charm: prompt D (ALICE)","P");
   entry_alice_cent->SetFillStyle(1001);
   entry_alice_cent->SetLineColor(1);
   entry_alice_cent->SetLineStyle(1);
@@ -235,7 +235,7 @@ void raaExpOpenClose_cent(const char* inputDir      = "../macro_raa/outRoot", //
   // additional info
   CMS_lumi(pc_low,14005000,33);
 
-  TLegend *leg2_cent = new TLegend(0.2,0.78,0.45,0.88,NULL,"brNDC");
+  TLegend *leg2_cent = new TLegend(0.2,0.78,0.7,0.85,NULL,"brNDC");
   leg2_cent->SetBorderSize(0);
   leg2_cent->SetTextFont(62);
   leg2_cent->SetTextSize(0.03);
@@ -261,7 +261,7 @@ void raaExpOpenClose_cent(const char* inputDir      = "../macro_raa/outRoot", //
   entry2_cent->SetTextSize(entrySize);
 
 
-  TLegend *leg2_alice_cent = new TLegend(0.2,0.67,0.45,0.77,NULL,"brNDC");
+  TLegend *leg2_alice_cent = new TLegend(0.2,0.67,0.7,0.77,NULL,"brNDC");
   leg2_alice_cent->SetBorderSize(0);
   leg2_alice_cent->SetTextFont(62);
   leg2_alice_cent->SetTextSize(0.03);
