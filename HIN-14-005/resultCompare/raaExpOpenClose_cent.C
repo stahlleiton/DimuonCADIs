@@ -33,8 +33,9 @@
 #include "../tdrstyle.C"
 #include "../textPosition.h"
 #endif
-void raaExpOpenClose_cent(const char* inputDir      = "../macro_raa/outRoot", // the place where the input root files, with the histograms are
-			  bool bSavePlots = true
+void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the place where the input root files, with the histograms are
+			  bool bSavePlots      = true,
+			  bool bDoSameYHighPt  = true
 			  )
 {
    // set the style
@@ -54,6 +55,14 @@ void raaExpOpenClose_cent(const char* inputDir      = "../macro_raa/outRoot", //
   TBox *lumi = (TBox*)pfRaaCms_cent->Get("lumi_pr_y024_pt6530");
   pgCms->SetFillColorAlpha(kRed-9,0.5);
 
+  if(bDoSameYHighPt)
+    {
+      pgCms     = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsi_pt6530y012");
+      pgCmsP    = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsiP_pt6530y012");
+      pgCmsSyst = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsiSyst_pt6530y012");
+      lumi      = (TBox*)pfRaaCms_cent->Get("lumi_pr_y012_pt6530");
+      pgCms->SetFillColorAlpha(kAzure-9,0.5);
+    }
   //-------------------------------------------------------------------- 
   // *********** alice points:
   //  TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);
@@ -127,16 +136,27 @@ void raaExpOpenClose_cent(const char* inputDir      = "../macro_raa/outRoot", //
 
   TLegendEntry *entry_cent;
   entry_cent=leg_cent->AddEntry("raab","Closed charm: prompt J/#psi (CMS)","p");
-  entry_cent->SetFillColor(kRed-9);
+  entry_cent->SetTextSize(ltxSetTextSize3);
   entry_cent->SetFillStyle(1001);
   entry_cent->SetLineColor(1);
   entry_cent->SetLineStyle(1);
   entry_cent->SetLineWidth(1);
-  entry_cent->SetMarkerStyle(21);
-  entry_cent->SetMarkerColor(kRed+2);
-  entry_cent->SetMarkerSize(1.);
-  entry_cent->SetTextSize(ltxSetTextSize3);
-  entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c,|y| < 2.4","");
+
+  if(bDoSameYHighPt)
+    {
+      entry_cent->SetMarkerStyle(20);
+      entry_cent->SetMarkerColor(kAzure+7);
+      entry_cent->SetMarkerSize(1.2);
+
+      entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c,|y| < 1.2","");
+    }
+  else
+    {
+      entry_cent->SetMarkerStyle(21);
+      entry_cent->SetMarkerColor(kRed+2);
+      entry_cent->SetMarkerSize(1.);
+      entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c,|y| < 2.4","");
+    }
   entry_cent->SetTextFont(42);
   entry_cent->SetTextSize(entrySize);
 
@@ -169,8 +189,8 @@ void raaExpOpenClose_cent(const char* inputDir      = "../macro_raa/outRoot", //
 
   if(bSavePlots)
     {
-      pc->SaveAs("figs/pdf/raaExpOpenClose_cent.pdf");
-      pc->SaveAs("figs/png/raaExpOpenClose_cent.png");
+      pc->SaveAs(Form("figs/pdf/raaExpOpenClose_cent_sameY%d.pdf",bDoSameYHighPt));
+      pc->SaveAs(Form("figs/png/raaExpOpenClose_cent_sameY%d.png",bDoSameYHighPt));
     }
   // ##################### LOW PT ############################
   // ##################### LOW PT ############################
