@@ -366,7 +366,7 @@ void makeRaa_y(bool bSavePlots           = 1,
  
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
-  lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{Cent. 0-100%}{6.5 < p_{T} < 30 GeV/c}");
+  lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{6.5 < p_{T} < 30 GeV/c}{Cent. 0-100%}");
   
 
   gPrJpsiSyst->Draw("2");
@@ -397,7 +397,7 @@ void makeRaa_y(bool bSavePlots           = 1,
  
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
-  lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{Cent. 0-100%}{6.5 < p_{T} < 30 GeV/c}");
+  lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{6.5 < p_{T} < 30 GeV/c}{Cent. 0-100%}");
   
   CMS_lumi(c11b,103,33);
 
@@ -434,7 +434,7 @@ void makeRaa_y(bool bSavePlots           = 1,
  
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
-  lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{Cent. 0-100%}{6.5 < p_{T} < 30 GeV/c}");
+  lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{6.5 < p_{T} < 30 GeV/c}{Cent. 0-100%}");
   
 
   gNonPrJpsiSyst->Draw("2");
@@ -464,7 +464,7 @@ void makeRaa_y(bool bSavePlots           = 1,
  
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
-  lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{Cent. 0-100%}{6.5 < p_{T} < 30 GeV/c}");
+  lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{6.5 < p_{T} < 30 GeV/c}{Cent. 0-100%}");
   
 
   gNonPrJpsiSyst_mb->Draw("2");

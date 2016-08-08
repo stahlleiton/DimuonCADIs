@@ -8,8 +8,8 @@ double ltxText_xStart  = 0.2;
 
 // for kinematic regions, 1D plots
 double ltxSetTextSize2 = 0.05;
-double ltxText_yUp     = 0.75;
-double ltxText_xUp     = 0.56;
+double ltxText_yUp     = 0.73;
+double ltxText_xUp     = 0.54;
 
 //--- makeRaa_cent.C
 // for kinematic regions, 2D plots
