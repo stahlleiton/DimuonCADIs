@@ -101,13 +101,21 @@ void makeSyst_cent( bool bSavePlots     = 1,
   ofstream outputData_pr(Form("%s/data/raaSystUncert_cent_pr.dat",outputDir));
   if (!outputData_pr.good()) {cout << "######### Fail to open data/*.dat file.##################" << endl;}
   outputData_pr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Uncert_tot\t"
-                << "contrib_IDtrg_stat\t" << "contrib_IDtrg_syst\t" << "contrib_sta_stat\t" << "contrib_sta_syst\t"
-                << "contrib_3d\t" << "contrib_4d\t" << "contrib_fit\t" << "global_uncertainty\n";
+                << "contrib_IDtrg_stat_pp\t" << "contrib_IDtrg_syst_pp\t" << "contrib_IDtrg_pp\t"
+                << "contrib_sta_stat_pp\t" << "contrib_sta_syst_pp\t" << "contrib_sta_pp\t"
+                << "contrib_3d_pp\t" << "contrib_4d_pp\t" << "contrib_fit_pp\t" << "global_uncertainty_pp\t"
+                << "contrib_IDtrg_stat_aa\t" << "contrib_IDtrg_syst_aa\t" << "contrib_IDtrg_aa\t"
+                << "contrib_sta_stat_aa\t" << "contrib_sta_syst_aa\t" << "contrib_sta_aa\t"
+                << "contrib_3d_aa\t" << "contrib_4d_aa\t" << "contrib_fit_aa\t" << "global_uncertainty_aa\n";
   ofstream outputData_npr(Form("%s/data/raaSystUncert_cent_npr.dat",outputDir));
   if (!outputData_npr.good()) {cout << "######### Fail to open data/*.dat file.##################" << endl;}
   outputData_npr << "pT\t" << "rapidity\t" << "cent\t" << "Raa\t" << "Uncert_tot\t"
-                 << "contrib_IDtrg_stat\t" << "contrib_IDtrg_syst\t" << "contrib_sta_stat\t" << "contrib_sta_syst\t"
-                 << "contrib_3d\t" << "contrib_4d\t" << "contrib_fit\t" << "global_uncertainty\n";
+                 << "contrib_IDtrg_stat_pp\t" << "contrib_IDtrg_syst_pp\t" << "contrib_IDtrg_pp\t"
+                 << "contrib_sta_stat_pp\t" << "contrib_sta_syst_pp\t" << "contrib_sta_pp\t"
+                 << "contrib_3d_pp\t" << "contrib_4d_pp\t" << "contrib_fit_pp\t" << "global_uncertainty_pp\t"
+                 << "contrib_IDtrg_stat_aa\t" << "contrib_IDtrg_syst_aa\t" << "contrib_IDtrg_aa\t"
+                 << "contrib_sta_stat_aa\t" << "contrib_sta_syst_aa\t" << "contrib_sta_aa\t"
+                 << "contrib_3d_aa\t" << "contrib_4d_aa\t" << "contrib_fit_aa\t" << "global_uncertainty_aa\n";
     
   for(int ih=0; ih<nInHist;ih++)// for each kinematic range
   { 
@@ -989,24 +997,28 @@ void makeSyst_cent( bool bSavePlots     = 1,
           }
           
           outputData_pr << "65300\t" << "0024\t" << centbins_str[ibin-1] << "\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_cent[ibin-1] << "\t"
-                     << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][1]+syst_effTnP_pr_aa[ibin-1][1]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][2]+syst_effTnP_pr_aa[ibin-1][2]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][3]+syst_effTnP_pr_aa[ibin-1][3]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][4]+syst_effTnP_pr_aa[ibin-1][4]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][0]+syst_effTnP_pr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(syst_eff4d_pr_pp[ibin-1][0]+syst_eff4d_pr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(fitContribution_pr_pp/rms_fitContribNorm + fitContribution_pr_aa/rms_fitContribNorm) << "\t"
-                     << TMath::Sqrt(taa12_relerr+systLumi+systSelection+systTrack) << endl;
+            << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][1]+syst_effTnP_pr_pp[ibin-1][2]) << "\t"
+            << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][3]+syst_effTnP_pr_pp[ibin-1][4]) << "\t"
+            << TMath::Sqrt(syst_effTnP_pr_pp[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pr_pp[ibin-1][0]) << "\t"
+            << TMath::Sqrt(fitContribution_pr_pp/rms_fitContribNorm) << "\t"
+            << TMath::Sqrt(TMath::Power(systLumis[0],2) + TMath::Power(systEventSelection[0],2) + TMath::Power(systTracking[0],2)) << "\t"
+            << TMath::Sqrt(syst_effTnP_pr_aa[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pr_aa[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pr_aa[ibin-1][1]+syst_effTnP_pr_aa[ibin-1][2]) << "\t"
+            << TMath::Sqrt(syst_effTnP_pr_aa[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pr_aa[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pr_aa[ibin-1][3]+syst_effTnP_pr_aa[ibin-1][4]) << "\t"
+            << TMath::Sqrt(syst_effTnP_pr_aa[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pr_aa[ibin-1][0]) << "\t"
+            << TMath::Sqrt(fitContribution_pr_aa/rms_fitContribNorm) << "\t"
+            << TMath::Sqrt(TMath::Power(systLumis[1],2) + TMath::Power(systEventSelection[1],2) + TMath::Power(systTracking[1],2)) << endl;
           if(ibin <= nBinsNpart6) { // out-of-range bins will be discarded for np
             outputData_npr << "65300\t" << "0024\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_cent[ibin-1] << "\t"
-                       << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][1]+syst_effTnP_npr_aa[ibin-1][1]) << "\t"
-                       << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][2]+syst_effTnP_npr_aa[ibin-1][2]) << "\t"
-                       << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][3]+syst_effTnP_npr_aa[ibin-1][3]) << "\t"
-                       << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][4]+syst_effTnP_npr_aa[ibin-1][4]) << "\t"
-                       << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][0]+syst_effTnP_npr_aa[ibin-1][0]) << "\t"
-                       << TMath::Sqrt(syst_eff4d_npr_pp[ibin-1][0]+syst_eff4d_npr_aa[ibin-1][0]) << "\t"
-                       << TMath::Sqrt(fitContribution_npr_pp/rms_fitContribNorm + fitContribution_npr_aa/rms_fitContribNorm) << "\t"
-                       << TMath::Sqrt(taa6_relerr+systLumi+systSelection+systTrack) << endl;
+              << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][1]+syst_effTnP_npr_pp[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][3]+syst_effTnP_npr_pp[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_npr_pp[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_npr_pp/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[0],2) + TMath::Power(systEventSelection[0],2) + TMath::Power(systTracking[0],2)) << "\t"
+              << TMath::Sqrt(syst_effTnP_npr_aa[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_npr_aa[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_npr_aa[ibin-1][1]+syst_effTnP_npr_aa[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_npr_aa[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_npr_aa[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_npr_aa[ibin-1][3]+syst_effTnP_npr_aa[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_npr_aa[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_npr_aa[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_npr_aa/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[1],2) + TMath::Power(systEventSelection[1],2) + TMath::Power(systTracking[1],2)) << endl;
           }
           if(bDoDebug)
           {
@@ -1041,23 +1053,27 @@ void makeSyst_cent( bool bSavePlots     = 1,
           }
 
           outputData_pr << "3065\t" << "1624\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_pt365y1624_cent[ibin-1] << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][1]+syst_effTnP_pt365y1624_pr_aa[ibin-1][1]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][2]+syst_effTnP_pt365y1624_pr_aa[ibin-1][2]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][3]+syst_effTnP_pt365y1624_pr_aa[ibin-1][3]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][4]+syst_effTnP_pt365y1624_pr_aa[ibin-1][4]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][0]+syst_effTnP_pt365y1624_pr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(syst_eff4d_pt365y1624_pr_pp[ibin-1][0]+syst_eff4d_pt365y1624_pr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(fitContribution_pt365y1624_pr_aa/rms_fitContribNorm + fitContribution_pt365y1624_pr_pp/rms_fitContribNorm) << "\t"
-                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection+systTrack) << endl;
+              << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][1]+syst_effTnP_pt365y1624_pr_pp[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][3]+syst_effTnP_pt365y1624_pr_pp[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt365y1624_pr_pp[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt365y1624_pr_pp[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt365y1624_pr_pp/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[0],2) + TMath::Power(systEventSelection[0],2) + TMath::Power(systTracking[0],2)) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt365y1624_pr_aa[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_pr_aa[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_pr_aa[ibin-1][1]+syst_effTnP_pt365y1624_pr_aa[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt365y1624_pr_aa[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_pr_aa[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_pr_aa[ibin-1][3]+syst_effTnP_pt365y1624_pr_aa[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt365y1624_pr_aa[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt365y1624_pr_aa[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt365y1624_pr_aa/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[1],2) + TMath::Power(systEventSelection[1],2) + TMath::Power(systTracking[1],2)) << endl;
           outputData_npr << "3065\t" << "1624\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_pt365y1624_cent[ibin-1] << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][1]+syst_effTnP_pt365y1624_npr_aa[ibin-1][1]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][2]+syst_effTnP_pt365y1624_npr_aa[ibin-1][2]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][3]+syst_effTnP_pt365y1624_npr_aa[ibin-1][3]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][4]+syst_effTnP_pt365y1624_npr_aa[ibin-1][4]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][0]+syst_effTnP_pt365y1624_npr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(syst_eff4d_pt365y1624_npr_pp[ibin-1][0]+syst_eff4d_pt365y1624_npr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(fitContribution_pt365y1624_npr_aa/rms_fitContribNorm + fitContribution_pt365y1624_npr_pp/rms_fitContribNorm) << "\t"
-                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection+systTrack) << endl;
+              << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][1]+syst_effTnP_pt365y1624_npr_pp[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][3]+syst_effTnP_pt365y1624_npr_pp[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt365y1624_npr_pp[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt365y1624_npr_pp[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt365y1624_npr_pp/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[0],2) + TMath::Power(systEventSelection[0],2) + TMath::Power(systTracking[0],2)) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt365y1624_npr_aa[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_npr_aa[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_npr_aa[ibin-1][1]+syst_effTnP_pt365y1624_npr_aa[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt365y1624_npr_aa[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_npr_aa[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt365y1624_npr_aa[ibin-1][3]+syst_effTnP_pt365y1624_npr_aa[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt365y1624_npr_aa[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt365y1624_npr_aa[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt365y1624_npr_aa/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[1],2) + TMath::Power(systEventSelection[1],2) + TMath::Power(systTracking[1],2)) << endl;
           if(bDoDebug)
           {
             cout <<"---------------------------------------------------------------"<<endl;
@@ -1095,23 +1111,27 @@ void makeSyst_cent( bool bSavePlots     = 1,
           }
           
           outputData_pr << "65300\t" << "012\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_pt6530y012_cent[ibin-1] << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y012_pr_pp[ibin-1][1]+syst_effTnP_pt6530y012_pr_aa[ibin-1][1]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y012_pr_pp[ibin-1][2]+syst_effTnP_pt6530y012_pr_aa[ibin-1][2]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y012_pr_pp[ibin-1][3]+syst_effTnP_pt6530y012_pr_aa[ibin-1][3]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y012_pr_pp[ibin-1][4]+syst_effTnP_pt6530y012_pr_aa[ibin-1][4]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y012_pr_pp[ibin-1][0]+syst_effTnP_pt6530y012_pr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(syst_eff4d_pt6530y012_pr_pp[ibin-1][0]+syst_eff4d_pt6530y012_pr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(fitContribution_pt6530y012_pr_aa/rms_fitContribNorm + fitContribution_pt6530y012_pr_pp/rms_fitContribNorm) << "\t"
-                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection+systTrack) << endl;
+              << TMath::Sqrt(syst_effTnP_pt6530y012_pr_pp[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_pr_pp[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_pr_pp[ibin-1][1]+syst_effTnP_pt6530y012_pr_pp[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y012_pr_pp[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_pr_pp[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_pr_pp[ibin-1][3]+syst_effTnP_pt6530y012_pr_pp[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y012_pr_pp[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt6530y012_pr_pp[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt6530y012_pr_pp/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[0],2) + TMath::Power(systEventSelection[0],2) + TMath::Power(systTracking[0],2)) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y012_pr_aa[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_pr_aa[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_pr_aa[ibin-1][1]+syst_effTnP_pt6530y012_pr_aa[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y012_pr_aa[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_pr_aa[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_pr_aa[ibin-1][3]+syst_effTnP_pt6530y012_pr_aa[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y012_pr_aa[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt6530y012_pr_aa[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt6530y012_pr_aa/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[1],2) + TMath::Power(systEventSelection[1],2) + TMath::Power(systTracking[1],2)) << endl;
           outputData_npr << "65300\t" << "012\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_pt6530y012_cent[ibin-1] << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y012_npr_pp[ibin-1][1]+syst_effTnP_pt6530y012_npr_aa[ibin-1][1]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y012_npr_pp[ibin-1][2]+syst_effTnP_pt6530y012_npr_aa[ibin-1][2]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y012_npr_pp[ibin-1][3]+syst_effTnP_pt6530y012_npr_aa[ibin-1][3]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y012_npr_pp[ibin-1][4]+syst_effTnP_pt6530y012_npr_aa[ibin-1][4]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y012_npr_pp[ibin-1][0]+syst_effTnP_pt6530y012_npr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(syst_eff4d_pt6530y012_npr_pp[ibin-1][0]+syst_eff4d_pt6530y012_npr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(fitContribution_pt6530y012_npr_aa/rms_fitContribNorm + fitContribution_pt6530y012_npr_pp/rms_fitContribNorm) << "\t"
-                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection+systTrack) << endl;
+              << TMath::Sqrt(syst_effTnP_pt6530y012_npr_pp[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_npr_pp[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_npr_pp[ibin-1][1]+syst_effTnP_pt6530y012_npr_pp[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y012_npr_pp[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_npr_pp[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_npr_pp[ibin-1][3]+syst_effTnP_pt6530y012_npr_pp[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y012_npr_pp[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt6530y012_npr_pp[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt6530y012_npr_pp/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[0],2) + TMath::Power(systEventSelection[0],2) + TMath::Power(systTracking[0],2)) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y012_npr_aa[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_npr_aa[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_npr_aa[ibin-1][1]+syst_effTnP_pt6530y012_npr_aa[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y012_npr_aa[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_npr_aa[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y012_npr_aa[ibin-1][3]+syst_effTnP_pt6530y012_npr_aa[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y012_npr_aa[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt6530y012_npr_aa[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt6530y012_npr_aa/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[1],2) + TMath::Power(systEventSelection[1],2) + TMath::Power(systTracking[1],2)) << endl;
           if(bDoDebug)
           {
             cout <<"---------------------------------------------------------------"<<endl;
@@ -1145,23 +1165,27 @@ void makeSyst_cent( bool bSavePlots     = 1,
           }
 
           outputData_pr << "65300\t" << "1216\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_pt6530y1216_cent[ibin-1] << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_pp[ibin-1][1]+syst_effTnP_pt6530y1216_pr_aa[ibin-1][1]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_pp[ibin-1][2]+syst_effTnP_pt6530y1216_pr_aa[ibin-1][2]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_pp[ibin-1][3]+syst_effTnP_pt6530y1216_pr_aa[ibin-1][3]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_pp[ibin-1][4]+syst_effTnP_pt6530y1216_pr_aa[ibin-1][4]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_pp[ibin-1][0]+syst_effTnP_pt6530y1216_pr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(syst_eff4d_pt6530y1216_pr_pp[ibin-1][0]+syst_eff4d_pt6530y1216_pr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(fitContribution_pt6530y1216_pr_aa/rms_fitContribNorm + fitContribution_pt6530y1216_pr_pp/rms_fitContribNorm) << "\t"
-                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection+systTrack) << endl;
+              << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_pp[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_pp[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_pp[ibin-1][1]+syst_effTnP_pt6530y1216_pr_pp[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_pp[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_pp[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_pp[ibin-1][3]+syst_effTnP_pt6530y1216_pr_pp[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_pp[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt6530y1216_pr_pp[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt6530y1216_pr_pp/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[0],2) + TMath::Power(systEventSelection[0],2) + TMath::Power(systTracking[0],2)) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_aa[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_aa[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_aa[ibin-1][1]+syst_effTnP_pt6530y1216_pr_aa[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_aa[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_aa[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_aa[ibin-1][3]+syst_effTnP_pt6530y1216_pr_aa[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1216_pr_aa[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt6530y1216_pr_aa[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt6530y1216_pr_aa/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[1],2) + TMath::Power(systEventSelection[1],2) + TMath::Power(systTracking[1],2)) << endl;
           outputData_npr << "65300\t" << "1216\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_pt6530y1216_cent[ibin-1] << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_pp[ibin-1][1]+syst_effTnP_pt6530y1216_npr_aa[ibin-1][1]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_pp[ibin-1][2]+syst_effTnP_pt6530y1216_npr_aa[ibin-1][2]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_pp[ibin-1][3]+syst_effTnP_pt6530y1216_npr_aa[ibin-1][3]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_pp[ibin-1][4]+syst_effTnP_pt6530y1216_npr_aa[ibin-1][4]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_pp[ibin-1][0]+syst_effTnP_pt6530y1216_npr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(syst_eff4d_pt6530y1216_npr_pp[ibin-1][0]+syst_eff4d_pt6530y1216_npr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(fitContribution_pt6530y1216_npr_aa/rms_fitContribNorm + fitContribution_pt6530y1216_npr_pp/rms_fitContribNorm) << "\t"
-                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection+systTrack) << endl;
+              << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_pp[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_pp[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_pp[ibin-1][1]+syst_effTnP_pt6530y1216_npr_pp[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_pp[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_pp[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_pp[ibin-1][3]+syst_effTnP_pt6530y1216_npr_pp[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_pp[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt6530y1216_npr_pp[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt6530y1216_npr_pp/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[0],2) + TMath::Power(systEventSelection[0],2) + TMath::Power(systTracking[0],2)) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_aa[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_aa[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_aa[ibin-1][1]+syst_effTnP_pt6530y1216_npr_aa[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_aa[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_aa[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_aa[ibin-1][3]+syst_effTnP_pt6530y1216_npr_aa[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1216_npr_aa[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt6530y1216_npr_aa[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt6530y1216_npr_aa/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[1],2) + TMath::Power(systEventSelection[1],2) + TMath::Power(systTracking[1],2)) << endl;
           if(bDoDebug)
           {
             cout <<"---------------------------------------------------------------"<<endl;
@@ -1198,23 +1222,27 @@ void makeSyst_cent( bool bSavePlots     = 1,
           }
 
           outputData_pr << "65300\t" << "1624\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_pr << "\t" << prJpsiErrSyst_pt6530y1624_cent[ibin-1] << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_pp[ibin-1][1]+syst_effTnP_pt6530y1624_pr_aa[ibin-1][1]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_pp[ibin-1][2]+syst_effTnP_pt6530y1624_pr_aa[ibin-1][2]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_pp[ibin-1][3]+syst_effTnP_pt6530y1624_pr_aa[ibin-1][3]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_pp[ibin-1][4]+syst_effTnP_pt6530y1624_pr_aa[ibin-1][4]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_pp[ibin-1][0]+syst_effTnP_pt6530y1624_pr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(syst_eff4d_pt6530y1624_pr_pp[ibin-1][0]+syst_eff4d_pt6530y1624_pr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(fitContribution_pt6530y1624_pr_aa/rms_fitContribNorm + fitContribution_pt6530y1624_pr_pp/rms_fitContribNorm) << "\t"
-                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection+systTrack) << endl;
+              << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_pp[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_pp[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_pp[ibin-1][1]+syst_effTnP_pt6530y1624_pr_pp[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_pp[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_pp[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_pp[ibin-1][3]+syst_effTnP_pt6530y1624_pr_pp[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_pp[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt6530y1624_pr_pp[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt6530y1624_pr_pp/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[0],2) + TMath::Power(systEventSelection[0],2) + TMath::Power(systTracking[0],2)) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_aa[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_aa[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_aa[ibin-1][1]+syst_effTnP_pt6530y1624_pr_aa[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_aa[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_aa[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_aa[ibin-1][3]+syst_effTnP_pt6530y1624_pr_aa[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1624_pr_aa[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt6530y1624_pr_aa[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt6530y1624_pr_aa/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[1],2) + TMath::Power(systEventSelection[1],2) + TMath::Power(systTracking[1],2)) << endl;
           outputData_npr << "65300\t" << "1624\t" << centbins_6bins_str[ibin-1] << "\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_pt6530y1624_cent[ibin-1] << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_pp[ibin-1][1]+syst_effTnP_pt6530y1624_npr_aa[ibin-1][1]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_pp[ibin-1][2]+syst_effTnP_pt6530y1624_npr_aa[ibin-1][2]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_pp[ibin-1][3]+syst_effTnP_pt6530y1624_npr_aa[ibin-1][3]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_pp[ibin-1][4]+syst_effTnP_pt6530y1624_npr_aa[ibin-1][4]) << "\t"
-                     << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_pp[ibin-1][0]+syst_effTnP_pt6530y1624_npr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(syst_eff4d_pt6530y1624_npr_pp[ibin-1][0]+syst_eff4d_pt6530y1624_npr_aa[ibin-1][0]) << "\t"
-                     << TMath::Sqrt(fitContribution_pt6530y1624_npr_aa/rms_fitContribNorm + fitContribution_pt6530y1624_npr_pp/rms_fitContribNorm) << "\t"
-                     << TMath::Sqrt(taa6_relerr+systLumi+systSelection+systTrack) << endl;
+              << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_pp[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_pp[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_pp[ibin-1][1]+syst_effTnP_pt6530y1624_npr_pp[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_pp[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_pp[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_pp[ibin-1][3]+syst_effTnP_pt6530y1624_npr_pp[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_pp[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt6530y1624_npr_pp[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt6530y1624_npr_pp/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[0],2) + TMath::Power(systEventSelection[0],2) + TMath::Power(systTracking[0],2)) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_aa[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_aa[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_aa[ibin-1][1]+syst_effTnP_pt6530y1624_npr_aa[ibin-1][2]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_aa[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_aa[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_aa[ibin-1][3]+syst_effTnP_pt6530y1624_npr_aa[ibin-1][4]) << "\t"
+              << TMath::Sqrt(syst_effTnP_pt6530y1624_npr_aa[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pt6530y1624_npr_aa[ibin-1][0]) << "\t"
+              << TMath::Sqrt(fitContribution_pt6530y1624_npr_aa/rms_fitContribNorm) << "\t"
+              << TMath::Sqrt(TMath::Power(systLumis[1],2) + TMath::Power(systEventSelection[1],2) + TMath::Power(systTracking[1],2)) << endl;
           if(bDoDebug)
           {
             cout <<"---------------------------------------------------------------"<<endl;
