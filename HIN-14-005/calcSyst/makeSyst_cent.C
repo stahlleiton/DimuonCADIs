@@ -1437,7 +1437,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
   // global uncertainty boxes
 
   if (systBoxType == 0 || systBoxType==2) { 
-    lumi_pr_y024_pt6530->SetFillColor(kRed-9);
+    lumi_pr_y024_pt6530->SetFillColor(kGray+1);
     if (systBoxType == 2) {
       lumi_pr_y012_pt6530->SetFillColor(kAzure-9);
       lumi_pr_y1216_pt6530->SetFillColor(kRed-9);
@@ -1446,7 +1446,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
       lumi_pr_y1624_pt365->SetFillColor(kViolet-9);
     }
 
-    lumi_npr_y024_pt6530->SetFillColor(kOrange-9);
+    lumi_npr_y024_pt6530->SetFillColor(kGray+1);
     if (systBoxType == 2) {
       lumi_npr_y012_pt6530->SetFillColor(kAzure-9);
       lumi_npr_y1216_pt6530->SetFillColor(kRed-9);
