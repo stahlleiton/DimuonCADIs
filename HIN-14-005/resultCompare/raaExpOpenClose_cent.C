@@ -34,9 +34,9 @@
 #include "../textPosition.h"
 #endif
 void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the place where the input root files, with the histograms are
-			  bool bSavePlots      = true,
-			  bool bDoSameYHighPt  = true
-			  )
+                          bool bSavePlots      = true,
+                          bool bDoSameYHighPt  = true
+                          )
 {
    // set the style
   gSystem->mkdir(Form("./figs/png"), kTRUE);
@@ -46,38 +46,42 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   
   // read CMS graphs
   TFile *pfRaaCms_cent   = new TFile(Form("%s/makeRaa_cent.root",inputDir));
-
   // ##################### HIGH PT ############################
   
   TGraphErrors *pgCms     = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsi");
   TGraphErrors *pgCmsP    = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsiP");
   TGraphErrors *pgCmsSyst = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsiSyst");
   TBox *lumi = (TBox*)pfRaaCms_cent->Get("lumi_pr_y024_pt6530");
+  lumi->SetFillColor(kRed-9);
+  lumi->SetFillStyle(1001);
   pgCms->SetFillColorAlpha(kRed-9,0.5);
 
   if(bDoSameYHighPt)
-    {
-      pgCms     = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsi_pt6530y012");
-      pgCmsP    = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsiP_pt6530y012");
-      pgCmsSyst = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsiSyst_pt6530y012");
-      lumi      = (TBox*)pfRaaCms_cent->Get("lumi_pr_y012_pt6530");
-      pgCms->SetFillColorAlpha(kAzure-9,0.5);
-    }
+  {
+    pgCms     = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsi_pt6530y012");
+    pgCmsP    = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsiP_pt6530y012");
+    pgCmsSyst = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsiSyst_pt6530y012");
+    lumi      = (TBox*)pfRaaCms_cent->Get("lumi_pr_y012_pt6530");
+    lumi->SetFillColor(kAzure-9);
+    lumi->SetFillStyle(1001);
+    pgCms->SetFillColorAlpha(kAzure-9,0.5);
+  }
+  lumi->SetX1(375); lumi->SetX2(400);
   //-------------------------------------------------------------------- 
   // *********** alice points:
   //  TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);
   TGraphAsymmErrors *pgAlice_dpt612         = new TGraphAsymmErrors(nNpartBins5_alice,
-								    npartBins5_alice, raaAlice_cent_dpt612,
-								    npartBinsErr5_alice, npartBinsErr5_alice, 
-								    raaAliceStat_cent_dpt612,raaAliceStat_cent_dpt612);
+                                                                    npartBins5_alice, raaAlice_cent_dpt612,
+                                                                    npartBinsErr5_alice, npartBinsErr5_alice, 
+                                                                    raaAliceStat_cent_dpt612,raaAliceStat_cent_dpt612);
   TGraphAsymmErrors *pgAliceSyst_dpt612     = new TGraphAsymmErrors(nNpartBins5_alice,
-								    npartBins5_alice, raaAlice_cent_dpt612, 
-								    npartSystX5_alice, npartSystX5_alice,
-								    raaAliceSystLow_cent_dpt612,raaAliceSystHigh_cent_dpt612);
+                                                                    npartBins5_alice, raaAlice_cent_dpt612, 
+                                                                    npartSystX5_alice, npartSystX5_alice,
+                                                                    raaAliceSystLow_cent_dpt612,raaAliceSystHigh_cent_dpt612);
   TGraphAsymmErrors *pgAliceSystCorr_dpt612 = new TGraphAsymmErrors(nNpartBins5_alice,
-								    npartBins5_alice, raaAlice_cent_dpt612,
-								    npartSystX5_alice, npartSystX5_alice,
-								    raaAliceSystCorrLow_cent_dpt612,raaAliceSystCorrHigh_cent_dpt612);
+                                                                    npartBins5_alice, raaAlice_cent_dpt612,
+                                                                    npartSystX5_alice, npartSystX5_alice,
+                                                                    raaAliceSystCorrLow_cent_dpt612,raaAliceSystCorrHigh_cent_dpt612);
   
   pgAlice_dpt612->SetMarkerStyle(25);
   pgAlice_dpt612->SetMarkerSize(1.2);
@@ -99,14 +103,13 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
 
   TCanvas *pc = new TCanvas("pc","pc");
 
-  TF1 *f4 = new TF1("f4","",0,400);
+  TF1 *f4 = new TF1("f4","-1",0,400);
   //  f4->SetLineWidth(1);
   f4->GetXaxis()->SetTitle("N_{part}");
   f4->GetYaxis()->SetTitle("R_{AA}");
   f4->GetYaxis()->SetRangeUser(0.0,1.5);
   f4->GetXaxis()->CenterTitle(kTRUE);
 
- 
   f4->Draw();
   lumi->Draw();
   pc->Update();
@@ -143,20 +146,20 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   entry_cent->SetLineWidth(1);
 
   if(bDoSameYHighPt)
-    {
-      entry_cent->SetMarkerStyle(20);
-      entry_cent->SetMarkerColor(kAzure+7);
-      entry_cent->SetMarkerSize(1.2);
+  {
+    entry_cent->SetMarkerStyle(20);
+    entry_cent->SetMarkerColor(kAzure+7);
+    entry_cent->SetMarkerSize(1.2);
 
-      entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c,|y| < 1.2","");
-    }
+    entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c,|y| < 1.2","");
+  }
   else
-    {
-      entry_cent->SetMarkerStyle(21);
-      entry_cent->SetMarkerColor(kRed+2);
-      entry_cent->SetMarkerSize(1.);
-      entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c,|y| < 2.4","");
-    }
+  {
+    entry_cent->SetMarkerStyle(21);
+    entry_cent->SetMarkerColor(kRed+2);
+    entry_cent->SetMarkerSize(1.);
+    entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c,|y| < 2.4","");
+  }
   entry_cent->SetTextFont(42);
   entry_cent->SetTextSize(entrySize);
 
@@ -204,23 +207,25 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   pgCmsSyst_low->SetFillColorAlpha(kViolet-9, 0.4);
 
   TBox *lumi_low = (TBox*)pfRaaCms_cent->Get("lumi_pr_y1624_pt365");
+  lumi_low->SetFillColor(kViolet-9);
+  lumi_low->SetFillStyle(1001);
   
 
   //-------------------------------------------------------------------- 
   // *********** alice points:
   //  TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);
   TGraphAsymmErrors *pgAlice_dpt25        = new TGraphAsymmErrors(nNpartBins5_alice,
-								  npartBins5_alice, raaAlice_cent_dpt25,
-								  npartBinsErr5_alice, npartBinsErr5_alice, 
-								  raaAliceStat_cent_dpt25,raaAliceStat_cent_dpt25);
+                                                                  npartBins5_alice, raaAlice_cent_dpt25,
+                                                                  npartBinsErr5_alice, npartBinsErr5_alice, 
+                                                                  raaAliceStat_cent_dpt25,raaAliceStat_cent_dpt25);
   TGraphAsymmErrors *pgAliceSyst_dpt25     = new TGraphAsymmErrors(nNpartBins5_alice,
-								    npartBins5_alice, raaAlice_cent_dpt25, 
-								    npartSystX5_alice, npartSystX5_alice,
-								    raaAliceSystLow_cent_dpt612,raaAliceSystHigh_cent_dpt25);
+                                                                    npartBins5_alice, raaAlice_cent_dpt25, 
+                                                                    npartSystX5_alice, npartSystX5_alice,
+                                                                    raaAliceSystLow_cent_dpt612,raaAliceSystHigh_cent_dpt25);
   TGraphAsymmErrors *pgAliceSystCorr_dpt25 = new TGraphAsymmErrors(nNpartBins5_alice,
-								    npartBins5_alice, raaAlice_cent_dpt25,
-								    npartSystX5_alice, npartSystX5_alice,
-								    raaAliceSystCorrLow_cent_dpt25,raaAliceSystCorrHigh_cent_dpt25);
+                                                                    npartBins5_alice, raaAlice_cent_dpt25,
+                                                                    npartSystX5_alice, npartSystX5_alice,
+                                                                    raaAliceSystCorrLow_cent_dpt25,raaAliceSystCorrHigh_cent_dpt25);
   
   pgAlice_dpt25->SetMarkerStyle(25);
   pgAlice_dpt25->SetMarkerSize(1.2);
