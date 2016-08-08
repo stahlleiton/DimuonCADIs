@@ -42,7 +42,7 @@ Output: the Raa vs cent.
 using namespace std;
 
 void makeRaa_cent( bool bSavePlots           = 1,
-		   bool bAddCent             = 1,
+		   bool bAddCent             = 0,
 		   bool bSaveRoot            = 1,
 		   bool bDoDebug             = 0, // adds some numbers, numerator, denominator, to help figure out if things are read properly
 		   bool bAddLumi             = 1, // add the lumi boxes at raa=1
