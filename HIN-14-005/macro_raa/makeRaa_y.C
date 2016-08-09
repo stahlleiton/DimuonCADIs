@@ -373,6 +373,7 @@ void makeRaa_y(bool bSavePlots           = 1,
   gPrJpsi->Draw("P");
   gPrJpsiP->Draw("P");
 
+  gPad->RedrawAxis();
   c1->Update();
 
   if(bSavePlots)
@@ -441,6 +442,7 @@ void makeRaa_y(bool bSavePlots           = 1,
   gNonPrJpsi->Draw("P");
   gNonPrJpsiP->Draw("P");
 
+  gPad->RedrawAxis();
   c2->Update();
   if(bSavePlots)
   {
@@ -474,7 +476,6 @@ void makeRaa_y(bool bSavePlots           = 1,
   gNonPrJpsi_y_y->Draw("P");
 
   gPad->RedrawAxis();
-
   c22b->Update();
   
   if(bSavePlots)

@@ -546,6 +546,7 @@ void makeRaa_pt( bool bSavePlots           = 1,
 
   leg22a->Draw();
   leg22a_1->Draw();
+  gPad->RedrawAxis();
   c2->Update();
   //-----------------------
 
@@ -589,7 +590,6 @@ void makeRaa_pt( bool bSavePlots           = 1,
   leg22b->Draw();
     
   gPad->RedrawAxis();
-
   c22b->Update();
   if(bSavePlots)
   {
