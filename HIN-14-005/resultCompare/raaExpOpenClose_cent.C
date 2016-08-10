@@ -127,7 +127,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   // additional info
   CMS_lumi(pc,14005000,33);
 
-  TLegend *leg_cent = new TLegend(0.2,0.78,0.7,0.85,NULL,"brNDC");
+  TLegend *leg_cent = new TLegend(0.2,0.78,0.7,0.88,NULL,"brNDC");
   leg_cent->SetBorderSize(0);
   leg_cent->SetTextFont(62);
   leg_cent->SetTextSize(0.03);
