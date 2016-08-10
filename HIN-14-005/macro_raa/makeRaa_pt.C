@@ -429,6 +429,7 @@ void makeRaa_pt( bool bSavePlots           = 1,
   
   leg11a->Draw();
   leg11a_1->Draw();
+  gPad->RedrawAxis();
   c1->Update();
   if(bSavePlots)
   {
@@ -470,7 +471,6 @@ void makeRaa_pt( bool bSavePlots           = 1,
   leg11b->AddEntry(gPrJpsi_y1624_mb,"1.6<|y|<2.4","P");
   leg11b->Draw();
   gPad->RedrawAxis();
-
   c11b->Update();
   if(bSavePlots)
   {
