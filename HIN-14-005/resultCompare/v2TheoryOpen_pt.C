@@ -187,7 +187,7 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   TLegendEntry *entry_K;
   entry_K=leg_K->AddEntry("K08K15","MC@HQV508 + EPOS2",""); 
   entry_K=leg_K->AddEntry("K08K15","",""); // empty column for a alignment
-  entry_K=leg_K->AddEntry("K08K15","Cent. 20-60%, mid-rapidity","");
+  entry_K=leg_K->AddEntry("K08K15","Cent. 20-60%, |y| < 1","");
   entry_K=leg_K->AddEntry("K08K15","",""); // empty column for a alignment
   entry_K=leg_K->AddEntry("gD_K08","D (K=0.8)","L");
   entry_K->SetLineWidth(3);
