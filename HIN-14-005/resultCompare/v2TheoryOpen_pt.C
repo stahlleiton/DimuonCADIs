@@ -106,7 +106,7 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   //------------------------------------------------------------------------
   // drawing
   // put everything on one plot
-  TH1D *phAxis_v2 = new TH1D("phAxis_v2",";p_{T} GeV/c;v_{2}",1,0,rangeXAxis);  
+  TH1D *phAxis_v2 = new TH1D("phAxis_v2",";p_{T} (GeV/c);v_{2}",1,0,rangeXAxis);  
   phAxis_v2->SetDirectory(0);
   phAxis_v2->GetXaxis()->CenterTitle(true);
   phAxis_v2->GetXaxis()->LabelsOption("h");
