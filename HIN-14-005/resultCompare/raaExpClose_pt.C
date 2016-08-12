@@ -51,6 +51,7 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
   TGraphErrors *pgCmsP    = (TGraphErrors *)pfRaaCms_pt->Get("gPrJpsiP");
   TGraphErrors *pgCmsSyst = (TGraphErrors *)pfRaaCms_pt->Get("gPrJpsiSyst");
   pgCms->SetFillColorAlpha(kRed-9,0.5);
+  pgCms->SetName("gPrJpsi");
   
   TBox *lumi = (TBox*)pfRaaCms_pt->Get("lumi");
   lumi->SetFillColor(kGray+1);
@@ -62,6 +63,7 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
   TGraphErrors *pgCmsP_lowpt    = (TGraphErrors *)pfRaaCms_pt->Get("gPrJpsiP_pt365y1624");
   TGraphErrors *pgCmsSyst_lowpt = (TGraphErrors *)pfRaaCms_pt->Get("gPrJpsiSyst_pt365y1624");
   pgCms_lowpt->SetFillColorAlpha(kViolet-9,0.5);
+  pgCms_lowpt->SetName("gPrJpsi_pt365y1624");
 
   //-------------------------------------------------------------------- 
   // *********** alice points:
@@ -109,43 +111,19 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
   pgCmsSyst->Draw("2");
   pgCmsP->Draw("P");
   pgCms->Draw("P");
-  pgCmsSyst_lowpt->Draw("2");
-  pgCmsP_lowpt->Draw("P");
-  pgCms_lowpt->Draw("P");
+  if(bDoLowPtForw)
+  {
+    pgCmsSyst_lowpt->Draw("2");
+    pgCmsP_lowpt->Draw("P");
+    pgCms_lowpt->Draw("P");
+  }
   
   pgRaaAliceStat_cent090->Draw("P");
 
   // additional info
   CMS_lumi(pc,14005000,33);
 
-  TLegend *leg_pt_lowpt = new TLegend(0.2,0.82,0.7,0.89,NULL,"brNDC");
-  leg_pt_lowpt->SetBorderSize(0);
-  leg_pt_lowpt->SetTextFont(62);
-  leg_pt_lowpt->SetTextSize(ltxSetTextSize3);
-  leg_pt_lowpt->SetLineColor(1);
-  leg_pt_lowpt->SetLineStyle(1);
-  leg_pt_lowpt->SetLineWidth(1);
-  leg_pt_lowpt->SetFillColor(19);
-  leg_pt_lowpt->SetFillStyle(0);
-
-  TLegendEntry *entry_pt;
-  if(bDoLowPtForw)
-  {
-    entry_pt=leg_pt_lowpt->AddEntry("raab","Prompt J/#psi (CMS)","p");
-    entry_pt->SetFillStyle(1001);
-    entry_pt->SetLineColor(1);
-    entry_pt->SetLineStyle(1);
-    entry_pt->SetLineWidth(1);
-
-    entry_pt->SetMarkerStyle(20);
-    entry_pt->SetMarkerColor(kViolet+1);
-    entry_pt->SetMarkerSize(1.2);
-    entry_pt=leg_pt_lowpt->AddEntry("gPrJpsi_pt365y1624", "1.6 < |y| < 2.4, Cent. 0-100%","");
-    entry_pt->SetTextFont(42);
-    entry_pt->SetTextSize(entrySize);
-  }
-
-  TLegend *leg_pt = new TLegend(0.2,0.74,0.7,0.81,NULL,"brNDC");
+  TLegend *leg_pt = new TLegend(0.2,0.77,0.7,0.88,NULL,"brNDC");
   leg_pt->SetBorderSize(0);
   leg_pt->SetTextFont(62);
   leg_pt->SetTextSize(ltxSetTextSize3);
@@ -155,16 +133,22 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
   leg_pt->SetFillColor(19);
   leg_pt->SetFillStyle(0);
 
-  entry_pt=leg_pt->AddEntry("raab","Prompt J/#psi (CMS)","p");
-  entry_pt->SetMarkerStyle(21);
-  entry_pt->SetMarkerColor(kRed+2);
-  entry_pt->SetMarkerSize(1.);
-  entry_pt=leg_pt->AddEntry("gPrJpsi", "|y| < 2.4, Cent. 0-100%","");
+  TLegendEntry *entry_pt;
+  entry_pt=leg_pt->AddEntry("raab","Prompt J/#psi (CMS)","");
+  entry_pt->SetTextFont(62);
+  entry_pt->SetTextSize(ltxSetTextSize3);
+  if(bDoLowPtForw)
+  {
+    entry_pt=leg_pt->AddEntry("gPrJpsi_pt365y1624", "1.6 < |y| < 2.4, Cent. 0-100%","p");
+    entry_pt->SetTextFont(42);
+    entry_pt->SetTextSize(entrySize);
+  }
+  entry_pt=leg_pt->AddEntry("gPrJpsi", "|y| < 2.4, Cent. 0-100%","p");
   entry_pt->SetTextFont(42);
   entry_pt->SetTextSize(entrySize);
 
 
-  TLegend *leg_alice_pt = new TLegend(0.2,0.66,0.7,0.73,NULL,"brNDC");
+  TLegend *leg_alice_pt = new TLegend(0.2,0.68,0.7,0.75,NULL,"brNDC");
   leg_alice_pt->SetBorderSize(0);
   leg_alice_pt->SetTextFont(62);
   leg_alice_pt->SetTextSize(ltxSetTextSize3);
@@ -174,18 +158,17 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
   leg_alice_pt->SetFillColor(19);
   leg_alice_pt->SetFillStyle(0);
 
-  TLegendEntry *entry_alice_pt=leg_alice_pt->AddEntry("pgRaaAlice_cent090","Inclusive J/#psi (ALICE)","P");
+  TLegendEntry *entry_alice_pt=leg_alice_pt->AddEntry("pgRaaAlice_cent090","Inclusive J/#psi (ALICE)","");
   entry_alice_pt->SetFillStyle(1001);
   entry_alice_pt->SetLineColor(1);
   entry_alice_pt->SetLineStyle(1);
   entry_alice_pt->SetLineWidth(1);
   entry_alice_pt->SetMarkerStyle(25);
   entry_alice_pt->SetMarkerSize(1);
-  entry_alice_pt=leg_alice_pt->AddEntry("pgRaaAlice_cent090","2.5 < y < 4, Cent. 0-90%","");
+  entry_alice_pt=leg_alice_pt->AddEntry("pgRaaAlice_cent090","2.5 < y < 4, Cent. 0-90%","p");
   entry_alice_pt->SetTextFont(42);
   entry_alice_pt->SetTextSize(entrySize);
 
-  leg_pt_lowpt->Draw();
   leg_pt->Draw();
   leg_alice_pt->Draw();
   line->Draw();

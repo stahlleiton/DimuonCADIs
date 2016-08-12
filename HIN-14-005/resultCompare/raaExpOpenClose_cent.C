@@ -151,14 +151,14 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
     entry_cent->SetMarkerColor(kAzure+7);
     entry_cent->SetMarkerSize(1.2);
 
-    entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c,|y| < 1.2","");
+    entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c, |y| < 1.2","");
   }
   else
   {
     entry_cent->SetMarkerStyle(21);
     entry_cent->SetMarkerColor(kRed+2);
     entry_cent->SetMarkerSize(1.);
-    entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c,|y| < 2.4","");
+    entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c, |y| < 2.4","");
   }
   entry_cent->SetTextFont(42);
   entry_cent->SetTextSize(entrySize);
@@ -281,7 +281,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   entry2_cent->SetMarkerStyle(kFullCross);
   entry2_cent->SetMarkerColor(kViolet+2);
   entry2_cent->SetMarkerSize(1.7);
-  entry2_cent=leg2_cent->AddEntry("raalowjpsi", "3 < p_{T} < 6.5 GeV/c,1.6 < |y| < 2.4","");
+  entry2_cent=leg2_cent->AddEntry("raalowjpsi", "3 < p_{T} < 6.5 GeV/c, 1.6 < |y| < 2.4","");
   entry2_cent->SetTextFont(42);
   entry2_cent->SetTextSize(entrySize);
 
