@@ -202,7 +202,8 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
   RooPlot*   framezoom = NULL;
   if(zoomPsi) {  
     setLogScale=false;
-    framezoom = myws.var("invMass")->frame(Bins(22), Range(Mass.Psi2S-0.275, Mass.Psi2S+0.275));
+//    framezoom = myws.var("invMass")->frame(Bins(22), Range(Mass.Psi2S-0.275, Mass.Psi2S+0.275));
+    framezoom = myws.var("invMass")->frame(Bins(11), Range(Mass.Psi2S-0.275, Mass.Psi2S+0.275));
     myws.data(dsOSName.c_str())->plotOn(framezoom, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2)); 
     if (!paperStyle) {
        if (incPsi2S) {
@@ -290,7 +291,8 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
   setRange(myws, frame, dsOSName, setLogScale, cut.dMuon.AbsRap.Min);
   if (paperStyle) {
      double Ydown = 0.;//frame->GetMinimum();
-     double Yup = 0.9*frame->GetMaximum();
+//     double Yup = 0.9*frame->GetMaximum();
+     double Yup = 1.05*frame->GetMaximum();
      frame->GetYaxis()->SetRangeUser(Ydown,Yup);
   }
  
@@ -326,7 +328,8 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
   else {t->DrawLatex(0.20, 0.86-dy, Form("|y^{#mu#mu}| < %.1f",cut.dMuon.AbsRap.Max)); dy+=1.5*0.045;}
   t->DrawLatex(0.20, 0.86-dy, Form("%g < p_{T}^{#mu#mu} < %g GeV/c",cut.dMuon.Pt.Min,cut.dMuon.Pt.Max)); dy+=0.045;
   if (isPbPb) {t->DrawLatex(0.20, 0.86-dy, Form("Cent. %d-%d%%", (int)(cut.Centrality.Start/2), (int)(cut.Centrality.End/2))); dy+=0.045;}
-  dy+=0.5*0.045; t->DrawLatex(0.20, 0.86-dy, "#mu in acceptance"); dy+=0.045;
+  //dy+=0.5*0.045; t->DrawLatex(0.20, 0.86-dy, "#mu in acceptance"); dy+=0.045;
+  dy+=0.5*0.045; dy+=0.045;
   if (getMeanPT){
     if (incJpsi) {
       t->DrawLatex(0.19, 0.86-dy, Form("<pt_{J/#psi}> = %.2f#pm%.2f GeV/c", myws.var(Form("ptJpsi%s", (isPbPb?"PbPb":"PP")))->getValV(), myws.var(Form("ptJpsi%s", (isPbPb?"PbPb":"PP")))->getError())); dy+=0.045;

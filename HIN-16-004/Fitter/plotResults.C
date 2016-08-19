@@ -42,7 +42,7 @@ const char* poiname = "RFrac2Svs1S"; // for double ratios
 // const char* poiname = "N_Psi2S"; // for RAA (will correct automatically for efficiency)
 #endif
 const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
-const bool  plot12007_mid = false; // [false] plot 12-007, midrapidity
+const bool  plot12007_mid = true; // [false] plot 12-007, midrapidity
 const bool  plot12007_fwd = false; // [false] plot 12-007, fwdrapidity
 const bool  fiterrors     = true;  // [true]  statistical errors are from the fit
 const bool  FCerrors      = false; // [false] statistical errors are from the Feldman-Cousins intervals ("limits")
@@ -420,14 +420,16 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       haxesr->GetYaxis()->SetTickLength(gStyle->GetTickLength("Y")/(1.-xfrac));
       haxesr->GetYaxis()->SetRangeUser(0,1.5);
       if (nonpromptonly) haxesr->GetYaxis()->SetRangeUser(0,2.5);
-      if (plot12007) haxesr->GetYaxis()->SetRangeUser(0,3.2);
+      if (plot12007_mid) haxesr->GetYaxis()->SetRangeUser(0,1.5);
+      else if (plot12007_fwd) haxesr->GetYaxis()->SetRangeUser(0,4.5);
       haxesr->GetXaxis()->SetTitleSize(0);
       haxesr->GetXaxis()->SetLabelSize(0);
       liner = TLine(0,1,420,1);
    }
    haxes->GetYaxis()->SetRangeUser(0,1.5);
    if (nonpromptonly) haxes->GetYaxis()->SetRangeUser(0,2.5);
-   if (plot12007) haxes->GetYaxis()->SetRangeUser(0,3.2);
+   if (plot12007_mid) haxesr->GetYaxis()->SetRangeUser(0,1.5);
+   else if (plot12007_fwd) haxesr->GetYaxis()->SetRangeUser(0,4.5);
    haxes->GetYaxis()->SetTitle(ylabel);
    const char* xlabel = (xaxis=="pt") ? "p_{T} (GeV/c)" : "N_{part}";
    haxes->GetXaxis()->SetTitle(xlabel);
@@ -439,8 +441,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       liner.Draw();
       TLatex tlr;
       tlr.SetTextSize(gTextSize*xfrac/(1.-xfrac));
-      tlr.DrawLatex(100,1.2,"Cent.");
-      tlr.DrawLatex(100,1.1,"0-100%");
+      tlr.DrawLatexNDC(0.2,0.85,"Cent.");
+      tlr.DrawLatexNDC(0.2,0.80,"0-100%");
       padl->cd();
    }
 
@@ -541,7 +543,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       if (xaxis == "pt") otherlabel.Form("%i-%i%s",(int) (it->first.centbin().low()/2.), (int) (it->first.centbin().high()/2.), "%");
       if (xaxis == "cent") otherlabel.Form("%g < p_{T} < %g GeV/c",it->first.ptbin().low(), it->first.ptbin().high());
       if (!isMB) {
-         tleg->AddEntry(tg, (raplabel + otherlabel), "lp");
+//         tleg->AddEntry(tg, (raplabel + otherlabel), "lp");
+         tleg->AddEntry(tg, "#sqrt{s_{NN}} = 5.02 TeV", "lp");
       }
 
       // print tex
@@ -597,7 +600,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          g_12007_mid_cent_syst->SetFillColorAlpha(kCyan, 0.5);
          g_12007_mid_cent_syst->Draw("2");
          g_12007_mid_cent->Draw("P");
-         tleg->AddEntry(g_12007_mid_cent,"0 < |y| < 1.6, 6.5 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
+         tleg->AddEntry(g_12007_mid_cent,"#sqrt{s_{NN}} = 2.76 TeV (PRL113 (2014) 262301)", "lp");
       }
       if (plot12007_fwd) {
          TGraphAsymmErrors *g_12007_fwd_cent = result12007_fwd_cent();
@@ -609,7 +612,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          g_12007_fwd_cent_syst->SetFillColorAlpha(kMagenta, 0.5);
          g_12007_fwd_cent_syst->Draw("2");
          g_12007_fwd_cent->Draw("P");
-         tleg->AddEntry(g_12007_fwd_cent,"1.6 < |y| < 2.4, 3 < p_{T} < 30 GeV/c, #sqrt{s_{NN}} = 2.76 TeV", "lp");
+         tleg->AddEntry(g_12007_fwd_cent,"#sqrt{s_{NN}} = 2.76 TeV (PRL113 (2014) 262301)", "lp");
       }
 
       padr->cd();
@@ -654,7 +657,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
 
    TLatex tl;
    tl.SetTextSize(gTextSize);
-   tl.DrawLatexNDC(0.2+xshift,0.69,"#mu in acceptance");
+//   tl.DrawLatexNDC(0.2+xshift,0.69,"#mu in acceptance");
    double tlx = (xaxis=="cent") ? 0.77 : 0.92-xshift;
    double tly = 0.69;
    int alignement = (xaxis=="cent") ? 11 : 31; // left ajusted for centrality, right ajusted for pt
@@ -662,6 +665,17 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    if (!promptonly && !nonpromptonly) tl.DrawLatexNDC(tlx,tly,"Passing #font[12]{l}_{J/#psi}^{3D} cut");
    else if (promptonly) tl.DrawLatexNDC(tlx,tly,"Prompt only");
    else tl.DrawLatexNDC(tlx,tly,"Non-prompt only");
+
+   if (plot12007 && xaxis == "cent") {
+      padl->cd();
+      tlx = 0.26;
+      if (plot12007_mid) {
+        tl.DrawLatexNDC(tlx,tly,"|y| < 1.6, 6.5 < p_{T} < 30 GeV/c");
+      }
+      if (plot12007_fwd) {
+        tl.DrawLatexNDC(tlx,tly,"1.6 < |y| < 2.4, 3 < p_{T} < 30 GeV/c");
+      }
+   }
 
    int iPos = 33;
    CMS_lumi( (TPad*) gPad, 106, iPos, "" );
