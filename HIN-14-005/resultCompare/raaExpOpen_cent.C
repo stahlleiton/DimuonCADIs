@@ -36,7 +36,7 @@
 #endif
 void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place where the input root files, with the histograms are
                      bool bSavePlots      = true,
-                     bool bDoSameYHighPt  = true 
+                     bool bDoSameYHighPt  = true
                      )
 {
    // set the style
@@ -159,7 +159,7 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
     entry_cent->SetMarkerStyle(29);
     entry_cent->SetMarkerColor(kOrange+2);
     entry_cent->SetMarkerSize(2.);
-    entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c), |y| < 2.4","");
+    entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c, |y| < 2.4","");
   }
   entry_cent->SetTextFont(42);
   entry_cent->SetTextSize(entrySize);

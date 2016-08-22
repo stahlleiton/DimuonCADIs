@@ -115,22 +115,22 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
   pgRaaNPJpsi_mcatshq_rad_withcmass->SetName("pgRaaNPJpsi_mcatshq_rad_withcmass");
 
   // Style for filled graphs
-  pgRaaNPJpsi_TAMU->SetFillColor(kOrange+1);
+  pgRaaNPJpsi_TAMU->SetFillColorAlpha(kOrange,0.7);
   pgRaaNPJpsi_TAMU->SetFillStyle(1001);
-  pgRaaNPJpsi_TAMU_withcmass->SetFillColor(kOrange);
+  pgRaaNPJpsi_TAMU_withcmass->SetFillColor(kOrange+1);
   pgRaaNPJpsi_TAMU_withcmass->SetFillStyle(1001);
 
-  pgRaaNPJpsi_Djou->SetFillColor(kTeal-6);
+  pgRaaNPJpsi_Djou->SetFillColor(kTeal-8);
   pgRaaNPJpsi_Djou->SetFillStyle(1001);
-  pgRaaNPJpsi_Djou_withcmass->SetFillColor(kTeal-8);
+  pgRaaNPJpsi_Djou_withcmass->SetFillColor(kTeal-6);
   pgRaaNPJpsi_Djou_withcmass->SetFillStyle(1001);
 
   // Style for line graphs
-  pgRaaNPJpsi_buzatti->SetLineColor(kViolet);
-  pgRaaNPJpsi_mcatshq->SetLineColor(kRed);
-  pgRaaNPJpsi_mcatshq_withcmass->SetLineColor(kRed);
-  pgRaaNPJpsi_mcatshq_rad->SetLineColor(kRed+3);
-  pgRaaNPJpsi_mcatshq_rad_withcmass->SetLineColor(kRed+3);
+  pgRaaNPJpsi_buzatti->SetLineColor(kRed);
+  pgRaaNPJpsi_mcatshq->SetLineColor(kViolet);
+  pgRaaNPJpsi_mcatshq_withcmass->SetLineColor(kViolet);
+  pgRaaNPJpsi_mcatshq_rad->SetLineColor(kViolet-6);
+  pgRaaNPJpsi_mcatshq_rad_withcmass->SetLineColor(kViolet-6);
   
   pgRaaNPJpsi_buzatti->SetLineStyle(1);
   pgRaaNPJpsi_mcatshq->SetLineStyle(1);
@@ -164,10 +164,10 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
   pc->Update();
   
   pgCmsSyst->Draw("2"); // for drawing x-axis
-  pgRaaNPJpsi_TAMU->Draw("f");
-  pgRaaNPJpsi_TAMU_withcmass->Draw("f");
   pgRaaNPJpsi_Djou->Draw("f");
-  pgRaaNPJpsi_Djou_withcmass->Draw("f");
+//  pgRaaNPJpsi_Djou_withcmass->Draw("f");
+  pgRaaNPJpsi_TAMU->Draw("f");
+//  pgRaaNPJpsi_TAMU_withcmass->Draw("f");
 
   pgRaaNPJpsi_mcatshq->Draw("c");
 //  pgRaaNPJpsi_mcatshq_withcmass->Draw("c");
@@ -216,7 +216,8 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
   }
   entry_cent->SetTextFont(42);
 
-  TLegend *leg_theory_cent = new TLegend(0.23,0.62,0.83,0.82,NULL,"brNDC"); //this area is for all 8 theory curves into 1 canvas
+  TLegend *leg_theory_cent = new TLegend(0.23,0.66,0.83,0.82,NULL,"brNDC"); //this area is for 6 theory curves into 1 canvas
+//  TLegend *leg_theory_cent = new TLegend(0.23,0.62,0.83,0.82,NULL,"brNDC"); //this area is for all 8 theory curves into 1 canvas
   //TLegend *leg_theory_cent = new TLegend(0.2,0.67,0.83,0.81,NULL,"brNDC"); //this area is for 4 theory curves into 1 canvas
   leg_theory_cent->SetMargin(0.17);
   leg_theory_cent->SetBorderSize(0);
@@ -241,12 +242,12 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
 //  entry_theory_cent->SetTextFont(42);
   entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_TAMU","TAMU: standard","f");
   entry_theory_cent->SetTextFont(42);
-  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_TAMU_withcmass","TAMU: c mass","f");
-  entry_theory_cent->SetTextFont(42);
+//  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_TAMU_withcmass","TAMU: c mass","f");
+//  entry_theory_cent->SetTextFont(42);
   entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_Djou","Djordjevic et al: standard","f");
   entry_theory_cent->SetTextFont(42);
-  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_Djou_withcmass","Djordjevic et al: c mass","f");
-  entry_theory_cent->SetTextFont(42);
+//  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_Djou_withcmass","Djordjevic et al: c mass","f");
+//  entry_theory_cent->SetTextFont(42);
 
   line->Draw();
   leg_cent->Draw();
