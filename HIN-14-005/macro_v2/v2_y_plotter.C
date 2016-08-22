@@ -228,7 +228,7 @@ void v2_y_plotter(
 
       lt1->SetTextFont(42);
       lt1->SetTextSize(ltxSetTextSize2);
-      lt1->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{Cent. 0-100%}{6.5 < p_{T} < 30 GeV/c}");
+      lt1->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{6.5 < p_{T} < 30 GeV/c}{Cent. 0-100%}");
         
       pgV2_sys->Draw("2");
       pgV2->Draw("PZ");

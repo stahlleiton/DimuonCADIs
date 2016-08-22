@@ -12,7 +12,7 @@
 // flags
 const bool doSysts = false;        // compute the systematics
 const bool printSysts = false;     // print the systematics summary table
-const bool plotMassPlots = false; 
+const bool plotMassPlots = true; 
 const bool plotAllVars = true;     // plot the dependance of all vars with pt, centrality, y
 const bool plotAllResults = false; // and plot the results!
 const bool plotSystResults = false;// plot results taking syst fits as nominal too

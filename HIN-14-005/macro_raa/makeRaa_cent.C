@@ -42,10 +42,11 @@ Output: the Raa vs cent.
 using namespace std;
 
 void makeRaa_cent( bool bSavePlots           = 1,
-		   bool bAddCent             = 0,
+		   bool bAddCent             = 1,
 		   bool bSaveRoot            = 1,
 		   bool bDoDebug             = 0, // adds some numbers, numerator, denominator, to help figure out if things are read properly
 		   bool bAddLumi             = 1, // add the lumi boxes at raa=1
+                   int systBoxType           = 0, // 0: (systLumi+systSelection+systTrack) box is separated ONLY in 2D raa plots, 1: (systLumi+systSelection+systTrack) box is separated into grey box from pp uncertainty, 2: (add all global uncertainty into 1 box)
 		   int  whichSample          = 1,//0: no TnP corrections; 1: w/ TnP corr on Data; 2: w/ TnP corr on MC; 3: lxy w/ TnP on MC
 		   const char* inputDir      = "../readFitTable", // the place where the input root files, with the histograms are
 		   const char* outputDir     = "figs",
@@ -53,6 +54,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
 {
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
+  gSystem->mkdir(Form("./%s",outputRootDir), kTRUE);
 
   // set the style
   setTDRStyle();
@@ -432,7 +434,9 @@ void makeRaa_cent( bool bSavePlots           = 1,
   f4->GetYaxis()->SetRangeUser(0.0,1.5);
   f4->GetXaxis()->CenterTitle(kTRUE);
 
-  // pp lumi + pp stat+pp syst
+  // pp lumi, pp stat+pp syst
+  // If systBoxType==2, TBox lumi_* will have all global systematics. TBox globalpp_ will have nothing.
+  // If systBoxType==0 or 1, TBox lumi_* will have lumi, evt sel, tracking systematics. TBox globalpp_ will have pp uncertainties.
   TBox *lumi_pr_y024_pt6530  = (TBox*)systFile->Get("lumi_pr_y024_pt6530");
   TBox *lumi_pr_y012_pt6530  = (TBox*)systFile->Get("lumi_pr_y012_pt6530");
   TBox *lumi_pr_y1216_pt6530 = (TBox*)systFile->Get("lumi_pr_y1216_pt6530");
@@ -447,20 +451,19 @@ void makeRaa_cent( bool bSavePlots           = 1,
   TBox *lumi_npr_y1624_pt6530_pty = (TBox*)systFile->Get("lumi_npr_y1624_pt6530_pty");
   TBox *lumi_npr_y1624_pt365      = (TBox*)systFile->Get("lumi_npr_y1624_pt365");
 
-  //----- colors for boxes
-  lumi_pr_y024_pt6530->SetFillColor(kRed-9);
-  lumi_pr_y012_pt6530->SetFillColor(kAzure-9);
-  lumi_pr_y1216_pt6530->SetFillColor(kRed-9);
-  lumi_pr_y1624_pt6530->SetFillColor(kGreen-9);
-  lumi_pr_y1624_pt6530_pty->SetFillColor(kGreen-9);
-  lumi_pr_y1624_pt365->SetFillColor(kViolet-9);
+  TBox *globalpp_pr_y024_pt6530  = (TBox*)systFile->Get("globalpp_pr_y024_pt6530");
+  TBox *globalpp_pr_y012_pt6530  = (TBox*)systFile->Get("globalpp_pr_y012_pt6530");
+  TBox *globalpp_pr_y1216_pt6530 = (TBox*)systFile->Get("globalpp_pr_y1216_pt6530");
+  TBox *globalpp_pr_y1624_pt6530 = (TBox*)systFile->Get("globalpp_pr_y1624_pt6530");
+  TBox *globalpp_pr_y1624_pt6530_pty = (TBox*)systFile->Get("globalpp_pr_y1624_pt6530_pty");
+  TBox *globalpp_pr_y1624_pt365      = (TBox*)systFile->Get("globalpp_pr_y1624_pt365");
 
-  lumi_npr_y024_pt6530->SetFillColor(kOrange-9);
-  lumi_npr_y012_pt6530->SetFillColor(kAzure-9);
-  lumi_npr_y1216_pt6530->SetFillColor(kRed-9);
-  lumi_npr_y1624_pt6530->SetFillColor(kGreen-9);
-  lumi_npr_y1624_pt6530_pty->SetFillColor(kGreen-9);
-  lumi_npr_y1624_pt365->SetFillColor(kViolet-9);
+  TBox *globalpp_npr_y024_pt6530  = (TBox*)systFile->Get("globalpp_npr_y024_pt6530");
+  TBox *globalpp_npr_y012_pt6530  = (TBox*)systFile->Get("globalpp_npr_y012_pt6530");
+  TBox *globalpp_npr_y1216_pt6530 = (TBox*)systFile->Get("globalpp_npr_y1216_pt6530");
+  TBox *globalpp_npr_y1624_pt6530 = (TBox*)systFile->Get("globalpp_npr_y1624_pt6530");
+  TBox *globalpp_npr_y1624_pt6530_pty = (TBox*)systFile->Get("globalpp_npr_y1624_pt6530_pty");
+  TBox *globalpp_npr_y1624_pt365      = (TBox*)systFile->Get("globalpp_npr_y1624_pt365");
 
   //---------------- general stuff
   TLatex *lat = new TLatex();
@@ -474,7 +477,12 @@ void makeRaa_cent( bool bSavePlots           = 1,
   f4->Draw();// axis
   if(bAddLumi) 
   {
-    lumi_pr_y024_pt6530->Draw();
+    if (systBoxType==1) {
+      globalpp_pr_y024_pt6530->Draw();
+      lumi_pr_y024_pt6530->Draw("l");
+    } else {
+      lumi_pr_y024_pt6530->Draw();
+    }
     f4->Draw("same");
   }
   lat->SetTextSize(ltxSetTextSize1);
@@ -510,6 +518,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
       lat->DrawLatex(0.17,0.59,"60-100%");
     }
   c1->SetTitle(" ");
+  c1->RedrawAxis();
   c1->Update();
   if(bSavePlots)
   {
@@ -523,9 +532,16 @@ void makeRaa_cent( bool bSavePlots           = 1,
   f4->Draw();
   if(bAddLumi)
   {
-    lumi_pr_y012_pt6530->Draw();
-    lumi_pr_y1216_pt6530->Draw();
-    lumi_pr_y1624_pt6530->Draw();
+    if (systBoxType==0 || systBoxType==1) {
+      globalpp_pr_y012_pt6530->Draw();
+      globalpp_pr_y1216_pt6530->Draw();
+      globalpp_pr_y1624_pt6530->Draw();
+      lumi_pr_y012_pt6530->Draw("l");
+    } else {
+      lumi_pr_y012_pt6530->Draw();
+      lumi_pr_y1216_pt6530->Draw();
+      lumi_pr_y1624_pt6530->Draw();
+    }
     f4->Draw("same");
   }
   CMS_lumi(c11a,12014000,0);
@@ -591,8 +607,14 @@ void makeRaa_cent( bool bSavePlots           = 1,
   f4->Draw();
   if(bAddLumi)
   {
-    lumi_pr_y1624_pt6530_pty->Draw();
-    lumi_pr_y1624_pt365->Draw();
+    if (systBoxType==0 || systBoxType==1) {
+      globalpp_pr_y1624_pt6530_pty->Draw();
+      globalpp_pr_y1624_pt365->Draw();
+      lumi_pr_y1624_pt6530_pty->Draw("l");
+    } else {
+      lumi_pr_y1624_pt6530_pty->Draw();
+      lumi_pr_y1624_pt365->Draw();
+    }
     f4->Draw("same");
   }
   CMS_lumi(c11b,12014000,0);
@@ -661,7 +683,12 @@ void makeRaa_cent( bool bSavePlots           = 1,
   // general stuff
   if(bAddLumi) 
   {
-    lumi_npr_y024_pt6530->Draw();
+    if (systBoxType==1) {
+      globalpp_npr_y024_pt6530->Draw();
+      lumi_npr_y024_pt6530->Draw("l");
+    } else {
+      lumi_npr_y024_pt6530->Draw();
+    }
     f4->Draw("same");
   }
    lat->SetTextSize(ltxSetTextSize1);
@@ -705,9 +732,16 @@ void makeRaa_cent( bool bSavePlots           = 1,
   f4->Draw();
   if(bAddLumi)
   {
-    lumi_npr_y012_pt6530->Draw();
-    lumi_npr_y1216_pt6530->Draw();
-    lumi_npr_y1624_pt6530->Draw();
+    if (systBoxType==0 || systBoxType==1) {
+      globalpp_npr_y012_pt6530->Draw();
+      globalpp_npr_y1216_pt6530->Draw();
+      globalpp_npr_y1624_pt6530->Draw();
+      lumi_npr_y012_pt6530->Draw("l");
+    } else {
+      lumi_npr_y012_pt6530->Draw();
+      lumi_npr_y1216_pt6530->Draw();
+      lumi_npr_y1624_pt6530->Draw();
+    }
     f4->Draw("same");
   }
   
@@ -776,8 +810,14 @@ void makeRaa_cent( bool bSavePlots           = 1,
   f4->Draw();
   if(bAddLumi)
   {
-    lumi_npr_y1624_pt6530_pty->Draw();
-    lumi_npr_y1624_pt365->Draw();
+    if (systBoxType==0 || systBoxType==1) {
+      globalpp_npr_y1624_pt6530_pty->Draw();
+      globalpp_npr_y1624_pt365->Draw();
+      lumi_npr_y1624_pt6530_pty->Draw("l");
+    } else {
+      lumi_npr_y1624_pt6530_pty->Draw();
+      lumi_npr_y1624_pt365->Draw();
+    }
     f4->Draw("same");
   }
   CMS_lumi(c21b,12014000,0);
@@ -860,6 +900,23 @@ void makeRaa_cent( bool bSavePlots           = 1,
     
       lumi_npr_y1624_pt6530_pty->Write("lumi_npr_y1624_pt6530_pty");
       lumi_npr_y1624_pt365->Write("lumi_npr_y1624_pt365");
+      if (systBoxType==0 || systBoxType==1) {
+        if (systBoxType==1) globalpp_pr_y024_pt6530->Write("globalpp_pr_y024_pt6530");
+        globalpp_pr_y012_pt6530->Write("globalpp_pr_y012_pt6530");
+        globalpp_pr_y1216_pt6530->Write("globalpp_pr_y1216_pt6530");
+        globalpp_pr_y1624_pt6530->Write("globalpp_pr_y1624_pt6530");
+      
+        globalpp_pr_y1624_pt6530_pty->Write("globalpp_pr_y1624_pt6530_pty");
+        globalpp_pr_y1624_pt365->Write("globalpp_pr_y1624_pt365");
+
+        if (systBoxType==1) globalpp_npr_y024_pt6530->Write("globalpp_npr_y024_pt6530");
+        globalpp_npr_y012_pt6530->Write("globalpp_npr_y012_pt6530");
+        globalpp_npr_y1216_pt6530->Write("globalpp_npr_y1216_pt6530");
+        globalpp_npr_y1624_pt6530->Write("globalpp_npr_y1624_pt6530");
+      
+        globalpp_npr_y1624_pt6530_pty->Write("globalpp_npr_y1624_pt6530_pty");
+        globalpp_npr_y1624_pt365->Write("globalpp_npr_y1624_pt365");
+      }
     
       // PROMPT
       gPrJpsiSyst->Write("gPrJpsiSyst");
