@@ -326,7 +326,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
   else {t->DrawLatex(0.20, 0.86-dy, Form("|y^{#mu#mu}| < %.1f",cut.dMuon.AbsRap.Max)); dy+=1.5*0.045;}
   t->DrawLatex(0.20, 0.86-dy, Form("%g < p_{T}^{#mu#mu} < %g GeV/c",cut.dMuon.Pt.Min,cut.dMuon.Pt.Max)); dy+=0.045;
   if (isPbPb) {t->DrawLatex(0.20, 0.86-dy, Form("Cent. %d-%d%%", (int)(cut.Centrality.Start/2), (int)(cut.Centrality.End/2))); dy+=0.045;}
-  dy+=0.5*0.045; t->DrawLatex(0.20, 0.86-dy, "#mu in acceptance"); dy+=0.045;
+  // dy+=0.5*0.045; t->DrawLatex(0.20, 0.86-dy, "#mu in acceptance"); dy+=0.045;
   if (getMeanPT){
     if (incJpsi) {
       t->DrawLatex(0.19, 0.86-dy, Form("<pt_{J/#psi}> = %.2f#pm%.2f GeV/c", myws.var(Form("ptJpsi%s", (isPbPb?"PbPb":"PP")))->getValV(), myws.var(Form("ptJpsi%s", (isPbPb?"PbPb":"PP")))->getError())); dy+=0.045;

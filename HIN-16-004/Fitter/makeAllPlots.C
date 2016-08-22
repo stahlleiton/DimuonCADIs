@@ -166,7 +166,7 @@ void makeAllMassPlots(const char* workDirName, const char* DSTag, bool paperStyl
       // if (!(thebin==anabin(0,1.6,6.5,30,0,200) || thebin==anabin(1.6,2.4,3,30,0,200))) continue;
       if (!(thebin==anabin(0,1.6,9,12,0,200) || 
                thebin==anabin(1.6,2.4,20,30,0,200) ||
-               thebin==anabin(1.6,2.4,3,30,40,80) ||
+               thebin==anabin(1.6,2.4,3,30,0,40) ||
                thebin==anabin(0,1.6,6.5,30,0,200) || thebin==anabin(1.6,2.4,3,30,0,200)
            )) continue;
 
