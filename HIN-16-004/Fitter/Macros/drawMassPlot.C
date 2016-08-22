@@ -284,7 +284,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
   } else {
      frame->GetXaxis()->SetTitle("m_{#mu^{+}#mu^{-}} (GeV/c^{2})");
      frame->GetXaxis()->SetTitleOffset(1.1);
-     frame->GetYaxis()->SetTitleOffset(1.45);
+     frame->GetYaxis()->SetTitleOffset(0.85);
      frame->GetXaxis()->SetTitleSize(0.05);
      frame->GetYaxis()->SetTitleSize(0.05);
   }
@@ -391,6 +391,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
        framezoom->GetXaxis()->SetLabelSize(0.06);
        framezoom->GetYaxis()->SetTitleSize(0.072);
        framezoom->GetXaxis()->SetTitleSize(0.072);
+       framezoom->GetYaxis()->SetNdivisions(5,5,0);
     // }
     setRange(myws, framezoom, dsOSName, setLogScale, cut.dMuon.AbsRap.Min);
 
