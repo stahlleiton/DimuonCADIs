@@ -33,7 +33,7 @@
 
 #endif
 
-void v2Exp_pt(bool bSavePlots     = true, 
+void v2ExpClose_pt(bool bSavePlots     = true, 
 	      float rangeYAxis    = 0.6,
 	      float rangeXAxis    = 20,
 	      const char* inputDir      = "../macro_v2/outRoot", // the place where the input root files, with the histograms are
