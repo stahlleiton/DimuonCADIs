@@ -122,9 +122,9 @@ void v2Exp_pt(bool bSavePlots     = true,
  pgV2HighP->Draw("P");
  
  // --------- legends ----
- TLegend *leg = new TLegend(0.2,0.78,0.7,0.89,NULL,"brNDC");
+ TLegend *leg = new TLegend(0.2,0.77,0.7,0.89,NULL,"brNDC"); // at top center
  leg->SetBorderSize(0);
- leg->SetTextFont(62);
+ leg->SetTextFont(132);
  leg->SetTextSize(0.03);
  leg->SetLineColor(1);
  leg->SetLineStyle(1);
@@ -133,7 +133,7 @@ void v2Exp_pt(bool bSavePlots     = true,
  leg->SetFillStyle(0);
 
  TLegendEntry *entry, *entry11;
- entry=leg->AddEntry("cmspr","Closed charm: prompt J/#psi (CMS)","");
+ entry=leg->AddEntry("cmspr","Hidden charm: prompt J/#psi (CMS)","");
  entry->SetTextSize(ltxSetTextSize3);
  entry->SetFillStyle(1001);
  entry->SetLineColor(1);
@@ -160,9 +160,9 @@ void v2Exp_pt(bool bSavePlots     = true,
  entry->SetFillStyle(1001);
 
  //--------------------------- 
- TLegend *leg_alice = new TLegend(0.2,0.70,0.7,0.77,NULL,"brNDC");
+ TLegend *leg_alice = new TLegend(0.2,0.685,0.7,0.765,NULL,"brNDC");
  leg_alice->SetBorderSize(0);
- leg_alice->SetTextFont(62);
+ leg_alice->SetTextFont(132);
  leg_alice->SetTextSize(ltxSetTextSize3);
  leg_alice->SetLineColor(1);
  leg_alice->SetLineStyle(1);
@@ -181,10 +181,9 @@ void v2Exp_pt(bool bSavePlots     = true,
  entry_alice->SetTextFont(42);
  entry_alice->SetTextSize(entrySize);
 
-
- TLegend *leg1 = new TLegend(0.2,0.61,0.7,0.68,NULL,"brNDC");
+ TLegend *leg1 = new TLegend(0.2,0.60,0.7,0.68,NULL,"brNDC");
  leg1->SetBorderSize(0);
- leg1->SetTextFont(62);
+ leg1->SetTextFont(132);
  leg1->SetTextSize(ltxSetTextSize3);
  leg1->SetLineColor(1);
  leg1->SetLineStyle(1);

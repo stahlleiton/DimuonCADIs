@@ -185,15 +185,15 @@ void v2_y_plotter(
       pgV2_cont->SetMarkerSize(1.1);
       
       if(iCateg==2)
-	{
-	  pgV2->SetMarkerColor(kOrange+2);
-	  pgV2_sys->SetFillColorAlpha(kOrange-9,0.5);
-	}
+      {
+        pgV2->SetMarkerColor(kOrange+2);
+        pgV2_sys->SetFillColorAlpha(kOrange-9,0.5);
+      }
       if(iCateg==3)// bkg
-	{
-	  pgV2->SetMarkerColor(1);
-	  pgV2_sys->SetFillColorAlpha(19,0.5);
-	}
+      {
+        pgV2->SetMarkerColor(1);
+        pgV2_sys->SetFillColorAlpha(19,0.5);
+      }
       
       //-------------------------------------------------------
       // general labels 
@@ -223,12 +223,12 @@ void v2_y_plotter(
 
       CMS_lumi(pc,12001000,0);
       lt1->SetTextSize(ltxSetTextSize1);
-      lt1->SetTextFont(22);
+      lt1->SetTextFont(132);
       lt1->DrawLatex(ltxText_xStart,ltxText_yStart,Form("%s",legend[iCateg]));
 
       lt1->SetTextFont(42);
       lt1->SetTextSize(ltxSetTextSize2);
-      lt1->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{6.5 < p_{T} < 30 GeV/c}{Cent. 0-100%}");
+      lt1->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{6.5 < p_{T} < 30 GeV/c}{Cent. 10-60%}");
         
       pgV2_sys->Draw("2");
       pgV2->Draw("PZ");

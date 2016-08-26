@@ -361,13 +361,13 @@ void makeRaa_y(bool bSavePlots           = 1,
   }
   CMS_lumi(c1,12014000,0);
   lat->SetTextSize(ltxSetTextSize1);
-  lat->SetTextFont(22);
+  lat->SetTextFont(42);
+  lat->SetTextFont(132);
   lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Prompt J/#psi");
  
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
   lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{6.5 < p_{T} < 30 GeV/c}{Cent. 0-100%}");
-  
 
   gPrJpsiSyst->Draw("2");
   gPrJpsi->Draw("P");
@@ -393,7 +393,7 @@ void makeRaa_y(bool bSavePlots           = 1,
   }
  
   lat->SetTextSize(ltxSetTextSize1);
-  lat->SetTextFont(22);
+  lat->SetTextFont(132);
   lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Prompt J/#psi");
  
   lat->SetTextFont(42);
@@ -430,8 +430,8 @@ void makeRaa_y(bool bSavePlots           = 1,
   }
   CMS_lumi(c2,12014000,0);
   lat->SetTextSize(ltxSetTextSize1);
-  lat->SetTextFont(22);
-  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Non-prompt J/#psi");
+  lat->SetTextFont(132);
+  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Nonprompt J/#psi");
  
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
@@ -461,14 +461,13 @@ void makeRaa_y(bool bSavePlots           = 1,
   }
   CMS_lumi(c22b,12014000,0);
   lat->SetTextSize(ltxSetTextSize1);
-  lat->SetTextFont(22);
-  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Non-prompt J/#psi");
+  lat->SetTextFont(132);
+  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Nonprompt J/#psi");
  
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
   lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{6.5 < p_{T} < 30 GeV/c}{Cent. 0-100%}");
   
-
   gNonPrJpsiSyst_mb->Draw("2");
   gNonPrJpsi_mb->Draw("P");
  
@@ -487,37 +486,36 @@ void makeRaa_y(bool bSavePlots           = 1,
 
   //=======================================================
   if(bSaveRoot)
-    {
-      TFile *pfOutput = new TFile(Form("%s/makeRaa_y.root",outputRootDir),"RECREATE");
+  {
+    TFile *pfOutput = new TFile(Form("%s/makeRaa_y.root",outputRootDir),"RECREATE");
 
-      // LUMIS
-      lumi->Write("lumi");
-      
-	// PROMPT
-      gPrJpsiSyst->Write("gPrJpsiSyst");
-      gPrJpsi->Write("gPrJpsi");
-      gPrJpsiP->Write("gPrJpsiP");
+    // LUMIS
+    lumi->Write("lumi");
+    
+    // PROMPT
+    gPrJpsiSyst->Write("gPrJpsiSyst");
+    gPrJpsi->Write("gPrJpsi");
+    gPrJpsiP->Write("gPrJpsiP");
 
-      gPrJpsiSyst_mb->Write("gPrJpsiSyst_mb");
-      gPrJpsi_mb->Write("gPrJpsi_mb");
-  
-      gPrJpsiSyst_y_y->Write("gPrJpsiSyst_y_y");
-      gPrJpsi_y_y->Write("gPrJpsi_y_y");
-  
-      // NONPROMPT
-      gNonPrJpsiSyst->Write("gNonPrJpsiSyst");
-      gNonPrJpsi->Write("gNonPrJpsi");
-      gNonPrJpsiP->Write("gNonPrJpsiP");
+    gPrJpsiSyst_mb->Write("gPrJpsiSyst_mb");
+    gPrJpsi_mb->Write("gPrJpsi_mb");
 
-      gNonPrJpsiSyst_mb->Write("gNonPrJpsiSyst_mb");
-      gNonPrJpsi_mb->Write("gNonPrJpsi_mb");
- 
-      gNonPrJpsiSyst_y_y->Write("gNonPrJpsiSyst_y_y");
-      gNonPrJpsi_y_y->Write("gNonPrJpsi_y_y");
-      
-      pfOutput->Write(""); 
-  
-    }
+    gPrJpsiSyst_y_y->Write("gPrJpsiSyst_y_y");
+    gPrJpsi_y_y->Write("gPrJpsi_y_y");
+
+    // NONPROMPT
+    gNonPrJpsiSyst->Write("gNonPrJpsiSyst");
+    gNonPrJpsi->Write("gNonPrJpsi");
+    gNonPrJpsiP->Write("gNonPrJpsiP");
+
+    gNonPrJpsiSyst_mb->Write("gNonPrJpsiSyst_mb");
+    gNonPrJpsi_mb->Write("gNonPrJpsi_mb");
+
+    gNonPrJpsiSyst_y_y->Write("gNonPrJpsiSyst_y_y");
+    gNonPrJpsi_y_y->Write("gNonPrJpsi_y_y");
+    
+    pfOutput->Write(""); 
+  }
   
   systFile->Close();
 }

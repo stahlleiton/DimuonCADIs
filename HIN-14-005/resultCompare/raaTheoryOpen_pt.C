@@ -144,7 +144,7 @@ void raaTheoryOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the plac
   f4->SetLineWidth(1);
   f4->GetXaxis()->SetTitle("p_{T} (GeV/c)");
   f4->GetYaxis()->SetTitle("R_{AA}");
-  f4->GetYaxis()->SetRangeUser(0.0,1.7);
+  f4->GetYaxis()->SetRangeUser(0.0,1.5);
   f4->GetXaxis()->CenterTitle(kTRUE);
  
   f4->Draw();
@@ -176,10 +176,11 @@ void raaTheoryOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the plac
   // additional info
   CMS_lumi(pc,14005000,33);
 
-  TLegend *leg_cent = new TLegend(0.29,0.81,0.83,0.89,NULL,"brNDC");
+  TLegend *leg_cent = new TLegend(0.51,0.52,0.89,0.64,NULL,"brNDC");
+//  TLegend *leg_cent = new TLegend(0.29,0.81,0.83,0.89,NULL,"brNDC"); // at top center
   leg_cent->SetMargin(0.17);
   leg_cent->SetBorderSize(0);
-  leg_cent->SetTextFont(62);
+  leg_cent->SetTextFont(132);
   leg_cent->SetTextSize(0.03);
   leg_cent->SetLineColor(1);
   leg_cent->SetLineStyle(1);
@@ -188,17 +189,21 @@ void raaTheoryOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the plac
   leg_cent->SetFillStyle(0);
 
   TLegendEntry *entry_cent;
-  entry_cent=leg_cent->AddEntry("raab","Non-prompt J/#psi (CMS)","");
+  entry_cent=leg_cent->AddEntry("raab","Nonprompt J/#psi (CMS)","");
+  entry_cent->SetTextSize(ltxSetTextSize3);
   entry_cent->SetFillStyle(1001);
   entry_cent->SetLineColor(1);
   entry_cent->SetLineStyle(1);
   entry_cent->SetLineWidth(1);
   entry_cent=leg_cent->AddEntry("gNonPrJpsi_pt365y1624", "1.6 < |y| < 2.4","p");
   entry_cent->SetTextFont(42);
+  entry_cent->SetTextSize(entrySize);
   entry_cent=leg_cent->AddEntry("gNonPrJpsi", "|y| < 2.4","p");
   entry_cent->SetTextFont(42);
+  entry_cent->SetTextSize(entrySize);
 
-  TLegend *leg_theory_cent = new TLegend(0.29,0.61,0.83,0.81,NULL,"brNDC");
+  TLegend *leg_theory_cent = new TLegend(0.29,0.68,0.83,0.88,NULL,"brNDC");
+//  TLegend *leg_theory_cent = new TLegend(0.29,0.61,0.83,0.81,NULL,"brNDC");
   leg_theory_cent->SetMargin(0.17);
   leg_theory_cent->SetBorderSize(0);
   leg_theory_cent->SetTextFont(62);
@@ -224,7 +229,7 @@ void raaTheoryOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the plac
   {
     entry_theory_cent=leg_theory_cent->AddEntry("pgRaaB_rapp","He,Fries,Rapp: HF transport (0-90%, y~0)","f");
     entry_theory_cent->SetTextFont(42);
-    entry_theory_cent=leg_theory_cent->AddEntry("pgRaaB_whdg","WHDG: Rad+Coll E loss (0-80%)","f");
+    entry_theory_cent=leg_theory_cent->AddEntry("pgRaaB_whdg","WHDG: Rad+Coll E loss (0-80%, y~0)","f");
     entry_theory_cent->SetTextFont(42);
   }
 

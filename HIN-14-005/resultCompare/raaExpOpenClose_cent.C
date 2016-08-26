@@ -35,7 +35,7 @@
 #endif
 void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the place where the input root files, with the histograms are
                           bool bSavePlots      = true,
-                          bool bDoSameYHighPt  = false
+                          bool bDoSameYHighPt  = true 
                           )
 {
    // set the style
@@ -66,6 +66,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
     lumi->SetFillStyle(1001);
     pgCms->SetFillColorAlpha(kAzure-9,0.5);
   }
+  pgCms->SetName("pgCms");
   lumi->SetX1(375); lumi->SetX2(400);
   //-------------------------------------------------------------------- 
   // *********** alice points:
@@ -83,6 +84,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
                                                                     npartSystX5_alice, npartSystX5_alice,
                                                                     raaAliceSystCorrLow_cent_dpt612,raaAliceSystCorrHigh_cent_dpt612);
   
+  pgAlice_dpt612->SetName("pgAlice_dpt612");
   pgAlice_dpt612->SetMarkerStyle(25);
   pgAlice_dpt612->SetMarkerSize(1.2);
   // systmatic boxes
@@ -129,7 +131,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
 
   TLegend *leg_cent = new TLegend(0.2,0.78,0.7,0.88,NULL,"brNDC");
   leg_cent->SetBorderSize(0);
-  leg_cent->SetTextFont(62);
+  leg_cent->SetTextFont(132);
   leg_cent->SetTextSize(0.03);
   leg_cent->SetLineColor(1);
   leg_cent->SetLineStyle(1);
@@ -138,7 +140,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   leg_cent->SetFillStyle(0);
 
   TLegendEntry *entry_cent;
-  entry_cent=leg_cent->AddEntry("raab","Closed charm: prompt J/#psi (CMS)","p");
+  entry_cent=leg_cent->AddEntry("raab","Hidden charm: prompt J/#psi (CMS)","");
   entry_cent->SetTextSize(ltxSetTextSize3);
   entry_cent->SetFillStyle(1001);
   entry_cent->SetLineColor(1);
@@ -150,15 +152,14 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
     entry_cent->SetMarkerStyle(20);
     entry_cent->SetMarkerColor(kAzure+7);
     entry_cent->SetMarkerSize(1.2);
-
-    entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c, |y| < 1.2","");
+    entry_cent=leg_cent->AddEntry("pgCms", "6.5 < p_{T} < 30 GeV/c, |y| < 1.2","p");
   }
   else
   {
     entry_cent->SetMarkerStyle(21);
     entry_cent->SetMarkerColor(kRed+2);
     entry_cent->SetMarkerSize(1.);
-    entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c, |y| < 2.4","");
+    entry_cent=leg_cent->AddEntry("pgCms", "6.5 < p_{T} < 30 GeV/c, |y| < 2.4","p");
   }
   entry_cent->SetTextFont(42);
   entry_cent->SetTextSize(entrySize);
@@ -166,13 +167,13 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
 
   TLegend *leg_alice_cent = new TLegend(0.2,0.67,0.7,0.77,NULL,"brNDC");
   leg_alice_cent->SetBorderSize(0);
-  leg_alice_cent->SetTextFont(62);
+  leg_alice_cent->SetTextFont(132);
   leg_alice_cent->SetLineColor(1);
   leg_alice_cent->SetLineStyle(1);
   leg_alice_cent->SetLineWidth(1);
   leg_alice_cent->SetFillColor(19);
   leg_alice_cent->SetFillStyle(0);
-  TLegendEntry *entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","Open charm: prompt D (ALICE)","P");
+  TLegendEntry *entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt612","Open charm: prompt D (ALICE)","");
   entry_alice_cent->SetFillStyle(1001);
   entry_alice_cent->SetLineColor(1);
   entry_alice_cent->SetLineStyle(1);
@@ -180,7 +181,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   entry_alice_cent->SetTextSize(ltxSetTextSize3);
   entry_alice_cent->SetMarkerStyle(25);
   entry_alice_cent->SetMarkerSize(1);
-  entry_alice_cent=leg_alice_cent->AddEntry("alicewhat","6 < p_{T} < 12 GeV/c, |y| < 0.5","");
+  entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt612","6 < p_{T} < 12 GeV/c, |y| < 0.5","p");
   entry_alice_cent->SetTextFont(42);
   entry_alice_cent->SetTextSize(entrySize);
   
@@ -191,10 +192,10 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   gPad->RedrawAxis();
 
   if(bSavePlots)
-    {
-      pc->SaveAs(Form("figs/pdf/raaExpOpenClose_cent_sameY%d.pdf",bDoSameYHighPt));
-      pc->SaveAs(Form("figs/png/raaExpOpenClose_cent_sameY%d.png",bDoSameYHighPt));
-    }
+  {
+    pc->SaveAs(Form("figs/pdf/raaExpOpenClose_cent_sameY%d.pdf",bDoSameYHighPt));
+    pc->SaveAs(Form("figs/png/raaExpOpenClose_cent_sameY%d.png",bDoSameYHighPt));
+  }
   // ##################### LOW PT ############################
   // ##################### LOW PT ############################
   // ##################### LOW PT ############################
@@ -205,6 +206,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   TGraphErrors *pgCmsP_low    = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsiP_pt365y1624");
   TGraphErrors *pgCmsSyst_low = (TGraphErrors *)pfRaaCms_cent->Get("gPrJpsiSyst_pt365y1624");
   pgCmsSyst_low->SetFillColorAlpha(kViolet-9, 0.4);
+  pgCms_low->SetName("pgCms_low");
 
   TBox *lumi_low = (TBox*)pfRaaCms_cent->Get("lumi_pr_y1624_pt365");
   lumi_low->SetFillColor(kViolet-9);
@@ -227,6 +229,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
                                                                     npartSystX5_alice, npartSystX5_alice,
                                                                     raaAliceSystCorrLow_cent_dpt25,raaAliceSystCorrHigh_cent_dpt25);
   
+  pgAlice_dpt25->SetName("pgAlice_dpt25");
   pgAlice_dpt25->SetMarkerStyle(25);
   pgAlice_dpt25->SetMarkerSize(1.2);
 
@@ -260,9 +263,9 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   // additional info
   CMS_lumi(pc_low,14005000,33);
 
-  TLegend *leg2_cent = new TLegend(0.2,0.78,0.7,0.85,NULL,"brNDC");
+  TLegend *leg2_cent = new TLegend(0.2,0.78,0.7,0.88,NULL,"brNDC");
   leg2_cent->SetBorderSize(0);
-  leg2_cent->SetTextFont(62);
+  leg2_cent->SetTextFont(132);
   leg2_cent->SetTextSize(0.03);
   leg2_cent->SetLineColor(1);
   leg2_cent->SetLineStyle(1);
@@ -271,7 +274,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   leg2_cent->SetFillStyle(0);
 
   TLegendEntry *entry2_cent;
-  entry2_cent=leg2_cent->AddEntry("raalow","Closed charm: prompt J/#psi (CMS)","p");
+  entry2_cent=leg2_cent->AddEntry("raalow","Hidden charm: prompt J/#psi (CMS)","");
   entry2_cent->SetTextSize(ltxSetTextSize3);
   entry2_cent->SetLineColor(1);
   entry2_cent->SetLineStyle(1);
@@ -281,21 +284,21 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   entry2_cent->SetMarkerStyle(kFullCross);
   entry2_cent->SetMarkerColor(kViolet+2);
   entry2_cent->SetMarkerSize(1.7);
-  entry2_cent=leg2_cent->AddEntry("raalowjpsi", "3 < p_{T} < 6.5 GeV/c, 1.6 < |y| < 2.4","");
+  entry2_cent=leg2_cent->AddEntry("pgCms_low", "3 < p_{T} < 6.5 GeV/c, 1.6 < |y| < 2.4","p");
   entry2_cent->SetTextFont(42);
   entry2_cent->SetTextSize(entrySize);
 
 
   TLegend *leg2_alice_cent = new TLegend(0.2,0.67,0.7,0.77,NULL,"brNDC");
   leg2_alice_cent->SetBorderSize(0);
-  leg2_alice_cent->SetTextFont(62);
+  leg2_alice_cent->SetTextFont(132);
   leg2_alice_cent->SetTextSize(0.03);
   leg2_alice_cent->SetLineColor(1);
   leg2_alice_cent->SetLineStyle(1);
   leg2_alice_cent->SetLineWidth(1);
   leg2_alice_cent->SetFillColor(19);
   leg2_alice_cent->SetFillStyle(0);
-  TLegendEntry *entry2_alice_cent=leg2_alice_cent->AddEntry("pgAlice_dpt25","Open charm: prompt D^{0} (ALICE)","P");
+  TLegendEntry *entry2_alice_cent=leg2_alice_cent->AddEntry("pgAlice_dpt25","Open charm: prompt D^{0} (ALICE)","");
   entry2_alice_cent->SetTextSize(ltxSetTextSize3);
   entry2_alice_cent->SetLineColor(1);
   entry2_alice_cent->SetLineStyle(1);
@@ -303,7 +306,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   entry2_alice_cent->SetFillStyle(1001);
   entry2_alice_cent->SetMarkerStyle(25);
   entry2_alice_cent->SetMarkerSize(1.2);
-  entry2_alice_cent=leg2_alice_cent->AddEntry("alicelow","2 < p_{T} < 5 GeV/c, |y| < 0.5","");
+  entry2_alice_cent=leg2_alice_cent->AddEntry("pgAlice_dpt25","2 < p_{T} < 5 GeV/c, |y| < 0.5","p");
   entry2_alice_cent->SetTextFont(42);
   entry2_alice_cent->SetTextSize(entrySize);
 

@@ -173,7 +173,7 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
 //  pgRaaNPJpsi_mcatshq_withcmass->Draw("c");
   pgRaaNPJpsi_mcatshq_rad->Draw("c");
 //  pgRaaNPJpsi_mcatshq_rad_withcmass->Draw("c");
-  pgRaaNPJpsi_buzatti->Draw("c");
+//  pgRaaNPJpsi_buzatti->Draw("c");
 
   pgCmsSyst->Draw("2");
   pgCmsP->Draw("P");
@@ -182,10 +182,10 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
   // additional info
   CMS_lumi(pc,14005000,33);
 
-  TLegend *leg_cent = new TLegend(0.23,0.83,0.83,0.89,NULL,"brNDC");
+  TLegend *leg_cent = new TLegend(0.23,0.81,0.83,0.89,NULL,"brNDC");
   leg_cent->SetMargin(0.17);
   leg_cent->SetBorderSize(0);
-  leg_cent->SetTextFont(62);
+  leg_cent->SetTextFont(132);
   leg_cent->SetTextSize(0.03);
   leg_cent->SetLineColor(1);
   leg_cent->SetLineStyle(1);
@@ -194,7 +194,8 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
   leg_cent->SetFillStyle(0);
 
   TLegendEntry *entry_cent;
-  entry_cent=leg_cent->AddEntry("raab","Non-prompt J/#psi (CMS)","");
+  entry_cent=leg_cent->AddEntry("raab","Nonprompt J/#psi (CMS)","");
+  entry_cent->SetTextSize(ltxSetTextSize3);
   entry_cent->SetFillStyle(1001);
   entry_cent->SetLineColor(1);
   entry_cent->SetLineStyle(1);
@@ -215,13 +216,15 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
     entry_cent=leg_cent->AddEntry("pgCms", "6.5 < p_{T} < 30 GeV/c, |y| < 2.4","p");
   }
   entry_cent->SetTextFont(42);
+  entry_cent->SetTextSize(entrySize);
 
-  TLegend *leg_theory_cent = new TLegend(0.23,0.66,0.83,0.82,NULL,"brNDC"); //this area is for 6 theory curves into 1 canvas
+  TLegend *leg_theory_cent = new TLegend(0.23,0.665,0.83,0.795,NULL,"brNDC"); //this area is for 5 theory curves into 1 canvas
+//  TLegend *leg_theory_cent = new TLegend(0.23,0.66,0.83,0.82,NULL,"brNDC"); //this area is for 6 theory curves into 1 canvas
 //  TLegend *leg_theory_cent = new TLegend(0.23,0.62,0.83,0.82,NULL,"brNDC"); //this area is for all 8 theory curves into 1 canvas
   //TLegend *leg_theory_cent = new TLegend(0.2,0.67,0.83,0.81,NULL,"brNDC"); //this area is for 4 theory curves into 1 canvas
   leg_theory_cent->SetMargin(0.17);
   leg_theory_cent->SetBorderSize(0);
-  leg_theory_cent->SetTextFont(62);
+  leg_theory_cent->SetTextFont(132);
   leg_theory_cent->SetTextSize(0.028);
   leg_theory_cent->SetLineColor(1);
   leg_theory_cent->SetLineStyle(1);
@@ -230,8 +233,8 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
   leg_theory_cent->SetFillStyle(1001);
   
   TLegendEntry *entry_theory_cent;
-  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_buzatti","Buzatti: CUJET preliminary (y~0)","l");
-  entry_theory_cent->SetTextFont(42);
+//  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_buzatti","Buzatti: CUJET preliminary (y~0)","l");
+//  entry_theory_cent->SetTextFont(42);
   entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_mcatshq","MC@sHQ+EPOS: standard (|y| < 1)","l");
   entry_theory_cent->SetTextFont(42);
 //  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_mcatshq_withcmass","MC@sHQ+EPOS: c mass (|y| < 1)","l");

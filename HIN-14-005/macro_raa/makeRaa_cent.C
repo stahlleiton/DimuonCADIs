@@ -486,7 +486,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
     f4->Draw("same");
   }
   lat->SetTextSize(ltxSetTextSize1);
-  lat->SetTextFont(22);
+  lat->SetTextFont(132);
   lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Prompt J/#psi");
  
   lat->SetTextFont(42);
@@ -501,22 +501,22 @@ void makeRaa_cent( bool bSavePlots           = 1,
 
   // ****** centrality notation on plot ******
   if(bAddCent)
-    {
-      lat->SetTextFont(42);
-      lat->SetTextSize(0.025);
-      lat->DrawLatex(0.89,0.29,"0-5%");
-      lat->DrawLatex(0.82,0.3,"5-10%");
-      lat->DrawLatex(0.71,0.31,"10-15%");
-      lat->DrawLatex(0.62,0.33,"15-20%");
-      lat->DrawLatex(0.55,0.37,"20-25%");
-      lat->DrawLatex(0.49,0.4,"25-30%");
-      lat->DrawLatex(0.44,0.42,"30-35%");
-      lat->DrawLatex(0.38,0.44,"35-40%");
-      lat->DrawLatex(0.34,0.47,"40-45%");
-      lat->DrawLatex(0.3,0.49,"45-50%");
-      lat->DrawLatex(0.25,0.57,"50-60%");
-      lat->DrawLatex(0.17,0.59,"60-100%");
-    }
+  {
+    lat->SetTextFont(42);
+    lat->SetTextSize(0.025);
+    lat->DrawLatex(0.899,0.29,"0-5%");
+    lat->DrawLatex(0.80,0.3,"5-10%");
+    lat->DrawLatex(0.705,0.305,"10-15%");
+    lat->DrawLatex(0.62,0.333,"15-20%");
+    lat->DrawLatex(0.55,0.366,"20-25%");
+    lat->DrawLatex(0.49,0.390,"25-30%");
+    lat->DrawLatex(0.43,0.41,"30-35%");
+    lat->DrawLatex(0.38,0.433,"35-40%");
+    lat->DrawLatex(0.34,0.455,"40-45%");
+    lat->DrawLatex(0.3,0.478,"45-50%");
+    lat->DrawLatex(0.25,0.563,"50-60%");
+    lat->DrawLatex(0.17,0.585,"60-100%");
+  }
   c1->SetTitle(" ");
   c1->RedrawAxis();
   c1->Update();
@@ -547,7 +547,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
   CMS_lumi(c11a,12014000,0);
   
   lat->SetTextSize(ltxSetTextSize1);
-  lat->SetTextFont(22);
+  lat->SetTextFont(132);
   lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Prompt J/#psi");
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
@@ -566,7 +566,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
   //------------
   TLegend *leg11a = new TLegend(leg2DRaa_xStart,leg2DRaaY_yStart,leg2DRaa_xEnd,leg2DRaaY_yEnd);
   leg11a->SetBorderSize(0);
-  leg11a->SetTextFont(22);
+  leg11a->SetTextFont(42);
   leg11a->SetTextSize(ltxSetTextSize2);
   leg11a->SetLineColor(1);
   leg11a->SetLineStyle(1);
@@ -574,7 +574,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
   leg11a->SetFillColor(19);
   leg11a->SetFillStyle(0);
   
-  TLegendEntry *le11a1 = leg11a->AddEntry("gPrJpsi_pt6530y012","|y|<1.2","P");
+  TLegendEntry *le11a1 = leg11a->AddEntry("gPrJpsi_pt6530y012","|y| < 1.2","P");
   le11a1->SetTextColor(kAzure+7);
   le11a1->SetFillStyle(1001);
   le11a1->SetFillColor(kAzure-9);
@@ -582,8 +582,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
   le11a1->SetMarkerColor(kAzure+2);
   le11a1->SetMarkerSize(1.2);
 
-
-  TLegendEntry *le11a2 = leg11a->AddEntry("gPrJpsi_pt6530y1216","1.2<|y|<1.6","P");
+  TLegendEntry *le11a2 = leg11a->AddEntry("gPrJpsi_pt6530y1216","1.2 < |y| < 1.6","P");
   le11a2->SetTextColor(kRed);
   le11a2->SetFillStyle(1001);
   le11a2->SetFillColor(kRed-9);
@@ -591,7 +590,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
   le11a2->SetMarkerColor(kRed);
   le11a2->SetMarkerSize(1.2);
 
-  TLegendEntry *le11a3 = leg11a->AddEntry("gPrJpsi_pt6530y1624","1.6<|y|<2.4","P");
+  TLegendEntry *le11a3 = leg11a->AddEntry("gPrJpsi_pt6530y1624","1.6 < |y| < 2.4","P");
   le11a3->SetTextColor(kGreen+2);
   le11a3->SetFillStyle(1001);
   le11a3->SetFillColor(kGreen-9);
@@ -620,7 +619,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
   CMS_lumi(c11b,12014000,0);
 
   lat->SetTextSize(ltxSetTextSize1);
-  lat->SetTextFont(22);
+  lat->SetTextFont(132);
   lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Prompt J/#psi");
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
@@ -635,7 +634,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
 
   TLegend *leg21b = new TLegend(leg2DRaa_xStart,leg2DRaaPt_yStart,leg2DRaa_xEnd,leg2DRaaPt_yEnd);
   leg21b->SetBorderSize(0);
-  leg21b->SetTextFont(22);
+  leg21b->SetTextFont(42);
   leg21b->SetTextSize(ltxSetTextSize2);
   leg21b->SetLineColor(1);
   leg21b->SetLineStyle(1);
@@ -692,8 +691,8 @@ void makeRaa_cent( bool bSavePlots           = 1,
     f4->Draw("same");
   }
    lat->SetTextSize(ltxSetTextSize1);
-  lat->SetTextFont(22);
-  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Non-prompt J/#psi");
+  lat->SetTextFont(132);
+  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Nonprompt J/#psi");
  
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
@@ -705,16 +704,16 @@ void makeRaa_cent( bool bSavePlots           = 1,
   gNonPrJpsiP->Draw("P");
 
   if(bAddCent)
-    {
-      lat->SetTextFont(42);
-      lat->SetTextSize(0.025);
-      lat->DrawLatex(0.83,0.33,"0-10%");
-      lat->DrawLatex(0.65,0.39,"10-20%");
-      lat->DrawLatex(0.51,0.43,"20-30%");
-      lat->DrawLatex(0.4,0.45,"30-40%");
-      lat->DrawLatex(0.31,0.55,"40-50%");
-      lat->DrawLatex(0.19,0.56,"50-100%");
-    }
+  {
+    lat->SetTextFont(42);
+    lat->SetTextSize(0.025);
+    lat->DrawLatex(0.855,0.32,"0-10%");
+    lat->DrawLatex(0.665,0.385,"10-20%");
+    lat->DrawLatex(0.52,0.421,"20-30%");
+    lat->DrawLatex(0.405,0.45,"30-40%");
+    lat->DrawLatex(0.315,0.545,"40-50%");
+    lat->DrawLatex(0.19,0.565,"50-100%");
+  }
    
   gPad->RedrawAxis();
   c2->Update();
@@ -746,8 +745,8 @@ void makeRaa_cent( bool bSavePlots           = 1,
   }
   
   lat->SetTextSize(ltxSetTextSize1);
-  lat->SetTextFont(22);
-  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Non-prompt J/#psi");
+  lat->SetTextFont(132);
+  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Nonprompt J/#psi");
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
   lat->DrawLatex(ltxText_xDown,ltxText_yDown,"6.5 < p_{T} < 30 GeV/c");
@@ -768,7 +767,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
   //----------------------
   TLegend *leg11b = new TLegend(leg2DRaa_xStart,leg2DRaaY_yStart,leg2DRaa_xEnd,leg2DRaaY_yEnd);
   leg11b->SetBorderSize(0);
-  leg11b->SetTextFont(22);
+  leg11b->SetTextFont(42);
   leg11b->SetTextSize(ltxSetTextSize2);
   leg11b->SetLineColor(1);
   leg11b->SetLineStyle(1);
@@ -776,7 +775,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
   leg11b->SetFillColor(19);
   leg11b->SetFillStyle(0);
   
-  TLegendEntry *leg21a1 = leg11b->AddEntry("gNonPrJpsi_pt6530y012","|y|<1.2","P");
+  TLegendEntry *leg21a1 = leg11b->AddEntry("gNonPrJpsi_pt6530y012","|y| < 1.2","P");
   leg21a1->SetTextColor(kAzure+7);
   leg21a1->SetFillStyle(1001);
   leg21a1->SetFillColor(kAzure-9);
@@ -784,8 +783,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
   leg21a1->SetMarkerColor(kAzure+2);
   leg21a1->SetMarkerSize(1.2);
 
-
-  TLegendEntry *leg21a2 = leg11b->AddEntry("gNonPrJpsi_pt6530y1216","1.2<|y|<1.6","P");
+  TLegendEntry *leg21a2 = leg11b->AddEntry("gNonPrJpsi_pt6530y1216","1.2 < |y| < 1.6","P");
   leg21a2->SetTextColor(kRed);
   leg21a2->SetFillStyle(1001);
   leg21a2->SetFillColor(kRed-9);
@@ -793,7 +791,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
   leg21a2->SetMarkerColor(kRed);
   leg21a2->SetMarkerSize(1.2);
 
-  TLegendEntry *leg21a3 = leg11b->AddEntry("gNonPrJpsi_pt6530y1624","1.6<|y|<2.4","P");
+  TLegendEntry *leg21a3 = leg11b->AddEntry("gNonPrJpsi_pt6530y1624","1.6 < |y| < 2.4","P");
   leg21a3->SetTextColor(kGreen+2);
   leg21a3->SetFillStyle(1001);
   leg21a3->SetFillColor(kGreen-9);
@@ -822,8 +820,8 @@ void makeRaa_cent( bool bSavePlots           = 1,
   }
   CMS_lumi(c21b,12014000,0);
   lat->SetTextSize(ltxSetTextSize1);
-  lat->SetTextFont(22);
-  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Non-prompt J/#psi");
+  lat->SetTextFont(132);
+  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Nonprompt J/#psi");
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
   lat->DrawLatex(ltxText_xDown,ltxText_yDown,"1.6 < |y| < 2.4");
@@ -841,14 +839,15 @@ void makeRaa_cent( bool bSavePlots           = 1,
   //------------
   TLegend *leg22b = new TLegend(leg2DRaa_xStart,leg2DRaaPt_yStart,leg2DRaa_xEnd,leg2DRaaPt_yEnd);
   leg22b->SetBorderSize(0);
-  leg22b->SetTextFont(22);
+  leg22b->SetTextFont(42);
   leg22b->SetTextSize(ltxSetTextSize2);
   leg22b->SetLineColor(1);
   leg22b->SetLineStyle(1);
   leg22b->SetLineWidth(1);
   leg22b->SetFillColor(19);
   leg22b->SetFillStyle(0);
-  TLegendEntry *leg22b2 = leg22b->AddEntry("gNonPrJpsi_pt365y1624", "3<p_{T}<6.5 GeV/c","P");
+
+  TLegendEntry *leg22b2 = leg22b->AddEntry("gNonPrJpsi_pt365y1624", "3 < p_{T} < 6.5 GeV/c","P");
   leg22b2->SetTextColor(kViolet+2);
   leg22b2->SetFillStyle(1001);
   leg22b2->SetFillColor(kViolet-9);
@@ -856,7 +855,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
   leg22b2->SetMarkerColor(kViolet+2);
   leg22b2->SetMarkerSize(1.7);
   
-  TLegendEntry *leg22b3 = leg22b->AddEntry("gNonPrJpsi_pt6530y1624","6.5<p_{T}<30 GeV/c","P");
+  TLegendEntry *leg22b3 = leg22b->AddEntry("gNonPrJpsi_pt6530y1624","6.5 < p_{T} < 30 GeV/c","P");
   leg22b3->SetTextColor(kGreen+2);
   leg22b3->SetFillStyle(1001);
   leg22b3->SetFillColor(kGreen-9);

@@ -67,6 +67,7 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
     pgCmsSyst->SetFillColorAlpha(kAzure-9,0.5);
 
   }
+  pgCms->SetName("pgCms");
   lumi->SetX1(375); lumi->SetX2(400);
    
   //-------------------------------------------------------------------- 
@@ -84,8 +85,9 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
                                                                     npartBins_alice, raaAlice_cent_dpt816,
                                                                     npartSystX_alice, npartSystX_alice,
                                                                     raaAliceSystCorrLow_cent_dpt816,raaAliceSystCorrHigh_cent_dpt816);
+  pgAlice_dpt816->SetName("pgAlice_dpt816");
   
-  pgAlice_dpt816->SetMarkerStyle(21);
+  pgAlice_dpt816->SetMarkerStyle(25);
   pgAlice_dpt816->SetMarkerSize(1.2);
   // systmatic boxes
   // uncorrelated, open
@@ -131,7 +133,7 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
 
   TLegend *leg_cent = new TLegend(0.2,0.78,0.7,0.88,NULL,"brNDC");
   leg_cent->SetBorderSize(0);
-  leg_cent->SetTextFont(62);
+  leg_cent->SetTextFont(132);
   leg_cent->SetTextSize(0.03);
   leg_cent->SetLineColor(1);
   leg_cent->SetLineStyle(1);
@@ -140,7 +142,7 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
   leg_cent->SetFillStyle(0);
 
   TLegendEntry *entry_cent;
-  entry_cent=leg_cent->AddEntry("raab","b quark: non-prompt J/#psi (CMS)","p");
+  entry_cent=leg_cent->AddEntry("pgCms","b quark: nonprompt J/#psi (CMS)","");
   entry_cent->SetTextSize(ltxSetTextSize3);
   entry_cent->SetFillStyle(1001);
   entry_cent->SetLineColor(1);
@@ -152,21 +154,21 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
     entry_cent->SetMarkerStyle(20);
     entry_cent->SetMarkerColor(kAzure+7);
     entry_cent->SetMarkerSize(1.2);
-    entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c, |y| < 1.2","");
+    entry_cent=leg_cent->AddEntry("pgCms", "6.5 < p_{T} < 30 GeV/c, |y| < 1.2","p");
   }
   else
   {
     entry_cent->SetMarkerStyle(29);
     entry_cent->SetMarkerColor(kOrange+2);
     entry_cent->SetMarkerSize(2.);
-    entry_cent=leg_cent->AddEntry("raabjpsi", "6.5 < p_{T} < 30 GeV/c, |y| < 2.4","");
+    entry_cent=leg_cent->AddEntry("pgCms", "6.5 < p_{T} < 30 GeV/c, |y| < 2.4","p");
   }
   entry_cent->SetTextFont(42);
   entry_cent->SetTextSize(entrySize);
 
   TLegend *leg_alice_cent = new TLegend(0.2,0.67,0.7,0.77,NULL,"brNDC");
   leg_alice_cent->SetBorderSize(0);
-  leg_alice_cent->SetTextFont(62);
+  leg_alice_cent->SetTextFont(132);
   leg_alice_cent->SetTextSize(0.03);
   leg_alice_cent->SetLineColor(1);
   leg_alice_cent->SetLineStyle(1);
@@ -174,7 +176,7 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
   leg_alice_cent->SetFillColor(19);
   leg_alice_cent->SetFillStyle(0);
   
-  TLegendEntry *entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","c quark: prompt D (ALICE)","P");
+  TLegendEntry *entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","c quark: prompt D (ALICE)","");
   entry_alice_cent->SetFillStyle(1001);
   entry_alice_cent->SetLineColor(1);
   entry_alice_cent->SetLineStyle(1);
@@ -182,7 +184,7 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
   entry_alice_cent->SetTextSize(ltxSetTextSize3);
   entry_alice_cent->SetMarkerStyle(21);
   entry_alice_cent->SetMarkerSize(1);
-  entry_alice_cent=leg_alice_cent->AddEntry("alicewhat","8 < p_{T} < 16 GeV/c, |y| < 0.5","");
+  entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","8 < p_{T} < 16 GeV/c, |y| < 0.5","p");
   entry_alice_cent->SetTextFont(42);
   entry_alice_cent->SetTextSize(entrySize);
 
@@ -191,10 +193,10 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
   line->Draw();
   gPad->RedrawAxis();
   if(bSavePlots)
-    {
-      pc->SaveAs(Form("figs/pdf/raaExpOpen_cent_sameY%d.pdf",bDoSameYHighPt));
-      pc->SaveAs(Form("figs/png/raaExpOpen_cent_sameY%d.png",bDoSameYHighPt));
-    }
+  {
+    pc->SaveAs(Form("figs/pdf/raaExpOpen_cent_sameY%d.pdf",bDoSameYHighPt));
+    pc->SaveAs(Form("figs/png/raaExpOpen_cent_sameY%d.png",bDoSameYHighPt));
+  }
 }
 
 

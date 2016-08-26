@@ -54,9 +54,13 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
   pgCms->SetName("gPrJpsi");
   
   TBox *lumi = (TBox*)pfRaaCms_pt->Get("lumi");
-  lumi->SetFillColor(kGray+1);
+  lumi->SetFillColor(kRed-9);
   lumi->SetFillStyle(1001);
-  lumi->SetX1(28.5); lumi->SetX2(30);
+  lumi->SetX1(29.25); lumi->SetX2(30);
+  TBox *lumi_lowpt = (TBox*)lumi->Clone("lumi_lowpt");
+  lumi_lowpt->SetFillColor(kViolet-9);
+  lumi_lowpt->SetFillStyle(1001);
+  lumi_lowpt->SetX1(28.5); lumi_lowpt->SetX2(29.25);
 
   // ##################### LOW PT ############################
   TGraphErrors *pgCms_lowpt     = (TGraphErrors *)pfRaaCms_pt->Get("gPrJpsi_pt365y1624");
@@ -105,6 +109,7 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
 
   f4->Draw();
   lumi->Draw();
+  lumi_lowpt->Draw();
   pc->Update();
 
   pgRaaAlice_cent090->Draw("2");

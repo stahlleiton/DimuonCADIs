@@ -11,7 +11,7 @@ double dEvPlResCorrErr[] = { 0.0013,                         // MB: 10-60%
 			     0.0023, 0.0020, 0.0029};        // non-prompt: 0-10%, 10-30%, 30-60%
 
 //------------------------------------------ legends and names
-const char* legend[4]      = {"","Prompt J/#psi","Non-prompt J/#psi","Background"};
+const char* legend[4]      = {"","Prompt J/#psi","Nonprompt J/#psi","Background"};
 const char* outFilePlot[4] = {"mb","pt","rap","cent"};
 
 const int nPtBins   = 8;
@@ -24,11 +24,11 @@ const char* centBinsName[nCentBins] = {"1060","010", "1020","2030","3060", "010"
 
 
 const char* ptBinsLegend[nPtBins]     = {"6.5 < p_{T} < 30 GeV/c",// MB
-           "3 < p_{T} < 6.5","6.5<p_{T}<8","8<p_{T}<10","10<p_{T}<30",//prompt
-           "3 < p_{T} < 6.5","6.5<p_{T}<10","10<p_{T}<30"}; // non-prompt
+           "3 < p_{T} < 6.5","6.5 < p_{T} < 8","8 < p_{T} < 10","10 < p_{T} < 30",//prompt
+           "3 < p_{T} < 6.5","6.5 < p_{T} < 10","10 < p_{T} < 30"}; // non-prompt
 const char* yBinsLegend[nYBins]       = {"|y| < 2.4",// MB
-           "|y|<1.2","1.2<|y|<1.6","1.6 < |y| < 2.4",//prompt
-           "|y|<1.2","1.2<|y|<2.4"}; // non-prompt
+           "|y| < 1.2","1.2 < |y| < 1.6","1.6 < |y| < 2.4",//prompt
+           "|y| < 1.2","1.2 < |y| < 2.4"}; // non-prompt
 const char* centBinsLegend[nCentBins] = {"Cent. 10-60\%",// MB
            "10-0\%","20-10\%","30-20\%","60-30\%",//prompt
            "10-0\%","30-10\%","60-30\%"}; // non-prompt

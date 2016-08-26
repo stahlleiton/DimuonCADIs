@@ -375,7 +375,7 @@ void makeRaa_pt( bool bSavePlots           = 1,
  
   CMS_lumi(c1,12014000,0);
   lat->SetTextSize(ltxSetTextSize1);
-  lat->SetTextFont(22);
+  lat->SetTextFont(132);
   lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Prompt J/#psi");
  
   lat->SetTextFont(42);
@@ -392,9 +392,9 @@ void makeRaa_pt( bool bSavePlots           = 1,
   gPrJpsiP_pt365y1624->Draw("P");
 
   //------ the legend
-  TLegend *leg11a = new TLegend(legRaaPt_xLowStart,legRaaPt_y,legRaaPt_xLowEnd,legRaaPt_y,NULL,"brNDC");
+  TLegend *leg11a = new TLegend(legRaaPt_xLowStart,legRaaPt_y,legRaaPt_xLowEnd,legRaaPt_y+0.05,NULL,"brNDC");
   leg11a->SetBorderSize(0);
-  leg11a->SetTextFont(22);
+  leg11a->SetTextFont(132);
   leg11a->SetTextSize(ltxSetTextSize2);
   leg11a->SetTextColor(kViolet+2);
   leg11a->SetLineColor(1);
@@ -402,27 +402,29 @@ void makeRaa_pt( bool bSavePlots           = 1,
   leg11a->SetLineWidth(1);
   leg11a->SetFillColor(19);
   leg11a->SetFillStyle(0);
-  TLegendEntry *entry1 = leg11a->AddEntry("gPrJpsi_pt365y1624","1.6 < |y| < 2.4","Pf");
+  TLegendEntry *entry1 = leg11a->AddEntry("gPrJpsi_pt365y1624","1.6 < |y| < 2.4","p");
+  entry1->SetTextFont(42);
   entry1->SetMarkerStyle(34);
   entry1->SetMarkerColor(kViolet+2);
   entry1->SetMarkerSize(1.7);
   entry1->SetFillStyle(1001);
   entry1->SetFillColor(kViolet-9);
  
-  TLegend *leg11a_1 = new TLegend(legRaaPt_xHighStart,legRaaPt_y,legRaaPt_xHighEnd,legRaaPt_y,NULL,"brNDC");
+  TLegend *leg11a_1 = new TLegend(legRaaPt_xHighStart,legRaaPt_y,legRaaPt_xHighEnd,legRaaPt_y+0.05,NULL,"brNDC");
   leg11a_1->SetBorderSize(0);
-  leg11a_1->SetTextFont(22);
+  leg11a_1->SetTextFont(132);
   leg11a_1->SetTextSize(ltxSetTextSize2);
-  leg11a_1->SetTextColor(kRed+2);
+  leg11a_1->SetTextColor(kRed+1);
 
   leg11a_1->SetLineColor(1);
   leg11a_1->SetLineStyle(1);
   leg11a_1->SetLineWidth(1);
   leg11a_1->SetFillColor(19);
   leg11a_1->SetFillStyle(0);
-  TLegendEntry *entry2 = leg11a_1->AddEntry("gPrJpsi","|y|<2.4","Pf");
+  TLegendEntry *entry2 = leg11a_1->AddEntry("gPrJpsi","|y| < 2.4","p");
+  entry2->SetTextFont(42);
   entry2->SetMarkerStyle(21);
-  entry2->SetMarkerColor(kRed+2);
+  entry2->SetMarkerColor(kRed+1);
   entry2->SetMarkerSize(1.2);
   entry2->SetFillStyle(1001);
   entry2->SetFillColor(kRed-9);
@@ -447,7 +449,7 @@ void makeRaa_pt( bool bSavePlots           = 1,
   }
   CMS_lumi(c11b,12014000,0);
   lat->SetTextSize(ltxSetTextSize1);
-  lat->SetTextFont(22);
+  lat->SetTextFont(132);
   lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Prompt J/#psi");
  
   lat->SetTextFont(42);
@@ -466,11 +468,13 @@ void makeRaa_pt( bool bSavePlots           = 1,
   leg11b->SetBorderSize(0);
   leg11b->SetMargin(0.2);
   leg11b->SetTextSize(ltxSetTextSize2);
+  leg11b->SetTextFont(42);
   
-  leg11b->AddEntry(gPrJpsi_mb,"|y|<2.4","P");
-  leg11b->AddEntry(gPrJpsi_y1624_mb,"1.6<|y|<2.4","P");
+  leg11b->AddEntry(gPrJpsi_mb,"|y| < 2.4","P");
+  leg11b->AddEntry(gPrJpsi_y1624_mb,"1.6 < |y| < 2.4","P");
   leg11b->Draw();
   gPad->RedrawAxis();
+
   c11b->Update();
   if(bSavePlots)
   {
@@ -492,8 +496,8 @@ void makeRaa_pt( bool bSavePlots           = 1,
  
   CMS_lumi(c2,12014000,0);
   lat->SetTextSize(ltxSetTextSize1);
-  lat->SetTextFont(22);
-  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Non-prompt J/#psi");
+  lat->SetTextFont(132);
+  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Nonprompt J/#psi");
  
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
@@ -509,9 +513,9 @@ void makeRaa_pt( bool bSavePlots           = 1,
   gNonPrJpsiP_pt365y1624->Draw("P");
 
   //-------- legends
-   TLegend *leg22a = new TLegend(legRaaPt_xLowStart,legRaaPt_y,legRaaPt_xLowEnd,legRaaPt_y,NULL,"brNDC");
+   TLegend *leg22a = new TLegend(legRaaPt_xLowStart,legRaaPt_y,legRaaPt_xLowEnd,legRaaPt_y+0.05,NULL,"brNDC");
   leg22a->SetBorderSize(0);
-  leg22a->SetTextFont(22);
+  leg22a->SetTextFont(132);
   leg22a->SetTextSize(ltxSetTextSize2);
   leg22a->SetTextColor(kViolet+2);
   leg22a->SetLineColor(1);
@@ -519,16 +523,18 @@ void makeRaa_pt( bool bSavePlots           = 1,
   leg22a->SetLineWidth(1);
   leg22a->SetFillColor(19);
   leg22a->SetFillStyle(0);
-  TLegendEntry *entry3 = leg22a->AddEntry("gNonPrJpsi_pt365y1624","1.6 < |y| < 2.4","Pf");
+  TLegendEntry *entry3 = leg22a->AddEntry("gNonPrJpsi_pt365y1624","1.6 < |y| < 2.4","p");
+
+  entry3->SetTextFont(42);
   entry3->SetMarkerStyle(34);
   entry3->SetMarkerColor(kViolet+2);
   entry3->SetMarkerSize(1.7);
   entry3->SetFillStyle(1001);
   entry3->SetFillColor(kViolet-9);
  
-  TLegend *leg22a_1 = new TLegend(legRaaPt_xHighStart,legRaaPt_y,legRaaPt_xHighEnd,legRaaPt_y,NULL,"brNDC");
+  TLegend *leg22a_1 = new TLegend(legRaaPt_xHighStart,legRaaPt_y,legRaaPt_xHighEnd,legRaaPt_y+0.05,NULL,"brNDC");
   leg22a_1->SetBorderSize(0);
-  leg22a_1->SetTextFont(22);
+  leg22a_1->SetTextFont(132);
   leg22a_1->SetTextSize(ltxSetTextSize2);
   leg22a_1->SetTextColor(kOrange+2);
 
@@ -537,7 +543,8 @@ void makeRaa_pt( bool bSavePlots           = 1,
   leg22a_1->SetLineWidth(1);
   leg22a_1->SetFillColor(19);
   leg22a_1->SetFillStyle(0);
-  TLegendEntry *entry4 = leg22a_1->AddEntry("gNonPrJpsi","|y|<2.4","Pf");
+  TLegendEntry *entry4 = leg22a_1->AddEntry("gNonPrJpsi","|y| < 2.4","p");
+  entry4->SetTextFont(42);
   entry4->SetMarkerStyle(34);
   entry4->SetMarkerColor(kOrange+2);
   entry4->SetMarkerSize(1.7);
@@ -565,9 +572,9 @@ void makeRaa_pt( bool bSavePlots           = 1,
     f4->Draw("same");
   }
   CMS_lumi(c22b,12014000,0);
- lat->SetTextSize(ltxSetTextSize1);
-  lat->SetTextFont(22);
-  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Non-rompt J/#psi");
+  lat->SetTextSize(ltxSetTextSize1);
+  lat->SetTextFont(132);
+  lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Nonprompt J/#psi");
  
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
@@ -584,9 +591,10 @@ void makeRaa_pt( bool bSavePlots           = 1,
   leg22b->SetFillColor(0);
   leg22b->SetBorderSize(0);
   leg22b->SetMargin(0.2);
+  leg22b->SetTextFont(42);
   leg22b->SetTextSize(ltxSetTextSize2);
-  leg22b->AddEntry(gNonPrJpsi_mb,"|y|<2.4","P");
-  leg22b->AddEntry(gNonPrJpsi_y1624_mb,"1.6<|y|<2.4","P");
+  leg22b->AddEntry(gNonPrJpsi_mb,"|y| < 2.4","P");
+  leg22b->AddEntry(gNonPrJpsi_y1624_mb,"1.6 < |y| < 2.4","P");
   leg22b->Draw();
     
   gPad->RedrawAxis();

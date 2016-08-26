@@ -210,7 +210,7 @@ void v2_cent_plotter(
       phAxis->Draw();
       CMS_lumi(pc,12001000,0);
       lt1->SetTextSize(ltxSetTextSize1);
-      lt1->SetTextFont(22);
+      lt1->SetTextFont(132);
       lt1->DrawLatex(ltxText_xStart,ltxText_yStart,Form("%s",legend[iCateg]));
 
       lt1->SetTextFont(42);

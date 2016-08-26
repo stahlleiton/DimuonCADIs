@@ -42,7 +42,7 @@
 #endif
 
 void v2TheoryOpen_pt(bool bSavePlots = true, 
-                  float rangeYAxis    = 0.35,
+                  float rangeYAxis    = 0.3,
                   float rangeXAxis    = 17,
                   const char* inputDir= "../macro_v2/outRoot", // the place where the input root files, with the histograms are
                   const char* figNamePrefix="v2TheoryOpen_pt")
@@ -118,10 +118,10 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   CMS_lumi(pcCombi,120015000,33);
  
   gNPJpsi_K08->Draw("l");
-  gD_K08->Draw("l");
+//  gD_K08->Draw("l");
   gB_K08->Draw("l");
   gNPJpsi_K15->Draw("l");
-  gD_K15->Draw("l");
+//  gD_K15->Draw("l");
   gB_K15->Draw("l");
  
   pgV2LowSyst->Draw("2");
@@ -133,10 +133,10 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   pgV2HighP->Draw("P");
   
   // --------- legends ----
-  TLegend *leg = new TLegend(0.2,0.78,0.7,0.89,NULL,"brNDC");
+  TLegend *leg = new TLegend(0.2,0.77,0.7,0.89,NULL,"brNDC");
   leg->SetBorderSize(0);
   leg->SetMargin(0.2);
-  leg->SetTextFont(62);
+  leg->SetTextFont(132);
   leg->SetTextSize(ltxSetTextSize3);
   leg->SetLineColor(1);
   leg->SetLineStyle(1);
@@ -145,14 +145,14 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   leg->SetFillStyle(0);
  
   TLegendEntry *entry, *entry11;
-  entry=leg->AddEntry("cmspr","Open beauty: non-prompt J/#psi (CMS)","");
+  entry=leg->AddEntry("cmspr","Open beauty: nonprompt J/#psi (CMS)","");
   entry->SetTextSize(ltxSetTextSize3);
   entry->SetFillStyle(1001);
   entry->SetLineColor(1);
   entry->SetLineStyle(1);
   entry->SetLineWidth(1);
  
-  entry=leg->AddEntry("pgV2Low", "1.6<|y|<2.4","p");
+  entry=leg->AddEntry("pgV2Low", "1.6 < |y| < 2.4","p");
   entry->SetTextFont(42);
   entry->SetTextSize(entrySize);
   entry->SetMarkerStyle(34);
@@ -171,12 +171,13 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   entry->SetFillStyle(1001);
  
   //--------------------------- 
-  TLegend *leg_K = new TLegend(0.23,0.55,0.7,0.77,NULL,"brNDC");
+//  TLegend *leg_K = new TLegend(0.23,0.55,0.7,0.76,NULL,"brNDC"); // with 6 entries
+  TLegend *leg_K = new TLegend(0.23,0.59,0.75,0.76,NULL,"brNDC");
   leg_K->SetNColumns(2); // insertion order is top-left -> top-right -> bottom-left -> bottom-right
-  leg_K->SetColumnSeparation(0.27); // 0.27 (column separation) works well with 0.29 (margin)
-  leg_K->SetMargin(0.29); // 0.29 (theory) works well with 0.2 (data)
+  leg_K->SetColumnSeparation(0.27); // 0.27 (column separation) works well with margin 0.28
+  leg_K->SetMargin(0.28); // 0.28 (theory) works well with 0.2 (data)
   leg_K->SetBorderSize(0);
-  leg_K->SetTextFont(62);
+  leg_K->SetTextFont(132);
   leg_K->SetTextSize(ltxSetTextSize3);
   leg_K->SetLineColor(1);
   leg_K->SetLineStyle(1);
@@ -185,18 +186,20 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   leg_K->SetFillStyle(0);
   
   TLegendEntry *entry_K;
-  entry_K=leg_K->AddEntry("K08K15","MC@HQV508 + EPOS2",""); 
+  entry_K=leg_K->AddEntry("K08K15","MC@sHQ + EPOS",""); 
   entry_K=leg_K->AddEntry("K08K15","",""); // empty column for a alignment
   entry_K=leg_K->AddEntry("K08K15","Cent. 20-60%, |y| < 1","");
+  entry_K->SetTextFont(42);
+  entry_K->SetTextSize(entrySize);
   entry_K=leg_K->AddEntry("K08K15","",""); // empty column for a alignment
-  entry_K=leg_K->AddEntry("gD_K08","D (K=0.8)","L");
-  entry_K->SetLineWidth(3);
-  entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize);
-  entry_K=leg_K->AddEntry("gD_K15","D (K=1.5)","L");
-  entry_K->SetLineWidth(3);
-  entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize);
+//  entry_K=leg_K->AddEntry("gD_K08","D (K=0.8)","L");
+//  entry_K->SetLineWidth(3);
+//  entry_K->SetTextFont(42);
+//  entry_K->SetTextSize(entrySize);
+//  entry_K=leg_K->AddEntry("gD_K15","D (K=1.5)","L");
+//  entry_K->SetLineWidth(3);
+//  entry_K->SetTextFont(42);
+//  entry_K->SetTextSize(entrySize);
 
   entry_K=leg_K->AddEntry("gB_K08","B (K=0.8)","L");
   entry_K->SetLineWidth(3);
