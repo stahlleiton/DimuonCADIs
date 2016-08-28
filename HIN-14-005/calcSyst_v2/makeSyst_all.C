@@ -42,6 +42,7 @@ void makeSyst_all(
     int jpsiCategory      = -1, // -1: all, 1 : Prompt, 2 : Non-Prompt, 3: Bkg
     int nChoseVariable    = -1, // -1 = all; 0 integrated; 1 pt; 2: rapidity; 3: centrality;
     string nDphiBins      = "4",
+    int method            = 0, // For fit variations, 0: nominal (rms of same category variations)&&added in quadrature with non-correlated sourcesvariations; 1: max of each variation type, added in quadrature, 2: same as 0, but quadrature sum for fit variations
     const char* inputDir  = "../macro_v2/outputNumbers", // the place where the input root files, with the histograms are
     const char* outputDir = "histSyst",// where the output figures will be
     bool bDoDebug         = false,
@@ -51,7 +52,7 @@ void makeSyst_all(
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
   
   // input files: prompt and non-prompt ones
-  const int nFiles = 9;
+  const int nFiles = 8;
   // the position in the array where a specific type of set of variations starts;
   // it's used later; make sure it corresponds to what's in array
   int iVar_tnp = 1;
@@ -66,7 +67,7 @@ void makeSyst_all(
 	      "histsV2Yields_20160304_v2W_const_dPhiBins4",//4
               "histsV2Yields_20160304_v2W_MLAR_dPhiBins4",//5
               "histsV2Yields_20160304_v2W_polFunct_dPhiBins4",//6
-              "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",//7
+//              "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",//7
               "histsV2Yields_20160304_v2W_sigG1G2_dPhiBins4"//8
   };
   const char* signal[4]       = {"", "Prp","NPrp","Bkg"};
@@ -191,14 +192,20 @@ void makeSyst_all(
         for (int iFit=iVar_fit; iFit<nFiles; iFit++)
         {
           double iFitContrib = (v2-adV2[iFit][ib])/v2;
-          contrib_fit[ib]+=TMath::Power(iFitContrib,2);
-          if(bDoDebug)
+          if (method==0 || method==2) { // RMS
+            contrib_fit[ib]+=TMath::Power(iFitContrib,2);
+            if(bDoDebug)
             {
               cout<<"Fit contribution "<<iFit<<"\t = "<< iFitContrib<<endl;
             }
+          } else if (method==1) { // Maximum
+            if (contrib_fit[ib] < TMath::Power(iFitContrib,2))
+            contrib_fit[ib] = TMath::Power(iFitContrib,2);
+          }
         }
         // calculate total contribution: 
-        v2Syst[ib] = v2 * TMath::Sqrt( contrib_tnp[ib] + contrib_4d[ib] + contrib_3d[ib] + contrib_fit[ib]/(nFiles-iVar_fit) );
+        if (method==0) v2Syst[ib] = v2 * TMath::Sqrt( contrib_tnp[ib] + contrib_4d[ib] + contrib_3d[ib] + contrib_fit[ib]/(nFiles-iVar_fit) );
+        else if (method==1 || method==2) v2Syst[ib] = v2 * TMath::Sqrt( contrib_tnp[ib] + contrib_4d[ib] + contrib_3d[ib] + contrib_fit[ib] );
         if(bDoDebug)
         {
           cout<<"Bin "<<ib <<" v2 = "<< v2<<"\t Total_systm= " << v2Syst[ib] <<endl;

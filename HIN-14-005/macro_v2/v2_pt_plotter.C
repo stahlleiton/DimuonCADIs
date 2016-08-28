@@ -54,6 +54,7 @@ void v2_pt_plotter(
         ) {
   using namespace std;
 
+  gSystem->mkdir(Form("./%s",outputRootDir), kTRUE);
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
 
@@ -304,8 +305,12 @@ void v2_pt_plotter(
       lt1->SetTextSize(ltxSetTextSize2);
       
       TH1F *phAxis = new TH1F("phAxis",";p_{T} (GeV/c);v_{2}",10,0,30);
-      phAxis->GetYaxis()->SetRangeUser(0,0.25);
-      if(jpsiCategory==1){phAxis->GetYaxis()->SetRangeUser(0,0.2);phAxis->GetYaxis()->SetNdivisions(505);}
+      if (jpsiCategory==1) { 
+        phAxis->GetYaxis()->SetRangeUser(0,0.2);
+        phAxis->GetYaxis()->SetNdivisions(505);
+      } else if (jpsiCategory==2) {
+        phAxis->GetYaxis()->SetRangeUser(-0.01,0.25);
+      }
       phAxis->GetXaxis()->CenterTitle();
       phAxis->GetYaxis()->CenterTitle();
       
