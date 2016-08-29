@@ -42,7 +42,7 @@ void makeSyst_all(
     int jpsiCategory      = -1, // -1: all, 1 : Prompt, 2 : Non-Prompt, 3: Bkg
     int nChoseVariable    = -1, // -1 = all; 0 integrated; 1 pt; 2: rapidity; 3: centrality;
     string nDphiBins      = "4",
-    int method            = 0, // For fit variations, 0: nominal (rms of same category variations)&&added in quadrature with non-correlated sourcesvariations; 1: max of each variation type, added in quadrature, 2: same as 0, but quadrature sum for fit variations
+    int method            = 2, // For fit variations, 0: nominal (rms of same category variations)&&added in quadrature with non-correlated sourcesvariations; 1: max of each variation type, added in quadrature, 2: same as 0, but quadrature sum for fit variations
     const char* inputDir  = "../macro_v2/outputNumbers", // the place where the input root files, with the histograms are
     const char* outputDir = "histSyst",// where the output figures will be
     bool bDoDebug         = false,

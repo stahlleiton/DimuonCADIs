@@ -41,7 +41,7 @@ Output: root file with the systm. histograms for Raa vs pT.
 
 void makeSyst_y( bool bSavePlots        = 1,
                  bool bDoDebug         = 1, // prints numbers, numerator, denominator, to help figure out if things are read properly
-                 int method            = 0, // 0: nominal (rms of same category variations)&&added in quadrature with non-correlated sourcesvariations; 1: max of each variation type, added in quadrature
+                 int method            = 2, // 0: nominal (rms of same category variations)&&added in quadrature with non-correlated sourcesvariations; 1: max of each variation type, added in quadrature, 2: same as 0, but quadrature for fit variations
                  const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are
                  const char* outputDir = "histSyst")// where the output figures will be
 {
@@ -317,7 +317,7 @@ void makeSyst_y( bool bSavePlots        = 1,
                 if( syst_fit_npr_pp[ibin-1][ivar] > fitContribution_npr_pp ) fitContribution_npr_pp = syst_fit_npr_pp[ibin-1][ivar];
                   
               }
-              if(method==0) // rms of all variations for fit var
+              if(method==0 || method==2) // rms of all variations for fit var
               {
                 fitContribution_pr_aa += syst_fit_pr_aa[ibin-1][ivar];
                 fitContribution_pr_pp += syst_fit_pr_pp[ibin-1][ivar];
@@ -343,22 +343,12 @@ void makeSyst_y( bool bSavePlots        = 1,
                                 << syst_eff4d_pr_aa[ibin-1][ifile] << "\t& " << syst_eff4d_npr_aa[ibin-1][ifile] << "\t; "
                                 << syst_eff4d_pr_pp[ibin-1][ifile] << "\t& " << syst_eff4d_npr_pp[ibin-1][ifile] << endl;
 
-              if(method==1)//maximum
-              {
-                if( syst_eff4d_pr_aa[ibin-1][ifile] > eff4dContribution_pr_aa ) eff4dContribution_pr_aa = syst_eff4d_pr_aa[ibin-1][ifile];
-                if( syst_eff4d_pr_pp[ibin-1][ifile] > eff4dContribution_pr_pp ) eff4dContribution_pr_pp = syst_eff4d_pr_pp[ibin-1][ifile];
+              // add in quadrature all independent variations
+              eff4dContribution_pr_aa += syst_eff4d_pr_aa[ibin-1][ifile];
+              eff4dContribution_pr_pp += syst_eff4d_pr_pp[ibin-1][ifile];
                 
-                if( syst_eff4d_npr_aa[ibin-1][ifile] > eff4dContribution_npr_aa ) eff4dContribution_npr_aa = syst_eff4d_npr_aa[ibin-1][ifile];
-                if( syst_eff4d_npr_pp[ibin-1][ifile] > eff4dContribution_npr_pp ) eff4dContribution_npr_pp = syst_eff4d_npr_pp[ibin-1][ifile];
-              }
-              if(method==0) // add in quadrature all independent variations
-              {
-                eff4dContribution_pr_aa += syst_eff4d_pr_aa[ibin-1][ifile];
-                eff4dContribution_pr_pp += syst_eff4d_pr_pp[ibin-1][ifile];
-                  
-                eff4dContribution_npr_aa += syst_eff4d_npr_aa[ibin-1][ifile];
-                eff4dContribution_npr_pp += syst_eff4d_npr_pp[ibin-1][ifile];
-              }
+              eff4dContribution_npr_aa += syst_eff4d_npr_aa[ibin-1][ifile];
+              eff4dContribution_npr_pp += syst_eff4d_npr_pp[ibin-1][ifile];
               if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ 4DEff Contribution to systm: "
                                 << eff4dContribution_pr_aa << "\t& " << eff4dContribution_npr_aa << "\t; "
                                 << eff4dContribution_pr_pp << "\t& " << eff4dContribution_npr_pp << endl;
@@ -378,22 +368,12 @@ void makeSyst_y( bool bSavePlots        = 1,
                                 << syst_effTnP_pr_aa[ibin-1][ifile] << "\t& " << syst_effTnP_npr_aa[ibin-1][ifile] << "\t; "
                                 << syst_effTnP_pr_pp[ibin-1][ifile] << "\t& " << syst_effTnP_npr_pp[ibin-1][ifile] << endl;
 
-              if(method==1)//maximum
-              {
-                if( syst_effTnP_pr_aa[ibin-1][ifile] > efftnpContribution_pr_aa ) efftnpContribution_pr_aa = syst_effTnP_pr_aa[ibin-1][ifile];
-                if( syst_effTnP_pr_pp[ibin-1][ifile] > efftnpContribution_pr_pp ) efftnpContribution_pr_pp = syst_effTnP_pr_pp[ibin-1][ifile];
-                  
-                if( syst_effTnP_npr_aa[ibin-1][ifile] > efftnpContribution_npr_aa ) efftnpContribution_npr_aa = syst_effTnP_npr_aa[ibin-1][ifile];
-                if( syst_effTnP_npr_pp[ibin-1][ifile] > efftnpContribution_npr_pp ) efftnpContribution_npr_pp = syst_effTnP_npr_pp[ibin-1][ifile];
-              }
-              if(method==0) // add in quadrature all independent variations
-              {
-                efftnpContribution_pr_aa += syst_effTnP_pr_aa[ibin-1][ifile];
-                efftnpContribution_pr_pp += syst_effTnP_pr_pp[ibin-1][ifile];
-                  
-                efftnpContribution_npr_aa += syst_effTnP_npr_aa[ibin-1][ifile];
-                efftnpContribution_npr_pp += syst_effTnP_npr_pp[ibin-1][ifile];
-              }
+              // add in quadrature all independent variations
+              efftnpContribution_pr_aa += syst_effTnP_pr_aa[ibin-1][ifile];
+              efftnpContribution_pr_pp += syst_effTnP_pr_pp[ibin-1][ifile];
+                
+              efftnpContribution_npr_aa += syst_effTnP_npr_aa[ibin-1][ifile];
+              efftnpContribution_npr_pp += syst_effTnP_npr_pp[ibin-1][ifile];
               if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Contribution to systm: " << efftnpContribution_pr_aa << "\t& " << efftnpContribution_npr_aa << "\t; "
                                 << efftnpContribution_pr_pp << "\t& " << efftnpContribution_npr_pp << endl;
             }
@@ -422,7 +402,7 @@ void makeSyst_y( bool bSavePlots        = 1,
                 if( syst_fit_mb_npr_aa[ibin-1][ivar] > fitContribution_mb_npr_aa ) fitContribution_mb_npr_aa = syst_fit_mb_npr_aa[ibin-1][ivar];
                 if( syst_fit_mb_npr_pp[ibin-1][ivar] > fitContribution_mb_npr_pp ) fitContribution_mb_npr_pp = syst_fit_mb_npr_pp[ibin-1][ivar];
               }
-              if(method==0) // rms of all variations for fit systm
+              if(method==0 || method==2) // rms of all variations for fit systm
               {
                 fitContribution_mb_pr_aa += syst_fit_mb_pr_aa[ibin-1][ivar];
                 fitContribution_mb_pr_pp += syst_fit_mb_pr_pp[ibin-1][ivar];
@@ -447,22 +427,12 @@ void makeSyst_y( bool bSavePlots        = 1,
                                 << syst_eff4d_mb_pr_aa[ibin-1][ifile] << "\t& " << syst_eff4d_mb_npr_aa[ibin-1][ifile] << "\t; "
                                 << syst_eff4d_mb_pr_pp[ibin-1][ifile] << "\t& " << syst_eff4d_mb_npr_pp[ibin-1][ifile] << endl;
 
-              if(method==1)//maximum
-              {
-                if( syst_eff4d_mb_pr_aa[ibin-1][ifile] > eff4dContribution_mb_pr_aa ) eff4dContribution_mb_pr_aa = syst_eff4d_mb_pr_aa[ibin-1][ifile];
-                if( syst_eff4d_mb_pr_pp[ibin-1][ifile] > eff4dContribution_mb_pr_pp ) eff4dContribution_mb_pr_pp = syst_eff4d_mb_pr_pp[ibin-1][ifile];
-                
-                if( syst_eff4d_mb_npr_aa[ibin-1][ifile] > eff4dContribution_mb_npr_aa ) eff4dContribution_mb_npr_aa = syst_eff4d_mb_npr_aa[ibin-1][ifile];
-                if( syst_eff4d_mb_npr_pp[ibin-1][ifile] > eff4dContribution_mb_npr_pp ) eff4dContribution_mb_npr_pp = syst_eff4d_mb_npr_pp[ibin-1][ifile];
-              }
-              if(method==0) // add in quadrature all independent variations
-              {
-                eff4dContribution_mb_pr_aa += syst_eff4d_mb_pr_aa[ibin-1][ifile];
-                eff4dContribution_mb_pr_pp += syst_eff4d_mb_pr_pp[ibin-1][ifile];
-                
-                eff4dContribution_mb_npr_aa += syst_eff4d_mb_npr_aa[ibin-1][ifile];
-                eff4dContribution_mb_npr_pp += syst_eff4d_mb_npr_pp[ibin-1][ifile];
-              }
+              // add in quadrature all independent variations
+              eff4dContribution_mb_pr_aa += syst_eff4d_mb_pr_aa[ibin-1][ifile];
+              eff4dContribution_mb_pr_pp += syst_eff4d_mb_pr_pp[ibin-1][ifile];
+              
+              eff4dContribution_mb_npr_aa += syst_eff4d_mb_npr_aa[ibin-1][ifile];
+              eff4dContribution_mb_npr_pp += syst_eff4d_mb_npr_pp[ibin-1][ifile];
               if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
                                 << eff4dContribution_mb_pr_aa << "\t& " << eff4dContribution_mb_npr_aa << "\t; "
                                 << eff4dContribution_mb_pr_pp << "\t& " << eff4dContribution_mb_npr_pp << endl;
@@ -480,22 +450,12 @@ void makeSyst_y( bool bSavePlots        = 1,
                                 << syst_effTnP_mb_pr_aa[ibin-1][ifile] << "\t& " << syst_effTnP_mb_npr_aa[ibin-1][ifile] << "\t; "
                                 << syst_effTnP_mb_pr_pp[ibin-1][ifile] << "\t& " << syst_effTnP_mb_npr_pp[ibin-1][ifile] << endl;
                             
-              if(method==1)//maximum
-              {
-                if( syst_effTnP_mb_pr_aa[ibin-1][ifile] > efftnpContribution_mb_pr_aa ) {efftnpContribution_mb_pr_aa = syst_effTnP_mb_pr_aa[ibin-1][ifile]; }
-                if( syst_effTnP_mb_pr_pp[ibin-1][ifile] > efftnpContribution_mb_pr_pp ) {efftnpContribution_mb_pr_pp = syst_effTnP_mb_pr_pp[ibin-1][ifile];}
+              // add in quadrature all independent variations
+              efftnpContribution_mb_pr_aa += syst_effTnP_mb_pr_aa[ibin-1][ifile];
+              efftnpContribution_mb_pr_pp += syst_effTnP_mb_pr_pp[ibin-1][ifile];
                 
-                if( syst_effTnP_mb_npr_aa[ibin-1][ifile] > efftnpContribution_mb_npr_aa ) {efftnpContribution_mb_npr_aa = syst_effTnP_mb_npr_aa[ibin-1][ifile];}
-                if( syst_effTnP_mb_npr_pp[ibin-1][ifile] > efftnpContribution_mb_npr_pp ) {efftnpContribution_mb_npr_pp = syst_effTnP_mb_npr_pp[ibin-1][ifile];}
-              }
-              if(method==0)// add in quadrature all independent variations
-              {
-                efftnpContribution_mb_pr_aa += syst_effTnP_mb_pr_aa[ibin-1][ifile];
-                efftnpContribution_mb_pr_pp += syst_effTnP_mb_pr_pp[ibin-1][ifile];
-                  
-                efftnpContribution_mb_npr_aa += syst_effTnP_mb_npr_aa[ibin-1][ifile];
-                efftnpContribution_mb_npr_pp += syst_effTnP_mb_npr_pp[ibin-1][ifile];
-              }
+              efftnpContribution_mb_npr_aa += syst_effTnP_mb_npr_aa[ibin-1][ifile];
+              efftnpContribution_mb_npr_pp += syst_effTnP_mb_npr_pp[ibin-1][ifile];
               if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
                                 << efftnpContribution_mb_pr_aa << "\t& " << efftnpContribution_mb_npr_aa << "\t; "
                                 << efftnpContribution_mb_pr_pp << "\t& " << efftnpContribution_mb_npr_pp << endl;
@@ -506,7 +466,7 @@ void makeSyst_y( bool bSavePlots        = 1,
         
       // normalization for rms of the fit variations
       double rms_fitContribNorm = nFitVariations;
-      if(method==1) rms_fitContribNorm = 1;
+      if(method==1 || method==2) rms_fitContribNorm = 1;
       switch(ih) {
         case 0:
           prJpsiErrSyst_y[ibin-1] = yieldRatio_pr * TMath::Sqrt((fitContribution_pr_aa/rms_fitContribNorm+eff4dContribution_pr_aa+efftnpContribution_pr_aa)+

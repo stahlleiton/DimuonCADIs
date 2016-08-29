@@ -41,7 +41,7 @@ Output: root file with the systm. histograms for Raa vs pT.
 
 void makeSyst_cent( bool bSavePlots     = 1,
                     bool bDoDebug         = 1, // prints numbers, numerator, denominator, to help figure out if things are read properly
-                    int method            = 0, // 0: nominal (rms of same category variations)&&added in quadrature with non-correlated sourcesvariations; 1: max of each variation type, added in quadrature
+                    int method            = 2, // 0: nominal (rms of same category variations)&&added in quadrature with non-correlated sourcesvariations; 1: max of each variation type, added in quadrature, 2: same as 0 but quadrature in fit variations
                     int systBoxType       = 0, // 0: (systLumi+systSelection+systTrack) box is separated ONLY in 2D raa plots, 1: (systLumi+systSelection+systTrack) box is separated into grey box from pp uncertainty, 2: (add all global uncertainty into 1 box)
                     const char* inputDir  = "../readFitTable", // the place where the input root files, with the histograms are
                     const char* outputDir = "histSyst")// where the output figures will be
@@ -464,7 +464,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
                 if( syst_fit_npr_pp[ibin-1][ivar] > fitContribution_npr_pp ) fitContribution_npr_pp = syst_fit_npr_pp[ibin-1][ivar];
               }
             }
-            if(method==0) // rms of all variations for fit systm
+            if(method==0 || method==2) // rms of all variations for fit systm
             {
               fitContribution_pr_aa += syst_fit_pr_aa[ibin-1][ivar];
               fitContribution_pr_pp += syst_fit_pr_pp[ibin-1][ivar];
@@ -505,7 +505,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
                 if( syst_eff4d_npr_pp[ibin-1][ifile] > eff4dContribution_npr_pp ) eff4dContribution_npr_pp = syst_eff4d_npr_pp[ibin-1][ifile];
               }
             }
-            if(method==0) // add in quadrature all independent variations
+            if(method==0 || method==2) // add in quadrature all independent variations
             {
               eff4dContribution_pr_aa += syst_eff4d_pr_aa[ibin-1][ifile];
               eff4dContribution_pr_pp += syst_eff4d_pr_pp[ibin-1][ifile];
@@ -548,7 +548,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
                 if( syst_effTnP_npr_pp[ibin-1][ifile] > efftnpContribution_npr_pp ) efftnpContribution_npr_pp = syst_effTnP_npr_pp[ibin-1][ifile];
               }
             }
-            if(method==0) // add in quadrature all independent variations
+            if(method==0 || method==2) // add in quadrature all independent variations
             {
               efftnpContribution_pr_aa += syst_effTnP_pr_aa[ibin-1][ifile];
               efftnpContribution_pr_pp += syst_effTnP_pr_pp[ibin-1][ifile];
@@ -586,7 +586,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               if( syst_fit_pt365y1624_npr_aa[ibin-1][ivar] > fitContribution_pt365y1624_npr_aa ) fitContribution_pt365y1624_npr_aa = syst_fit_pt365y1624_npr_aa[ibin-1][ivar];
               if( syst_fit_pt365y1624_npr_pp[ibin-1][ivar] > fitContribution_pt365y1624_npr_pp ) fitContribution_pt365y1624_npr_pp = syst_fit_pt365y1624_npr_pp[ibin-1][ivar];
             }
-            if(method==0) // rms of all variations for fit systm.
+            if(method==0 || method==2) // rms of all variations for fit systm.
             {
               fitContribution_pt365y1624_pr_aa += syst_fit_pt365y1624_pr_aa[ibin-1][ivar];
               fitContribution_pt365y1624_pr_pp += syst_fit_pt365y1624_pr_pp[ibin-1][ivar];
@@ -618,7 +618,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               if( syst_eff4d_pt365y1624_npr_aa[ibin-1][ifile] > eff4dContribution_pt365y1624_npr_aa ) eff4dContribution_pt365y1624_npr_aa = syst_eff4d_pt365y1624_npr_aa[ibin-1][ifile];
               if( syst_eff4d_pt365y1624_npr_pp[ibin-1][ifile] > eff4dContribution_pt365y1624_npr_pp ) eff4dContribution_pt365y1624_npr_pp = syst_eff4d_pt365y1624_npr_pp[ibin-1][ifile];
             }
-            if(method==0) // add in quadrature all independent variations
+            if(method==0 || method==2) // add in quadrature all independent variations
             {
               eff4dContribution_pt365y1624_pr_aa += syst_eff4d_pt365y1624_pr_aa[ibin-1][ifile];
               eff4dContribution_pt365y1624_pr_pp += syst_eff4d_pt365y1624_pr_pp[ibin-1][ifile];
@@ -650,7 +650,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               if( syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile] > efftnpContribution_pt365y1624_npr_aa ) efftnpContribution_pt365y1624_npr_aa = syst_effTnP_pt365y1624_npr_aa[ibin-1][ifile];
               if( syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile] > efftnpContribution_pt365y1624_npr_pp ) efftnpContribution_pt365y1624_npr_pp = syst_effTnP_pt365y1624_npr_pp[ibin-1][ifile];
             }
-            if(method==0) // add in quadrature all independent variations
+            if(method==0 || method==2) // add in quadrature all independent variations
             {
               efftnpContribution_pt365y1624_pr_aa += syst_effTnP_pt365y1624_pr_aa[ibin-1][ifile];
               efftnpContribution_pt365y1624_pr_pp += syst_effTnP_pt365y1624_pr_pp[ibin-1][ifile];
@@ -687,7 +687,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               if( syst_fit_pt6530y012_npr_aa[ibin-1][ivar] > fitContribution_pt6530y012_npr_aa ) fitContribution_pt6530y012_npr_aa = syst_fit_pt6530y012_npr_aa[ibin-1][ivar];
               if( syst_fit_pt6530y012_npr_pp[ibin-1][ivar] > fitContribution_pt6530y012_npr_pp ) fitContribution_pt6530y012_npr_pp = syst_fit_pt6530y012_npr_pp[ibin-1][ivar];
             }
-            if(method==0) // rms of all variations for fit systm.
+            if(method==0 || method==2) // rms of all variations for fit systm.
             {
               fitContribution_pt6530y012_pr_aa += syst_fit_pt6530y012_pr_aa[ibin-1][ivar];
               fitContribution_pt6530y012_pr_pp += syst_fit_pt6530y012_pr_pp[ibin-1][ivar];
@@ -719,7 +719,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               if( syst_eff4d_pt6530y012_npr_aa[ibin-1][ifile] > eff4dContribution_pt6530y012_npr_aa ) eff4dContribution_pt6530y012_npr_aa = syst_eff4d_pt6530y012_npr_aa[ibin-1][ifile];
               if( syst_eff4d_pt6530y012_npr_pp[ibin-1][ifile] > eff4dContribution_pt6530y012_npr_pp ) eff4dContribution_pt6530y012_npr_pp = syst_eff4d_pt6530y012_npr_pp[ibin-1][ifile];
             }
-            if(method==0) // add in quadrature all independent variations
+            if(method==0 || method==2) // add in quadrature all independent variations
             {
               eff4dContribution_pt6530y012_pr_aa += syst_eff4d_pt6530y012_pr_aa[ibin-1][ifile];
               eff4dContribution_pt6530y012_pr_pp += syst_eff4d_pt6530y012_pr_pp[ibin-1][ifile];
@@ -751,7 +751,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               if( syst_effTnP_pt6530y012_npr_aa[ibin-1][ifile] > efftnpContribution_pt6530y012_npr_aa ) efftnpContribution_pt6530y012_npr_aa = syst_effTnP_pt6530y012_npr_aa[ibin-1][ifile];
               if( syst_effTnP_pt6530y012_npr_pp[ibin-1][ifile] > efftnpContribution_pt6530y012_npr_pp ) efftnpContribution_pt6530y012_npr_pp = syst_effTnP_pt6530y012_npr_pp[ibin-1][ifile];
             }
-            if(method==0) // add in quadrature all independent variations
+            if(method==0 || method==2) // add in quadrature all independent variations
             {
               efftnpContribution_pt6530y012_pr_aa += syst_effTnP_pt6530y012_pr_aa[ibin-1][ifile];
               efftnpContribution_pt6530y012_pr_pp += syst_effTnP_pt6530y012_pr_pp[ibin-1][ifile];
@@ -788,7 +788,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               if( syst_fit_pt6530y1216_npr_aa[ibin-1][ivar] > fitContribution_pt6530y1216_npr_aa ) fitContribution_pt6530y1216_npr_aa = syst_fit_pt6530y1216_npr_aa[ibin-1][ivar];
               if( syst_fit_pt6530y1216_npr_pp[ibin-1][ivar] > fitContribution_pt6530y1216_npr_pp ) fitContribution_pt6530y1216_npr_pp = syst_fit_pt6530y1216_npr_pp[ibin-1][ivar];
             }
-            if(method==0) // rms of all variations for fit systm.
+            if(method==0 || method==2) // rms of all variations for fit systm.
             {
               fitContribution_pt6530y1216_pr_aa += syst_fit_pt6530y1216_pr_aa[ibin-1][ivar];
               fitContribution_pt6530y1216_pr_pp += syst_fit_pt6530y1216_pr_pp[ibin-1][ivar];
@@ -820,7 +820,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               if( syst_eff4d_pt6530y1216_npr_aa[ibin-1][ifile] > eff4dContribution_pt6530y1216_npr_aa ) eff4dContribution_pt6530y1216_npr_aa = syst_eff4d_pt6530y1216_npr_aa[ibin-1][ifile];
               if( syst_eff4d_pt6530y1216_npr_pp[ibin-1][ifile] > eff4dContribution_pt6530y1216_npr_pp ) eff4dContribution_pt6530y1216_npr_pp = syst_eff4d_pt6530y1216_npr_pp[ibin-1][ifile];
             }
-            if(method==0) // add in quadrature all independent variations
+            if(method==0 || method==2) // add in quadrature all independent variations
             {
               eff4dContribution_pt6530y1216_pr_aa += syst_eff4d_pt6530y1216_pr_aa[ibin-1][ifile];
               eff4dContribution_pt6530y1216_pr_pp += syst_eff4d_pt6530y1216_pr_pp[ibin-1][ifile];
@@ -852,7 +852,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               if( syst_effTnP_pt6530y1216_npr_aa[ibin-1][ifile] > efftnpContribution_pt6530y1216_npr_aa ) efftnpContribution_pt6530y1216_npr_aa = syst_effTnP_pt6530y1216_npr_aa[ibin-1][ifile];
               if( syst_effTnP_pt6530y1216_npr_pp[ibin-1][ifile] > efftnpContribution_pt6530y1216_npr_pp ) efftnpContribution_pt6530y1216_npr_pp = syst_effTnP_pt6530y1216_npr_pp[ibin-1][ifile];
             }
-            if(method==0) // add in quadrature all independent variations
+            if(method==0 || method==2) // add in quadrature all independent variations
             {
               efftnpContribution_pt6530y1216_pr_aa += syst_effTnP_pt6530y1216_pr_aa[ibin-1][ifile];
               efftnpContribution_pt6530y1216_pr_pp += syst_effTnP_pt6530y1216_pr_pp[ibin-1][ifile];
@@ -889,7 +889,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               if( syst_fit_pt6530y1624_npr_aa[ibin-1][ivar] > fitContribution_pt6530y1624_npr_aa ) fitContribution_pt6530y1624_npr_aa = syst_fit_pt6530y1624_npr_aa[ibin-1][ivar];
               if( syst_fit_pt6530y1624_npr_pp[ibin-1][ivar] > fitContribution_pt6530y1624_npr_pp ) fitContribution_pt6530y1624_npr_pp = syst_fit_pt6530y1624_npr_pp[ibin-1][ivar];
             }
-            if(method==0) // rms of all variations for fit systm.
+            if(method==0 || method==2) // rms of all variations for fit systm.
             {
               fitContribution_pt6530y1624_pr_aa += syst_fit_pt6530y1624_pr_aa[ibin-1][ivar];
               fitContribution_pt6530y1624_pr_pp += syst_fit_pt6530y1624_pr_pp[ibin-1][ivar];
@@ -921,7 +921,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               if( syst_eff4d_pt6530y1624_npr_aa[ibin-1][ifile] > eff4dContribution_pt6530y1624_npr_aa ) eff4dContribution_pt6530y1624_npr_aa = syst_eff4d_pt6530y1624_npr_aa[ibin-1][ifile];
               if( syst_eff4d_pt6530y1624_npr_pp[ibin-1][ifile] > eff4dContribution_pt6530y1624_npr_pp ) eff4dContribution_pt6530y1624_npr_pp = syst_eff4d_pt6530y1624_npr_pp[ibin-1][ifile];
             }
-            if(method==0) // add in quadrature all independent variations
+            if(method==0 || method==2) // add in quadrature all independent variations
             {
               eff4dContribution_pt6530y1624_pr_aa += syst_eff4d_pt6530y1624_pr_aa[ibin-1][ifile];
               eff4dContribution_pt6530y1624_pr_pp += syst_eff4d_pt6530y1624_pr_pp[ibin-1][ifile];
@@ -953,7 +953,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               if( syst_effTnP_pt6530y1624_npr_aa[ibin-1][ifile] > efftnpContribution_pt6530y1624_npr_aa ) efftnpContribution_pt6530y1624_npr_aa = syst_effTnP_pt6530y1624_npr_aa[ibin-1][ifile];
               if( syst_effTnP_pt6530y1624_npr_pp[ibin-1][ifile] > efftnpContribution_pt6530y1624_npr_pp ) efftnpContribution_pt6530y1624_npr_pp = syst_effTnP_pt6530y1624_npr_pp[ibin-1][ifile];
             }
-            if(method==0)// add in quadrature all independent variations
+            if(method==0 || method==2)// add in quadrature all independent variations
             {
               efftnpContribution_pt6530y1624_pr_aa += syst_effTnP_pt6530y1624_pr_aa[ibin-1][ifile];
               efftnpContribution_pt6530y1624_pr_pp += syst_effTnP_pt6530y1624_pr_pp[ibin-1][ifile];
@@ -992,7 +992,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
     
       // normalization for rms of the fit variations
       double rms_fitContribNorm = nFitVariations;
-      if(method==1) rms_fitContribNorm = 1;
+      if (method==1 || method==2) rms_fitContribNorm = 1;
       switch(ih){
         case 0:// high-pt , |y|<2.4
           yieldSyst_pr_aa  = (fitContribution_pr_aa/rms_fitContribNorm  + eff4dContribution_pr_aa  + efftnpContribution_pr_aa);
