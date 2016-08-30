@@ -37,7 +37,7 @@ void v2ExpClose_pt(bool bSavePlots     = true,
 	      float rangeYAxis    = 0.6,
 	      float rangeXAxis    = 20,
 	      const char* inputDir      = "../macro_v2/outRoot", // the place where the input root files, with the histograms are
-	      const char* figNamePrefix="v2Exp_pt")
+	      const char* figNamePrefix="v2ExpClose_pt")
 {
   gSystem->mkdir(Form("./figs/png"), kTRUE);
   gSystem->mkdir(Form("./figs/pdf"), kTRUE);
