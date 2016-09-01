@@ -129,7 +129,7 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
   pgAlice_dpt816->Draw("P");
 
   // additional info
-  CMS_lumi(pc,14005000,33);
+  CMS_lumi(pc,12014000,0);
 
   TLegend *leg_cent = new TLegend(0.2,0.78,0.7,0.88,NULL,"brNDC");
   leg_cent->SetBorderSize(0);
@@ -142,7 +142,7 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
   leg_cent->SetFillStyle(0);
 
   TLegendEntry *entry_cent;
-  entry_cent=leg_cent->AddEntry("pgCms","b quark: nonprompt J/#psi (CMS)","");
+  entry_cent=leg_cent->AddEntry("pgCms","b quark: nonprompt J/#psi","");
   entry_cent->SetTextSize(ltxSetTextSize3);
   entry_cent->SetFillStyle(1001);
   entry_cent->SetLineColor(1);

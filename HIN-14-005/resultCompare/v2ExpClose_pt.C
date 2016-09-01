@@ -103,7 +103,7 @@ void v2ExpClose_pt(bool bSavePlots     = true,
 
  TCanvas *pcCombi = new TCanvas("pcCombi","pcCombi");
  phAxis_v2->Draw();
- CMS_lumi(pcCombi,120015000,33);
+ CMS_lumi(pcCombi,12014000,0);
 
  pgAliceSysB->Draw("2");
  pgAliceSys->Draw("2");
@@ -133,7 +133,7 @@ void v2ExpClose_pt(bool bSavePlots     = true,
  leg->SetFillStyle(0);
 
  TLegendEntry *entry, *entry11;
- entry=leg->AddEntry("cmspr","Hidden charm: prompt J/#psi (CMS)","");
+ entry=leg->AddEntry("cmspr","Hidden charm: prompt J/#psi","");
  entry->SetTextSize(ltxSetTextSize3);
  entry->SetFillStyle(1001);
  entry->SetLineColor(1);
@@ -159,8 +159,32 @@ void v2ExpClose_pt(bool bSavePlots     = true,
  entry->SetFillColor(kRed-9);
  entry->SetFillStyle(1001);
 
+ TLegend *leg1 = new TLegend(0.2,0.685,0.7,0.765,NULL,"brNDC");
+ leg1->SetBorderSize(0);
+ leg1->SetTextFont(132);
+ leg1->SetTextSize(ltxSetTextSize3);
+ leg1->SetLineColor(1);
+ leg1->SetLineStyle(1);
+ leg1->SetLineWidth(1);
+ leg1->SetFillColor(19);
+ leg1->SetFillStyle(0);
+ TLegendEntry *entry1;
+ entry1=leg1->AddEntry("hpm","Charged hadrons","");
+ entry1->SetLineColor(1);
+ entry1->SetLineStyle(1);
+ entry1->SetLineWidth(1);
+ entry1->SetTextSize(ltxSetTextSize3);
+ entry1=leg1->AddEntry("gChar","|#eta| < 0.8","P");
+ entry1->SetMarkerStyle(20);
+ entry1->SetMarkerColor(kAzure+2);
+ entry1->SetMarkerSize(1.2);
+ entry1->SetFillStyle(1001);
+ entry1->SetFillColor(kAzure-9);
+ entry1->SetTextFont(42);
+ entry1->SetTextSize(entrySize);
+
  //--------------------------- 
- TLegend *leg_alice = new TLegend(0.2,0.685,0.7,0.765,NULL,"brNDC");
+ TLegend *leg_alice = new TLegend(0.2,0.60,0.7,0.68,NULL,"brNDC");
  leg_alice->SetBorderSize(0);
  leg_alice->SetTextFont(132);
  leg_alice->SetTextSize(ltxSetTextSize3);
@@ -181,33 +205,9 @@ void v2ExpClose_pt(bool bSavePlots     = true,
  entry_alice->SetTextFont(42);
  entry_alice->SetTextSize(entrySize);
 
- TLegend *leg1 = new TLegend(0.2,0.60,0.7,0.68,NULL,"brNDC");
- leg1->SetBorderSize(0);
- leg1->SetTextFont(132);
- leg1->SetTextSize(ltxSetTextSize3);
- leg1->SetLineColor(1);
- leg1->SetLineStyle(1);
- leg1->SetLineWidth(1);
- leg1->SetFillColor(19);
- leg1->SetFillStyle(0);
- TLegendEntry *entry1;
- entry1=leg1->AddEntry("hpm","Charged hadrons (CMS)","");
- entry1->SetLineColor(1);
- entry1->SetLineStyle(1);
- entry1->SetLineWidth(1);
- entry1->SetTextSize(ltxSetTextSize3);
- entry1=leg1->AddEntry("gChar","|#eta| < 0.8","P");
- entry1->SetMarkerStyle(20);
- entry1->SetMarkerColor(kAzure+2);
- entry1->SetMarkerSize(1.2);
- entry1->SetFillStyle(1001);
- entry1->SetFillColor(kAzure-9);
- entry1->SetTextFont(42);
- entry1->SetTextSize(entrySize);
-
  leg->Draw();
- leg_alice->Draw();
  leg1->Draw();
+ leg_alice->Draw();
 
  gPad->RedrawAxis();
       

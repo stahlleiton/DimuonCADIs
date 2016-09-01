@@ -42,7 +42,7 @@
 #endif
 
 void v2TheoryOpen_pt(bool bSavePlots = true, 
-                  float rangeYAxis    = 0.3,
+                  float rangeYAxis    = 0.26,
                   float rangeXAxis    = 17,
                   const char* inputDir= "../macro_v2/outRoot", // the place where the input root files, with the histograms are
                   const char* figNamePrefix="v2TheoryOpen_pt")
@@ -110,12 +110,12 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   phAxis_v2->SetDirectory(0);
   phAxis_v2->GetXaxis()->CenterTitle(true);
   phAxis_v2->GetXaxis()->LabelsOption("h");
-  phAxis_v2->GetYaxis()->SetRangeUser(0,rangeYAxis); 
+  phAxis_v2->GetYaxis()->SetRangeUser(-0.01,rangeYAxis); 
   phAxis_v2->GetYaxis()->SetTitleOffset(1.25);
  
   TCanvas *pcCombi = new TCanvas("pcCombi","pcCombi");
   phAxis_v2->Draw();
-  CMS_lumi(pcCombi,120015000,33);
+  CMS_lumi(pcCombi,12014000,0);
  
   gNPJpsi_K08->Draw("l");
 //  gD_K08->Draw("l");
@@ -145,7 +145,7 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   leg->SetFillStyle(0);
  
   TLegendEntry *entry, *entry11;
-  entry=leg->AddEntry("cmspr","Open beauty: nonprompt J/#psi (CMS)","");
+  entry=leg->AddEntry("cmspr","Open beauty: nonprompt J/#psi","");
   entry->SetTextSize(ltxSetTextSize3);
   entry->SetFillStyle(1001);
   entry->SetLineColor(1);
@@ -172,13 +172,13 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
  
   //--------------------------- 
 //  TLegend *leg_K = new TLegend(0.23,0.55,0.7,0.76,NULL,"brNDC"); // with 6 entries
-  TLegend *leg_K = new TLegend(0.23,0.59,0.75,0.76,NULL,"brNDC");
+  TLegend *leg_K = new TLegend(0.23,0.65,0.62,0.77,NULL,"brNDC");
   leg_K->SetNColumns(2); // insertion order is top-left -> top-right -> bottom-left -> bottom-right
-  leg_K->SetColumnSeparation(0.27); // 0.27 (column separation) works well with margin 0.28
-  leg_K->SetMargin(0.28); // 0.28 (theory) works well with 0.2 (data)
+  leg_K->SetColumnSeparation(0.05);
+  leg_K->SetMargin(0.355);
   leg_K->SetBorderSize(0);
-  leg_K->SetTextFont(132);
-  leg_K->SetTextSize(ltxSetTextSize3);
+//  leg_K->SetTextFont(132);
+//  leg_K->SetTextSize(ltxSetTextSize3);
   leg_K->SetLineColor(1);
   leg_K->SetLineStyle(1);
   leg_K->SetLineWidth(1);
@@ -186,11 +186,9 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   leg_K->SetFillStyle(0);
   
   TLegendEntry *entry_K;
-  entry_K=leg_K->AddEntry("K08K15","MC@sHQ + EPOS",""); 
-  entry_K=leg_K->AddEntry("K08K15","",""); // empty column for a alignment
-  entry_K=leg_K->AddEntry("K08K15","Cent. 20-60%, |y| < 1","");
+  entry_K=leg_K->AddEntry("K08K15","MC@sHQ + EPOS (Cent. 20-60%, |y| < 1)",""); 
   entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize);
+  entry_K->SetTextSize(entrySize-0.005);
   entry_K=leg_K->AddEntry("K08K15","",""); // empty column for a alignment
 //  entry_K=leg_K->AddEntry("gD_K08","D (K=0.8)","L");
 //  entry_K->SetLineWidth(3);
@@ -204,20 +202,20 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   entry_K=leg_K->AddEntry("gB_K08","B (K=0.8)","L");
   entry_K->SetLineWidth(3);
   entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize);
+  entry_K->SetTextSize(entrySize-0.005);
   entry_K=leg_K->AddEntry("gB_K15","B (K=1.5)","L");
   entry_K->SetLineWidth(3);
   entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize);
+  entry_K->SetTextSize(entrySize-0.005);
 
   entry_K=leg_K->AddEntry("gNPJpsi_K08","NP J/#psi (K=0.8)","L");
   entry_K->SetLineWidth(3);
   entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize);
+  entry_K->SetTextSize(entrySize-0.005);
   entry_K=leg_K->AddEntry("gNPJpsi_K15","NP J/#psi (K=1.5)","L");
   entry_K->SetLineWidth(3);
   entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize);
+  entry_K->SetTextSize(entrySize-0.005);
  
   leg->Draw();
   leg_K->Draw();

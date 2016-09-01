@@ -174,9 +174,9 @@ void raaTheoryOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the plac
   pgCms_lowpt->Draw("P");
 
   // additional info
-  CMS_lumi(pc,14005000,33);
+  CMS_lumi(pc,12014000,0);
 
-  TLegend *leg_cent = new TLegend(0.51,0.52,0.89,0.64,NULL,"brNDC");
+  TLegend *leg_cent = new TLegend(0.59,0.52,0.89,0.64,NULL,"brNDC");
 //  TLegend *leg_cent = new TLegend(0.29,0.81,0.83,0.89,NULL,"brNDC"); // at top center
   leg_cent->SetMargin(0.17);
   leg_cent->SetBorderSize(0);
@@ -189,7 +189,7 @@ void raaTheoryOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the plac
   leg_cent->SetFillStyle(0);
 
   TLegendEntry *entry_cent;
-  entry_cent=leg_cent->AddEntry("raab","Nonprompt J/#psi (CMS)","");
+  entry_cent=leg_cent->AddEntry("raab","Nonprompt J/#psi","");
   entry_cent->SetTextSize(ltxSetTextSize3);
   entry_cent->SetFillStyle(1001);
   entry_cent->SetLineColor(1);

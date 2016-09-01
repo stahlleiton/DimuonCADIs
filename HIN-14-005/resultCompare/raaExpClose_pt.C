@@ -126,11 +126,11 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
   pgRaaAliceStat_cent090->Draw("P");
 
   // additional info
-  CMS_lumi(pc,14005000,33);
+  CMS_lumi(pc,12014000,0);
 
   TLegend *leg_pt = new TLegend(0.2,0.77,0.7,0.88,NULL,"brNDC");
   leg_pt->SetBorderSize(0);
-  leg_pt->SetTextFont(62);
+  leg_pt->SetTextFont(132);
   leg_pt->SetTextSize(ltxSetTextSize3);
   leg_pt->SetLineColor(1);
   leg_pt->SetLineStyle(1);
@@ -139,8 +139,8 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
   leg_pt->SetFillStyle(0);
 
   TLegendEntry *entry_pt;
-  entry_pt=leg_pt->AddEntry("raab","Prompt J/#psi (CMS)","");
-  entry_pt->SetTextFont(62);
+  entry_pt=leg_pt->AddEntry("raab","Prompt J/#psi","");
+  entry_pt->SetTextFont(132);
   entry_pt->SetTextSize(ltxSetTextSize3);
   if(bDoLowPtForw)
   {
@@ -152,10 +152,9 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
   entry_pt->SetTextFont(42);
   entry_pt->SetTextSize(entrySize);
 
-
   TLegend *leg_alice_pt = new TLegend(0.2,0.68,0.7,0.75,NULL,"brNDC");
   leg_alice_pt->SetBorderSize(0);
-  leg_alice_pt->SetTextFont(62);
+  leg_alice_pt->SetTextFont(132);
   leg_alice_pt->SetTextSize(ltxSetTextSize3);
   leg_alice_pt->SetLineColor(1);
   leg_alice_pt->SetLineStyle(1);
