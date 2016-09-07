@@ -195,26 +195,14 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
 
   TLegendEntry *entry_cent;
   entry_cent=leg_cent->AddEntry("raab","Nonprompt J/#psi","");
+  entry_cent->SetTextFont(132);
   entry_cent->SetTextSize(ltxSetTextSize3);
-  entry_cent->SetFillStyle(1001);
-  entry_cent->SetLineColor(1);
-  entry_cent->SetLineStyle(1);
-  entry_cent->SetLineWidth(1);
-
+  
   if(bDoSameYHighPt)
-  {
-    entry_cent->SetMarkerStyle(20);
-    entry_cent->SetMarkerColor(kAzure+7);
-    entry_cent->SetMarkerSize(1.2);
     entry_cent=leg_cent->AddEntry("pgCms", "6.5 < p_{T} < 30 GeV/c, |y| < 1.2","p");
-  }
   else
-  {
-    entry_cent->SetMarkerStyle(29);
-    entry_cent->SetMarkerColor(kOrange+2);
-    entry_cent->SetMarkerSize(2.);
     entry_cent=leg_cent->AddEntry("pgCms", "6.5 < p_{T} < 30 GeV/c, |y| < 2.4","p");
-  }
+  
   entry_cent->SetTextFont(42);
   entry_cent->SetTextSize(entrySize);
 

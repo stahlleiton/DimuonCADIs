@@ -275,15 +275,8 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
 
   TLegendEntry *entry2_cent;
   entry2_cent=leg2_cent->AddEntry("raalow","Hidden charm: prompt J/#psi","");
+  entry2_cent->SetTextFont(132);
   entry2_cent->SetTextSize(ltxSetTextSize3);
-  entry2_cent->SetLineColor(1);
-  entry2_cent->SetLineStyle(1);
-  entry2_cent->SetLineWidth(1);
-  entry2_cent->SetFillColor(kViolet-9);
-  entry2_cent->SetFillStyle(1001);
-  entry2_cent->SetMarkerStyle(kFullCross);
-  entry2_cent->SetMarkerColor(kViolet+2);
-  entry2_cent->SetMarkerSize(1.7);
   entry2_cent=leg2_cent->AddEntry("pgCms_low", "3 < p_{T} < 6.5 GeV/c, 1.6 < |y| < 2.4","p");
   entry2_cent->SetTextFont(42);
   entry2_cent->SetTextSize(entrySize);
@@ -299,13 +292,8 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   leg2_alice_cent->SetFillColor(19);
   leg2_alice_cent->SetFillStyle(0);
   TLegendEntry *entry2_alice_cent=leg2_alice_cent->AddEntry("pgAlice_dpt25","Open charm: prompt D^{0} (ALICE)","");
+  entry2_alice_cent->SetTextFont(132);
   entry2_alice_cent->SetTextSize(ltxSetTextSize3);
-  entry2_alice_cent->SetLineColor(1);
-  entry2_alice_cent->SetLineStyle(1);
-  entry2_alice_cent->SetLineWidth(1);
-  entry2_alice_cent->SetFillStyle(1001);
-  entry2_alice_cent->SetMarkerStyle(25);
-  entry2_alice_cent->SetMarkerSize(1.2);
   entry2_alice_cent=leg2_alice_cent->AddEntry("pgAlice_dpt25","2 < p_{T} < 5 GeV/c, |y| < 0.5","p");
   entry2_alice_cent->SetTextFont(42);
   entry2_alice_cent->SetTextSize(entrySize);

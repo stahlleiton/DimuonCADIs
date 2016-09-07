@@ -61,8 +61,10 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   TGraphAsymmErrors *pgV2High = (TGraphAsymmErrors *)pfV2Cms_cent->Get("pgV2");
   TGraphErrors *pgV2HighSyst  = (TGraphErrors *)pfV2Cms_cent->Get("pgV2_sys");
   TGraphErrors *pgV2HighP     = (TGraphErrors *)pfV2Cms_cent->Get("pgV2_cont");
-  
+
+  pgV2Low->SetName("pgV2Low");
   pgV2LowSyst->SetFillColorAlpha(kViolet-9,0.5);
+  pgV2High->SetName("pgV2High");
   pgV2HighSyst->SetFillColorAlpha(kOrange-9,0.5);
 
   // -----------------------------------------------------------------------------------------
@@ -146,29 +148,16 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
  
   TLegendEntry *entry, *entry11;
   entry=leg->AddEntry("cmspr","Open beauty: nonprompt J/#psi","");
+  entry->SetTextFont(132);
   entry->SetTextSize(ltxSetTextSize3);
-  entry->SetFillStyle(1001);
-  entry->SetLineColor(1);
-  entry->SetLineStyle(1);
-  entry->SetLineWidth(1);
  
   entry=leg->AddEntry("pgV2Low", "1.6 < |y| < 2.4","p");
   entry->SetTextFont(42);
   entry->SetTextSize(entrySize);
-  entry->SetMarkerStyle(34);
-  entry->SetMarkerColor(kViolet+2);
-  entry->SetMarkerSize(1.7);
-  entry->SetFillColor(kViolet-9);
-  entry->SetFillStyle(1001);
  
   entry=leg->AddEntry("pgV2High", "|y| < 2.4","P");
   entry->SetTextFont(42);
   entry->SetTextSize(entrySize);
-  entry->SetMarkerStyle(29);
-  entry->SetMarkerColor(kOrange+2);
-  entry->SetMarkerSize(1.7);
-  entry->SetFillColor(kOrange-9);
-  entry->SetFillStyle(1001);
  
   //--------------------------- 
 //  TLegend *leg_K = new TLegend(0.23,0.55,0.7,0.76,NULL,"brNDC"); // with 6 entries

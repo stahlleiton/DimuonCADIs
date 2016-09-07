@@ -163,12 +163,9 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
   leg_alice_pt->SetFillStyle(0);
 
   TLegendEntry *entry_alice_pt=leg_alice_pt->AddEntry("pgRaaAlice_cent090","Inclusive J/#psi (ALICE)","");
-  entry_alice_pt->SetFillStyle(1001);
-  entry_alice_pt->SetLineColor(1);
-  entry_alice_pt->SetLineStyle(1);
-  entry_alice_pt->SetLineWidth(1);
-  entry_alice_pt->SetMarkerStyle(25);
-  entry_alice_pt->SetMarkerSize(1);
+  entry_alice_pt->SetTextFont(132);
+  entry_alice_pt->SetTextSize(ltxSetTextSize3);
+
   entry_alice_pt=leg_alice_pt->AddEntry("pgRaaAlice_cent090","2.5 < y < 4, Cent. 0-90%","p");
   entry_alice_pt->SetTextFont(42);
   entry_alice_pt->SetTextSize(entrySize);

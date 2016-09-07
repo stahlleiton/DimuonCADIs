@@ -190,11 +190,8 @@ void raaTheoryOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the plac
 
   TLegendEntry *entry_cent;
   entry_cent=leg_cent->AddEntry("raab","Nonprompt J/#psi","");
+  entry_cent->SetTextFont(132);
   entry_cent->SetTextSize(ltxSetTextSize3);
-  entry_cent->SetFillStyle(1001);
-  entry_cent->SetLineColor(1);
-  entry_cent->SetLineStyle(1);
-  entry_cent->SetLineWidth(1);
   entry_cent=leg_cent->AddEntry("gNonPrJpsi_pt365y1624", "1.6 < |y| < 2.4","p");
   entry_cent->SetTextFont(42);
   entry_cent->SetTextSize(entrySize);
