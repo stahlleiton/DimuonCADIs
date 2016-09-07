@@ -121,7 +121,6 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
   pgAliceSystCorr_dpt816->Draw("2");
   pgCmsSyst->Draw("2");
   pgAliceSyst_dpt816->Draw("2");
-
   
   pgCmsP->Draw("P");
   pgCms->Draw("P");
@@ -142,27 +141,15 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
   leg_cent->SetFillStyle(0);
 
   TLegendEntry *entry_cent;
-  entry_cent=leg_cent->AddEntry("pgCms","b quark: nonprompt J/#psi","");
+  entry_cent=leg_cent->AddEntry("pgCms","Hidden beauty: nonprompt J/#psi","");
+  entry_cent->SetTextFont(132);
   entry_cent->SetTextSize(ltxSetTextSize3);
-  entry_cent->SetFillStyle(1001);
-  entry_cent->SetLineColor(1);
-  entry_cent->SetLineStyle(1);
-  entry_cent->SetLineWidth(1);
 
   if(bDoSameYHighPt)
-  {
-    entry_cent->SetMarkerStyle(20);
-    entry_cent->SetMarkerColor(kAzure+7);
-    entry_cent->SetMarkerSize(1.2);
     entry_cent=leg_cent->AddEntry("pgCms", "6.5 < p_{T} < 30 GeV/c, |y| < 1.2","p");
-  }
   else
-  {
-    entry_cent->SetMarkerStyle(29);
-    entry_cent->SetMarkerColor(kOrange+2);
-    entry_cent->SetMarkerSize(2.);
     entry_cent=leg_cent->AddEntry("pgCms", "6.5 < p_{T} < 30 GeV/c, |y| < 2.4","p");
-  }
+  
   entry_cent->SetTextFont(42);
   entry_cent->SetTextSize(entrySize);
 
@@ -176,14 +163,9 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
   leg_alice_cent->SetFillColor(19);
   leg_alice_cent->SetFillStyle(0);
   
-  TLegendEntry *entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","c quark: prompt D (ALICE)","");
-  entry_alice_cent->SetFillStyle(1001);
-  entry_alice_cent->SetLineColor(1);
-  entry_alice_cent->SetLineStyle(1);
-  entry_alice_cent->SetLineWidth(1);
+  TLegendEntry *entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","Open beauty: prompt D (ALICE)","");
+  entry_alice_cent->SetTextFont(132);
   entry_alice_cent->SetTextSize(ltxSetTextSize3);
-  entry_alice_cent->SetMarkerStyle(21);
-  entry_alice_cent->SetMarkerSize(1);
   entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","8 < p_{T} < 16 GeV/c, |y| < 0.5","p");
   entry_alice_cent->SetTextFont(42);
   entry_alice_cent->SetTextSize(entrySize);
