@@ -141,7 +141,7 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
   leg_cent->SetFillStyle(0);
 
   TLegendEntry *entry_cent;
-  entry_cent=leg_cent->AddEntry("pgCms","Hidden beauty: nonprompt J/#psi","");
+  entry_cent=leg_cent->AddEntry("pgCms","Open beauty: nonprompt J/#psi","");
   entry_cent->SetTextFont(132);
   entry_cent->SetTextSize(ltxSetTextSize3);
 
