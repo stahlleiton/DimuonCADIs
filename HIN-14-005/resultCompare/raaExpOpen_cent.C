@@ -163,7 +163,7 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
   leg_alice_cent->SetFillColor(19);
   leg_alice_cent->SetFillStyle(0);
   
-  TLegendEntry *entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","Open beauty: prompt D (ALICE)","");
+  TLegendEntry *entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","Open charm: prompt D (ALICE)","");
   entry_alice_cent->SetTextFont(132);
   entry_alice_cent->SetTextSize(ltxSetTextSize3);
   entry_alice_cent=leg_alice_cent->AddEntry("pgAlice_dpt816","8 < p_{T} < 16 GeV/c, |y| < 0.5","p");
