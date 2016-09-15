@@ -2,19 +2,31 @@
 #define DATA_OTHERS
 
 
-/* // ALICE D: pT */ //they only have 0-10% and 30-50%
-/* const int nPtBins_alice_d = 7;  */
-/* double ptBins_alice_d[nPtBins_alice_d]    = {2.5, 3.5, 4.5, 5.5, 7, 10, 14}; // 0--2.4 */
-/* double ptBinsErr_alice_d[nPtBins_alice_d] = {0.0,0.0,0.0,0.0}; */
-/* double ptBinsLow_alice_d[nPtBins_alice_d] = {0.5,0.5,0.5,0.5,1.,2.,2.}; // 0--2.4 */
-/* double ptBinsUp_alice_d[nPtBins_alice_d]  = {0.5,0.5,0.5,0.5,1.,2.,2.}; // 0--2.4 */
-  
-/* // D alice RAA _pt */
-/* double raaPt_alice_d[nPtBins_alice_d]             = {0.51,0.37,0.33,0.27,0.28, 0.26, 0.35};  */
-/* double raaPtErr_alice_d[nPtBins_alice_d]          = {0.1,0.06,0.05,0.07,0.04,0.03,0.06}; */
-/* double raaPtErrSystLow_alice_d[nPtBins_alice_d]   = {0.18, 0.11, 0.1, 0.08, 0.07, 0.06, 0.1}; */
-/* double raaPtErrSystHigh_alice_d[nPtBins_alice_d]  = {0.22, 0.13, 0.11,0.09, 0.08, 0.07, 0.12}; */
+// ALICE D RAA vs. pT 
+// D alice RAA vs. pt (0-20%, |y|<0.5)
+// JHEP 09 (2012) 112 (OLD)
+const int nPtBins_alice_d = 7;
+double ptBins_alice_d[nPtBins_alice_d]    = {2.5, 3.5, 4.5, 5.5, 7, 10, 14};
+double ptBinsErr_alice_d[nPtBins_alice_d] = {0.0,0.0,0.0,0.0};
+double ptBinsLow_alice_d[nPtBins_alice_d] = {0.5,0.5,0.5,0.5,1.,2.,2.};
+double ptBinsUp_alice_d[nPtBins_alice_d]  = {0.5,0.5,0.5,0.5,1.,2.,2.};
+double raaPt_alice_d[nPtBins_alice_d]             = {0.51,0.37,0.33,0.27,0.28, 0.26, 0.35};
+double raaPtErr_alice_d[nPtBins_alice_d]          = {0.1,0.06,0.05,0.07,0.04,0.03,0.06};
+double raaPtErrSystLow_alice_d[nPtBins_alice_d]   = {0.18, 0.11, 0.1, 0.08, 0.07, 0.06, 0.1};
+double raaPtErrSystHigh_alice_d[nPtBins_alice_d]  = {0.22, 0.13, 0.11,0.09, 0.08, 0.07, 0.12};
 
+// D alice RAA vs. pt (0-10%, |y|<0.5)
+// JHEP 03 (2016) 081 (NEW)
+// http://hepdata.cedar.ac.uk/view/ins1394580, table 15
+double p9059_d15x1y1_xval[] = { 1.5, 2.5, 3.5, 4.5, 5.5, 7.0, 10.0, 14.0, 20.0, 30.0 };
+double p9059_d15x1y1_xerrminus[] = { 0.5, 0.5, 0.5, 0.5, 0.5, 1.0, 2.0, 2.0, 4.0, 6.0 };
+double p9059_d15x1y1_xerrplus[] = { 0.5, 0.5, 0.5, 0.5, 0.5, 1.0, 2.0, 2.0, 4.0, 6.0 };
+double p9059_d15x1y1_yval[] = { 0.695, 0.694, 0.4, 0.25, 0.219, 0.172, 0.149, 0.18, 0.223, 0.352 };
+double p9059_d15x1y1_yerrminus[] = { 0.3686583784481237, 0.29960307074527787, 0.12280065146407002, 0.07178439941937245, 0.0579396237474839, 0.04401136216933078, 0.03807886552931954, 0.054083269131959835, 0.09035485598461214, 0.18425254408012934 };
+double p9059_d15x1y1_yerrplus[] = { 0.3318870289722092, 0.2141074496602115, 0.09433981132056604, 0.060539243470661246, 0.053310411741047364, 0.04031128874149274, 0.036249137920783714, 0.05325410782277739, 0.07823042886243178, 0.14534097839219332 };
+double p9059_d15x1y1_ystatminus[] = { 0.21, 0.079, 0.034, 0.023, 0.021, 0.016, 0.015, 0.03, 0.042, 0.082 };
+double p9059_d15x1y1_ystatplus[] = { 0.21, 0.079, 0.034, 0.023, 0.021, 0.016, 0.015, 0.03, 0.042, 0.082 };
+int p9059_d15x1y1_numpoints = 10;
 
 // ALICE D: <Npart>
 //http://hepdata.cedar.ac.uk/view/ins1377363
