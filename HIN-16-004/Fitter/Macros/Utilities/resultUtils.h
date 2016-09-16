@@ -439,9 +439,9 @@ void prune(TGraphErrors *g, bool keepshort) {
 
 TGraphAsymmErrors* result12007_mid_cent() {
    double x[3] = {308.4-5, 158.6-5, 32.8-5};
-   double y[3] = {0.43, 0.67, 0.};
+   double y[3] = {0.43, 0.67, -0.47};
    double ex[3] = {0, 0, 0};
-   double ey[3] = {0.2, 0.2, 0.47};
+   double ey[3] = {0.2, 0.2, 0.};
    TGraphAsymmErrors *ans = new TGraphAsymmErrors(3,x,y,ex,ex,ey,ey);
    ans->SetName("graph_12007_mid_cent");
    return ans;
@@ -457,9 +457,9 @@ TGraphAsymmErrors* result12007_fwd_cent() {
 }
 TGraphAsymmErrors* result12007_mid_cent_syst() {
    double x[3] = {308.4-5, 158.6-5, 32.8-5};
-   double y[3] = {0.43, 0.67, 0.};
+   double y[3] = {0.43, 0.67, -0.47};
    double ex[3] = {5, 5, 5};
-   double ey[3] = {0.07, 0.09, 0.47};
+   double ey[3] = {0.07, 0.09, 0.};
    TGraphAsymmErrors *ans = new TGraphAsymmErrors(3,x,y,ex,ex,ey,ey);
    ans->SetName("graph_12007_mid_cent_syst");
    return ans;

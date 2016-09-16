@@ -97,4 +97,14 @@ TGraphErrors* rapp_pt_fwd_502(const char* prependPath=".") {
    return new TGraphErrors(n,vpt.data(),vchi.data(),vector<double>(n).data(),vdchi.data());
 }
 
+TGraph* tge2tg(TGraphErrors* tge, int nsigma=1) {
+   if (!tge) return NULL;
+   int n = tge->GetN();
+   TGraph *tg = new TGraph(n);
+   for (int i=0; i<n; i++) {
+      tg->SetPoint(i,tge->GetX()[i],tge->GetY()[i]+nsigma*tge->GetEY()[i]);
+   }
+   return tg;
+}
+
 #endif // ifndef rappGraph_h
