@@ -51,7 +51,7 @@ const bool  nonpromptonly = false; // [false] plot the non-prompt only double ra
 const bool  plotlimits95  = true;  // [true]  display 95% CL limits (when the lower limit is 0)
 const bool  plotsysts     = true;  // [true]  display systematics
 const bool  plotrapp      = false; // [false] plot Rapp and Du's predictions
-const char* nameTag="_prelim";            // [""]    can put here e.g. "_prompt", "_nonprompt", ...
+const char* nameTag="";            // [""]    can put here e.g. "_prompt", "_nonprompt", ...
 
 const bool plot12007 = plot12007_mid || plot12007_fwd;
 
@@ -76,7 +76,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
 void plot(vector<anabin> thecats, string xaxis, string workDirName, string workDirNameFail="");
 void centrality2npart(TGraphAsymmErrors* tg, bool issyst=false, bool isMB=false, double xshift=0.);
 void plotLimits(map<anabin, TGraphAsymmErrors*> theGraphs, string xaxis, const char* filename="../Limits/csv/Limits_95.csv", double xshift=0, bool ULonly=true, bool isInclusive=false);
-void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color, int style, double xshift_text=0);
+void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color, int style, double xshift_text=0, double yshift_text=0.03);
 bool isSignificant(map<anabin, TGraphAsymmErrors*> theGraphs, anabin thebin);
 
 
@@ -536,7 +536,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       if (xaxis=="pt") {
          x = 1.;
          dx = 1.5;
-         y = 1.7;
+         y = 1.8;
          dy = 0.08;
          color1 = kRed;
          color2 = kBlue;
@@ -601,7 +601,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          tg_syst->SetLineColor(kRed+2);
          tg_syst->SetFillColorAlpha(kRed-9, 1);
       } else {
-         tg->SetMarkerStyle(kFullTriangleUp);
+         tg->SetMarkerStyle(kFullStar);
          tg->SetMarkerColor(kGreen);
          tg->SetLineColor(kGreen);
          tg_syst->SetLineColor(kGreen);
@@ -664,10 +664,10 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          dy = gsyst[thebin].value_dR_rel;
          cout << "global syst: " << dy << endl;
          TBox *tbox = new TBox(x-dx,y-dy,x+dx,y+dy);
-         if (thebin.rapbin() == binF((float) 0.,1.6)) tbox->SetFillColorAlpha(kBlue-9, 1);
-         else if (thebin.rapbin() == binF(1.6,2.4)) tbox->SetFillColorAlpha(kRed-9, 1);
+         if (thebin.rapbin() == binF((float) 0.,1.6)) {tbox->SetFillColorAlpha(kBlue-9, 1); tbox->SetLineColor(kBlue+2);}
+         else if (thebin.rapbin() == binF(1.6,2.4)) {tbox->SetFillColorAlpha(kRed-9, 1); tbox->SetLineColor(kRed+2);}
          else tbox->SetFillColorAlpha(kGreen, 0.5);
-         tbox->Draw();
+         tbox->Draw("l");
          line.Draw(); // to make sure the line at 1 is always on top
       }
 
@@ -681,8 +681,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       if (plot12007_mid) {
          TGraphAsymmErrors *g_12007_mid_cent = result12007_mid_cent();
          TGraphAsymmErrors *g_12007_mid_cent_syst = result12007_mid_cent_syst();
-         g_12007_mid_cent->SetMarkerStyle(kFullTriangleUp);
-         g_12007_mid_cent->SetMarkerSize(1.5);
+         g_12007_mid_cent->SetMarkerStyle(kFullStar);
+         g_12007_mid_cent->SetMarkerSize(2);
          g_12007_mid_cent->SetMarkerColor(kCyan+2);
          g_12007_mid_cent->SetLineColor(kCyan+2);
          g_12007_mid_cent_syst->SetFillColorAlpha(kCyan-9, 1);
@@ -691,7 +691,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          g_12007_mid_cent->Draw("P");
          tleg->AddEntry(g_12007_mid_cent,"#splitline{#sqrt{s_{NN}} = 2.76 TeV}{(PRL113 (2014) 262301)}", "p");
          // draw the upper limit in the peripheral bin... by hand (ughhh dirty)
-         drawArrow(32.8-5, 0, 0.47, 10., kCyan+2, 1, 20);
+         if (!plotrapp) drawArrow(32.8-5, 0, 0.47, 10., kCyan+2, 1, 25);
+         else drawArrow(32.8-5, 0, 0.47, 10., kCyan+2, 1, 25, -0.15);
          // global syst box
          double x, dx, y, dy;
          dx = 5;
@@ -700,14 +701,15 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          dy = 0.057;
          TBox *tbox = new TBox(x-dx,y-dy,x+dx,y+dy);
          tbox->SetFillColorAlpha(kCyan-9, 1);
-         tbox->Draw();
+         tbox->SetLineColor(kCyan+2);
+         tbox->Draw("l");
          line.Draw(); // to make sure the line at 1 is always on top
       }
       if (plot12007_fwd) {
          TGraphAsymmErrors *g_12007_fwd_cent = result12007_fwd_cent();
          TGraphAsymmErrors *g_12007_fwd_cent_syst = result12007_fwd_cent_syst();
-         g_12007_fwd_cent->SetMarkerStyle(kFullTriangleDown);
-         g_12007_fwd_cent->SetMarkerSize(1.5);
+         g_12007_fwd_cent->SetMarkerStyle(kFullCross);
+         g_12007_fwd_cent->SetMarkerSize(2);
          g_12007_fwd_cent->SetMarkerColor(kMagenta+2);
          g_12007_fwd_cent->SetLineColor(kMagenta+2);
          g_12007_fwd_cent_syst->SetFillColorAlpha(kMagenta-9, 1);
@@ -722,7 +724,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          dy = 0.066;
          TBox *tbox = new TBox(x-dx,y-dy,x+dx,y+dy);
          tbox->SetFillColorAlpha(kMagenta-9, 1);
-         tbox->Draw();
+         tbox->SetLineColor(kMagenta+2);
+         tbox->Draw("l");
          line.Draw(); // to make sure the line at 1 is always on top
       }
 
@@ -730,8 +733,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       if (plot12007_mid) {
          TGraphAsymmErrors *g_12007_mid = result12007_mid();
          TGraphAsymmErrors *g_12007_mid_syst = result12007_mid_syst();
-         g_12007_mid->SetMarkerStyle(kFullTriangleUp);
-         g_12007_mid->SetMarkerSize(1.5);
+         g_12007_mid->SetMarkerStyle(kFullStar);
+         g_12007_mid->SetMarkerSize(2);
          g_12007_mid->SetMarkerColor(kCyan+2);
          g_12007_mid->SetLineColor(kCyan+2);
          g_12007_mid_syst->SetFillColorAlpha(kCyan-9, 1);
@@ -742,8 +745,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       if (plot12007_fwd) {
          TGraphAsymmErrors *g_12007_fwd = result12007_fwd();
          TGraphAsymmErrors *g_12007_fwd_syst = result12007_fwd_syst();
-         g_12007_fwd->SetMarkerStyle(kFullTriangleDown);
-         g_12007_fwd->SetMarkerSize(1.5);
+         g_12007_fwd->SetMarkerStyle(kFullCross);
+         g_12007_fwd->SetMarkerSize(2);
          g_12007_fwd->SetMarkerColor(kMagenta+2);
          g_12007_fwd->SetLineColor(kMagenta+2);
          g_12007_fwd_syst->SetFillColorAlpha(kMagenta-9, 1);
@@ -773,16 +776,20 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
 //   tl.DrawLatexNDC(0.2+xshift,0.69,"#mu in acceptance");
    double tlx = 0.26;//(xaxis=="cent") ? 0.77 : 0.92-xshift;
    double tly = 0.58;//0.69;
-   if (plot12007_mid && !plotrapp) tly = 0.62;
-   if (plot12007_fwd) tly = 0.54;
-   if (!plot12007 && xaxis=="cent") tly = 0.62;
+   if (plot12007_mid && !plotrapp) tly = 0.675;
+   if (plot12007_fwd && !plotrapp) tly = 0.66;
+   if (plot12007_fwd && plotrapp) tly = 0.56;
+   if (!plot12007 && xaxis=="cent") tly = 0.65;
    if (xaxis=="pt") tly = 0.73;
+   if (xaxis=="pt" && plotrapp) {tly = 0.52; tlx = 0.72;}
    // int alignement = (xaxis=="cent") ? 11 : 31; // left ajusted for centrality, right ajusted for pt
    int alignement = 11; // left ajusted for centrality, right ajusted for pt
    tl.SetTextAlign(alignement);
-   if (!promptonly && !nonpromptonly) tl.DrawLatexNDC(tlx,tly-0.05,"Passing #font[12]{l}_{J/#psi}^{3D} cut");
-   else if (promptonly) tl.DrawLatexNDC(tlx,tly-0.05,"Prompt only");
-   else tl.DrawLatexNDC(tlx,tly-0.05,"Non-prompt only");
+   double yshift = 0.05;
+   if (plot12007_mid && !plotrapp) yshift = 0.07;
+   if (!promptonly && !nonpromptonly) tl.DrawLatexNDC(tlx,tly-yshift,"Passing #font[12]{l}_{J/#psi}^{3D} cut");
+   else if (promptonly) tl.DrawLatexNDC(tlx,tly-yshift,"Prompt only");
+   else tl.DrawLatexNDC(tlx,tly-yshift,"Non-prompt only");
 
    if (plot12007 && xaxis == "cent") {
       padl->cd();
@@ -890,19 +897,21 @@ void plotLimits(map<anabin, TGraphAsymmErrors*> theGraphs, string xaxis, const c
          // style = 7;
       }
       double textshift=0;
-      if (plot12007_fwd && !plot12007_mid) textshift = 35;
+      if (plot12007_fwd && !plot12007_mid) textshift = 40;
       drawArrow(x+xshift, ylow, y, dx, color, style, textshift);
    }
 }
 
-void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color, int style, double xshift_text) {
+void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color, int style, double xshift_text, double yshift_text) {
    TArrow *arrow = new TArrow(x,yhigh,x,ylow<=0. ? 0.05 : ylow,0.03,ylow<=0. ? ">" : "<>");
    arrow->SetLineColor(color);
    arrow->SetLineStyle(style);
+   arrow->SetLineWidth(2);
    arrow->Draw();
    if (ylow<=0.) {
       TLine *line = new TLine(x-dx,yhigh,x+dx,yhigh);
       line->SetLineColor(color);
+      line->SetLineWidth(2);
       line->Draw();
    }
    if (plotlimits95 && !FCerrors) {
@@ -910,7 +919,7 @@ void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color, in
       tl.SetTextSize(gTextSize*0.65);
       tl.SetTextAlign(21);
       tl.SetTextColor(color);
-      tl.DrawLatex(x+xshift_text,yhigh+0.015,"95\% C.L.");
+      tl.DrawLatex(x+xshift_text,yhigh+yshift_text,"95\% C.L.");
    }
 }
 
