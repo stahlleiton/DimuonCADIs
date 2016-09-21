@@ -122,6 +122,15 @@ namespace HI {
      for(int i=hiBinLow; i<hiBinHigh; i++)  w+=Npart[i]/(hiBinHigh-hiBinLow);
      return w;
   };
+
+  float findNcollWeightedNpartAverage(int hiBinLow, int hiBinHigh) {
+     float w=0, w2=0;
+     for(int i=hiBinLow; i<hiBinHigh; i++)  {
+        w+=findNpart(i)*findNcoll(i);
+        w2+=findNcoll(i);
+     }
+     return w/w2;
+  };
 };
 
 namespace PP {

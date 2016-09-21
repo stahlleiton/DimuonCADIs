@@ -43,7 +43,7 @@ const char* poiname = "RFrac2Svs1S"; // for double ratios
 #endif
 const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
 const bool  plot12007_mid = false; // [false] plot 12-007, midrapidity
-const bool  plot12007_fwd = false; // [false] plot 12-007, fwdrapidity
+const bool  plot12007_fwd = true; // [false] plot 12-007, fwdrapidity
 const bool  fiterrors     = true;  // [true]  statistical errors are from the fit
 const bool  FCerrors      = false; // [false] statistical errors are from the Feldman-Cousins intervals ("limits")
 const bool  promptonly    = true;  // [true]  plot the prompt only double ratio
@@ -51,7 +51,7 @@ const bool  nonpromptonly = false; // [false] plot the non-prompt only double ra
 const bool  plotlimits95  = true;  // [true]  display 95% CL limits (when the lower limit is 0)
 const bool  plotsysts     = true;  // [true]  display systematics
 const bool  plotrapp      = false; // [false] plot Rapp and Du's predictions
-const char* nameTag="";            // [""]    can put here e.g. "_prompt", "_nonprompt", ...
+const char* nameTag="_fwd";            // [""]    can put here e.g. "_prompt", "_nonprompt", ...
 
 const bool plot12007 = plot12007_mid || plot12007_fwd;
 
@@ -371,6 +371,8 @@ RooRealVar* poiFromFile(const char* filename, const char* token) {
 
 void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsymmErrors*> theGraphs_syst, string xaxis, string outputDir, map<anabin, syst> gsyst) {
    setTDRStyle();
+   gStyle->SetHatchesLineWidth(1);
+   gStyle->SetHatchesSpacing(1);
 
    vector<anabin> theCats;
 
@@ -459,23 +461,39 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    // plot Rapp's theory first if we have to
    if (plotrapp) {
       if (plot12007_mid) {
-         TGraphErrors *gmid_12007 = rapp_cent_mid_276();
-         gmid_12007->SetFillColorAlpha(kCyan-9,1); 
-         gmid_12007->Draw("3");
+         // TGraphErrors *gmid_12007 = rapp_cent_mid_276();
+         TGraphErrors *gmid_12007 = rapp_cent_mid_276_3bins(-5);
+         gmid_12007->SetFillColorAlpha(kCyan+2,1); 
+         gmid_12007->SetLineColor(kCyan+2); 
+         gmid_12007->SetFillStyle(3354); 
+         gmid_12007->Draw("5"); // was 3
+         // for some reason I don't have the surrounding box... so, dirty trick.
+         TGraphErrors *gmid_12007bis = (TGraphErrors*) gmid_12007->Clone("gmid_12007bis");
+         gmid_12007bis->SetFillStyle(0);
+         gmid_12007bis->Draw("2");
       }
       if (plot12007_fwd) {
-         TGraphErrors *gfwd_12007 = rapp_cent_fwd_276();
-         gfwd_12007->SetFillColorAlpha(kMagenta-9,1); 
-         gfwd_12007->Draw("3");
+         // TGraphErrors *gfwd_12007 = rapp_cent_fwd_276();
+         TGraphErrors *gfwd_12007 = rapp_cent_fwd_276_3bins(5);
+         gfwd_12007->SetFillColorAlpha(kOrange+2,1); 
+         gfwd_12007->SetLineColor(kOrange+2); 
+         gfwd_12007->SetFillStyle(3354); 
+         gfwd_12007->Draw("5"); // was 3
+         // for some reason I don't have the surrounding box... so, dirty trick.
+         TGraphErrors *gfwd_12007bis = (TGraphErrors*) gfwd_12007->Clone("gfwd_12007bis");
+         gfwd_12007bis->SetFillStyle(0);
+         gfwd_12007bis->Draw("2");
       }
 
       TGraphErrors *gmid=NULL, *gfwd=NULL;
       TGraph *gmid_up=NULL, *gmid_down=NULL, *gfwd_up=NULL, *gfwd_down=NULL;
       if (xaxis=="cent") {
-         gmid = rapp_cent_mid_502();
+         // gmid = rapp_cent_mid_502();
+         gmid = rapp_cent_mid_502_6bins(0);
          gmid_up = tge2tg(gmid,1);
          gmid_down = tge2tg(gmid,-1);
-         gfwd = rapp_cent_fwd_502();
+         // gfwd = rapp_cent_fwd_502();
+         gfwd = rapp_cent_fwd_502_3bins(0);
          gfwd_up = tge2tg(gfwd,1);
          gfwd_down = tge2tg(gfwd,-1);
       }
@@ -488,46 +506,56 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          gfwd_down = tge2tg(gfwd,-1);
       }
       if (gmid && !(plot12007_fwd && !plot12007_mid)) { // if asking for 2.76TeV fwd only, do not plot 5TeV mid
-         gmid->SetFillColorAlpha(kBlue-9,1); 
-         // gmid->SetFillStyle(3440);
-         gmid->Draw("3");
+         gmid->SetFillColorAlpha(kBlue+2,1); 
+         gmid->SetLineColor(kBlue+2); 
+         gmid->SetFillStyle(3345);
+         gmid->Draw("5"); // was 3
+         // for some reason I don't have the surrounding box... so, dirty trick.
+         TGraphErrors *gmidbis = (TGraphErrors*) gmid->Clone("gmidbis");
+         gmidbis->SetFillStyle(0);
+         gmidbis->Draw("2");
       }
       if (gfwd && !(plot12007_mid && !plot12007_fwd)) { // if asking for 2.76TeV mid only, do not plot 5TeV fwd
-         gfwd->SetFillColorAlpha(kRed-9,1);
-         // gfwd->SetFillStyle(3404);
-         gfwd->Draw("3");
+         gfwd->SetFillColorAlpha(kRed+2,1);
+         gfwd->SetLineColor(kRed+2);
+         gfwd->SetFillStyle(3345);
+         gfwd->Draw("5"); // was 3
+         // for some reason I don't have the surrounding box... so, dirty trick.
+         TGraphErrors *gfwdbis = (TGraphErrors*) gfwd->Clone("gfwdbis");
+         gfwdbis->SetFillStyle(0);
+         gfwdbis->Draw("2");
       }
 
-      if (plot12007_mid) {
-         TGraphErrors *gmid_12007 = rapp_cent_mid_276();
-         TGraph *gmid_12007_up = tge2tg(gmid_12007,1);
-         TGraph *gmid_12007_down = tge2tg(gmid_12007,-1);
-         gmid_12007_up->SetLineColor(kCyan+2); 
-         gmid_12007_down->SetLineColor(kCyan+2); 
-         gmid_12007_up->Draw("L");
-         gmid_12007_down->Draw("L");
-      }
-      if (plot12007_fwd) {
-         TGraphErrors *gfwd_12007 = rapp_cent_fwd_276();
-         TGraph *gfwd_12007_up = tge2tg(gfwd_12007,1);
-         TGraph *gfwd_12007_down = tge2tg(gfwd_12007,-1);
-         gfwd_12007_up->SetLineColor(kMagenta+2); 
-         gfwd_12007_down->SetLineColor(kMagenta+2); 
-         gfwd_12007_up->Draw("L");
-         gfwd_12007_down->Draw("L");
-      }
-      if (gmid && !(plot12007_fwd && !plot12007_mid)) { // if asking for 2.76TeV fwd only, do not plot 5TeV mid
-         gmid_up->SetLineColor(kBlue+2);
-         gmid_down->SetLineColor(kBlue+2);
-         gmid_up->Draw("L");
-         gmid_down->Draw("L");
-      }
-      if (gfwd && !(plot12007_mid && !plot12007_fwd)) { // if asking for 2.76TeV mid only, do not plot 5TeV fwd
-         gfwd_up->SetLineColor(kRed+2);
-         gfwd_down->SetLineColor(kRed+2);
-         gfwd_up->Draw("L");
-         gfwd_down->Draw("L");
-      }
+      // if (plot12007_mid) {
+      //    TGraphErrors *gmid_12007 = rapp_cent_mid_276();
+      //    TGraph *gmid_12007_up = tge2tg(gmid_12007,1);
+      //    TGraph *gmid_12007_down = tge2tg(gmid_12007,-1);
+      //    gmid_12007_up->SetLineColor(kCyan+2); 
+      //    gmid_12007_down->SetLineColor(kCyan+2); 
+      //    gmid_12007_up->Draw("L");
+      //    gmid_12007_down->Draw("L");
+      // }
+      // if (plot12007_fwd) {
+      //    TGraphErrors *gfwd_12007 = rapp_cent_fwd_276();
+      //    TGraph *gfwd_12007_up = tge2tg(gfwd_12007,1);
+      //    TGraph *gfwd_12007_down = tge2tg(gfwd_12007,-1);
+      //    gfwd_12007_up->SetLineColor(kOrange+2); 
+      //    gfwd_12007_down->SetLineColor(kOrange+2); 
+      //    gfwd_12007_up->Draw("L");
+      //    gfwd_12007_down->Draw("L");
+      // }
+      // if (gmid && !(plot12007_fwd && !plot12007_mid)) { // if asking for 2.76TeV fwd only, do not plot 5TeV mid
+      //    gmid_up->SetLineColor(kBlue+2);
+      //    gmid_down->SetLineColor(kBlue+2);
+      //    gmid_up->Draw("L");
+      //    gmid_down->Draw("L");
+      // }
+      // if (gfwd && !(plot12007_mid && !plot12007_fwd)) { // if asking for 2.76TeV mid only, do not plot 5TeV fwd
+      //    gfwd_up->SetLineColor(kRed+2);
+      //    gfwd_down->SetLineColor(kRed+2);
+      //    gfwd_up->Draw("L");
+      //    gfwd_down->Draw("L");
+      // }
 
       // now the legend
       // do it by hand because we need several colors in a single entry
@@ -548,7 +576,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
             y = 3.1;
             dy = 0.15;
             color1 = kRed;
-            color2 = kMagenta;
+            color2 = kOrange;
          } else {
             y = 1.4;
             dy = 0.07;
@@ -560,13 +588,20 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       x = x+1.5*dx;
       TBox *b2 = new TBox(x,y,x+dx,y+dy);
       b1->SetLineColor(color1+2);
-      b1->SetFillColor(color1-9);
+      b1->SetFillColor(color1+2); // -9
+      b1->SetFillStyle(3345); 
       b2->SetLineColor(color2+2);
-      b2->SetFillColor(color2-9);
-      b1->Draw("l"); b2->Draw("l");
+      b2->SetFillColor(color2+2); // -9
+      b2->SetFillStyle(3354); 
+      b1->Draw("l"); b2->Draw("l"); // "l"
+      TBox *b1b = (TBox*) b1->Clone("b1b");
+      b1b->SetFillStyle(0); b1b->Draw("l");
+      TBox *b2b = (TBox*) b2->Clone("b2b");
+      b2b->SetFillStyle(0); b2b->Draw("l");
       TLatex *tl = new TLatex(); tl->SetTextSize(gTextSize);
-      tl->DrawLatex(x+1.5*dx,y,"Du and Rapp");
-      tl->DrawLatex(x+1.5*dx,y-1.3*dy,"(NPA 943 (2015) 147 + priv. com.)");
+      // tl->DrawLatex(x+1.5*dx,y,"Du and Rapp");
+      // tl->DrawLatex(x+1.5*dx,y-1.3*dy,"(NPA 943 (2015) 147 + priv. com.)");
+      tl->DrawLatex(x+1.5*dx,y,"Du and Rapp (arXiv:1609.04868)");
    }
 
    // prepare for the printing of the result tables
@@ -710,10 +745,10 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          TGraphAsymmErrors *g_12007_fwd_cent_syst = result12007_fwd_cent_syst();
          g_12007_fwd_cent->SetMarkerStyle(kFullCross);
          g_12007_fwd_cent->SetMarkerSize(2);
-         g_12007_fwd_cent->SetMarkerColor(kMagenta+2);
-         g_12007_fwd_cent->SetLineColor(kMagenta+2);
-         g_12007_fwd_cent_syst->SetFillColorAlpha(kMagenta-9, 1);
-         g_12007_fwd_cent_syst->SetLineColor(kMagenta+2);
+         g_12007_fwd_cent->SetMarkerColor(kOrange+2);
+         g_12007_fwd_cent->SetLineColor(kOrange+2);
+         g_12007_fwd_cent_syst->SetFillColorAlpha(kOrange-9, 1);
+         g_12007_fwd_cent_syst->SetLineColor(kOrange+2);
          g_12007_fwd_cent_syst->Draw("5");
          g_12007_fwd_cent->Draw("P");
          tleg->AddEntry(g_12007_fwd_cent,"#splitline{#sqrt{s_{NN}} = 2.76 TeV}{(PRL113 (2014) 262301)}", "p");
@@ -723,8 +758,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          y = 1;
          dy = 0.066;
          TBox *tbox = new TBox(x-dx,y-dy,x+dx,y+dy);
-         tbox->SetFillColorAlpha(kMagenta-9, 1);
-         tbox->SetLineColor(kMagenta+2);
+         tbox->SetFillColorAlpha(kOrange-9, 1);
+         tbox->SetLineColor(kOrange+2);
          tbox->Draw("l");
          line.Draw(); // to make sure the line at 1 is always on top
       }
@@ -747,10 +782,10 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          TGraphAsymmErrors *g_12007_fwd_syst = result12007_fwd_syst();
          g_12007_fwd->SetMarkerStyle(kFullCross);
          g_12007_fwd->SetMarkerSize(2);
-         g_12007_fwd->SetMarkerColor(kMagenta+2);
-         g_12007_fwd->SetLineColor(kMagenta+2);
-         g_12007_fwd_syst->SetFillColorAlpha(kMagenta-9, 1);
-         g_12007_fwd_syst->SetLineColor(kMagenta+2);
+         g_12007_fwd->SetMarkerColor(kOrange+2);
+         g_12007_fwd->SetLineColor(kOrange+2);
+         g_12007_fwd_syst->SetFillColorAlpha(kOrange-9, 1);
+         g_12007_fwd_syst->SetLineColor(kOrange+2);
          g_12007_fwd_syst->Draw("5");
          g_12007_fwd->Draw("P");
       }
@@ -837,6 +872,7 @@ void centrality2npart(TGraphAsymmErrors* tg, bool issyst, bool isMB, double xshi
       eyl = tg->GetErrorYlow(i);
       eyh = tg->GetErrorYhigh(i);
       x = isMB ? 150 + xshift : HI::findNpartAverage(2.*(x-exl),2.*(x+exh));
+      if (isMB && !plot12007_mid && plot12007_fwd) x = 200.1;
       if (!issyst) {
          if (isMB) {exl=0; exh=0;} else {
             exl = HI::findNpartSyst(2.*(x-exl),2.*(x+exh));//0.;
@@ -933,7 +969,9 @@ bool isSignificant(map<anabin, TGraphAsymmErrors*> theGraphs, anabin thebin) {
          bool yok = (tg->GetY()[i] - fabs(tg->GetEYlow()[i]))>0;
          double xbin = (thebin.ptbin().low()+thebin.ptbin().high())/2.;
          if (fabs(x-xbin)<1e-2 && yok) {ans=true; break;}
-         xbin = thebin.centbin() == binI(0,200) ?  150 + (150./1.6)*thebin.rapbin().low() : HI::findNpartAverage(thebin.centbin().low(),thebin.centbin().high());
+         bool isMB = (thebin.centbin() == binI(0,200));
+         xbin = isMB ?  150 + (150./1.6)*thebin.rapbin().low() : HI::findNpartAverage(thebin.centbin().low(),thebin.centbin().high());
+         if (isMB && !plot12007_mid && plot12007_fwd) xbin = 200.1;
          if (fabs(x-xbin)<1e-2 && yok) {ans=true; break;}
       }
    }
