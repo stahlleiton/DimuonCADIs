@@ -4,7 +4,7 @@
 #include "Utilities/initClasses.h"
 #include "TGaxis.h"
 
-void setRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLogScale, double dMuonYmin = -1.);
+void setRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLogScale, double dMuonYmin = -1., double dMuonYmax = -1.);
 void printParameters(RooWorkspace myws, TPad* Pad, bool isPbPb, string pdfName, bool isWeighted);
 void printChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, string dataLabel, string pdfLabel, int nBins, bool isWeighted); 
 
@@ -70,7 +70,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
   {
     if (incJpsi && !incPsi2S)
     {
-      if (cut.dMuon.AbsRap.Min >= 1.6) norm = myws.data(dsOSName.c_str())->reduce("invMass<3.32")->sumEntries();
+      if ( (cut.dMuon.AbsRap.Min >= 1.6) || (cut.dMuon.AbsRap.Max > 1.6) ) norm = myws.data(dsOSName.c_str())->reduce("invMass<3.32")->sumEntries();
       else norm = myws.data(dsOSName.c_str())->reduce("invMass<3.26")->sumEntries();
     }
     else if (!incJpsi && incPsi2S)
@@ -287,7 +287,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
      frame->GetXaxis()->SetTitleSize(0.05);
      frame->GetYaxis()->SetTitleSize(0.05);
   }
-  setRange(myws, frame, dsOSName, setLogScale, cut.dMuon.AbsRap.Min);
+  setRange(myws, frame, dsOSName, setLogScale, cut.dMuon.AbsRap.Min, cut.dMuon.AbsRap.Max);
   if (paperStyle) {
      double Ydown = 0.;//frame->GetMinimum();
      double Yup = 0.9*frame->GetMaximum();
@@ -388,7 +388,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
        framezoom->GetYaxis()->SetTitleSize(0.072);
        framezoom->GetXaxis()->SetTitleSize(0.072);
     // }
-    setRange(myws, framezoom, dsOSName, setLogScale, cut.dMuon.AbsRap.Min);
+    setRange(myws, framezoom, dsOSName, setLogScale, cut.dMuon.AbsRap.Min, cut.dMuon.AbsRap.Max);
 
     pad4->Draw();
     pad4->cd();
@@ -456,7 +456,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
 }
 
 
-void setRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLogScale, double dMuonYmin)
+void setRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLogScale, double dMuonYmin, double dMuonYmax)
 { 
   // Find maximum and minimum points of Plot to rescale Y axis
   TH1* h = myws.data(dsName.c_str())->createHistogram("hist", *myws.var("invMass"), Binning(frame->GetNbinsX(),frame->GetXaxis()->GetXmin(),frame->GetXaxis()->GetXmax()));
@@ -489,7 +489,7 @@ void setRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLogScal
     if (dsName.find("JPSIP")!=std::string::npos)
     {
       TLine* line(0x0);
-      if (dMuonYmin >= 1.6) line = new TLine(3.32,Ydown,3.32,Yup);
+      if ( (dMuonYmin >= 1.6) || (dMuonYmax > 1.6) ) line = new TLine(3.32,Ydown,3.32,Yup);
       else line = new TLine(3.26,Ydown,3.26,Yup);
       line->SetLineStyle(2);
       line->SetLineColor(1);

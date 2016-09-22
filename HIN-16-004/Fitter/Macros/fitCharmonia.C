@@ -445,7 +445,7 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut,
     }
     else
     {
-      if (cut.dMuon.AbsRap.Min >= 1.6) myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, 3.32);
+      if ( (cut.dMuon.AbsRap.Min >= 1.6) || (cut.dMuon.AbsRap.Max > 1.6) ) myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, 3.32);
       else myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, 3.26);
     }
    
