@@ -34,7 +34,9 @@
 
 #endif
 void raaExpOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the place where the input root files, with the histograms are
-                   bool bSavePlots      = true
+                   bool bSavePlots      = true,
+                   bool bDrawCh         = true,
+                   double xMax          = 30 // x-axis range limit (ALICE D has x-range maximum value at 36, CMS has it at 30)
                   )
 {
   // set the style
@@ -54,11 +56,11 @@ void raaExpOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the place w
   TBox *lumi = (TBox*)pgRaaCms_pt->Get("lumi");
   lumi->SetFillColor(kOrange-9);
   lumi->SetFillStyle(1001);
-  lumi->SetX1(29.25); lumi->SetX2(30);
+  lumi->SetX1(xMax-0.75); lumi->SetX2(xMax);
   TBox *lumi_lowpt = (TBox*)lumi->Clone("lumi_lowpt");
   lumi_lowpt->SetFillColor(kViolet-9);
   lumi_lowpt->SetFillStyle(1001);
-  lumi_lowpt->SetX1(28.5); lumi_lowpt->SetX2(29.25);
+  lumi_lowpt->SetX1(xMax-1.5); lumi_lowpt->SetX2(xMax-0.75);
 
   // ##################### LOW PT ############################
   TGraphErrors *pgCms_lowpt     = (TGraphErrors *)pgRaaCms_pt->Get("gNonPrJpsi_pt365y1624");
@@ -70,7 +72,6 @@ void raaExpOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the place w
   //-------------------------------------------------------------------- 
   // *********** CMS Charged particle RAA
   TGraphAsymmErrors *p8165_d5x1y1 = new TGraphAsymmErrors(p8165_d5x1y1_numpoints, p8165_d5x1y1_xval, p8165_d5x1y1_yval, p8165_d5x1y1_xerrminus, p8165_d5x1y1_xerrplus, p8165_d5x1y1_ystatminus, p8165_d5x1y1_ystatplus);
-  TGraph *p8165_d5x1y1_point = new TGraph(p8165_d5x1y1_numpoints, p8165_d5x1y1_xval, p8165_d5x1y1_yval);
   TGraphAsymmErrors *p8165_d5x1y1_syst = new TGraphAsymmErrors(p8165_d5x1y1_numpoints, p8165_d5x1y1_xval, p8165_d5x1y1_yval, p8165_d5x1y1_xerrminus, p8165_d5x1y1_xerrplus, p8165_d5x1y1_yerrminus, p8165_d5x1y1_yerrplus);
   p8165_d5x1y1->SetName("cms_ch_raa");
   // X-axis errors will be discarded
@@ -82,46 +83,51 @@ void raaExpOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the place w
   }
    
   // *********** ALICE D RAA vs. pT
-  TGraphAsymmErrors *p9059_d9x1y1 = new TGraphAsymmErrors(p9059_d9x1y1_numpoints, p9059_d9x1y1_xval, p9059_d9x1y1_yval, p9059_d9x1y1_xerrminus, p9059_d9x1y1_xerrplus, p9059_d9x1y1_ystatminus, p9059_d9x1y1_ystatplus);
-  TGraphAsymmErrors *p9059_d9x1y1_syst = new TGraphAsymmErrors(p9059_d9x1y1_numpoints, p9059_d9x1y1_xval, p9059_d9x1y1_yval, p9059_d9x1y1_xerrminus, p9059_d9x1y1_xerrplus, p9059_d9x1y1_yerrminus, p9059_d9x1y1_yerrplus);
-  p9059_d9x1y1->SetName("alice_d_raa");
+  TGraphAsymmErrors *p9059_d15x1y1 = new TGraphAsymmErrors(p9059_d15x1y1_numpoints, p9059_d15x1y1_xval, p9059_d15x1y1_yval, p9059_d15x1y1_xerrminus, p9059_d15x1y1_xerrplus, p9059_d15x1y1_yerrminus, p9059_d15x1y1_yerrplus);
+  TGraphAsymmErrors *p9059_d15x1y1_syst = new TGraphAsymmErrors(p9059_d15x1y1_numpoints, p9059_d15x1y1_xval, p9059_d15x1y1_yval, p9059_d15x1y1_xerrminus, p9059_d15x1y1_xerrplus, p9059_d15x1y1_yerrminus, p9059_d15x1y1_yerrplus);
+  p9059_d15x1y1->SetName("alice_d_raa");
   // X-axis errors will be discarded
-  for (int i=0; i<p9059_d9x1y1_numpoints; i++) {
-    p9059_d9x1y1->SetPointEXlow(i,0);
-    p9059_d9x1y1->SetPointEXhigh(i,0);
-    p9059_d9x1y1_syst->SetPointEXlow(i,0.5);
-    p9059_d9x1y1_syst->SetPointEXhigh(i,0.5);
+  for (int i=0; i<p9059_d15x1y1_numpoints; i++) {
+    p9059_d15x1y1->SetPointEXlow(i,0);
+    p9059_d15x1y1->SetPointEXhigh(i,0);
+    p9059_d15x1y1_syst->SetPointEXlow(i,0.5);
+    p9059_d15x1y1_syst->SetPointEXhigh(i,0.5);
+    if (xMax<=30 && (i+1)==p9059_d15x1y1_numpoints) {
+      double x,y;
+      p9059_d15x1y1->GetPoint(i,x,y);
+      p9059_d15x1y1->SetPoint(i,x+5,y);
+      p9059_d15x1y1_syst->GetPoint(i,x,y);
+      p9059_d15x1y1_syst->SetPoint(i,x+5,y);
+    }
   }
 
   // Style for graphs
-  p9059_d9x1y1->SetMarkerStyle(kOpenSquare);
-  p9059_d9x1y1->SetMarkerSize(1.3);
-  p9059_d9x1y1->SetMarkerColor(kGray+2);
-  p9059_d9x1y1->SetLineColor(kGray+2);
-  p9059_d9x1y1_syst->SetFillColorAlpha(kGray,0.5);
+  p9059_d15x1y1->SetMarkerStyle(kOpenSquare);
+  p9059_d15x1y1->SetMarkerSize(1.3);
+  p9059_d15x1y1->SetMarkerColor(kBlack);
+  p9059_d15x1y1->SetLineColor(kBlack);
+  p9059_d15x1y1_syst->SetFillColorAlpha(kGray+1,0.5);
 
   p8165_d5x1y1->SetMarkerStyle(20);
   p8165_d5x1y1->SetMarkerSize(1.3);
   p8165_d5x1y1->SetMarkerColor(kTeal+3);
   p8165_d5x1y1->SetLineColor(kTeal+4);
-//  p8165_d5x1y1_point->SetMarkerStyle(24);
-//  p8165_d5x1y1_point->SetMarkerSize(1.3);
-//  p8165_d5x1y1_point->SetMarkerColor(kBlue+2);
   p8165_d5x1y1_syst->SetFillColorAlpha(kTeal-1,0.5);
 
 
 
   //---------------------------------------------------------
-  TLine *line = new TLine(0.,1,30,1);
+  TLine *line = new TLine(0.,1,xMax,1);
   line->SetLineStyle(1);
   line->SetLineWidth(1);
 
   TCanvas *pc = new TCanvas("pc","pc");
 
-  TF1 *f4 = new TF1("f4","1",0,30);
+  TF1 *f4 = new TF1("f4","1",0,xMax);
   f4->SetLineWidth(1);
   f4->GetXaxis()->SetTitle("p_{T} (GeV/c)");
   f4->GetYaxis()->SetTitle("R_{AA}");
+  f4->GetXaxis()->SetRangeUser(0.0,xMax);
   f4->GetYaxis()->SetRangeUser(0.0,1.5);
   f4->GetXaxis()->CenterTitle(kTRUE);
  
@@ -129,14 +135,13 @@ void raaExpOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the place w
   lumi->Draw();
   lumi_lowpt->Draw();
   pc->Update();
-  
+
   pgCmsSyst->Draw("2"); // for drawing x-axis
 
-  p9059_d9x1y1_syst->Draw("2");
-  p8165_d5x1y1_syst->Draw("2");
-  p9059_d9x1y1->Draw("pz");
-  p8165_d5x1y1->Draw("pz");
-//  p8165_d5x1y1_point->Draw("p");
+  p9059_d15x1y1_syst->Draw("2");
+  if (bDrawCh) p8165_d5x1y1_syst->Draw("2");
+  p9059_d15x1y1->Draw("pz");
+  if (bDrawCh) p8165_d5x1y1->Draw("pz");
 
   pgCmsSyst->Draw("2");
   pgCmsP->Draw("P");
@@ -148,8 +153,8 @@ void raaExpOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the place w
   // additional info
   CMS_lumi(pc,12014000,0);
 
-  TLegend *leg_cent = new TLegend(0.27,0.77,0.87,0.89,NULL,"brNDC"); // at top center
-  leg_cent->SetMargin(0.17);
+  TLegend *leg_cent = new TLegend(0.28,0.77,0.86,0.89,NULL,"brNDC"); // at top center
+  leg_cent->SetMargin(0.12);
   leg_cent->SetBorderSize(0);
   leg_cent->SetTextFont(132);
   leg_cent->SetTextSize(0.03);
@@ -170,8 +175,8 @@ void raaExpOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the place w
   entry_cent->SetTextFont(42);
   entry_cent->SetTextSize(entrySize);
 
-  TLegend *leg_ch = new TLegend(0.27,0.685,0.87,0.765,NULL,"brNDC");
-  leg_ch->SetMargin(0.17);
+  TLegend *leg_ch = new TLegend(0.28,0.685,0.86,0.765,NULL,"brNDC");
+  leg_ch->SetMargin(0.12);
   leg_ch->SetBorderSize(0);
   leg_ch->SetTextFont(132);
   leg_ch->SetTextSize(0.03);
@@ -181,16 +186,23 @@ void raaExpOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the place w
   leg_ch->SetFillColor(19);
   leg_ch->SetFillStyle(0);
 
-  TLegendEntry *entry_ch;
-  entry_ch=leg_ch->AddEntry("cms_ch","Charged hadrons","");
-  entry_ch->SetTextSize(ltxSetTextSize3);
-  entry_ch->SetTextFont(132);
-  entry_ch=leg_ch->AddEntry("cms_ch_raa","|#eta| < 1, Cent. 0-5%","p");
-  entry_ch->SetTextSize(entrySize);
-  entry_ch->SetTextFont(42);
-
-  TLegend *leg_alice = new TLegend(0.27,0.60,0.87,0.68,NULL,"brNDC");
-  leg_alice->SetMargin(0.17);
+  if (bDrawCh) {
+    TLegendEntry *entry_ch;
+    entry_ch=leg_ch->AddEntry("cms_ch","Charged hadron","");
+    entry_ch->SetTextSize(ltxSetTextSize3);
+    entry_ch->SetTextFont(132);
+    entry_ch=leg_ch->AddEntry("cms_ch_raa","|#eta| < 1, Cent. 0-5%","p");
+    entry_ch->SetTextSize(entrySize);
+    entry_ch->SetTextFont(42);
+  }
+  
+  TLegend *leg_alice;
+  if (bDrawCh) {
+    leg_alice = new TLegend(0.28,0.60,0.86,0.68,NULL,"brNDC");
+  } else {
+    leg_alice = new TLegend(0.28,0.685,0.86,0.765,NULL,"brNDC");
+  }
+  leg_alice->SetMargin(0.12);
   leg_alice->SetBorderSize(0);
   leg_alice->SetTextFont(132);
   leg_alice->SetTextSize(0.03);
@@ -201,22 +213,30 @@ void raaExpOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the place w
   leg_alice->SetFillStyle(1000);
 
   TLegendEntry *entry_alice;
-  entry_alice=leg_alice->AddEntry("alice_d","Open charm: Prompt D^{0} (ALICE)","");
+  entry_alice=leg_alice->AddEntry("alice_d","Open charm: Prompt D (ALICE)","");
   entry_alice->SetTextSize(ltxSetTextSize3);
   entry_alice->SetTextFont(132);
   entry_alice=leg_alice->AddEntry("alice_d_raa","|y| < 0.5, Cent. 0-10%","p");
   entry_alice->SetTextSize(entrySize);
   entry_alice->SetTextFont(42);
 
+  TLatex *lat = new TLatex();
+  lat->SetNDC();
+  lat->SetTextFont(42);
+  lat->SetTextSize(ltxSetTextSize2);
+  if (bDrawCh) lat->DrawLatex(0.63,0.53,"Cent. 0-100%");
+  else lat->DrawLatex(0.63,0.58,"Cent. 0-100%");
+
   line->Draw();
   leg_cent->Draw();
-  leg_ch->Draw();
+  if (bDrawCh) leg_ch->Draw();
   leg_alice->Draw();
   gPad->RedrawAxis();
+
   if(bSavePlots)
   {
-    pc->SaveAs(Form("figs/pdf/raaExpOpen_pt.pdf"));
-    pc->SaveAs(Form("figs/png/raaExpOpen_pt.png"));
+    pc->SaveAs(Form("figs/pdf/raaExpOpen_pt_RaaCh%d.pdf",bDrawCh));
+    pc->SaveAs(Form("figs/png/raaExpOpen_pt_RaaCh%d.png",bDrawCh));
   }
 }
 

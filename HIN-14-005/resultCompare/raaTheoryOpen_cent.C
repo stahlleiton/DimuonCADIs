@@ -36,7 +36,7 @@
 #endif
 void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place where the input root files, with the histograms are
                      bool bSavePlots      = true,
-                     bool bDoSameYHighPt  = true
+                     bool bDoSameYHighPt  = false
                      )
 {
    // set the style
@@ -115,22 +115,22 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
   pgRaaNPJpsi_mcatshq_rad_withcmass->SetName("pgRaaNPJpsi_mcatshq_rad_withcmass");
 
   // Style for filled graphs
-  pgRaaNPJpsi_TAMU->SetFillColorAlpha(kOrange,0.7);
+  pgRaaNPJpsi_TAMU->SetFillColorAlpha(kRed+1,0.7);
   pgRaaNPJpsi_TAMU->SetFillStyle(1001);
   pgRaaNPJpsi_TAMU_withcmass->SetFillColor(kOrange+1);
   pgRaaNPJpsi_TAMU_withcmass->SetFillStyle(1001);
 
-  pgRaaNPJpsi_Djou->SetFillColor(kTeal-8);
+  pgRaaNPJpsi_Djou->SetFillColor(kViolet-9);
   pgRaaNPJpsi_Djou->SetFillStyle(1001);
-  pgRaaNPJpsi_Djou_withcmass->SetFillColor(kTeal-6);
+  pgRaaNPJpsi_Djou_withcmass->SetFillColor(kViolet-8);
   pgRaaNPJpsi_Djou_withcmass->SetFillStyle(1001);
 
   // Style for line graphs
   pgRaaNPJpsi_buzatti->SetLineColor(kRed);
-  pgRaaNPJpsi_mcatshq->SetLineColor(kViolet);
-  pgRaaNPJpsi_mcatshq_withcmass->SetLineColor(kViolet);
-  pgRaaNPJpsi_mcatshq_rad->SetLineColor(kViolet-6);
-  pgRaaNPJpsi_mcatshq_rad_withcmass->SetLineColor(kViolet-6);
+  pgRaaNPJpsi_mcatshq->SetLineColor(kTeal+4);
+//  pgRaaNPJpsi_mcatshq_withcmass->SetLineColor(kViolet);
+  pgRaaNPJpsi_mcatshq_rad->SetLineColor(kTeal+3);
+//  pgRaaNPJpsi_mcatshq_rad_withcmass->SetLineColor(kViolet-6);
   
   pgRaaNPJpsi_buzatti->SetLineStyle(1);
   pgRaaNPJpsi_mcatshq->SetLineStyle(1);
@@ -138,11 +138,11 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
   pgRaaNPJpsi_mcatshq_rad->SetLineStyle(1);
   pgRaaNPJpsi_mcatshq_rad_withcmass->SetLineStyle(7);
   
-  pgRaaNPJpsi_buzatti->SetLineWidth(2);
-  pgRaaNPJpsi_mcatshq->SetLineWidth(2);
-  pgRaaNPJpsi_mcatshq_withcmass->SetLineWidth(2);
-  pgRaaNPJpsi_mcatshq_rad->SetLineWidth(2);
-  pgRaaNPJpsi_mcatshq_rad_withcmass->SetLineWidth(2);
+  pgRaaNPJpsi_buzatti->SetLineWidth(4);
+  pgRaaNPJpsi_mcatshq->SetLineWidth(4);
+  pgRaaNPJpsi_mcatshq_withcmass->SetLineWidth(4);
+  pgRaaNPJpsi_mcatshq_rad->SetLineWidth(4);
+  pgRaaNPJpsi_mcatshq_rad_withcmass->SetLineWidth(4);
 
 
   //---------------------------------------------------------
@@ -183,7 +183,7 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
   CMS_lumi(pc,12014000,0);
 
   TLegend *leg_cent = new TLegend(0.23,0.81,0.83,0.89,NULL,"brNDC");
-  leg_cent->SetMargin(0.17);
+  leg_cent->SetMargin(0.12);
   leg_cent->SetBorderSize(0);
   leg_cent->SetTextFont(132);
   leg_cent->SetTextSize(0.03);
@@ -210,7 +210,7 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
 //  TLegend *leg_theory_cent = new TLegend(0.23,0.66,0.83,0.82,NULL,"brNDC"); //this area is for 6 theory curves into 1 canvas
 //  TLegend *leg_theory_cent = new TLegend(0.23,0.62,0.83,0.82,NULL,"brNDC"); //this area is for all 8 theory curves into 1 canvas
   //TLegend *leg_theory_cent = new TLegend(0.2,0.67,0.83,0.81,NULL,"brNDC"); //this area is for 4 theory curves into 1 canvas
-  leg_theory_cent->SetMargin(0.17);
+  leg_theory_cent->SetMargin(0.12);
   leg_theory_cent->SetBorderSize(0);
   leg_theory_cent->SetTextFont(132);
   leg_theory_cent->SetTextSize(0.028);
@@ -223,11 +223,11 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
   TLegendEntry *entry_theory_cent;
 //  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_buzatti","Buzatti: CUJET preliminary (y~0)","l");
 //  entry_theory_cent->SetTextFont(42);
-  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_mcatshq","MC@sHQ+EPOS: standard (|y| < 1)","l");
+  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_mcatshq","MC@sHQ+EPOS: standard (0-100%, |y| < 1)","l");
   entry_theory_cent->SetTextFont(42);
 //  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_mcatshq_withcmass","MC@sHQ+EPOS: c mass (|y| < 1)","l");
 //  entry_theory_cent->SetTextFont(42);
-  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_mcatshq_rad","MC@sHQ+EPOS+rad+LPM: standard (|y| < 1)","l");
+  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_mcatshq_rad","MC@sHQ+EPOS+rad+LPM: standard (0-100%, |y| < 1)","l");
   entry_theory_cent->SetTextFont(42);
 //  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_mcatshq_rad_withcmass","MC@sHQ+EPOS+rad+LPM: c mass (|y| < 1)","l");
 //  entry_theory_cent->SetTextFont(42);

@@ -42,7 +42,7 @@
 #endif
 
 void v2TheoryOpen_pt(bool bSavePlots = true, 
-                  float rangeYAxis    = 0.26,
+                  float rangeYAxis    = 0.27,
                   float rangeXAxis    = 17,
                   const char* inputDir= "../macro_v2/outRoot", // the place where the input root files, with the histograms are
                   const char* figNamePrefix="v2TheoryOpen_pt")
@@ -161,10 +161,10 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
  
   //--------------------------- 
 //  TLegend *leg_K = new TLegend(0.23,0.55,0.7,0.76,NULL,"brNDC"); // with 6 entries
-  TLegend *leg_K = new TLegend(0.23,0.65,0.62,0.77,NULL,"brNDC");
+  TLegend *leg_K = new TLegend(0.23,0.65,0.7,0.77,NULL,"brNDC"); //0.62
   leg_K->SetNColumns(2); // insertion order is top-left -> top-right -> bottom-left -> bottom-right
   leg_K->SetColumnSeparation(0.05);
-  leg_K->SetMargin(0.355);
+  leg_K->SetMargin(0.32);
   leg_K->SetBorderSize(0);
 //  leg_K->SetTextFont(132);
 //  leg_K->SetTextSize(ltxSetTextSize3);
@@ -177,7 +177,7 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   TLegendEntry *entry_K;
   entry_K=leg_K->AddEntry("K08K15","MC@sHQ + EPOS (Cent. 20-60%, |y| < 1)",""); 
   entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize-0.005);
+  entry_K->SetTextSize(entrySize);//-0.005);
   entry_K=leg_K->AddEntry("K08K15","",""); // empty column for a alignment
 //  entry_K=leg_K->AddEntry("gD_K08","D (K=0.8)","L");
 //  entry_K->SetLineWidth(3);
@@ -191,21 +191,27 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   entry_K=leg_K->AddEntry("gB_K08","B (K=0.8)","L");
   entry_K->SetLineWidth(3);
   entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize-0.005);
+  entry_K->SetTextSize(entrySize);//-0.005);
   entry_K=leg_K->AddEntry("gB_K15","B (K=1.5)","L");
   entry_K->SetLineWidth(3);
   entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize-0.005);
+  entry_K->SetTextSize(entrySize);//-0.005);
 
   entry_K=leg_K->AddEntry("gNPJpsi_K08","NP J/#psi (K=0.8)","L");
   entry_K->SetLineWidth(3);
   entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize-0.005);
+  entry_K->SetTextSize(entrySize);//-0.005);
   entry_K=leg_K->AddEntry("gNPJpsi_K15","NP J/#psi (K=1.5)","L");
   entry_K->SetLineWidth(3);
   entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize-0.005);
+  entry_K->SetTextSize(entrySize);//-0.005);
  
+  TLatex *lat = new TLatex();
+  lat->SetNDC();
+  lat->SetTextFont(42);
+  lat->SetTextSize(ltxSetTextSize2);
+  lat->DrawLatex(0.63,0.52,"Cent. 10-60%");
+
   leg->Draw();
   leg_K->Draw();
   gPad->RedrawAxis();

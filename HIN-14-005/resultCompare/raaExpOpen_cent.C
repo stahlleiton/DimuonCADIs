@@ -36,7 +36,7 @@
 #endif
 void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place where the input root files, with the histograms are
                      bool bSavePlots      = true,
-                     bool bDoSameYHighPt  = true
+                     bool bDoSameYHighPt  = false
                      )
 {
    // set the style

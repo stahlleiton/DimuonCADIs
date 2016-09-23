@@ -51,6 +51,7 @@ void makeRaa_pt( bool bSavePlots           = 1,
 {
   gSystem->mkdir(Form("./%s/png",outputDir), kTRUE);
   gSystem->mkdir(Form("./%s/pdf",outputDir), kTRUE);
+  gSystem->mkdir(Form("./%s",outputRootDir), kTRUE);
  // set the style
   setTDRStyle();
  

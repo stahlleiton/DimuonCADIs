@@ -176,7 +176,7 @@ void raaTheoryOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the plac
   // additional info
   CMS_lumi(pc,12014000,0);
 
-  TLegend *leg_cent = new TLegend(0.59,0.52,0.89,0.64,NULL,"brNDC");
+  TLegend *leg_cent = new TLegend(0.59,0.50,0.89,0.64,NULL,"brNDC");
 //  TLegend *leg_cent = new TLegend(0.29,0.81,0.83,0.89,NULL,"brNDC"); // at top center
   leg_cent->SetMargin(0.17);
   leg_cent->SetBorderSize(0);
@@ -193,18 +193,20 @@ void raaTheoryOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the plac
   entry_cent->SetTextFont(132);
   entry_cent->SetTextSize(ltxSetTextSize3);
   entry_cent=leg_cent->AddEntry("gNonPrJpsi_pt365y1624", "1.6 < |y| < 2.4","p");
+//  entry_cent->SetTextColor(kViolet+2);
   entry_cent->SetTextFont(42);
   entry_cent->SetTextSize(entrySize);
   entry_cent=leg_cent->AddEntry("gNonPrJpsi", "|y| < 2.4","p");
+//  entry_cent->SetTextColor(kOrange+2);
   entry_cent->SetTextFont(42);
   entry_cent->SetTextSize(entrySize);
 
-  TLegend *leg_theory_cent = new TLegend(0.29,0.68,0.83,0.88,NULL,"brNDC");
+  TLegend *leg_theory_cent = new TLegend(0.285,0.681,0.83,0.881,NULL,"brNDC");
 //  TLegend *leg_theory_cent = new TLegend(0.29,0.61,0.83,0.81,NULL,"brNDC");
-  leg_theory_cent->SetMargin(0.17);
+  leg_theory_cent->SetMargin(0.1);
   leg_theory_cent->SetBorderSize(0);
   leg_theory_cent->SetTextFont(62);
-  leg_theory_cent->SetTextSize(0.028);
+  leg_theory_cent->SetTextSize(0.027);
   leg_theory_cent->SetLineColor(1);
   leg_theory_cent->SetLineStyle(1);
   leg_theory_cent->SetLineWidth(1);
@@ -212,15 +214,15 @@ void raaTheoryOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the plac
   leg_theory_cent->SetFillStyle(1001);
   
   TLegendEntry *entry_theory_cent;
-  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_mcatshq","MC@sHQ+EPOS: standard (|y| < 1)","l");
+  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_mcatshq_rad","MC@sHQ+EPOS+rad+LPM: standard (0-100%, |y| < 1)","l");
   entry_theory_cent->SetTextFont(42);
-  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_mcatshq_rad","MC@sHQ+EPOS+rad+LPM: standard (|y| < 1)","l");
+  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_mcatshq","MC@sHQ+EPOS: standard (0-100%, |y| < 1)","l");
   entry_theory_cent->SetTextFont(42);
   entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_bamps","BAMPS: b=5 fm (|y| < 2.4)","l");
   entry_theory_cent->SetTextFont(42);
-  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_vitev","Vitev: Rad E loss+CNM+Dissoc(0-10%, y~0)","f");
+  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_vitev","Vitev: Rad E loss+CNM+Dissoc (0-10%, y~0)","f");
   entry_theory_cent->SetTextFont(42);
-  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_vitev_noDissoc","Vitev: Rad E loss+CNM(0-10%, y~0)","f");
+  entry_theory_cent=leg_theory_cent->AddEntry("pgRaaNPJpsi_vitev_noDissoc","Vitev: Rad E loss+CNM (0-10%, y~0)","f");
   entry_theory_cent->SetTextFont(42);
   if(bDoBRaa)
   {
@@ -229,6 +231,12 @@ void raaTheoryOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the plac
     entry_theory_cent=leg_theory_cent->AddEntry("pgRaaB_whdg","WHDG: Rad+Coll E loss (0-80%, y~0)","f");
     entry_theory_cent->SetTextFont(42);
   }
+
+  TLatex *lat = new TLatex();
+  lat->SetNDC();
+  lat->SetTextFont(42);
+  lat->SetTextSize(ltxSetTextSize2);
+  lat->DrawLatex(0.2,0.17,"Cent. 0-100%");
 
   line->Draw();
   leg_cent->Draw();
