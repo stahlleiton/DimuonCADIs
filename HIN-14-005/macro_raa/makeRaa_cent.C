@@ -254,7 +254,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
         
       case 3:
         prJpsi_pt6530y1624_cent[ibin-1]       = raa_pr;
-        prJpsiErr_cent[ibin-1]                = raaErr_pr;
+        prJpsiErr_pt6530y1624_cent[ibin-1]    = raaErr_pr;
 
         nonPrJpsi_pt6530y1624_cent[ibin-1]    = raa_npr;
         nonPrJpsiErr_pt6530y1624_cent[ibin-1] = raaErr_npr;
