@@ -8,61 +8,123 @@
 
 using namespace std;
 
-TGraphErrors* rapp_cent_mid_276(const char* prependPath=".") {
+const double dn = 15;
+
+TGraphErrors* rapp_cent_mid_276(double xshift, const char* prependPath=".") {
    ifstream file(Form("%s/Input/chi_Rapp_cent_276.dat",prependPath));
    double npart, chimin, chimax, dummy;
    vector<double> vnpart, vchi, vdchi;
    while (file.good()) {
       file >> npart >> chimin >> chimax >> dummy >> dummy;
       if (!file.good()) break;
-      vnpart.push_back(npart);
+      vnpart.push_back(npart+xshift);
       vchi.push_back((chimax+chimin)/2.);
       vdchi.push_back((chimax-chimin)/2.);
    }
    int n = vnpart.size();
    return new TGraphErrors(n,vnpart.data(),vchi.data(),vector<double>(n).data(),vdchi.data());
 }
-TGraphErrors* rapp_cent_fwd_276(const char* prependPath=".") {
+TGraphErrors* rapp_cent_mid_276_3bins(double xshift, const char* prependPath=".") {
+   ifstream file(Form("%s/Input/chi_Rapp_cent_276_3bins.dat",prependPath));
+   double npart, chimin, chimax, dummy;
+   vector<double> vnpart, vchi, vdchi, vdn;
+   while (file.good()) {
+      file >> npart >> chimin >> chimax >> dummy >> dummy;
+      if (!file.good()) break;
+      vnpart.push_back(npart+xshift);
+      vchi.push_back((chimax+chimin)/2.);
+      vdchi.push_back((chimax-chimin)/2.);
+      vdn.push_back(dn);
+   }
+   int n = vnpart.size();
+   return new TGraphErrors(n,vnpart.data(),vchi.data(),vdn.data(),vdchi.data());
+}
+TGraphErrors* rapp_cent_fwd_276(double xshift, const char* prependPath=".") {
    ifstream file(Form("%s/Input/chi_Rapp_cent_276.dat",prependPath));
    double npart, chimin, chimax, dummy;
    vector<double> vnpart, vchi, vdchi;
    while (file.good()) {
       file >> npart >> dummy >> dummy >> chimin >> chimax;
       if (!file.good()) break;
-      vnpart.push_back(npart);
+      vnpart.push_back(npart+xshift);
       vchi.push_back((chimax+chimin)/2.);
       vdchi.push_back((chimax-chimin)/2.);
    }
    int n = vnpart.size();
    return new TGraphErrors(n,vnpart.data(),vchi.data(),vector<double>(n).data(),vdchi.data());
 }
-TGraphErrors* rapp_cent_mid_502(const char* prependPath=".") {
+TGraphErrors* rapp_cent_fwd_276_3bins(double xshift, const char* prependPath=".") {
+   ifstream file(Form("%s/Input/chi_Rapp_cent_276_3bins.dat",prependPath));
+   double npart, chimin, chimax, dummy;
+   vector<double> vnpart, vchi, vdchi, vdn;
+   while (file.good()) {
+      file >> npart >> dummy >> dummy >> chimin >> chimax;
+      if (!file.good()) break;
+      vnpart.push_back(npart+xshift);
+      vchi.push_back((chimax+chimin)/2.);
+      vdchi.push_back((chimax-chimin)/2.);
+      vdn.push_back(dn);
+   }
+   int n = vnpart.size();
+   return new TGraphErrors(n,vnpart.data(),vchi.data(),vdn.data(),vdchi.data());
+}
+TGraphErrors* rapp_cent_mid_502(double xshift, const char* prependPath=".") {
    ifstream file(Form("%s/Input/chi_Rapp_cent_502.dat",prependPath));
    double npart, chimin, chimax, dummy;
    vector<double> vnpart, vchi, vdchi;
    while (file.good()) {
       file >> npart >> chimin >> chimax >> dummy >> dummy;
       if (!file.good()) break;
-      vnpart.push_back(npart);
+      vnpart.push_back(npart+xshift);
       vchi.push_back((chimax+chimin)/2.);
       vdchi.push_back((chimax-chimin)/2.);
    }
    int n = vnpart.size();
    return new TGraphErrors(n,vnpart.data(),vchi.data(),vector<double>(n).data(),vdchi.data());
 }
-TGraphErrors* rapp_cent_fwd_502(const char* prependPath=".") {
+TGraphErrors* rapp_cent_mid_502_6bins(double xshift, const char* prependPath=".") {
+   ifstream file(Form("%s/Input/chi_Rapp_cent_502_6bins.dat",prependPath));
+   double npart, chimin, chimax, dummy;
+   vector<double> vnpart, vchi, vdchi, vdn;
+   while (file.good()) {
+      file >> npart >> chimin >> chimax >> dummy >> dummy;
+      if (!file.good()) break;
+      vnpart.push_back(npart+xshift);
+      vchi.push_back((chimax+chimin)/2.);
+      vdchi.push_back((chimax-chimin)/2.);
+      vdn.push_back(dn);
+   }
+   int n = vnpart.size();
+   return new TGraphErrors(n,vnpart.data(),vchi.data(),vdn.data(),vdchi.data());
+}
+TGraphErrors* rapp_cent_fwd_502(double xshift, const char* prependPath=".") {
    ifstream file(Form("%s/Input/chi_Rapp_cent_502.dat",prependPath));
    double npart, chimin, chimax, dummy;
    vector<double> vnpart, vchi, vdchi;
    while (file.good()) {
       file >> npart >> dummy >> dummy >> chimin >> chimax;
       if (!file.good()) break;
-      vnpart.push_back(npart);
+      vnpart.push_back(npart+xshift);
       vchi.push_back((chimax+chimin)/2.);
       vdchi.push_back((chimax-chimin)/2.);
    }
    int n = vnpart.size();
    return new TGraphErrors(n,vnpart.data(),vchi.data(),vector<double>(n).data(),vdchi.data());
+}
+TGraphErrors* rapp_cent_fwd_502_3bins(double xshift, const char* prependPath=".") {
+   ifstream file(Form("%s/Input/chi_Rapp_cent_502_3bins.dat",prependPath));
+   double npart, chimin, chimax, dummy;
+   vector<double> vnpart, vchi, vdchi, vdn;
+   while (file.good()) {
+      file >> npart >> dummy >> dummy >> chimin >> chimax;
+      if (!file.good()) break;
+      vnpart.push_back(npart+xshift);
+      vchi.push_back((chimax+chimin)/2.);
+      vdchi.push_back((chimax-chimin)/2.);
+      vdn.push_back(dn);
+   }
+   int n = vnpart.size();
+   return new TGraphErrors(n,vnpart.data(),vchi.data(),vdn.data(),vdchi.data());
 }
 TGraphErrors* rapp_pt_mid_502(const char* prependPath=".") {
    ifstream file(Form("%s/Input/chi_Rapp_pt_502_mid.dat",prependPath));
