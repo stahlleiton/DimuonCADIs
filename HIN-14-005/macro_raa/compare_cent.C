@@ -313,7 +313,7 @@ void compare_cent(bool bSavePlots       = true,
         nonPrJpsiErr_pt6530y1624_cent[ibin-1] = raaErr_npr;
 
         prJpsiTrad_pt6530y1624_cent[ibin-1]       = raaTrad_pr;
-        prJpsiTradErr_cent[ibin-1]                = raaTradErr_pr;
+        prJpsiTradErr_pt6530y1624_cent[ibin-1]    = raaTradErr_pr;
 
         nonPrJpsiTrad_pt6530y1624_cent[ibin-1]    = raaTrad_npr;
         nonPrJpsiTradErr_pt6530y1624_cent[ibin-1] = raaTradErr_npr;
