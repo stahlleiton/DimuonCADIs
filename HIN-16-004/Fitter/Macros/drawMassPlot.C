@@ -271,6 +271,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
 
   frame->SetTitle("");
   frame->GetXaxis()->CenterTitle(kTRUE);
+  frame->GetYaxis()->CenterTitle(kTRUE);
   if (!paperStyle) {
      frame->GetXaxis()->SetTitle("");
      frame->GetXaxis()->SetTitleSize(0.045);
