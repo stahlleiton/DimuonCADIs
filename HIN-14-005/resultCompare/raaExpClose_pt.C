@@ -144,11 +144,11 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
   entry_pt->SetTextSize(ltxSetTextSize3);
   if(bDoLowPtForw)
   {
-    entry_pt=leg_pt->AddEntry("gPrJpsi_pt365y1624", "1.6 < |y| < 2.4, Cent. 0-100%","p");
+    entry_pt=leg_pt->AddEntry("gPrJpsi_pt365y1624", "1.6 < |y| < 2.4","p");
     entry_pt->SetTextFont(42);
     entry_pt->SetTextSize(entrySize);
   }
-  entry_pt=leg_pt->AddEntry("gPrJpsi", "|y| < 2.4, Cent. 0-100%","p");
+  entry_pt=leg_pt->AddEntry("gPrJpsi", "|y| < 2.4","p");
   entry_pt->SetTextFont(42);
   entry_pt->SetTextSize(entrySize);
 
@@ -169,6 +169,12 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
   entry_alice_pt=leg_alice_pt->AddEntry("pgRaaAlice_cent090","2.5 < y < 4, Cent. 0-90%","p");
   entry_alice_pt->SetTextFont(42);
   entry_alice_pt->SetTextSize(entrySize);
+
+  TLatex *lat = new TLatex();
+  lat->SetNDC();
+  lat->SetTextFont(42);
+  lat->SetTextSize(ltxSetTextSize2);
+  lat->DrawLatex(0.65,0.82,"Cent. 0-100%");
 
   leg_pt->Draw();
   leg_alice_pt->Draw();

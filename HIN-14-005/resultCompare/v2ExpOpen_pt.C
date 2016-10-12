@@ -44,6 +44,7 @@
 void v2ExpOpen_pt(bool bSavePlots = true, 
 		  float rangeYAxis    = 0.6,
 		  float rangeXAxis    = 20,
+                  bool  bDrawCh       = true,
 		  const char* inputDir= "../macro_v2/outRoot", // the place where the input root files, with the histograms are
 		  const char* figNamePrefix="v2ExpOpen_pt")
 {
@@ -123,9 +124,11 @@ void v2ExpOpen_pt(bool bSavePlots = true,
   pgAliceSys->Draw("2");
   pgAlice->Draw("pz");
  
-  gCharSys->Draw("2");
-  gChar->Draw("pz");
-  gChar2->Draw("p");
+  if (bDrawCh) {
+    gCharSys->Draw("2");
+    gChar->Draw("pz");
+    gChar2->Draw("p");
+  }
  
   pgV2LowSyst->Draw("2");
   pgV2Low->Draw("PZ");
@@ -163,15 +166,22 @@ void v2ExpOpen_pt(bool bSavePlots = true,
   leg1->SetTextFont(132);
   leg1->SetTextSize(ltxSetTextSize3);
   
-  TLegendEntry *entry1;
-  entry1=leg1->AddEntry("hpm","Charged hadrons","");
-  entry1->SetTextFont(132);
-  entry1->SetTextSize(ltxSetTextSize3);
-  entry1=leg1->AddEntry("gChar","|#eta| < 0.8","P");
-  entry1->SetTextFont(42);
-  entry1->SetTextSize(entrySize);
+  if (bDrawCh) {
+    TLegendEntry *entry1;
+    entry1=leg1->AddEntry("hpm","Charged hadron","");
+    entry1->SetTextFont(132);
+    entry1->SetTextSize(ltxSetTextSize3);
+    entry1=leg1->AddEntry("gChar","|#eta| < 0.8","P");
+    entry1->SetTextFont(42);
+    entry1->SetTextSize(entrySize);
+  }
  
-  TLegend *leg_alice = new TLegend(0.2,0.60,0.7,0.68,NULL,"brNDC");
+  TLegend *leg_alice;
+  if (bDrawCh) {
+    leg_alice = new TLegend(0.2,0.60,0.7,0.68,NULL,"brNDC");
+  } else {
+    leg_alice = new TLegend(0.2,0.685,0.7,0.765,NULL,"brNDC");
+  }
   leg_alice->SetBorderSize(0);
   leg_alice->SetTextFont(132);
   leg_alice->SetTextSize(ltxSetTextSize3);
@@ -186,19 +196,25 @@ void v2ExpOpen_pt(bool bSavePlots = true,
   entry_alice->SetTextFont(42);
   entry_alice->SetTextSize(entrySize);
  
+  TLatex *lat = new TLatex();
+  lat->SetNDC();
+  lat->SetTextFont(42);
+  lat->SetTextSize(ltxSetTextSize2);
+  if (bDrawCh) lat->DrawLatex(0.63,0.52,"Cent. 10-60%");
+  else lat->DrawLatex(0.63,0.58,"Cent. 10-60%");
+
   leg->Draw();
-  leg1->Draw();
+  if (bDrawCh) leg1->Draw();
   leg_alice->Draw();
  
   gPad->RedrawAxis();
   pcCombi->Update();
   if(bSavePlots)
   {
-    pcCombi->SaveAs(Form("figs/pdf/%s.pdf",figNamePrefix));
-    pcCombi->SaveAs(Form("figs/png/%s.png",figNamePrefix));  
+    pcCombi->SaveAs(Form("figs/pdf/%s_RaaCh%d.pdf",figNamePrefix,bDrawCh));
+    pcCombi->SaveAs(Form("figs/png/%s_RaaCh%d.png",figNamePrefix,bDrawCh));
   }
  
-  
   return;
 }
 

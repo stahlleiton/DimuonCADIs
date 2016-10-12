@@ -42,7 +42,7 @@ Output: the Raa vs cent.
 using namespace std;
 
 void makeRaa_cent( bool bSavePlots           = 1,
-		   bool bAddCent             = 1,
+		   bool bAddCent             = 0,
 		   bool bSaveRoot            = 1,
 		   bool bDoDebug             = 0, // adds some numbers, numerator, denominator, to help figure out if things are read properly
 		   bool bAddLumi             = 1, // add the lumi boxes at raa=1
@@ -254,7 +254,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
         
       case 3:
         prJpsi_pt6530y1624_cent[ibin-1]       = raa_pr;
-        prJpsiErr_cent[ibin-1]                = raaErr_pr;
+        prJpsiErr_pt6530y1624_cent[ibin-1]    = raaErr_pr;
 
         nonPrJpsi_pt6530y1624_cent[ibin-1]    = raa_npr;
         nonPrJpsiErr_pt6530y1624_cent[ibin-1] = raaErr_npr;
@@ -506,14 +506,14 @@ void makeRaa_cent( bool bSavePlots           = 1,
     lat->SetTextSize(0.025);
     lat->DrawLatex(0.899,0.29,"0-5%");
     lat->DrawLatex(0.80,0.3,"5-10%");
-    lat->DrawLatex(0.705,0.305,"10-15%");
+    lat->DrawLatex(0.705,0.309,"10-15%");
     lat->DrawLatex(0.62,0.333,"15-20%");
     lat->DrawLatex(0.55,0.366,"20-25%");
-    lat->DrawLatex(0.49,0.390,"25-30%");
-    lat->DrawLatex(0.43,0.41,"30-35%");
-    lat->DrawLatex(0.38,0.433,"35-40%");
-    lat->DrawLatex(0.34,0.455,"40-45%");
-    lat->DrawLatex(0.3,0.478,"45-50%");
+    lat->DrawLatex(0.49,0.397,"25-30%");
+    lat->DrawLatex(0.43,0.417,"30-35%");
+    lat->DrawLatex(0.38,0.439,"35-40%");
+    lat->DrawLatex(0.34,0.460,"40-45%");
+    lat->DrawLatex(0.3,0.482,"45-50%");
     lat->DrawLatex(0.25,0.563,"50-60%");
     lat->DrawLatex(0.17,0.585,"60-100%");
   }
