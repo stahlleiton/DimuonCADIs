@@ -43,7 +43,7 @@ const char* poiname = "RFrac2Svs1S"; // for double ratios
 #endif
 const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
 const bool  plot12007_mid = false; // [false] plot 12-007, midrapidity
-const bool  plot12007_fwd = false; // [false] plot 12-007, fwdrapidity
+const bool  plot12007_fwd = true; // [false] plot 12-007, fwdrapidity
 const bool  fiterrors     = true;  // [true]  statistical errors are from the fit
 const bool  FCerrors      = false; // [false] statistical errors are from the Feldman-Cousins intervals ("limits")
 const bool  promptonly    = true;  // [true]  plot the prompt only double ratio
@@ -51,7 +51,7 @@ const bool  nonpromptonly = false; // [false] plot the non-prompt only double ra
 const bool  plotlimits95  = true;  // [true]  display 95% CL limits (when the lower limit is 0)
 const bool  plotsysts     = true;  // [true]  display systematics
 const bool  plotrapp      = false; // [false] plot Rapp and Du's predictions
-const char* nameTag="_midonly";            // [""]    can put here e.g. "_prompt", "_nonprompt", ...
+const char* nameTag="_fwd";            // [""]    can put here e.g. "_prompt", "_nonprompt", ...
 
 const bool plot12007 = plot12007_mid || plot12007_fwd;
 
@@ -99,11 +99,11 @@ void plotCent(string workDirName, string workDirNameFail="") {
 
    // centrality dependence
    if (!plot12007 || plot12007_mid) theCats.push_back(anabin(0,1.6,6.5,30,0,200));
-   // if (!plot12007 || plot12007_fwd) theCats.push_back(anabin(1.6,2.4,3,30,0,200));
+   if (!plot12007 || plot12007_fwd) theCats.push_back(anabin(1.6,2.4,3,30,0,200));
 
    // for minimum bias
    if (!plot12007 || plot12007_mid) theCats.push_back(anabin(0,1.6,6.5,30,0,-200));
-   // if (!plot12007 || plot12007_fwd) theCats.push_back(anabin(1.6,2.4,3,30,0,-200));
+   if (!plot12007 || plot12007_fwd) theCats.push_back(anabin(1.6,2.4,3,30,0,-200));
 
    plot(theCats,xaxis,workDirName, workDirNameFail);
 };
@@ -470,6 +470,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          // for some reason I don't have the surrounding box... so, dirty trick.
          TGraphErrors *gmid_12007bis = (TGraphErrors*) gmid_12007->Clone("gmid_12007bis");
          gmid_12007bis->SetFillStyle(0);
+         cout << "coucou" << endl;
          gmid_12007bis->Draw("2");
       }
       if (plot12007_fwd) {
@@ -482,6 +483,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          // for some reason I don't have the surrounding box... so, dirty trick.
          TGraphErrors *gfwd_12007bis = (TGraphErrors*) gfwd_12007->Clone("gfwd_12007bis");
          gfwd_12007bis->SetFillStyle(0);
+         cout << "coucou" << endl;
          gfwd_12007bis->Draw("2");
       }
 
@@ -576,12 +578,12 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
             y = 3.1;
             dy = 0.15;
             color1 = kRed;
-            color2 = kOrange;
+            color2 = kGray;
          } else {
             y = 1.4;
             dy = 0.07;
             color1 = kBlue;
-            color2 = kCyan;
+            color2 = kGray;
          }
       }
       TBox *b1 = new TBox(x,y,x+dx,y+dy);
@@ -720,7 +722,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          g_12007_mid_cent->SetMarkerSize(2);
          g_12007_mid_cent->SetMarkerColor(kGray+2);
          g_12007_mid_cent->SetLineColor(kGray+2);
-         g_12007_mid_cent_syst->SetFillColorAlpha(kGray, 1);
+         g_12007_mid_cent_syst->SetFillColorAlpha(kGray, 0);
          g_12007_mid_cent_syst->SetLineColor(kGray+2);
          g_12007_mid_cent_syst->Draw("5");
          g_12007_mid_cent->Draw("P");
@@ -735,7 +737,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          y = 1;
          dy = 0.057;
          TBox *tbox = new TBox(x-dx,y-dy,x+dx,y+dy);
-         tbox->SetFillColorAlpha(kGray, 1);
+         tbox->SetFillColorAlpha(kGray, 0);
          tbox->SetLineColor(kGray+2);
          tbox->Draw("l");
          line.Draw(); // to make sure the line at 1 is always on top
@@ -747,7 +749,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          g_12007_fwd_cent->SetMarkerSize(2);
          g_12007_fwd_cent->SetMarkerColor(kGray+2);
          g_12007_fwd_cent->SetLineColor(kGray+2);
-         g_12007_fwd_cent_syst->SetFillColorAlpha(kGray, 1);
+         g_12007_fwd_cent_syst->SetFillColorAlpha(kGray, 0);
          g_12007_fwd_cent_syst->SetLineColor(kGray+2);
          g_12007_fwd_cent_syst->Draw("5");
          g_12007_fwd_cent->Draw("P");
@@ -758,7 +760,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          y = 1;
          dy = 0.066;
          TBox *tbox = new TBox(x-dx,y-dy,x+dx,y+dy);
-         tbox->SetFillColorAlpha(kGray, 1);
+         tbox->SetFillColorAlpha(kGray, 0);
          tbox->SetLineColor(kGray+2);
          tbox->Draw("l");
          line.Draw(); // to make sure the line at 1 is always on top
@@ -772,7 +774,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          g_12007_mid->SetMarkerSize(2);
          g_12007_mid->SetMarkerColor(kGray+2);
          g_12007_mid->SetLineColor(kGray+2);
-         g_12007_mid_syst->SetFillColorAlpha(kGray, 1);
+         g_12007_mid_syst->SetFillColorAlpha(kGray, 0);
          g_12007_mid_syst->SetLineColor(kGray+2);
          g_12007_mid_syst->Draw("5");
          g_12007_mid->Draw("P");
@@ -784,7 +786,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          g_12007_fwd->SetMarkerSize(2);
          g_12007_fwd->SetMarkerColor(kGray+2);
          g_12007_fwd->SetLineColor(kGray+2);
-         g_12007_fwd_syst->SetFillColorAlpha(kGray, 1);
+         g_12007_fwd_syst->SetFillColorAlpha(kGray, 0);
          g_12007_fwd_syst->SetLineColor(kGray+2);
          g_12007_fwd_syst->Draw("5");
          g_12007_fwd->Draw("P");
