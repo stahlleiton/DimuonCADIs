@@ -43,7 +43,7 @@ const char* poiname = "RFrac2Svs1S"; // for double ratios
 #endif
 const char* ylabel = "(#psi(2S)/J/#psi)_{PbPb} / (#psi(2S)/J/#psi)_{pp}";
 const bool  plot12007_mid = false; // [false] plot 12-007, midrapidity
-const bool  plot12007_fwd = true; // [false] plot 12-007, fwdrapidity
+const bool  plot12007_fwd = false; // [false] plot 12-007, fwdrapidity
 const bool  fiterrors     = true;  // [true]  statistical errors are from the fit
 const bool  FCerrors      = false; // [false] statistical errors are from the Feldman-Cousins intervals ("limits")
 const bool  promptonly    = true;  // [true]  plot the prompt only double ratio
@@ -51,7 +51,7 @@ const bool  nonpromptonly = false; // [false] plot the non-prompt only double ra
 const bool  plotlimits95  = true;  // [true]  display 95% CL limits (when the lower limit is 0)
 const bool  plotsysts     = true;  // [true]  display systematics
 const bool  plotrapp      = false; // [false] plot Rapp and Du's predictions
-const char* nameTag="_fwd";            // [""]    can put here e.g. "_prompt", "_nonprompt", ...
+const char* nameTag="_rapp";            // [""]    can put here e.g. "_prompt", "_nonprompt", ...
 
 const bool plot12007 = plot12007_mid || plot12007_fwd;
 
@@ -470,7 +470,6 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          // for some reason I don't have the surrounding box... so, dirty trick.
          TGraphErrors *gmid_12007bis = (TGraphErrors*) gmid_12007->Clone("gmid_12007bis");
          gmid_12007bis->SetFillStyle(0);
-         cout << "coucou" << endl;
          gmid_12007bis->Draw("2");
       }
       if (plot12007_fwd) {
@@ -483,7 +482,6 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          // for some reason I don't have the surrounding box... so, dirty trick.
          TGraphErrors *gfwd_12007bis = (TGraphErrors*) gfwd_12007->Clone("gfwd_12007bis");
          gfwd_12007bis->SetFillStyle(0);
-         cout << "coucou" << endl;
          gfwd_12007bis->Draw("2");
       }
 
@@ -508,24 +506,28 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
          gfwd_down = tge2tg(gfwd,-1);
       }
       if (gmid && !(plot12007_fwd && !plot12007_mid)) { // if asking for 2.76TeV fwd only, do not plot 5TeV mid
-         gmid->SetFillColorAlpha(kBlue+2,1); 
+         gmid->SetFillColorAlpha(xaxis=="cent" ? kBlue+2 : kBlue-9,1); 
          gmid->SetLineColor(kBlue+2); 
-         gmid->SetFillStyle(3345);
-         gmid->Draw("5"); // was 3
+         gmid->SetFillStyle(xaxis=="cent" ? 3345 : 1001);
+         gmid->Draw(xaxis=="cent" ? "5" : "3");
          // for some reason I don't have the surrounding box... so, dirty trick.
-         TGraphErrors *gmidbis = (TGraphErrors*) gmid->Clone("gmidbis");
-         gmidbis->SetFillStyle(0);
-         gmidbis->Draw("2");
+         if (xaxis == "cent") {
+            TGraphErrors *gmidbis = (TGraphErrors*) gmid->Clone("gmidbis");
+            gmidbis->SetFillStyle(0);
+            gmidbis->Draw("2");
+         }
       }
       if (gfwd && !(plot12007_mid && !plot12007_fwd)) { // if asking for 2.76TeV mid only, do not plot 5TeV fwd
-         gfwd->SetFillColorAlpha(kRed+2,1);
+         gfwd->SetFillColorAlpha(xaxis=="cent" ? kRed+2 : kRed-9,1);
          gfwd->SetLineColor(kRed+2);
-         gfwd->SetFillStyle(3345);
-         gfwd->Draw("5"); // was 3
+         gfwd->SetFillStyle(xaxis=="cent" ? 3345 : 1001);
+         gfwd->Draw(xaxis=="cent" ? "5" : "3");
          // for some reason I don't have the surrounding box... so, dirty trick.
-         TGraphErrors *gfwdbis = (TGraphErrors*) gfwd->Clone("gfwdbis");
-         gfwdbis->SetFillStyle(0);
-         gfwdbis->Draw("2");
+         if (xaxis == "cent") {
+            TGraphErrors *gfwdbis = (TGraphErrors*) gfwd->Clone("gfwdbis");
+            gfwdbis->SetFillStyle(0);
+            gfwdbis->Draw("2");
+         }
       }
 
       // if (plot12007_mid) {
@@ -546,18 +548,18 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       //    gfwd_12007_up->Draw("L");
       //    gfwd_12007_down->Draw("L");
       // }
-      // if (gmid && !(plot12007_fwd && !plot12007_mid)) { // if asking for 2.76TeV fwd only, do not plot 5TeV mid
-      //    gmid_up->SetLineColor(kBlue+2);
-      //    gmid_down->SetLineColor(kBlue+2);
-      //    gmid_up->Draw("L");
-      //    gmid_down->Draw("L");
-      // }
-      // if (gfwd && !(plot12007_mid && !plot12007_fwd)) { // if asking for 2.76TeV mid only, do not plot 5TeV fwd
-      //    gfwd_up->SetLineColor(kRed+2);
-      //    gfwd_down->SetLineColor(kRed+2);
-      //    gfwd_up->Draw("L");
-      //    gfwd_down->Draw("L");
-      // }
+      if (gmid && !(plot12007_fwd && !plot12007_mid)) { // if asking for 2.76TeV fwd only, do not plot 5TeV mid
+         gmid_up->SetLineColor(kBlue+2);
+         gmid_down->SetLineColor(kBlue+2);
+         gmid_up->Draw("L");
+         gmid_down->Draw("L");
+      }
+      if (gfwd && !(plot12007_mid && !plot12007_fwd)) { // if asking for 2.76TeV mid only, do not plot 5TeV fwd
+         gfwd_up->SetLineColor(kRed+2);
+         gfwd_down->SetLineColor(kRed+2);
+         gfwd_up->Draw("L");
+         gfwd_down->Draw("L");
+      }
 
       // now the legend
       // do it by hand because we need several colors in a single entry
@@ -590,11 +592,11 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       x = x+1.5*dx;
       TBox *b2 = new TBox(x,y,x+dx,y+dy);
       b1->SetLineColor(color1+2);
-      b1->SetFillColor(color1+2); // -9
-      b1->SetFillStyle(3345); 
+      b1->SetFillColor(xaxis=="cent" ? color1+2 : color1-9);
+      b1->SetFillStyle(xaxis=="cent" ? 3345 : 1001); 
       b2->SetLineColor(color2+2);
-      b2->SetFillColor(color2+2); // -9
-      b2->SetFillStyle(3354); 
+      b2->SetFillColor(xaxis=="cent" ? color2+2 : color2-9);
+      b2->SetFillStyle(xaxis=="cent" ? 3345 : 1001); 
       b1->Draw("l"); b2->Draw("l"); // "l"
       TBox *b1b = (TBox*) b1->Clone("b1b");
       b1b->SetFillStyle(0); b1b->Draw("l");
@@ -881,7 +883,7 @@ void centrality2npart(TGraphAsymmErrors* tg, bool issyst, bool isMB, double xshi
             exh = HI::findNpartSyst(2.*(x-exl),2.*(x+exh));//0.;
          }
       } else {
-         exl = !isMB ? 5 : 5./(1.-xfrac);
+         exl = !isMB ? 5 : 5.*xfrac/(1.-xfrac);
          exh = exl;
       }
       tg->SetPoint(i,x,y);
