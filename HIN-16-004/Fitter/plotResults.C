@@ -51,7 +51,7 @@ const bool  nonpromptonly = false; // [false] plot the non-prompt only double ra
 const bool  plotlimits95  = true;  // [true]  display 95% CL limits (when the lower limit is 0)
 const bool  plotsysts     = true;  // [true]  display systematics
 const bool  plotrapp      = false; // [false] plot Rapp and Du's predictions
-const char* nameTag="_rapp";            // [""]    can put here e.g. "_prompt", "_nonprompt", ...
+const char* nameTag="";            // [""]    can put here e.g. "_prompt", "_nonprompt", ...
 
 const bool plot12007 = plot12007_mid || plot12007_fwd;
 
@@ -548,17 +548,19 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       //    gfwd_12007_up->Draw("L");
       //    gfwd_12007_down->Draw("L");
       // }
-      if (gmid && !(plot12007_fwd && !plot12007_mid)) { // if asking for 2.76TeV fwd only, do not plot 5TeV mid
-         gmid_up->SetLineColor(kBlue+2);
-         gmid_down->SetLineColor(kBlue+2);
-         gmid_up->Draw("L");
-         gmid_down->Draw("L");
-      }
-      if (gfwd && !(plot12007_mid && !plot12007_fwd)) { // if asking for 2.76TeV mid only, do not plot 5TeV fwd
-         gfwd_up->SetLineColor(kRed+2);
-         gfwd_down->SetLineColor(kRed+2);
-         gfwd_up->Draw("L");
-         gfwd_down->Draw("L");
+      if (xaxis=="pt") {
+         if (gmid && !(plot12007_fwd && !plot12007_mid)) { // if asking for 2.76TeV fwd only, do not plot 5TeV mid
+            gmid_up->SetLineColor(kBlue+2);
+            gmid_down->SetLineColor(kBlue+2);
+            gmid_up->Draw("L");
+            gmid_down->Draw("L");
+         }
+         if (gfwd && !(plot12007_mid && !plot12007_fwd)) { // if asking for 2.76TeV mid only, do not plot 5TeV fwd
+            gfwd_up->SetLineColor(kRed+2);
+            gfwd_down->SetLineColor(kRed+2);
+            gfwd_up->Draw("L");
+            gfwd_down->Draw("L");
+         }
       }
 
       // now the legend
