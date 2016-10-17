@@ -598,7 +598,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       b1->SetFillStyle(xaxis=="cent" ? 3345 : 1001); 
       b2->SetLineColor(color2+2);
       b2->SetFillColor(xaxis=="cent" ? color2+2 : color2-9);
-      b2->SetFillStyle(xaxis=="cent" ? 3345 : 1001); 
+      b2->SetFillStyle(xaxis=="cent" ? 3354 : 1001); 
       b1->Draw("l"); b2->Draw("l"); // "l"
       TBox *b1b = (TBox*) b1->Clone("b1b");
       b1b->SetFillStyle(0); b1b->Draw("l");
