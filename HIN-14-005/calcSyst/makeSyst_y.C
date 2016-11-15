@@ -484,7 +484,7 @@ void makeSyst_y( bool bSavePlots        = 1,
             << TMath::Sqrt(syst_effTnP_pr_aa[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_pr_aa[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_pr_aa[ibin-1][3]+syst_effTnP_pr_aa[ibin-1][4]) << "\t"
             << TMath::Sqrt(syst_effTnP_pr_aa[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_pr_aa[ibin-1][0]) << "\t"
             << TMath::Sqrt(fitContribution_pr_aa/rms_fitContribNorm) << "\t"
-            << TMath::Sqrt(TMath::Power(systLumis[1],2) + TMath::Power(systEventSelection[1],2) + TMath::Power(systTracking[1],2)) << endl;
+            << TMath::Sqrt(TMath::Power(systLumis[1],2) + TMath::Power(systEventSelection[1],2) + TMath::Power(systTracking[1],2) + TMath::Power(adTaaMBErr[0]/adTaaMB[0],2)) << endl;
           outputData_npr << ybins_str[ibin-1]<<"\t" << "0024\t" << "0100\t" << yieldRatio_npr << "\t" << nonPrJpsiErrSyst_y[ibin-1] << "\t"
               << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][1]) << "\t" << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][2]) << "\t" << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][1]+syst_effTnP_npr_pp[ibin-1][2]) << "\t"
               << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_npr_pp[ibin-1][3]+syst_effTnP_npr_pp[ibin-1][4]) << "\t"
@@ -495,7 +495,7 @@ void makeSyst_y( bool bSavePlots        = 1,
               << TMath::Sqrt(syst_effTnP_npr_aa[ibin-1][3]) << "\t" << TMath::Sqrt(syst_effTnP_npr_aa[ibin-1][4]) << "\t" << TMath::Sqrt(syst_effTnP_npr_aa[ibin-1][3]+syst_effTnP_npr_aa[ibin-1][4]) << "\t"
               << TMath::Sqrt(syst_effTnP_npr_aa[ibin-1][0]) << "\t" << TMath::Sqrt(syst_eff4d_npr_aa[ibin-1][0]) << "\t"
               << TMath::Sqrt(fitContribution_npr_aa/rms_fitContribNorm) << "\t"
-              << TMath::Sqrt(TMath::Power(systLumis[1],2) + TMath::Power(systEventSelection[1],2) + TMath::Power(systTracking[1],2)) << endl;
+              << TMath::Sqrt(TMath::Power(systLumis[1],2) + TMath::Power(systEventSelection[1],2) + TMath::Power(systTracking[1],2) + TMath::Power(adTaaMBErr[0]/adTaaMB[0],2)) << endl;
 
           if(bDoDebug)
           {
@@ -560,7 +560,7 @@ void makeSyst_y( bool bSavePlots        = 1,
   gNonPrJpsiSyst->SetFillColor(kOrange-9);
   gNonPrJpsiSyst_y_y->SetFillColor(kViolet-9);
   //------------------------------- luminosity calcualtion
-  double globalSyst  = TMath::Sqrt(systLumi+systSelection+systTrack);
+  double globalSyst  = TMath::Sqrt(systLumi+systSelection+systTrack+TMath::Power(adTaaMBErr[0]/adTaaMB[0],2));
   TBox *lumi = new TBox(2.25,1-globalSyst,2.4,1+globalSyst);
   lumi->SetFillColor(kGray+1);
 
