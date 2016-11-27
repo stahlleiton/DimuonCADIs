@@ -15,7 +15,7 @@
 TString cmsText     = "CMS";
 float cmsTextFont   = 61;  // default is helvetic-bold
 
-bool writeExtraText = false; // if true, will write "Preliminary"
+bool writeExtraText = true; // if true, will write "Preliminary"
 TString extraText   = "Preliminary";
 float extraTextFont = 52;  // default is helvetica-italics
 
