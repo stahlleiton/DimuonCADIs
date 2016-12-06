@@ -35,7 +35,7 @@ using namespace std;
 #ifndef poiname_check
 #define poiname_check
 // const char* poiname = "RFrac2Svs1S"; // for double ratios
-const char* poiname       = "N_Jpsi"; // for RAA (will correct automatically for efficiency)
+const char* poiname       = "N_Jpsi_cor"; // for RAA (will correct automatically for efficiency)
 // const char* poiname = "N_Psi2S"; // for RAA (will correct automatically for efficiency)
 #endif
 const char* ylabel        = "R_{AA}";
@@ -44,21 +44,11 @@ const bool  FCerrors      = false; // statistical errors are from the Feldman-Co
 const bool  plotlimits95  = true;  // display 95% CL limits (when the lower limit is 0)
 const bool  plotsysts     = true;  // display systematics
 const char* nameTag       = "";    // can put here e.g. "_prompt", "_nonprompt", ...
-const char* cat           = "rap"; // plot RAA in categories of centrality ("cent") or rapidity ("rap"). if inclusive, enter "rap".
-
-///////////////
-// CONSTANTS //
-///////////////
-
-const double lumipp = 27.7e6;
-const double lumipbpb_ABCD = 351;
-const double lumipbpb_peri = 464;
 
 //////////////////
 // DECLARATIONS //
 //////////////////
 
-RooRealVar* poiFromFile(const char* filename, const char* token="");
 // plot
 void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsymmErrors*> theGraphs_syst, string xaxis, string outputDir, map<anabin, syst> gsyst);
 void plot(vector<anabin> thecats, string xaxis, string workDirName);
@@ -75,8 +65,10 @@ void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color);
 void plotPt(string workDirName) {
    string xaxis = "pt";
    vector<anabin> theCats;
-   theCats.push_back(anabin(0,1.6,6.5,30,0,200));
-   theCats.push_back(anabin(1.6,2.4,3,30,0,200));
+   theCats.push_back(anabin(0,0.6,6.5,50,0,200));
+   theCats.push_back(anabin(0.6,1.2,6.5,50,0,200));
+   theCats.push_back(anabin(1.2,1.8,6.5,50,0,200));
+   theCats.push_back(anabin(1.8,2.4,6.5,50,0,200));
 
    plot(theCats,xaxis,workDirName);
 };
@@ -86,8 +78,10 @@ void plotCent(string workDirName) {
    vector<anabin> theCats;
 
    // centrality dependence
-   theCats.push_back(anabin(0,1.6,6.5,30,0,200));
-   theCats.push_back(anabin(1.6,2.4,3,30,0,200));
+   theCats.push_back(anabin(0,0.6,6.5,50,0,200));
+   theCats.push_back(anabin(0.6,1.2,6.5,50,0,200));
+   theCats.push_back(anabin(1.2,1.8,6.5,50,0,200));
+   theCats.push_back(anabin(1.8,2.4,6.5,50,0,200));
 
    plot(theCats,xaxis,workDirName);
 };
@@ -138,24 +132,16 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       tr->GetEntry(i);
       anabin thebin(ymin, ymax, ptmin, ptmax, centmin, centmax);
 
-      if (TString(collSystem)=="PP") continue;
+      bool ispp = (TString(collSystem)=="PP");
 
-      double dR, dR_stat, dR_statPP, dR_syst;
-      const char* opt = (xaxis=="cent") ? "PbPb" : ""; // for the centrality dependence, exclude PbPb errors
-         dR = doubleratio_pass_nominal(outputDir.c_str(), thebin);
-         dR_stat = doubleratio_pass_stat(outputDir.c_str(), thebin, "", opt);
-         dR_statPP = doubleratio_pass_stat(outputDir.c_str(), thebin, "", "PP");
-         dR_syst = doubleratio_pass_syst(outputDir.c_str(), thebin, "", opt);
 
-      theVars_val[thebin] = dR;
-      theVars_stat[thebin] = dR_stat;
-      theVars_syst[thebin] = dR_syst;
+      // raa = pbpb / pp
+      if (theVars_val[thebin] == 0) theVars_val[thebin] = 1;
+      theVars_val[thebin] = ispp ? theVars_val[thebin] / val : theVars_val[thebin] * val;
+      theVars_stat[thebin] = 0; // FIXME
+      theVars_syst[thebin] = 0; // FIXME
 
       syst thestat_PP;
-      thestat_PP.name = "stat_PP";
-      thestat_PP.value_dR = dR_statPP;
-      thestat_PP.value = thestat_PP.value_dR / dR; 
-      thestat_PP.value_dR_rel = thestat_PP.value; 
       stat_PP[thebin] = thestat_PP;
    }
 
@@ -280,59 +266,6 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
    plotGraph(theGraphs, theGraphs_syst, xaxis, outputDir, syst_PP);
 }
 
-RooRealVar* poiFromFile(const char* filename, const char* token) {
-   RooRealVar *ans = poiFromFile(filename,token,poiname);
-   
-   // case of N_Jpsi and N_Psi2S: we want the correct normalization because we'll make a RAA
-   bool isjpsi = (TString(poiname) == "N_Jpsi");
-   bool ispsip = (TString(poiname) == "N_Psi2S");
-   if (isjpsi || ispsip) {
-      bool isPP = (TString(token).Index("PP") != kNPOS);
-      double normfactor = 1.;
-      anabin thebin = binFromFile(filename);
-
-      // luminosity and Ncoll
-      if (isPP) {
-         normfactor = 1./lumipp;
-      } else {
-         if (thebin.centbin().low()>=60) normfactor = 1./lumipbpb_peri;
-         else normfactor = 1./lumipbpb_ABCD;
-         normfactor *= 1./(208.*208.*(HI::findNcollAverage(thebin.centbin().low(),thebin.centbin().high())/HI::findNcollAverage(0,200)));
-         normfactor *= 200./(thebin.centbin().high()-thebin.centbin().low());
-      }
-
-      // efficiency
-      TFile *f = TFile::Open(Form("../Efficiency/files/histos_%s_%s.root", isjpsi ? "jpsi" : "psi2s", isPP ? "pp" : "pbpb"));
-      bool isptdep = (thebin.centbin() == binI(0,200));
-      int catmin, catmax;
-      if (string(cat)=="rap") {
-         catmin = thebin.rapbin().low()*10;
-         catmax = thebin.rapbin().high()*10;
-      } else {
-         catmin = thebin.centbin().low()/2;
-         catmax = thebin.centbin().high()/2;
-      }
-
-      TH1F *hnum = (TH1F*) f->Get(Form("hnum_%s_%s%i%i", isptdep ? "pt" : "cent", cat, catmin, catmax));
-      TH1F *hden = (TH1F*) f->Get(Form("hden_%s_%s%i%i", isptdep ? "pt" : "cent", cat, catmin, catmax));
-      double numval, numerr, denval, denerr;
-      int ibin = hnum->FindBin((thebin.centbin().low()+thebin.centbin().high())/4.);
-      if (isptdep) ibin = hnum->FindBin((thebin.ptbin().low()+thebin.ptbin().high())/2.);
-      numval = hnum->GetBinContent(ibin);
-      numerr = hnum->GetBinError(ibin);
-      denval = hden->GetBinContent(ibin);
-      denerr = hden->GetBinError(ibin);
-      double efficiency = numval / denval;
-      normfactor = normfactor / efficiency;
-      delete f;
-
-      ans->setVal(ans->getVal()*normfactor);
-      ans->setError(ans->getError()*normfactor);
-   }
-
-   return ans;
-}
-
 
 void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsymmErrors*> theGraphs_syst, string xaxis, string outputDir, map<anabin, syst> gsyst) {
    setTDRStyle();
@@ -347,8 +280,8 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    // the axes
    TH1F *haxes=NULL; TLine line;
    if (xaxis=="pt") {
-      haxes = new TH1F("haxes","haxes",1,0,30);
-      line = TLine(0,1,30,1);
+      haxes = new TH1F("haxes","haxes",1,0,50);
+      line = TLine(0,1,50,1);
    }
    if (xaxis=="cent") {
       haxes = new TH1F("haxesl","haxesl",1,0,420);
@@ -387,17 +320,17 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
 
       theCats.push_back(thebin);
 
-      if (thebin.rapbin() == binF(0.,1.6)) {
+      if (thebin.rapbin() == binF(0.,0.6) || thebin.centbin() == binI(0,20)) {
          tg->SetMarkerStyle(kFullSquare);
          tg->SetMarkerColor(kBlue);
          tg->SetLineColor(kBlue);
          tg_syst->SetFillColorAlpha(kBlue, 0.5);
-      } else if (thebin.rapbin() == binF(1.6,2.4)) {
+      } else if (thebin.rapbin() == binF(0.6,1.2) || thebin.centbin() == binI(20,60)) {
          tg->SetMarkerStyle(kFullCircle);
          tg->SetMarkerColor(kRed);
          tg->SetLineColor(kRed);
          tg_syst->SetFillColorAlpha(kRed, 0.5);
-      } else {
+      } else if (thebin.rapbin() == binF(1.2,1.8) || thebin.centbin() == binI(20,60)) {
          tg->SetMarkerStyle(kFullTriangleUp);
          tg->SetMarkerColor(kGreen);
          tg->SetLineColor(kGreen);
