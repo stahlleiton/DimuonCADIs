@@ -17,7 +17,6 @@
 #include "Utilities/initClasses.h"
 
 #include "TObjArray.h"
-//#include "TIter.h"
 
 map<int, double>   fCentMap; // map for centrality-Ncoll mapping
 double             fCentBinning[200];
@@ -27,6 +26,7 @@ TObjArray*         fcorrArray = NULL; // Array with the 2D correction for weight
 string  findMyTree(string FileName);
 bool    getTChain(TChain* fChain, vector<string> FileNames);
 void    iniBranch(TChain* fChain,bool isMC=false);
+bool    checkDS(RooDataSet* DS, string DSName);
 double  deltaR(TLorentzVector* GenMuon, TLorentzVector* RecoMuon);
 bool    isMatchedRecoDiMuon(int iRecoDiMuon, double maxDeltaR=0.03);
 double  getNColl(int centr, bool isPP);
@@ -41,14 +41,14 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
   bool isMC = false;
   if (DSName.find("MC")!=std::string::npos) isMC =true;
   
-  bool isPP = false;
-  if (DSName.find("PP")!=std::string::npos) isPP =true;
+  bool isPbPb = false;
+  if (DSName.find("PbPb")!=std::string::npos) isPbPb =true;
   int triggerIndex_PP   = 0;
   int triggerIndex_PbPb = 0;
   int CentFactor = 1;
   
   bool applyWeight = false;
-  if (isMC && !isPP) applyWeight = true;
+  if (isMC && isPbPb) applyWeight = true;
   
   bool isPureSDataset = false;
   if (OutputFileName.find("_PureS")!=std::string::npos) isPureSDataset = true;
@@ -70,7 +70,29 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     corrName = "lJpsiEff";
   }
   
-  if (gSystem->AccessPathName(OutputFileName.c_str()) || UpdateDS) {
+  bool createDS = ( gSystem->AccessPathName(OutputFileName.c_str()) || UpdateDS );
+  if ( !gSystem->AccessPathName(OutputFileName.c_str()) ) {
+    cout << "[INFO] Loading RooDataSet from " << OutputFileName << endl;
+    
+    TFile *DBFile = TFile::Open(OutputFileName.c_str(),"READ");
+    if (isMC && isPureSDataset) {
+      dataOSNoBkg = (RooDataSet*)DBFile->Get(Form("dOS_%s_NoBkg", DSName.c_str()));
+      if (checkDS(dataOSNoBkg, DSName)==false) { createDS = true; }
+    } 
+    else if (applyWeight_Corr) {
+      dataOS = (RooDataSet*)DBFile->Get(Form("dOS_%s_%s", DSName.c_str(),corrName.Data()));
+      if (checkDS(dataOS, DSName)==false) { createDS = true; }
+    }
+    else {
+      dataOS = (RooDataSet*)DBFile->Get(Form("dOS_%s", DSName.c_str()));
+      if (checkDS(dataOS, DSName)==false) { createDS = true; }
+      dataSS = (RooDataSet*)DBFile->Get(Form("dSS_%s", DSName.c_str()));
+      if (checkDS(dataSS, DSName)==false) { createDS = true; }
+    }
+    DBFile->Close(); delete DBFile;
+  }
+
+  if (createDS) {
     cout << "[INFO] Creating " << (isPureSDataset ? "pure signal " : "") << "RooDataSet for " << DSName << endl;
     TreeName = findMyTree(InputFileNames[0]); if(TreeName==""){return false;}
     
@@ -81,6 +103,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     
     RooRealVar* mass    = new RooRealVar("invMass","#mu#mu mass", 2.0, 5.0, "GeV/c^{2}");
     RooRealVar* ctau    = new RooRealVar("ctau","c_{#tau}", -100.0, 100.0, "mm");
+    RooRealVar* ctauTrue = new RooRealVar("ctauTrue","c_{#tau}", -100.0, 100.0, "mm");
     RooRealVar* ctauErr = new RooRealVar("ctauErr","#sigma_{c#tau}", -100.0, 100.0, "mm");
     RooRealVar* ptQQ    = new RooRealVar("pt","#mu#mu p_{T}", 0.0, 50.0, "GeV/c");
     RooRealVar* rapQQ   = new RooRealVar("rap","#mu#mu y", -2.4, 2.4, "");
@@ -92,14 +115,22 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     if (applyWeight)
     {
       setCentralityMap(Form("%s/Input/CentralityMap_PbPb2015.txt",gSystem->ExpandPathName(gSystem->pwd())));
-      cols   = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent, *weight);
+      if (isMC) {
+        cols = new RooArgSet(*mass, *ctau, *ctauErr, *ctauTrue, *ptQQ, *rapQQ, *cent, *weight);
+      } else {
+        cols = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent, *weight);
+      }
       dataOS = new RooDataSet(Form("dOS_%s", DSName.c_str()), "dOS", *cols, WeightVar(*weight), StoreAsymError(*mass));
       dataSS = new RooDataSet(Form("dSS_%s", DSName.c_str()), "dSS", *cols, WeightVar(*weight), StoreAsymError(*mass));
       if (isPureSDataset) dataOSNoBkg = new RooDataSet(Form("dOS_%s_NoBkg", DSName.c_str()), "dOSNoBkg", *cols, WeightVar(*weight), StoreAsymError(*mass));
     }
     else if (applyWeight_Corr)
     {
-      cols   = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent, *weightCorr);
+      if (isMC) {
+        cols = new RooArgSet(*mass, *ctau, *ctauErr, *ctauTrue, *ptQQ, *rapQQ, *cent, *weightCorr);
+      } else {
+        cols = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent, *weightCorr);
+      }
       if (!readCorrection(Form("%s/Input/%s",gSystem->ExpandPathName(gSystem->pwd()),corrFileName.Data()))){ return false; }
       dataOS = new RooDataSet(Form("dOS_%s_%s", DSName.c_str(),corrName.Data()), "dOS", *cols, WeightVar(*weightCorr), StoreAsymError(*mass));
       //      dataSS = new RooDataSet(Form("dSS_%s", DSName.c_str()), "dSS", *cols, WeightVar(*weightCorr), StoreAsymError(*mass));
@@ -107,7 +138,11 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     }
     else
     {
-      cols = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent);
+      if (isMC) {
+        cols = new RooArgSet(*mass, *ctau, *ctauErr, *ctauTrue, *ptQQ, *rapQQ, *cent);
+      } else {
+        cols = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent);
+      }  
       dataOS = new RooDataSet(Form("dOS_%s", DSName.c_str()), "dOS", *cols, StoreAsymError(*mass));
       dataSS = new RooDataSet(Form("dSS_%s", DSName.c_str()), "dSS", *cols, StoreAsymError(*mass));
       if (isMC && isPureSDataset) dataOSNoBkg = new RooDataSet(Form("dOS_%s_NoBkg", DSName.c_str()), "dOSNoBkg", *cols, StoreAsymError(*mass));
@@ -147,14 +182,19 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         ptQQ->setVal(RecoQQ4mom->Pt());
         rapQQ->setVal(RecoQQ4mom->Rapidity());
         cent->setVal(Centrality*CentFactor);
-        
+        if (isMC) {
+          if (theTree->GetBranch("Reco_QQ_ctauTrue3D")) { ctauTrue->setVal(Reco_QQ_ctauTrue3D[iQQ]); }
+          else if (theTree->GetBranch("Reco_QQ_ctauTrue")) { ctauTrue->setVal(Reco_QQ_ctauTrue[iQQ]); }
+          else { cout << "[ERROR] No ctauTrue information found in the Onia Tree" << endl; }
+        }
+
         if (applyWeight){
-          double w = theTree->GetWeight();//*getNColl(Centrality,isPP);
+          double w = theTree->GetWeight();//*getNColl(Centrality,!isPbPb);
           weight->setVal(w);
         }
         else if (applyWeight_Corr)
         {
-          double Corr = getCorr(RecoQQ4mom->Rapidity(),RecoQQ4mom->Pt(),RecoQQ4mom->M(),isPP);
+          double Corr = getCorr(RecoQQ4mom->Rapidity(),RecoQQ4mom->Pt(),RecoQQ4mom->M(),!isPbPb);
           double wCorr = 1/Corr;
           weightCorr->setVal(wCorr);
         }
@@ -162,14 +202,13 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         if (
             ( RecoQQ::areMuonsInAcceptance2015(iQQ) ) &&  // 2015 Global Muon Acceptance Cuts
             ( RecoQQ::passQualityCuts2015(iQQ)      ) &&  // 2015 Soft Global Muon Quality Cuts
-            ( RecoQQ::isTriggerMatch(iQQ, (isPP ? triggerIndex_PP : triggerIndex_PbPb))        )     // HLT_HIL1DoubleMu0_v1
+            ( RecoQQ::isTriggerMatch(iQQ, (isPbPb ? triggerIndex_PbPb : triggerIndex_PP))        )     // HLT_HIL1DoubleMu0_v1
             )
         {
           if (Reco_QQ_sign[iQQ]==0) { // Opposite-Sign dimuons
             if (isMC && isPureSDataset && isMatchedRecoDiMuon(iQQ)) dataOSNoBkg->add(*cols, (applyWeight ? weight->getVal() : 1.0)); // Signal-only dimuons
             else if (applyWeight_Corr) dataOS->add(*cols,weightCorr->getVal()); //Signal and background dimuons
-            else dataOS->add(*cols, ( applyWeight ? weight->getVal() : 1.0)); //Signal and background dimuons
-            
+            else dataOS->add(*cols, ( applyWeight ? weight->getVal() : 1.0)); //Signal and background dimuons            
           }
           else { // Like-Sign dimuons
             if (!isPureSDataset && !applyWeight_Corr ) dataSS->add(*cols, ( applyWeight  ? weight->getVal() : 1.0));
@@ -192,20 +231,6 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
       dataSS->Write(Form("dSS_%s", DSName.c_str()));
     }
     DBFile->Write(); DBFile->Close(); delete DBFile;
-  }
-  else {
-    
-    cout << "[INFO] Loading RooDataSet from " << OutputFileName << endl;
-    
-    TFile *DBFile = TFile::Open(OutputFileName.c_str(),"READ");
-    if (isMC && isPureSDataset) dataOSNoBkg = (RooDataSet*)DBFile->Get(Form("dOS_%s_NoBkg", DSName.c_str()));
-    else if (applyWeight_Corr) dataOS = (RooDataSet*)DBFile->Get(Form("dOS_%s_%s", DSName.c_str(),corrName.Data()));
-    else
-    {
-      dataOS = (RooDataSet*)DBFile->Get(Form("dOS_%s", DSName.c_str()));
-      dataSS = (RooDataSet*)DBFile->Get(Form("dSS_%s", DSName.c_str()));
-    }
-    DBFile->Close(); delete DBFile;
   }
   
   // Import datasets to workspace
@@ -284,17 +309,37 @@ void iniBranch(TChain* fChain, bool isMC)
     if (fChain->GetBranch("Gen_QQ_size"))      { fChain->SetBranchStatus("Gen_QQ_size",1);      }
     if (fChain->GetBranch("Gen_QQ_mupl_4mom")) { fChain->SetBranchStatus("Gen_QQ_mupl_4mom",1); }
     if (fChain->GetBranch("Gen_QQ_mumi_4mom")) { fChain->SetBranchStatus("Gen_QQ_mumi_4mom",1); }
+    if (fChain->GetBranch("Reco_QQ_ctauTrue3D")) { fChain->SetBranchStatus("Reco_QQ_ctauTrue3D",1); }
+    if (fChain->GetBranch("Reco_QQ_ctauTrue")) { fChain->SetBranchStatus("Reco_QQ_ctauTrue",1); }
   }
 };
 
+bool checkDS(RooDataSet* DS, string DSName)
+{
+  bool incCent     = (DSName.find("PbPb")!=std::string::npos);
+  bool incCtauTrue = (DSName.find("MC")!=std::string::npos && DSName.find("NOPR")!=std::string::npos);
+  const RooArgSet* row = DS->get();
+  if (
+      (row->find("invMass")!=0) &&
+      (row->find("pt")!=0)      &&
+      (row->find("ctau")!=0)    &&
+      (row->find("ctauErr")!=0) &&
+      (incCent     ? row->find("cent")!=0     : true) &&
+      (incCtauTrue ? row->find("ctauTrue")!=0 : true)
+      ) 
+    { return true; }
+  else 
+    { cout << "[WARNING] Original dataset: " << DS->GetName() << " is corrupted, will remake it!" << endl; }
+
+  return false;
+};
 
 double deltaR(TLorentzVector* GenMuon, TLorentzVector* RecoMuon)
 {
   double dEta = RecoMuon->Eta() - GenMuon->Eta();
-  double dPhi = RecoMuon->Phi() - GenMuon->Phi();
+  double dPhi = TVector2::Phi_mpi_pi(RecoMuon->Phi() - GenMuon->Phi());
   return ((double) TMath::Sqrt( (dEta*dEta) + (dPhi*dPhi) ) );
-}
-
+};
 
 bool isMatchedRecoDiMuon(int iRecoDiMuon, double maxDeltaR)
 {
@@ -314,8 +359,7 @@ bool isMatchedRecoDiMuon(int iRecoDiMuon, double maxDeltaR)
   }
   
   return isMatched;
-}
-
+};
 
 double getNColl(int centr, bool isPP)
 {
@@ -334,8 +378,7 @@ double getNColl(int centr, bool isPP)
     else lcent = ucent;
   }
   return 1.;
-}
-
+};
 
 void setCentralityMap(const char* file)
 {
@@ -365,8 +408,7 @@ void setCentralityMap(const char* file)
     fCentBins = 0;
     std::cout << "[INFO] No centrality map could be defined: No file provided" << std::endl;
   }
-}
-
+};
 
 bool readCorrection(const char* file)
 {
@@ -402,8 +444,7 @@ bool readCorrection(const char* file)
 //  froot->Close(); delete froot;
   
   return true;
-}
-
+};
 
 double getCorr(Double_t rapidity, Double_t pt, Double_t mass, bool isPP)
 {
@@ -454,4 +495,4 @@ double getCorr(Double_t rapidity, Double_t pt, Double_t mass, bool isPP)
   if(corr<0.00001) corr=1.0;
   
   return corr;
-}
+};
