@@ -1,11 +1,13 @@
+#ifndef buildCharmoniaMassModel_C
+#define buildCharmoniaMassModel_C
+
 #include "Utilities/initClasses.h"
 
-void fixPsi2StoJpsi(map<string, string>& parIni, bool isPbPb);
+void fixMassParPsi2StoJpsi(map<string, string>& parIni, bool isPbPb);
 void fixPbPbtoPP(map<string, string>& parIni);
-void setDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries);
+void setMassDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries);
 bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<string,string> parIni, bool isPbPb); 
 bool addBackgroundMassModel(RooWorkspace& ws, string object, MassModel model, map<string,string> parIni, bool isPbPb);
-void setFixedVarsToContantVars(RooWorkspace& ws);
 
 
 bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<string, string>  parIni, 
@@ -19,11 +21,11 @@ bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<stri
 {
 
   // If the initial parameters are empty, set defaul parameter values
-  setDefaultParameters(parIni, isPbPb, numEntries);
+  setMassDefaultParameters(parIni, isPbPb, numEntries);
 
   // Fix all psi2S parameters to jpsi
   if (incJpsi && incPsi2S) {
-    fixPsi2StoJpsi(parIni, isPbPb);
+    fixMassParPsi2StoJpsi(parIni, isPbPb);
   }
 
   // Let's define the single and double ratio variables
@@ -76,78 +78,26 @@ bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<stri
   if (incBkg) {
     if(!addBackgroundMassModel(ws, "Bkg", model.Bkg.Mass, parIni, isPbPb)) { cout << "[ERROR] Adding Background Mass Model failed" << endl; return false; }
   }
+
   // Total PDF
-  string pdfName = Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP"));
-  RooAbsPdf *themodel = NULL;
-  if (incJpsi && incPsi2S && incBkg) {
-    themodel = new RooAddPdf(pdfName.c_str(), pdfName.c_str(), 
-                      RooArgList( 
-                                 *ws.pdf(Form("pdfMASSTot_Jpsi_%s", (isPbPb?"PbPb":"PP"))), 
-                                 *ws.pdf(Form("pdfMASSTot_Psi2S_%s", (isPbPb?"PbPb":"PP"))), 
-                                 *ws.pdf(Form("pdfMASSTot_Bkg_%s", (isPbPb?"PbPb":"PP"))) 
-                                  )
-                      );
-  }
-  if (incJpsi && incPsi2S && !incBkg) {
-    themodel = new RooAddPdf(pdfName.c_str(), pdfName.c_str(), 
-                      RooArgList( 
-                                 *ws.pdf(Form("pdfMASSTot_Jpsi_%s", (isPbPb?"PbPb":"PP"))), 
-                                 *ws.pdf(Form("pdfMASSTot_Psi2S_%s", (isPbPb?"PbPb":"PP")))
-                                  )
-                      );
-  }
-  if (incJpsi && !incPsi2S && incBkg) {
-    themodel = new RooAddPdf(pdfName.c_str(), pdfName.c_str(), 
-                      RooArgList( 
-                                 *ws.pdf(Form("pdfMASSTot_Jpsi_%s", (isPbPb?"PbPb":"PP"))), 
-                                 *ws.pdf(Form("pdfMASSTot_Bkg_%s", (isPbPb?"PbPb":"PP")))
-                                  )
-                      );
-  }
-  if (!incJpsi && incPsi2S && incBkg) {
-    themodel = new RooAddPdf(pdfName.c_str(), pdfName.c_str(), 
-                      RooArgList( 
-                                 *ws.pdf(Form("pdfMASSTot_Psi2S_%s", (isPbPb?"PbPb":"PP"))), 
-                                 *ws.pdf(Form("pdfMASSTot_Bkg_%s", (isPbPb?"PbPb":"PP")))
-                                  )
-                      );
-  }
-  if (incJpsi && !incPsi2S && !incBkg) {
-    themodel = new RooAddPdf(pdfName.c_str(), pdfName.c_str(), 
-                      RooArgList( 
-                                 *ws.pdf(Form("pdfMASSTot_Jpsi_%s", (isPbPb?"PbPb":"PP")))
-                                  )
-                      );
-  }
-  if (!incJpsi && incPsi2S && !incBkg) {
-    themodel = new RooAddPdf(pdfName.c_str(), pdfName.c_str(), 
-                      RooArgList( 
-                                 *ws.pdf(Form("pdfMASSTot_Psi2S_%s", (isPbPb?"PbPb":"PP")))
-                                  )
-                      );
-  }
-  if (!incJpsi && !incPsi2S && incBkg) {
-    themodel = new RooAddPdf(pdfName.c_str(), pdfName.c_str(), 
-                      RooArgList( 
-                                 *ws.pdf(Form("pdfMASSTot_Bkg_%s", (isPbPb?"PbPb":"PP")))
-                                  )
-                      );
-  }
-  if (!incJpsi && !incPsi2S && !incBkg) {
-    cout << "[ERROR] User did not include any model, please fix your input settings!" << endl; return false;
-  }
+  string pdfType = "pdfMASS";
+  string pdfName = Form("%s_Tot_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"));
+
+  RooArgList pdfList;
+  if (incJpsi) { pdfList.add( *ws.pdf(Form("%sTot_Jpsi_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"))) );  }
+  if (incPsi2S){ pdfList.add( *ws.pdf(Form("%sTot_Psi2S_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"))) ); }
+  if (incBkg)  { pdfList.add( *ws.pdf(Form("%sTot_Bkg_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"))) );   }
+  if (!incJpsi && !incPsi2S && !incBkg) { cout << "[ERROR] User did not include any model, please fix your input settings!" << endl; return false; }
+  RooAbsPdf *themodel = new RooAddPdf(pdfName.c_str(), pdfName.c_str(), pdfList );
   ws.import(*themodel);
   ws.pdf(pdfName.c_str())->setNormRange("MassWindow");
 
   setFixedVarsToContantVars(ws);
 
   // save the initial values of the model we've just created
-  RooRealVar *x = ws.var("invMass");
-  RooArgSet* params = (RooArgSet*) themodel->getParameters(*x) ;
-  pdfName+="_parIni";
-  ws.saveSnapshot(pdfName.c_str(),*params,kTRUE) ;
+  RooArgSet* params = (RooArgSet*) themodel->getParameters(RooArgSet(*ws.var("invMass")));
+  ws.saveSnapshot((pdfName+"_parIni").c_str(),*params,kTRUE);
   
-  //ws.Print();
   return true;
 };
 
@@ -851,7 +801,7 @@ void fixPbPbtoPP(map<string, string>& parIni)
   //parIni["f_Psi2S_PbPb"] = Form("RooFormulaVar::%s('@0',{%s})", "f_Psi2S_PbPb", "f_Jpsi_PP");  
 };
 
-void fixPsi2StoJpsi(map<string, string>& parIni, bool isPbPb)
+void fixMassParPsi2StoJpsi(map<string, string>& parIni, bool isPbPb)
 {
   cout << "[INFO] Constraining Psi(2S) parameters to Jpsi using PDF Mass Ratio" << endl;
   Double_t MassRatio = (Mass.Psi2S/Mass.JPsi);
@@ -865,7 +815,7 @@ void fixPsi2StoJpsi(map<string, string>& parIni, bool isPbPb)
   parIni[Form("f_Psi2S_%s", (isPbPb?"PbPb":"PP"))]      = Form("RooFormulaVar::%s('@0',{%s})", Form("f_Psi2S_%s", (isPbPb?"PbPb":"PP")), Form("f_Jpsi_%s", (isPbPb?"PbPb":"PP")));
 };
 
-void setDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries)
+void setMassDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries)
 {
 
   cout << "[INFO] Setting user undefined initial parameters to their default values" << endl;
@@ -1021,11 +971,5 @@ void setDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEn
  
 };
 
-void setFixedVarsToContantVars(RooWorkspace& ws)
-{
-  RooArgSet listVar = ws.allVars();
-  TIterator* parIt = listVar.createIterator();
-  for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
-    if ( it->getMin()==it->getMax() ) it->setConstant(kTRUE);
-  }
-}
+
+#endif // #ifndef buildCharmoniaMassModel_C

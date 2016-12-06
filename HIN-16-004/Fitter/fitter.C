@@ -2,15 +2,13 @@
 #include "Macros/tree2DataSet.C"
 #include "Macros/fitCharmonia.C"
 
-
-bool checkSettings(bool fitData, bool fitPbPb, bool fitPP, bool incJpsi, bool incPsi2S, bool incBkg, bool cutCtau,  
-                   bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores, int nBins);
-
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores);
 
 bool parseFile(string FileName, vector< map<string, string> >& data);
 bool parseString(string input, string delimiter, vector<double>& output);
 
-bool iniWorkEnv(map<string,string>& DIR, const string workDirName);
+bool iniWorkEnv( map< string, vector<string> >& DIR, const string workDirName);
+void findSubDir(vector<string>& dirlist, string dirname);
 bool existDir(string dir);
 bool readFile(string FileName, vector< vector<string> >& content, const int nCol=-1, int nRow=-1);
 bool getInputFileNames(const string InputTrees, map<string, vector<string> >& InputFileCollection);
@@ -21,24 +19,30 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 void fitter(
             const string workDirName="Test", // Working directory
             // Select the type of datasets to fit
-            bool fitData     = true,         // Fits Data if true, otherwise fits MC
-            bool fitPbPb     = true,         // Fits PbPb datasets
-            bool fitPP       = true,         // Fits PP datasets
+            bool fitData      = true,        // Fits Data datasets
+            bool fitMC        = false,         // Fits MC datasets
+            bool fitPbPb      = false,         // Fits PbPb datasets
+            bool fitPP        = true,        // Fits PP datasets
+            bool fitMass      = false,        // Fits invariant mass distribution
+            bool fitCtau      = false,       // Fits ctau distribution
+            bool fitCtauTrue  = false,         // Fits ctau true MC distribution
+            bool doCtauErrPDF = true,       // If yes, it builds the Ctau Error PDFs from data
             // Select the type of object to fit
-            bool incJpsi     = true,         // Includes Jpsi model
-            bool incPsi2S    = true,         // Includes Psi(2S) model
-            bool incBkg      = true,         // Includes Background model
+            bool incJpsi      = true,          // Includes Jpsi model
+            bool incPsi2S     = false,         // Includes Psi(2S) model
+            bool incBkg       = true,         // Includes Background model
+            bool incPrompt    = true,         // Includes Prompt ctau model
+            bool incNonPrompt = false,          // Includes Non Prompt ctau model 
             // Select the fitting options
-            bool cutCtau     = true,         // Apply prompt ctau cuts
-            bool doSimulFit  = false,        // Do simultaneous fit
-            bool wantPureSMC = false,        // Flag to indicate if we want to fit pure signal MC
-	          const char* applyCorr  = "",     // Apply weight to data for correction (Acceptance & Ef , l_J/psi eff...). No correction if empty variable.
-            int  numCores    = 16,           // Number of cores used for fitting
+            bool cutCtau      = false,        // Apply prompt ctau cuts
+            bool doSimulFit   = false,        // Do simultaneous fit
+            bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
+            const char* applyCorr  = "",     // Apply weight to data for correction (Acceptance & Ef , l_J/psi eff...). No correction if empty variable.
+            int  numCores     = 16,            // Number of cores used for fitting
             // Select the drawing options
-            bool setLogScale = true,         // Draw plot with log scale
-            bool incSS       = false,        // Include Same Sign data
-            bool zoomPsi     = false,        // Zoom Psi(2S) peak on extra pad
-            int  nBins       = 46            // Number of bins used for plotting
+            bool  setLogScale  = true,         // Draw plot with log scale
+            bool  incSS        = false,        // Include Same Sign data
+            bool  zoomPsi      = false         // Zoom Psi(2S) peak on extra pad
             ) 
 {
   // -------------------------------------------------------------------------------
@@ -51,9 +55,21 @@ void fitter(
 	 |-> DataSet : Contain all the datasets (MC and Data)
   */
 
-  if (!checkSettings(fitData, fitPbPb, fitPP, incJpsi, incPsi2S, incBkg, cutCtau, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores, nBins)) { return; }
+  map<string, double> binWidth;
+  binWidth["MASS"]     = 0.05;
+  binWidth["CTAU"]     = 0.005;
+  binWidth["CTAUERR"]  = 0.0005;
+  binWidth["CTAUTRUE"] = 0.05;
 
-  map<string,string> DIR;
+  map<string, string> inputFitDir;
+  inputFitDir["MASS"]     = "";
+  inputFitDir["CTAU"]     = "";
+  inputFitDir["CTAUERR"]  = "";
+  inputFitDir["CTAUTRUE"] = "";
+
+  if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, doCtauErrPDF, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores)) { return; }
+
+  map< string, vector<string> > DIR;
   if(!iniWorkEnv(DIR, workDirName)){ return; }
  
   // -------------------------------------------------------------------------------
@@ -63,14 +79,14 @@ void fitter(
     Output: Collection of RooDataSets splitted by tag name, including OS and SS dimuons.
   */
   
-  const string InputTrees = DIR["input"] + "InputTrees.txt";
+  const string InputTrees = DIR["input"][0] + "InputTrees.txt";
   map<string, vector<string> > InputFileCollection;
   if(!getInputFileNames(InputTrees, InputFileCollection)){ return; }
   
   TObjArray* aDSTAG = new TObjArray(); // Array to store the different tags in the list of trees
   aDSTAG->SetOwner(true);
   map<string, RooWorkspace> Workspace;
-
+  
   for(map<string, vector<string> >::iterator FileCollection=InputFileCollection.begin(); FileCollection!=InputFileCollection.end(); ++FileCollection) {
     // Get the file tag which has the following format: DSTAG_COLL , i.e. DATA_PP 
     string FILETAG = FileCollection->first;  
@@ -84,35 +100,39 @@ void fitter(
     vector<string> InputFileNames = FileCollection->second; 
     string         OutputFileName;
     // If we have data, check if the user wants to fit data
-    if ( (FILETAG.find("DATA")!=std::string::npos) && fitData==true ) {
+    if ( (FILETAG.find("DATA")!=std::string::npos) && (fitData==true || fitCtau==true) ) {
       if ( (FILETAG.find("PP")!=std::string::npos)   && !fitPP   ) continue; // If we find PP, check if the user wants PP
       if ( (FILETAG.find("PbPb")!=std::string::npos) && !fitPbPb ) continue; // If we find PbPb, check if the user wants PbPb
       if(strcmp(applyCorr,"")){
-	      OutputFileName = DIR["dataset"] + "DATASET_" + FILETAG + "_" + string(applyCorr) + ".root";
-	      if(!tree2DataSet(Workspace[Form("%s_%s",DSTAG.c_str(),applyCorr)], InputFileNames, FILETAG, OutputFileName)){ return; }
+        OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + "_" + string(applyCorr) + ".root";
+        if(!tree2DataSet(Workspace[Form("%s_%s",DSTAG.c_str(),applyCorr)], InputFileNames, FILETAG, OutputFileName)){ return; }
       }
       else {
-	      OutputFileName = DIR["dataset"] + "DATASET_" + FILETAG + ".root";
-	      if(!tree2DataSet(Workspace[DSTAG], InputFileNames, FILETAG, OutputFileName)){ return; }
+        OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + ".root";
+        string NAMETAG = DSTAG;
+        if (fitCtau) { NAMETAG = string("MC")+(incJpsi?"JPSI":"PSI2S")+(incNonPrompt?"NOPR":"PR")+"_"+(fitPP?"PP":"PbPb"); }
+        if(!tree2DataSet(Workspace[NAMETAG], InputFileNames, FILETAG, OutputFileName)){ return; }
       }
-      if (!aDSTAG->FindObject(DSTAG.c_str())) aDSTAG->Add(new TObjString(DSTAG.c_str()));
+      if (fitData && !aDSTAG->FindObject(DSTAG.c_str())) aDSTAG->Add(new TObjString(DSTAG.c_str()));
     }
     
     // If we find MC, check if the user wants to fit MC
-    if ( (FILETAG.find("MC")!=std::string::npos) && fitData==false ) {
-      if ( (FILETAG.find("PP")!=std::string::npos)    && !fitPP    ) continue; // If we find PP, check if the user wants PP
-      if ( (FILETAG.find("PbPb")!=std::string::npos)  && !fitPbPb  ) continue; // If we find PbPb, check if the user wants PbPb
-      if ( (FILETAG.find("JPSI")!=std::string::npos)  && !incJpsi  ) continue; // If we find Jpsi MC, check if the user wants to include Jpsi
-      if ( (FILETAG.find("PSI2S")!=std::string::npos) && !incPsi2S ) continue; // If we find Psi2S MC, check if the user wants to include Psi2S
-      OutputFileName = DIR["dataset"] + "DATASET_" + FILETAG + ".root";
+    if ( (FILETAG.find("MC")!=std::string::npos) && fitMC==true  ) {
+      if ( (FILETAG.find("PP")!=std::string::npos)    && !fitPP     ) continue; // If we find PP, check if the user wants PP
+      if ( (FILETAG.find("PbPb")!=std::string::npos)  && !fitPbPb   ) continue; // If we find PbPb, check if the user wants PbPb
+      if ( (FILETAG.find("JPSI")!=std::string::npos)  && !incJpsi   ) continue; // If we find Jpsi MC, check if the user wants to include Jpsi
+      if ( (FILETAG.find("PSI2S")!=std::string::npos) && !incPsi2S  ) continue; // If we find Psi2S MC, check if the user wants to include Psi2S
+      if ( (FILETAG.find("NOPR")!=std::string::npos) ) { if (!incNonPrompt) continue; } // If we find Non-Prompt MC, check if the user wants to include Non-Prompt
+      else if ( (FILETAG.find("PR")!=std::string::npos) && !incPrompt ) continue; // If we find Prompt MC, check if the user wants to include Prompt
+      OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + ".root";
       if(!tree2DataSet(Workspace[DSTAG], InputFileNames, FILETAG, OutputFileName)){ return; }
-      if (!aDSTAG->FindObject(DSTAG.c_str())) aDSTAG->Add(new TObjString(DSTAG.c_str()));
+      if (fitMC && !aDSTAG->FindObject(DSTAG.c_str())) aDSTAG->Add(new TObjString(DSTAG.c_str()));
       if (wantPureSMC)
 	{
-	  OutputFileName = DIR["dataset"] + "DATASET_" + FILETAG + "_PureS" + ".root";
+	  OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + "_PureS" + ".root";
 	  if(!tree2DataSet(Workspace[Form("%s_PureS",DSTAG.c_str())], InputFileNames, FILETAG, OutputFileName)){ return; }
 	}
-    } 
+    }
   }
   if (Workspace.size()==0) {
     cout << "[ERROR] No onia tree files were found matching the user's input settings!" << endl; return;
@@ -126,40 +146,55 @@ void fitter(
   */
   
   string InputFile;
-  vector< struct KinCuts >       cutVector;
-  vector< map<string, string> >  parIniVector;
- 
-  if (fitPbPb && incBkg) {
-    // Add initial parameters for PbPb background models
-    InputFile = (DIR["input"] + "InitialParam_MASS_BKG_PbPb.csv");
-    if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
-  } 
-  if (fitPbPb && incJpsi) {
-    // Add initial parameters for PbPb jpsi models
-    InputFile = (DIR["input"] + "InitialParam_MASS_JPSI_PbPb.csv");
-    if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
-  } 
-  if (fitPbPb && incPsi2S) {
-    // Add initial parameters for PbPb psi(2S) models
-    InputFile = (DIR["input"] + "InitialParam_MASS_PSI2S_PbPb.csv");
-    if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
-  } 
-  if (fitPP && incBkg) {
-    // Add initial parameters for PP background models
-    InputFile = (DIR["input"] + "InitialParam_MASS_BKG_PP.csv");
-    if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
-  } 
-  if (fitPP && incJpsi) {
-    // Add initial parameters for PP jpsi models
-    InputFile = (DIR["input"] + "InitialParam_MASS_JPSI_PP.csv");
-    if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
-  } 
-  if (fitPP && incPsi2S) {
-    // Add initial parameters for PP psi(2S) models
-    InputFile = (DIR["input"] + "InitialParam_MASS_PSI2S_PP.csv");
-    if (!addParameters(InputFile, cutVector, parIniVector, false)) { return; }
-  }
+  vector< vector< struct KinCuts > >       cutVectors;
+  vector< vector< map<string, string> > >  parIniVectors;
 
+  map<string, map<string, bool>> VARMAP = {
+    {"MASS", 
+     {
+       {"BKG",   ((fitMass || doCtauErrPDF)  && incBkg) || fitCtau}, 
+       {"JPSI",  (fitMass || doCtauErrPDF || fitCtau) && incJpsi}, 
+       {"PSI2S", (fitMass || doCtauErrPDF || fitCtau) && incPsi2S}
+     }
+    },
+    {"CTAU", 
+     {
+       {"BKG",   fitCtau && incBkg}, 
+       {"JPSI",  fitCtau && incJpsi}, 
+       {"PSI2S", fitCtau && incPsi2S},
+       {"RES",   fitCtau},
+       {"TRUE",  fitCtauTrue || (fitCtau && incNonPrompt)},
+     }
+    }
+  };
+  map<string, bool> COLMAP = {{"PbPb", fitPbPb}, {"PP", fitPP}};
+ 
+  typedef map<string, map<string, bool>>::iterator var_type;
+  typedef map<string, bool>::iterator it_type;
+  for(uint j = 0; j < DIR["input"].size(); j++) {
+    if (DIR["input"].size()>1 && j==0) continue; // First entry is always the main input directory
+    vector< struct KinCuts >       cutVector;
+    vector< map<string, string> >  parIniVector;
+    for(var_type VAR = VARMAP.begin(); VAR != VARMAP.end(); VAR++) {
+      map<string, bool> PARMAP = VAR->second;
+      string name1 = "InitialParam_" + VAR->first + "_";
+      for(it_type PAR = PARMAP.begin(); PAR != PARMAP.end(); PAR++) {
+        if (PAR->second) {
+          string name2 = name1 + PAR->first + "_";
+          for(it_type COL = COLMAP.begin(); COL != COLMAP.end(); COL++) {
+            if(COL->second) {
+              string name3 = name2 + COL->first + ".csv";
+              InputFile = (DIR["input"][j] + name3);
+              if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
+            }
+          }
+        }
+      }
+    }
+    cutVectors.push_back(cutVector);
+    parIniVectors.push_back(parIniVector);
+  }
+  
   // -------------------------------------------------------------------------------  
   // STEP 3: FIT THE DATASETS
   /*
@@ -170,115 +205,109 @@ void fitter(
               -> Plots (png, pdf and root format) of each fit.
 	      -> The local workspace used for each fit.
   */
-  
   TIter nextDSTAG(aDSTAG);
-  string outputDir = DIR["output"];
-  for (unsigned int i=0; i<cutVector.size(); i++) {
-    
-    nextDSTAG.Reset();
-    TObjString* soDSTAG(0x0);
-    while ( (soDSTAG = static_cast<TObjString*>(nextDSTAG.Next())) )
-    {
-      TString DSTAG = static_cast<TString>(soDSTAG->GetString());
+  for(uint j = 0; j < cutVectors.size(); j++) {
+    int index = ( DIR["output"].size()>1 ? j+1 : j ); // First entry is always the main output directory
+    string outputDir = DIR["output"][index];
 
-      TString wsName = "";
-      if (DSTAG.Contains("MC") && wantPureSMC) wsName = Form("%s_PureS",DSTAG.Data());
-      else if (DSTAG.Contains("DATA") && strcmp(applyCorr,"")) wsName = Form("%s_%s",DSTAG.Data(),applyCorr);
-      else wsName = DSTAG;
-      
-      if (Workspace.count(wsName.Data())>0) {
-        // DATA/MC datasets were loaded
-        if (doSimulFit) {
-          // If do simultaneous fits, then just fits once
-          if (!fitCharmonia( Workspace[wsName.Data()], cutVector.at(i), parIniVector.at(i), outputDir,
-                             // Select the type of datasets to fit
-                             DSTAG.Data(),
-                             false,           // dummy flag when fitting simultaneously since both PP and PbPb are used
-                             // Select the type of object to fit
-                             incJpsi,         // Includes Jpsi model
-                             incPsi2S,        // Includes Psi(2S) model
-                             incBkg,          // Includes Background model
-                             // Select the fitting options
-                             cutCtau,         // Apply prompt ctau cuts
-                             true,            // Do simultaneous fit
-                             wantPureSMC,     // Flag to indicate if we want to fit pure signal MC
-                             applyCorr,       // Flag to indicate if we want corrected dataset and which correction
-			                       numCores,        // Number of cores used for fitting
-                             // Select the drawing options
-                             setLogScale,     // Draw plot with log scale
-                             incSS,           // Include Same Sign data
-                             zoomPsi,         // Zoom Psi(2S) peak on extra pad
-                             nBins,           // Number of bins used for plotting
-                             false            // Compute the mean PT (NEED TO FIX)
-                             )
-              ) { return; }
-        } else {
-          // If don't want simultaneous fits, then fit PbPb or PP separately
-          if ( DSTAG.Contains("MCJPSI")  ) { incJpsi = true;  incPsi2S = false; }
-          if ( DSTAG.Contains("MCPSI2S") ) { incJpsi = false; incPsi2S = true;  }
-          
-          if (fitPbPb && DSTAG.Contains("PbPb")) {
-            if (!fitCharmonia( Workspace[wsName.Data()], cutVector.at(i), parIniVector.at(i), outputDir,
-                              // Select the type of datasets to fit
-                              DSTAG.Data(),
-                              true,            // In this case we are fitting PbPb
-                              // Select the type of object to fit
-                              incJpsi,         // Includes Jpsi model
-                              incPsi2S,        // Includes Psi(2S) model
-                              incBkg,          // Includes Background model
-                              // Select the fitting options
-                              cutCtau,         // Apply prompt ctau cuts
-                              false,           // Do simultaneous fit
-                              (DSTAG.Contains("MC") && wantPureSMC),            // Flag to indicate if we want to fit pure signal MC
-                              applyCorr,       // Flag to indicate if we want corrected dataset and which correction
-                              numCores,        // Number of cores used for fitting
-                              // Select the drawing options
-                              setLogScale,     // Draw plot with log scale
-                              incSS,           // Include Same Sign data
-                              zoomPsi,         // Zoom Psi(2S) peak on extra pad
-                              nBins,           // Number of bins used for plotting
-                              false            // Compute the mean PT (NEED TO FIX)
-                              )
-                ) { return; }
+    for (unsigned int i=0; i < cutVectors[j].size(); i++) {
+      nextDSTAG.Reset();
+      TObjString* soDSTAG(0x0);
+      while ( (soDSTAG = static_cast<TObjString*>(nextDSTAG.Next())) )
+        {
+          TString DSTAG = (TString)(soDSTAG->GetString());
+          if ( fitMass && fitCtau && !DSTAG.Contains("DATA") ) continue;
 
-          }
-          if (fitPP && DSTAG.Contains("PP")) {
-            if (!fitCharmonia( Workspace[wsName.Data()], cutVector.at(i), parIniVector.at(i), outputDir,
-                              // Select the type of datasets to fit
-                              DSTAG.Data(), //DSTAG.Data(),
-                              false,           // In this case we are fitting PP
-                              // Select the type of object to fit
-                              incJpsi,         // Includes Jpsi model
-                              incPsi2S,        // Includes Psi(2S) model
-                              incBkg,          // Includes Background model
-                              // Select the fitting options
-                              cutCtau,         // Apply prompt ctau cuts
-                              false,           // Do simultaneous fit
-                              (DSTAG.Contains("MC") && wantPureSMC),           // Flag to indicate if we want to fit pure signal MC
-                              applyCorr,       // Flag to indicate if we want corrected dataset and which correction
-                              numCores,        // Number of cores used for fitting
-                              // Select the drawing options
-                              setLogScale,     // Draw plot with log scale
-                              incSS,           // Include Same Sign data
-                              zoomPsi,         // Zoom Psi(2S) peak on extra pad
-                              nBins,           // Number of bins used for plotting
-                              false            // Compute the mean PT (NEED TO FIX)
-                              )
-                ) { return; }
+          TString wsName = "";
+          if (DSTAG.Contains("MC") && wantPureSMC) wsName = Form("%s_PureS",DSTAG.Data());
+          else if (DSTAG.Contains("DATA") && strcmp(applyCorr,"")) wsName = Form("%s_%s",DSTAG.Data(),applyCorr);
+          else wsName = DSTAG;
+          if (Workspace.count(wsName.Data())>0) {
+            // DATA/MC datasets were loaded
+            if (doSimulFit) {
+              // If do simultaneous fits, then just fits once
+              if (!fitCharmonia( Workspace[DSTAG.Data()], cutVectors[j].at(i), parIniVectors[j].at(i), outputDir,
+                                 // Select the type of datasets to fit
+                                 DSTAG.Data(),
+                                 false,           // dummy flag when fitting simultaneously since both PP and PbPb are used
+                                 // Select the type of object to fit
+                                 fitMass,         // Fit mass distribution
+                                 fitCtau,         // Fit ctau distribution
+                                 fitCtauTrue,     // Fits ctau true MC distribution
+                                 incJpsi,         // Includes Jpsi model
+                                 incPsi2S,        // Includes Psi(2S) model
+                                 incBkg,          // Includes Background model
+                                 incPrompt,       // Includes Prompt ctau model
+                                 incNonPrompt,    // Includes NonPrompt ctau model
+                                 doCtauErrPDF,    // If yes, it builds the Ctau Error PDFs from data
+                                 // Select the fitting options
+                                 cutCtau,         // Apply prompt ctau cuts
+                                 doSimulFit,      // Do simultaneous fitC
+                                 wantPureSMC,     // Flag to indicate if we want to fit pure signal MC
+                                 inputFitDir,     // Map of user-defined directory paths of previous fit results
+                                 applyCorr,       // Flag to indicate if we want corrected dataset and which correction
+                                 numCores,        // Number of cores used for fitting
+                                 // Select the drawing options
+                                 setLogScale,     // Draw plot with log scale
+                                 incSS,           // Include Same Sign data
+                                 zoomPsi,         // Zoom Psi(2S) peak on extra pad
+                                 binWidth,        // Bin width used for plotting
+                                 false            // Compute the mean PT (NEED TO FIX)
+                                 )
+                  ) { return; }
+            } else {
+              // If don't want simultaneous fits, then fit PbPb or PP separately
+              if ( DSTAG.Contains("MCJPSIPR")    ) { incJpsi = true;  incPsi2S = false; incPrompt = true;  incNonPrompt = false; }
+              if ( DSTAG.Contains("MCJPSINOPR")  ) { incJpsi = true;  incPsi2S = false; incPrompt = false; incNonPrompt = true;  }
+              if ( DSTAG.Contains("MCPSI2SPR")   ) { incJpsi = false; incPsi2S = true;  incPrompt = true;  incNonPrompt = false; }
+              if ( DSTAG.Contains("MCPSI2SNOPR") ) { incJpsi = false; incPsi2S = true;  incPrompt = false; incNonPrompt = true;  }
+              
+              bool isPbPb = true, proceed = false;
+              if (fitPbPb && DSTAG.Contains("PbPb")) { isPbPb = true;  proceed = true; }
+              if (fitPP   && DSTAG.Contains("PP"))   { isPbPb = false; proceed = true; }
+              if (proceed && !fitCharmonia( Workspace[wsName.Data()], cutVectors[j].at(i), parIniVectors[j].at(i), outputDir,
+                                            // Select the type of datasets to fit
+                                            DSTAG.Data(),
+                                            isPbPb,          // In this case we are fitting PbPb
+                                            // Select the type of object to fit
+                                            fitMass,         // Fit mass distribution
+                                            fitCtau,         // Fit ctau distribution
+                                            fitCtauTrue,     // Fits ctau true MC distribution
+                                            incJpsi,         // Includes Jpsi model
+                                            incPsi2S,        // Includes Psi(2S) model
+                                            incBkg,          // Includes Background model
+                                            incPrompt,       // Includes Prompt ctau model
+                                            incNonPrompt,    // Includes NonPrompt ctau model
+                                            doCtauErrPDF,    // If yes, it builds the Ctau Error PDFs from data
+                                            // Select the fitting options
+                                            cutCtau,         // Apply prompt ctau cuts
+                                            doSimulFit,      // Do simultaneous fit
+                                            wantPureSMC,           // Flag to indicate if we want to fit pure signal MC
+                                            inputFitDir,     // Map of user-defined directory paths of previous fit results
+                                            applyCorr,       // Flag to indicate if we want corrected dataset and which correction
+                                            numCores,        // Number of cores used for fitting
+                                            // Select the drawing options
+                                            setLogScale,     // Draw plot with log scale
+                                            incSS,           // Include Same Sign data
+                                            zoomPsi,         // Zoom Psi(2S) peak on extra pad
+                                            binWidth,        // Bin width used for plotting
+                                            false            // Compute the mean PT (NEED TO FIX)
+                                            )
+                  ) { return; }
+            }
+          } else {
+            cout << "[ERROR] The workspace for " << wsName.Data() << " was not found!" << endl; return;
           }
         }
-      } else {
-        cout << "[ERROR] The workspace for " << wsName.Data() << " was not found!" << endl; return;
-      }  
     }
   }
-  
+
   delete aDSTAG;
 };
   
 
-  bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vector< map<string, string> >&  parIniVector, bool isPbPb)
-  {
+bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vector< map<string, string> >&  parIniVector, bool isPbPb)
+{
   vector< map<string, string> >  data;
   if(!parseFile(InputFile, data)) { return false; }
   
@@ -306,14 +335,16 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
 {
 
   // set initial parameters
-  cut.sMuon.Pt.Min  =  0.0;    
+  cut.sMuon.Pt.Min  =  0.0;
   cut.sMuon.Pt.Max  = 100000.0;
-  cut.sMuon.Eta.Min = -2.4;   
+  cut.sMuon.Eta.Min = -2.4;
   cut.sMuon.Eta.Max = 2.4;
-  cut.dMuon.ctauErr.Min = -100.0; 
+  cut.dMuon.ctauErr.Min = -100.0;
   cut.dMuon.ctauErr.Max = 100.0;
-  cut.dMuon.ctau.Min = -100.0;   
-  cut.dMuon.ctau.Max = 100.0;    
+  cut.dMuon.ctauTrue.Min = -50.0; 
+  cut.dMuon.ctauTrue.Max = 50.0;
+  cut.dMuon.ctau.Min = -100.0; 
+  cut.dMuon.ctau.Max = 100.0;   
   cut.dMuon.ctauCut = "";   
   cut.dMuon.M.Min = 2.0; 
   cut.dMuon.M.Max = 5.0;  
@@ -388,7 +419,37 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
       }  
       cut.dMuon.ctau.Min = v.at(0); 
       cut.dMuon.ctau.Max = v.at(1);
-    } 
+    }  
+    else if (label=="ctauErr"){
+      if (col->second=="" || col->second.find("-")!=std::string::npos) {
+        cout << "[ERROR] Input column 'ctauErr' has invalid value: " << col->second << endl; return false;
+      }
+      std::vector<double> v; 
+      if(!parseString(col->second, "-", v)) { return false; }
+      if (v.size()!=2) {
+        cout << "[ERROR] Input column 'ctauErr' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
+      }  
+      cut.dMuon.ctauErr.Min = v.at(0); 
+      cut.dMuon.ctauErr.Max = v.at(1);
+    }
+    else if (label=="ctauTrue"){
+      if (col->second=="" || col->second.find("->")!=std::string::npos) {
+        cout << "[ERROR] Input column 'ctauTrue' has invalid value: " << col->second << endl; return false;
+      }
+      std::vector<double> v; 
+      if(!parseString(col->second, "->", v)) { return false; }
+      if (v.size()!=2) {
+        cout << "[ERROR] Input column 'ctauTrue' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
+      }  
+      cut.dMuon.ctauTrue.Min = v.at(0); 
+      cut.dMuon.ctauTrue.Max = v.at(1);
+    }
+    else if (label=="ctauCut"){
+      if (col->second=="") {
+        cout << "[ERROR] Input column 'ctauCut' has invalid value: " << col->second << endl; return false;
+      }
+      cut.dMuon.ctauCut = col->second;
+    }
     else if (label.find("Model")!=std::string::npos){
       if (col->second=="") {
         cout << "[ERROR] Input column 'Model' has empty value" << endl; return false;
@@ -526,31 +587,61 @@ bool readFile(string FileName, vector< vector<string> >& content, const int nCol
 };
 
 
-bool iniWorkEnv(map<string,string>& DIR, const string workDirName) 
+bool iniWorkEnv( map< string, vector<string> >& DIR, const string workDirName)
 {
   cout << "[INFO] Initializing the work enviroment" << endl;
-  DIR["main"]   = gSystem->ExpandPathName(gSystem->pwd());
-  DIR["macros"] = DIR["main"] + "/Macros/";
-  if (existDir(DIR["macros"].c_str())==false){ 
-    cout << "[ERROR] Input directory: " << DIR["macros"] << " does not exist!" << endl; 
+  DIR["main"].push_back(gSystem->ExpandPathName(gSystem->pwd()));
+  DIR["macros"].push_back(DIR["main"][0] + "/Macros/");
+  if (existDir(DIR["macros"][0].c_str())==false){ 
+    cout << "[ERROR] Input directory: " << DIR["macros"][0] << " does not exist!" << endl; 
     return false; 
   }     
-  DIR["input"]  = DIR["main"] + "/Input/" + workDirName + "/";
-  if (existDir(DIR["input"])==false){ 
-    cout << "[ERROR] Input directory: " << DIR["input"] << " does not exist!" << endl; 
+  DIR["input"].push_back(DIR["main"][0] + "/Input/" + workDirName + "/");
+  if (existDir(DIR["input"][0])==false){ 
+    cout << "[ERROR] Input directory: " << DIR["input"][0] << " does not exist!" << endl; 
     return false; 
-  }     
-  DIR["output"] = DIR["main"] + "/Output/" + workDirName + "/";
-  if (existDir(DIR["output"].c_str())==false){ 
-    cout << "[INFO] Output directory: " << DIR["output"] << " does not exist, will create it!" << endl;  
-    gSystem->mkdir(DIR["output"].c_str(), kTRUE);
+  } else {
+    findSubDir(DIR["input"], DIR["input"][0]);
   }
-  DIR["dataset"] = DIR["main"] + "/DataSet/";
-  if (existDir(DIR["dataset"])==false){ 
-    cout << "[INFO] DataSet directory: " << DIR["dataset"] << " does not exist, will create it!" << endl;  
-    gSystem->mkdir(DIR["dataset"].c_str(), kTRUE);
+  DIR["output"].push_back(DIR["main"][0] + "/Output/" + workDirName + "/");
+  if (existDir(DIR["output"][0].c_str())==false){ 
+    cout << "[INFO] Output directory: " << DIR["output"][0] << " does not exist, will create it!" << endl;  
+    gSystem->mkdir(DIR["output"][0].c_str(), kTRUE);
   }
-  return true; 
+  for(uint j = 1; j < DIR["input"].size(); j++) {
+    string subdir = DIR["input"][j];
+    subdir.replace(subdir.find("/Input/"), std::string("/Input/").length(), "/Output/");
+    if (existDir(subdir.c_str())==false){  
+      gSystem->mkdir(subdir.c_str(), kTRUE);
+      cout << "[INFO] Output subdirectory: " << subdir << " created!" << endl;
+    }
+    DIR["output"].push_back(subdir);
+  } 
+  DIR["dataset"].push_back(DIR["main"][0] + "/DataSet/");
+  if (existDir(DIR["dataset"][0])==false){ 
+    cout << "[INFO] DataSet directory: " << DIR["dataset"][0] << " does not exist, will create it!" << endl;  
+    gSystem->mkdir(DIR["dataset"][0].c_str(), kTRUE);
+  }
+  return true;
+};
+
+
+void findSubDir(vector<string>& dirlist, string dirname)
+{
+  TSystemDirectory dir(dirname.c_str(), dirname.c_str());
+  TList *subdirs = dir.GetListOfFiles();
+  if (subdirs) {
+    TSystemFile *subdir;
+    TIter next(subdirs);
+    while ((subdir=(TSystemFile*)next())) {
+      if (subdir->IsDirectory() && string(subdir->GetName())!="." && string(subdir->GetName())!="..") {
+        dirlist.push_back(dirname + subdir->GetName() + "/");
+        cout << "[INFO] Input subdirectory: " << dirname + subdir->GetName() + "/" << " found!" << endl;
+      }
+    }
+  }
+  delete subdirs;
+  return;
 };
 
 
@@ -566,18 +657,38 @@ bool existDir(string dir)
 };
 
 
-bool checkSettings(bool fitData, bool fitPbPb, bool fitPP, bool incJpsi, bool incPsi2S, bool incBkg, bool cutCtau, 
-                   bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores, int nBins)
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores)
 { 
   cout << "[INFO] Checking user settings " << endl;
 
+  if (!fitMass && !fitCtau && !fitCtauTrue && !doCtauErrPDF) {
+    cout << "[ERROR] At least one distribution has to be selected for fitting, please select either Mass, CtauTrue, CtauErr or Ctau!" << endl; return false;
+  }
+  if (fitCtauTrue && fitData) {
+    cout << "[ERROR] We can not fit the truth ctau distribution on data, please select only MC!" << endl; return false;
+  }
+  if (fitCtauTrue && !incNonPrompt) {
+    cout << "[ERROR] The ctau truth distribution is only fitted on Non-Prompt MC, please include the Non-Prompt components!" << endl; return false;
+  }
+  if (!fitData && !fitMC) {
+    cout << "[ERROR] At least one type of dataset has to be selected for fitting, please select either Data or MC!" << endl; return false;
+  }
+  if (!fitMass && doSimulFit) {
+    cout << "[ERROR] Can't perform simultanoeus fit without fitting the mass spectrum, please fix your fitter settings!" << endl; return false;
+  }
+  if (fitCtau && (!incPrompt && !incNonPrompt)) {
+    cout << "[ERROR] No ctau models were included, please include either Prompt or NonPrompt when fitting ctau!" << endl; return false;
+  }
+  if (fitMC && (!incPrompt && !incNonPrompt)) {
+    cout << "[ERROR] No MC datasets were included, please include either Prompt or Non-Prompt MC!" << endl; return false;
+  }
   if (!fitPbPb && !fitPP) {
     cout << "[ERROR] No datasets were selected, please select either PbPb or PP!" << endl; return false;
   }
   if (!incJpsi && !incPsi2S && !incBkg) {
     cout << "[ERROR] No models were included for fitting, please include either Jpsi, Psi2S or Bkg" << endl; return false;
   }
-  if (!fitData && (!incJpsi && !incPsi2S)) {
+  if ((!fitData || fitMC) && (!incJpsi && !incPsi2S)) {
     cout << "[ERROR] We can't fit only background on MC, please include also either Jpsi or Psi2S!" << endl; return false;
   }
   if (fitData && wantPureSMC) {
@@ -591,9 +702,6 @@ bool checkSettings(bool fitData, bool fitPbPb, bool fitPP, bool incJpsi, bool in
   }
   if (numCores<=0 || numCores>32) {
     cout << "[ERROR] Invalid number of cores: " << numCores << " , please select an interger number between 1 and 32." << endl; return false;
-  }
-  if (nBins<=0) {
-    cout << "[ERROR] Invalid number of bins: " << nBins << " , please select an interger number > 0 ." << endl; return false;
   }
   if (doSimulFit && (!fitPbPb || !fitPP)) {
     cout << "[ERROR] Can't perform simultaneous fit without both PP and PbPb, please fix your fitter settings!" << endl; return false;

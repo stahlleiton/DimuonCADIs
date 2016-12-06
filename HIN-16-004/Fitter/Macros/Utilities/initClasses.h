@@ -26,6 +26,7 @@
 #include "TAxis.h"
 #include "TLegend.h"
 
+#include "RooBinning.h"
 #include "RooNumIntConfig.h"
 #include "RooWorkspace.h"
 #include "RooKeysPdf.h"
@@ -189,14 +190,16 @@ enum class CtauModel
     DoubleGaussianResolution=1, 
     SingleGaussianResolution=2,
     TripleDecay=3,
-    SingleSidedDecay=4, 
-    Delta=5
+    DoubleSingleSidedDecay=4,
+    SingleSidedDecay=5,
+    Delta=6
 };
 map< string , CtauModel > CtauModelDictionary = {
   {"InvalidModel",             CtauModel::InvalidModel},
   {"DoubleGaussianResolution", CtauModel::DoubleGaussianResolution},
   {"SingleGaussianResolution", CtauModel::SingleGaussianResolution},
   {"TripleDecay",              CtauModel::TripleDecay},
+  {"DoubleSingleSidedDecay",   CtauModel::DoubleSingleSidedDecay},
   {"SingleSidedDecay",         CtauModel::SingleSidedDecay},
   {"Delta",                    CtauModel::Delta}
 };
@@ -219,6 +222,345 @@ typedef struct CharmModel {
 typedef struct OniaModel {
   CharmModel  PbPb, PP;
 } OniaModel;
+
+
+
+
+#include <boost/algorithm/string/replace.hpp>
+
+void setFixedVarsToContantVars(RooWorkspace& ws)
+{
+  RooArgSet listVar = ws.allVars();
+  TIterator* parIt = listVar.createIterator();
+  for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
+    if ( it->getMin()==it->getMax() ) it->setConstant(kTRUE);
+  }
+};
+
+
+bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2) {
+  TIterator* parIt = pars1->createIterator(); 
+  for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
+    double val = pars2->getRealValue(it->GetName(),-1e99);
+    if ( strcmp(it->GetName(),"ctauErr")==0 || strcmp(it->GetName(),"ctau")==0 || strcmp(it->GetName(),"ctauTrue")==0 ) continue;
+    if (val==-1e99) return false;          // the parameter was not found!
+    if (val != it->getVal()) return false; // the parameter was found, but with a different value!
+    if ( ((RooRealVar&)(*pars2)[it->GetName()]).getMin() != it->getMin() ) return false; // the parameter has different lower limit
+    if ( ((RooRealVar&)(*pars2)[it->GetName()]).getMax() != it->getMax() ) return false; // the parameter has different upper limit
+  }
+  return true;
+};
+
+
+bool saveWorkSpace(RooWorkspace& myws, string outputDir, string FileName)
+{
+  // Save the workspace
+  gSystem->mkdir(outputDir.c_str(), kTRUE);
+  cout << FileName << endl;
+  TFile *file =  new TFile(FileName.c_str(), "RECREATE");
+  if (!file) { 
+    cout << "[ERROR] Output root file with fit results could not be created!" << endl; return false; 
+  } else {
+    file->cd();    
+    myws.Write("workspace"); 
+    file->Write(); file->Close(); delete file;
+  }
+  return true;
+};
+
+
+bool isFitAlreadyFound(RooArgSet *newpars, string FileName, string pdfName) 
+{
+  if (gSystem->AccessPathName(FileName.c_str())) {
+    cout << "FileName: " << FileName << " was not found" << endl;
+    return false; // File was not found
+  }
+  TFile *file = new TFile(FileName.c_str());
+  if (!file) return false;  
+  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  if (!ws) {
+    file->Close(); delete file;
+    return false;
+  }
+  string snapShotName = Form("%s_parIni", pdfName.c_str());
+  const RooArgSet *params = ws->getSnapshot(snapShotName.c_str());
+  if (!params) {
+    delete ws;
+    file->Close(); delete file;
+    return false;
+  }
+  bool result = compareSnapshots(newpars, params);
+  delete ws;
+  file->Close(); delete file; 
+
+  return result;
+};
+
+
+bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bool isPbPb, bool cutSideBand=false)
+{
+  if (gSystem->AccessPathName(FileName.c_str())) {
+    cout << "[INFO] Results not found for: " << FileName << endl;
+    return false; // File was not found
+  }
+  TFile *file = new TFile(FileName.c_str());
+  if (!file) return false;
+
+  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  if (!ws) {
+    cout << "[INFO] Workspace not found in: " << FileName << endl;
+    file->Close(); delete file;
+    return false;
+  }
+
+  if (DSTAG.find("_")!=std::string::npos) DSTAG.erase(DSTAG.find("_"));
+
+  cout <<  "[INFO] Loading variables and functions from: " << FileName << endl;
+  RooArgSet listVar = ws->allVars();
+  TIterator* parIt = listVar.createIterator();
+  string print = "[INFO] Variables loaded: ";
+  for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
+    string name = it->GetName();
+    if ( name=="invMass" || name=="ctau" || 
+         name=="ctauTrue" || name=="pt" || name=="cent" || 
+         name=="rap" || name=="One" ) continue;
+    if ( (DSTAG.find("MC")!=std::string::npos || cutSideBand) && (name.find("N_")!=std::string::npos) ) continue; 
+    if (myws.var(name.c_str())) {
+      if ( name!="ctauErr" ) {
+        print = print + Form("  %s: %.5f->%.5f ", name.c_str(), myws.var(name.c_str())->getValV(), ws->var(name.c_str())->getValV()) ;
+        myws.var(name.c_str())->setVal  ( ws->var(name.c_str())->getValV()  );
+        myws.var(name.c_str())->setError( ws->var(name.c_str())->getError() );
+      }
+      myws.var(name.c_str())->setMin  ( ws->var(name.c_str())->getMin()   );
+      myws.var(name.c_str())->setMax  ( ws->var(name.c_str())->getMax()   );
+      if ( name=="ctauErr" ) {
+        print = print + Form("  %s: [ %.5f, %.5f ] ", name.c_str(), myws.var(name.c_str())->getMin(), myws.var(name.c_str())->getMax()) ;
+      }
+    } else {
+      if ( (name==Form("lambdaDSS_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))) && myws.var(Form("lambdaDSS_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))) ) {
+        print = print + Form("  %s: %.5f->%.5f", Form("lambdaDSS_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")), myws.var(Form("lambdaDSS_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")))->getValV(), ws->var(name.c_str())->getValV()) ;
+        myws.var(Form("lambdaDSS_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")))->setVal  ( ws->var(name.c_str())->getValV()  );
+        myws.var(Form("lambdaDSS_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")))->setError( ws->var(name.c_str())->getError() ); 
+      }
+      if ( (name==Form("sigmaMC_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))) && myws.var(Form("sigmaMC_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")))) {
+        print = print + Form("  %s: %.5f->%.5f  ", Form("sigmaMC_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")), myws.var(Form("sigmaMC_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")))->getValV(), ws->var(name.c_str())->getValV()) ;
+        myws.var(Form("sigmaMC_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")))->setVal  ( ws->var(name.c_str())->getValV()  );
+        myws.var(Form("sigmaMC_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")))->setError( ws->var(name.c_str())->getError() ); 
+      }
+    }
+  }
+  cout << print << endl;
+  RooArgSet listFun = ws->allFunctions();
+  TIterator* parFunIt = listFun.createIterator();
+  string printFun = "[INFO] Functions loaded: ";
+  for (RooRealVar* it = (RooRealVar*)parFunIt->Next(); it!=NULL; it = (RooRealVar*)parFunIt->Next() ) {
+    string name = it->GetName();
+    if ( name=="invMass" || name=="ctau" || name=="ctauErr" || 
+         name=="ctauTrue" || name=="pt" || name=="cent" || 
+         name=="rap" || name=="One" ) continue;
+    if ( (DSTAG.find("MC")!=std::string::npos || cutSideBand) && (name.find("N_")!=std::string::npos) ) continue; 
+    if (myws.var(name.c_str())) { 
+      printFun = printFun + Form("  %s: %.5f->%.5f  ", name.c_str(), myws.var(name.c_str())->getValV(), ws->function(name.c_str())->getValV()) ;
+      myws.var(name.c_str())->setVal  ( ws->function(name.c_str())->getValV()  );
+      myws.var(name.c_str())->setError( 0.0 );
+    } else {
+      Double_t MassRatio = (Mass.Psi2S/Mass.JPsi);
+      string reName = name.c_str();
+      boost::replace_all(reName, "Jpsi", "Psi2S");
+      if (myws.var(reName.c_str())) {
+        Double_t value = 0.0;
+        if ( (reName==Form("sigma1_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ) { value = ws->var(name.c_str())->getValV() * MassRatio; }
+        else if ( (reName==Form("m_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ) { value = ws->var(name.c_str())->getValV() * MassRatio; }
+        else { value = ws->var(name.c_str())->getValV(); }
+        printFun = printFun + Form("  %s: %.5f->%.5f  ", reName.c_str(), myws.var(reName.c_str())->getValV(), value) ;
+        myws.var(reName.c_str())->setVal  ( value );
+        myws.var(reName.c_str())->setError( 0.0 );
+      }
+    }
+  }
+  setFixedVarsToContantVars(myws);
+  cout << printFun << endl;
+
+  delete ws;
+  file->Close(); delete file;
+  return true;
+};
+
+
+int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut, string label, bool cutSideBand=false)
+{
+  string indMuonMass    = Form("(%.6f < invMass && invMass < %.6f)",       cut.dMuon.M.Min,       cut.dMuon.M.Max);
+  if (cutSideBand) {
+    indMuonMass =  indMuonMass + "&&" + "((2.0 < invMass && invMass < 2.8) || (3.3 < invMass && invMass < 3.5) || (3.9 < invMass && invMass < 5.0))";
+  }
+  string indMuonRap     = Form("(%.6f <= abs(rap) && abs(rap) < %.6f)",    cut.dMuon.AbsRap.Min,  cut.dMuon.AbsRap.Max);
+  string indMuonPt      = Form("(%.6f <= pt && pt < %.6f)",                cut.dMuon.Pt.Min,      cut.dMuon.Pt.Max);
+  string indMuonCtau    = Form("(%.6f < ctau && ctau < %.6f)",             cut.dMuon.ctau.Min,    cut.dMuon.ctau.Max); 
+  if(cut.dMuon.ctauCut!=""){ indMuonCtau = cut.dMuon.ctauCut; }
+  string indMuonCtauErr = Form("(%.12f <= ctauErr && ctauErr < %.12f)",    cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max);
+  string inCentrality   = Form("(%d <= cent && cent < %d)",                cut.Centrality.Start,  cut.Centrality.End);
+  string indMuonCtauTrue = Form("(%.12f <= ctauTrue && ctauTrue < %.12f)", cut.dMuon.ctauTrue.Min,    cut.dMuon.ctauTrue.Max);
+  string strCut         = indMuonMass +"&&"+ indMuonRap +"&&"+ indMuonPt +"&&"+ indMuonCtau +"&&"+ indMuonCtauErr;
+  if (label.find("PbPb")!=std::string::npos){ strCut = strCut +"&&"+ inCentrality; } 
+  if (label.find("MC")!=std::string::npos && label.find("NOPR")!=std::string::npos){ strCut = strCut +"&&"+ indMuonCtauTrue; } 
+
+  // Reduce and import the datasets
+  if (!(inputWS.data(Form("dOS_%s", label.c_str())))){ 
+    cout << "[ERROR] The dataset " <<  Form("dOS_%s", label.c_str()) << " was not found!" << endl;
+    return -1;
+  }
+  cout << "[INFO] Importing local RooDataSet with cuts: " << strCut << endl;
+  RooDataSet* dataOS = (RooDataSet*)inputWS.data(Form("dOS_%s", label.c_str()))->reduce(strCut.c_str());
+  if (dataOS->sumEntries()==0){ 
+    cout << "[WARNING] No events from dataset " <<  Form("dOS_%s", label.c_str()) << " passed the kinematic cuts!" << endl;
+    return 0;
+  }  
+  myws.import(*dataOS);
+  delete dataOS;
+  
+  if (label.find("NoBkg")==std::string::npos && label.find("AccEff")==std::string::npos && label.find("lJpsiEff")==std::string::npos) // Don't try to find SS dataset if label contais NoBkg or correction
+  {
+    if (!(inputWS.data(Form("dSS_%s", label.c_str())))){
+      cout << "[ERROR] The dataset " <<  Form("dSS_%s", label.c_str()) << " was not found!" << endl;
+      return -1;
+    }
+    RooDataSet* dataSS = (RooDataSet*)inputWS.data(Form("dSS_%s", label.c_str()))->reduce(strCut.c_str());
+    if (dataSS->sumEntries()==0){
+      cout << "[WARNING] No events from dataset " <<  Form("dSS_%s", label.c_str()) << " passed the kinematic cuts!" << endl;
+    }
+    myws.import(*dataSS);
+    delete dataSS;
+  }
+
+  // Set the range of each global parameter in the local roodataset
+  const RooArgSet* rowOS = myws.data(Form("dOS_%s", label.c_str()))->get();
+  ((RooRealVar*)rowOS->find("invMass"))->setMin(cut.dMuon.M.Min);        
+  ((RooRealVar*)rowOS->find("invMass"))->setMax(cut.dMuon.M.Max);
+  ((RooRealVar*)rowOS->find("pt"))->setMin(cut.dMuon.Pt.Min);            
+  ((RooRealVar*)rowOS->find("pt"))->setMax(cut.dMuon.Pt.Max);
+  ((RooRealVar*)rowOS->find("ctau"))->setMin(cut.dMuon.ctau.Min);        
+  ((RooRealVar*)rowOS->find("ctau"))->setMax(cut.dMuon.ctau.Max);
+  ((RooRealVar*)rowOS->find("ctauErr"))->setMin(cut.dMuon.ctauErr.Min);  
+  ((RooRealVar*)rowOS->find("ctauErr"))->setMax(cut.dMuon.ctauErr.Max);
+  if (label.find("PbPb")!=std::string::npos){
+    ((RooRealVar*)rowOS->find("cent"))->setMin(cut.Centrality.Start);      
+    ((RooRealVar*)rowOS->find("cent"))->setMax(cut.Centrality.End);
+  }
+  if (label.find("MC")!=std::string::npos && label.find("NOPR")!=std::string::npos){ 
+    ((RooRealVar*)rowOS->find("ctauTrue"))->setMin(cut.dMuon.ctauTrue.Min);      
+    ((RooRealVar*)rowOS->find("ctauTrue"))->setMax(cut.dMuon.ctauTrue.Max);
+  }
+  // Set the range of each global parameter in the local workspace
+  myws.var("invMass")->setMin(cut.dMuon.M.Min);        
+  myws.var("invMass")->setMax(cut.dMuon.M.Max);
+  myws.var("pt")->setMin(cut.dMuon.Pt.Min);            
+  myws.var("pt")->setMax(cut.dMuon.Pt.Max);
+  myws.var("rap")->setMin(cut.dMuon.AbsRap.Min);       
+  myws.var("rap")->setMax(cut.dMuon.AbsRap.Max);
+  myws.var("ctau")->setMin(cut.dMuon.ctau.Min);        
+  myws.var("ctau")->setMax(cut.dMuon.ctau.Max);
+  myws.var("ctauErr")->setMin(cut.dMuon.ctauErr.Min);  
+  myws.var("ctauErr")->setMax(cut.dMuon.ctauErr.Max);
+  if (label.find("PbPb")!=std::string::npos){
+    myws.var("cent")->setMin(cut.Centrality.Start);      
+    myws.var("cent")->setMax(cut.Centrality.End);
+  }
+  if (label.find("MC")!=std::string::npos && label.find("NOPR")!=std::string::npos){ 
+    myws.var("ctauTrue")->setMin(cut.dMuon.ctauTrue.Min);      
+    myws.var("ctauTrue")->setMax(cut.dMuon.ctauTrue.Max);
+  }
+  cout << "[INFO] Analyzing bin: " << Form(
+                                           "%.3f < pt < %.3f, %.3f < rap < %.3f, %d < cent < %d", 
+                                           cut.dMuon.Pt.Min,
+                                           cut.dMuon.Pt.Max,
+                                           cut.dMuon.AbsRap.Min,
+                                           cut.dMuon.AbsRap.Max,
+                                           cut.Centrality.Start,
+                                           cut.Centrality.End
+                                           ) << endl;
+
+  return 1;
+};
+
+
+void printChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, string dataLabel, string pdfLabel, int nBins, bool isWeighted, string cut="")
+{
+  double chi2=0; unsigned int ndof=0;
+  Pad->cd();
+  TLatex *t = new TLatex(); t->SetNDC(); t->SetTextSize(0.1); 
+  unsigned int nFitPar = myws.pdf(pdfLabel.c_str())->getParameters(*myws.data(dataLabel.c_str()))->selectByAttrib("Constant",kFALSE)->getSize(); 
+  TH1 *hdatact = myws.data(dataLabel.c_str())->reduce(cut.c_str())->createHistogram("hdatact", *myws.var(varLabel.c_str()), Binning(nBins));
+//  RooHist *hpull = frame->pullHist("hdatact",pdfLabel.c_str(), true);
+  RooHist *hpull = frame->pullHist(0,0, true);
+  double* ypulls = hpull->GetY();
+  unsigned int nFullBins = 0;
+  for (int i = 0; i < nBins; i++) {
+    if (hdatact->GetBinContent(i+1) > 0.0) {
+      chi2 += ypulls[i]*ypulls[i];
+      nFullBins++;
+    }
+  }
+  ndof = nFullBins - nFitPar;
+  //chi2 = myws.pdf(pdfLabel.c_str())->createChi2(*((RooDataSet*)myws.data(dataLabel.c_str())))->getVal(); 
+  //chi2 = frame->chiSquare(nFitPar)*ndof;
+//  RooDataHist dummy("dummy", "dummy", *myws.var("invMass"), hdatact);
+//  if (isWeighted) {
+//    chi2 = RooChi2Var("chi2", "chi2", *myws.pdf(pdfLabel.c_str()), dummy, kFALSE, 0, 0, 8, RooFit::Interleave, kFALSE, kFALSE, RooDataHist::SumW2).getVal();
+//  }  
+  t->DrawLatex(0.7, 0.85, Form("#chi^{2}/ndof = %.0f / %d ", chi2, ndof));
+  RooRealVar chi2Var("chi2","chi2",chi2);
+  RooRealVar ndofVar("ndof","ndof",ndof);
+  myws.import(chi2Var); myws.import(ndofVar);
+  delete hdatact; 
+  delete hpull;
+};
+
+
+void setBinning(TH1* hist, int nMaxBins, RooBinning& bins, vector<double>& rangeErr)
+{
+  hist->ClearUnderflowAndOverflow();
+  // 1) Find the bin with the maximum Y value
+  int binMaximum = hist->GetMaximumBin();
+  // 2) Loop backward and find the first bin
+  int binWithContent = -1;
+  int firstBin = 1;
+  for (int i=binMaximum; i>0; i--) {
+    if (hist->GetBinContent(i)>0.0) {
+      if ( binWithContent>0 && ((binWithContent-i) > nMaxBins) ) { firstBin = binWithContent; break; }
+      else { binWithContent = i; }
+    }
+  }
+  // 3) Loop forward and find the last bin
+  binWithContent = -1;
+  int lastBin = hist->GetNbinsX();
+  for (int i=binMaximum; i<hist->GetNbinsX(); i++) {
+    if (hist->GetBinContent(i)>0.0) {
+      if ( binWithContent>0 && ((i - binWithContent) > nMaxBins) ) { lastBin = binWithContent+1; break; }
+      else { binWithContent = i; }
+    }
+  }
+  // 4) Build the set of bins
+  int startBin = ( (firstBin>1) ? (firstBin-1) : firstBin );
+  const int nNewBins = lastBin - startBin + 1;
+  double binning[nNewBins+1];
+  binning[0] = hist->GetXaxis()->GetXmin();
+  binning[nNewBins] = hist->GetXaxis()->GetXmax();
+  for (int i=1; i<nNewBins; i++) {
+    int iBin = startBin + i;
+    binning[i] = hist->GetBinLowEdge(iBin); 
+  }
+  // 5) Apply the new binning over the histogram
+  hist->SetBins(nNewBins, binning);
+  if (firstBin>1) { bins.addUniform(1, binning[0], binning[1]); }
+  bins.addUniform(nNewBins-((firstBin>1)?2:1), binning[((firstBin>1)?1:0)], binning[nNewBins-1]);
+  bins.addUniform(1, binning[nNewBins-1], binning[nNewBins]);
+  rangeErr.push_back(binning[(firstBin>1)?1:0]);
+  rangeErr.push_back(binning[nNewBins-1]);
+
+  cout << "[INFO] Binning set to be: [ " <<  binning[0] << ", {" << binning[1] << ", " << binning[nNewBins-1] << "}, " << binning[nNewBins] << " ]" << endl;
+
+  return;
+};
 
 
 #endif // #ifndef initClasses_h
