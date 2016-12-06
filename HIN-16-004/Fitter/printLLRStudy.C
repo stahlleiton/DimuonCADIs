@@ -1,6 +1,8 @@
 // a macro that simply extracts the ratio of Psi2S/Jpsi from a list of files containing fit results
 
 #include "TSystem.h"
+#include "TSystemFile.h"
+#include "TSystemDirectory.h"
 #include "TROOT.h"
 #include "TFile.h"
 #include "TMath.h"
@@ -35,73 +37,167 @@ struct model_t {
 typedef vector<model_t> vecModels_t;
 typedef set<model_t> setModels_t;
 
-vector<string> printNLL(map< string, setModels_t > content, string outputDir, string type, string dirLabel, double pvalcut) ;
+vector<string> printNLL(map< string, setModels_t > content, string outputDir, string type, double pvalcut, vector<string>& winnerModelNames) ;
 void setLines(vector<string>& strLin, vector<string> lin); 
 void printLines(vector<string> strLin, ofstream& fout); 
 bool findFiles(string dirPath, vector<string>& fileNames); 
 bool existDir(string dir);
 void splitString(string stringOriginal, const string Key, string& stringWithoutKey, string& stringWithKey); 
 bool readFiles(string dirPath, vector<string> fileNames, map<string, setModels_t>& content, string type);
-bool extractNLL(string fileName, model_t& value) ;
+bool extractNLL(string fileName, model_t& value);
+
+bool keepLines(string InputFile, vector< int >& lineIndexToKeep, vector< string > winnerLabels);
+bool reduceInputFile(string InputFile, string OutputFile, vector< int > lineIndexToKeep);
+bool readInputFile(string FileName, vector< string >& content, int nRow);
+void findSubDir(vector<string>& dirlist, string dirname);
+bool extractWinnerLabel(string fileName, string& winnerLabel);
 
 
 void printLLRStudy(
-      string dirLabel="DataAccEff",  // Name of the working directory (currently hardcoded to work with DATA)
-      string type = "Bkg",           // Type of the LLR test, available options are: "Bkg" , "Jpsi" and "Psi2S"
-      double pvalcut = 5.            // cut pvalue, in %  
-      ) 
+                   string outputDirPath="Test",
+                   string inputDirPath="Test",
+                   string TAG = "DATA",
+                   bool   cutSideBand = false,
+                   string type = "Bkg",           // Type of the LLR test, available options are: "Bkg" , "Jpsi" and "Psi2S"
+                   double pvalcut = 5.            // cut pvalue, in %  
+                   ) 
 {
+
+  map< string, vector<string> > DIR;
+  DIR["main"].push_back(gSystem->ExpandPathName(gSystem->pwd()));
   
-  vector<string> fileNames;
-  //string dirPath = Form("./Output/%s/result/DATA/",dirLabel.c_str());
-  string dirPath = Form("./Output/%s/result/DATA/",dirLabel.c_str());
-  if (!findFiles(dirPath, fileNames)) { return; } 
-  cout << "[INFO] Creating " << ((type=="Bkg")?"Background":"Signal") << " Study summary!" << endl;
-  
-  // Group the files based on their background model
-  map<string, setModels_t> content;
-  if (!readFiles(dirPath, fileNames, content, type)) { return; }
-  
-  string plotDir = Form("./Output/%s/plot/DATA/", dirLabel.c_str());
-  string outputDir = Form("./Output/%s/LLR/DATA/", dirLabel.c_str());
-  
-  if (existDir(outputDir)==false){ 
-    cout << "[INFO] Output directory: " << outputDir << " does not exist, will create it!" << endl;  
-    if (existDir(outputDir)==false){ gSystem->mkdir(outputDir.c_str(), kTRUE); }
-    if (existDir(outputDir+"pdf/")==false) { gSystem->mkdir((outputDir+"pdf/").c_str(), kTRUE);  }
-    if (existDir(outputDir+"png/")==false) { gSystem->mkdir((outputDir+"png/").c_str(), kTRUE);  }
-    if (existDir(outputDir+"root/")==false){ gSystem->mkdir((outputDir+"root/").c_str(), kTRUE); }
-    if (existDir(outputDir+"tex/")==false) { gSystem->mkdir((outputDir+"tex/").c_str(), kTRUE);  }
+  if (inputDirPath.find("/")==std::string::npos)  { inputDirPath = DIR["main"][0]+"/Input/"+outputDirPath+"/"; }
+  if (outputDirPath.find("/")==std::string::npos) { outputDirPath = DIR["main"][0]+"/Output/"+outputDirPath+"/"; }
+
+  DIR["output"].push_back(outputDirPath);
+  if (existDir(DIR["output"][0])==false){ 
+    cout << "[ERROR] Output directory: " << DIR["output"][0] << " does not exist!" << endl; 
+    return;
+  } else {
+    findSubDir(DIR["output"], DIR["output"][0]);
+  }
+  DIR["input"].push_back(inputDirPath);
+  for(uint j = 1; j < DIR["output"].size(); j++) {
+    string subdir = DIR["output"][j];
+    subdir.replace(subdir.find(DIR["output"][0]), std::string(DIR["output"][0]).length(), DIR["input"][0]);
+    if (existDir(subdir.c_str())==false){
+      cout << "[ERROR] Input directory: " << DIR["input"][0] << " does not exist!" << endl;
+      return;
+    }
+    DIR["input"].push_back(subdir);
   }
 
-  // Loop over each kinematic bin and compute the LLR/AIC tests
-  vector<string> bestModelFiles = printNLL(content, outputDir, type, dirLabel, pvalcut); 
-  cout << "[INFO] " << ((type=="Bkg")?"Background":"Signal") << " Study summary file done!" << endl; 
+  for(uint j = 0; j < DIR["output"].size(); j++) {
+    if (DIR["output"].size()>1 && j==0) continue; // First entry is always the main input directory
+    vector<string> fileNames;
+    string dirPath = Form("%smass%s/%s/result/", DIR["output"][j].c_str(), (cutSideBand?"SB":""), TAG.c_str());
+    if (!findFiles(dirPath, fileNames)) { return; } 
+    cout << "[INFO] Creating " << ((type=="Bkg")?"Background":"Signal") << " Study summary!" << endl;
+  
+    // Group the files based on their background model
+    map<string, setModels_t> content;
+    if (!readFiles(dirPath, fileNames, content, type)) { return; }
+   
+    string plotDir = Form("%smass%s/%s/plot/", DIR["output"][j].c_str(), (cutSideBand?"SB":""), TAG.c_str());
+    string outputDir = Form("%sLLR/%s/", DIR["output"][j].c_str(), TAG.c_str());
+  
+    if (existDir(outputDir)==false){ 
+      cout << "[INFO] Output directory: " << outputDir << " does not exist, will create it!" << endl;
+      if (existDir(outputDir)==false){ gSystem->mkdir(outputDir.c_str(), kTRUE); }
+      if (existDir(outputDir+"Input/")==false) { gSystem->mkdir((outputDir+"Input/").c_str(), kTRUE);  }
+      if (existDir(outputDir+"plot/pdf/")==false) { gSystem->mkdir((outputDir+"plot/pdf/").c_str(), kTRUE);  }
+      if (existDir(outputDir+"plot/png/")==false) { gSystem->mkdir((outputDir+"plot/png/").c_str(), kTRUE);  }
+      if (existDir(outputDir+"plot/root/")==false){ gSystem->mkdir((outputDir+"plot/root/").c_str(), kTRUE); }
+      if (existDir(outputDir+"result/")==false){ gSystem->mkdir((outputDir+"result/").c_str(), kTRUE); }
+      if (existDir(outputDir+"tex/")==false) { gSystem->mkdir((outputDir+"tex/").c_str(), kTRUE);  }
+    }
+
+    // Loop over each kinematic bin and compute the LLR/AIC tests
+    vector< string > winnerLabels; vector< string > winnerModelNames; int i=0;
+    vector<string> bestModelFiles = printNLL(content, outputDir, type, pvalcut, winnerModelNames); 
+    cout << "[INFO] " << ((type=="Bkg")?"Background":"Signal") << " Study summary file done!" << endl; 
     
-  cout << "The files for the best models are: " << endl;
-  for (vector<string>::iterator it = bestModelFiles.begin(); it != bestModelFiles.end(); it++) {
-     cout << *it << endl;
+    cout << "The files for the best models are: " << endl;
+    for (vector<string>::iterator it = bestModelFiles.begin(); it != bestModelFiles.end(); it++) {
+      cout << *it << endl;
  
-     string bestModelFile = *it;
-     bestModelFile.erase(bestModelFile.find(".root"), bestModelFile.size());    
+      string bestModelFile = *it;
+      bestModelFile.erase(bestModelFile.find(".root"), bestModelFile.size());    
 
-     gSystem->CopyFile((dirPath+bestModelFile+".root").c_str(), (outputDir+"root/"+bestModelFile+".root").c_str());
+      gSystem->CopyFile((dirPath+bestModelFile+".root").c_str(), (outputDir+"result/"+bestModelFile+".root").c_str());
 
-     bestModelFile.erase(0, bestModelFile.find("FIT_")+ string("FIT_").length());
+      bestModelFile.erase(0, bestModelFile.find("FIT_")+ string("FIT_").length());
 
-     string outputFileName = bestModelFile;
-     string tmp = bestModelFile; tmp.erase(0, tmp.find("Bkg_")+string("Bkg_").length()); tmp.erase(0, tmp.find("_"));
-     outputFileName = outputFileName.erase(outputFileName.find("Bkg_")-1, outputFileName.size())+tmp;
+      string outputFileName = bestModelFile;
+      string tmp = bestModelFile; tmp.erase(0, tmp.find("Bkg_")+string("Bkg_").length()); tmp.erase(0, tmp.find("_"));
+      outputFileName = outputFileName.erase(outputFileName.find("Bkg_")-1, outputFileName.size())+tmp;
      
+      gSystem->CopyFile((plotDir+"pdf/PLOT_"+bestModelFile+".pdf").c_str(), (outputDir+"plot/pdf/PLOT_"+outputFileName+".pdf").c_str());
+      gSystem->CopyFile((plotDir+"png/PLOT_"+bestModelFile+".png").c_str(), (outputDir+"plot/png/PLOT_"+outputFileName+".png").c_str());
+      gSystem->CopyFile((plotDir+"root/PLOT_"+bestModelFile+".root").c_str(), (outputDir+"plot/root/PLOT_"+outputFileName+".root").c_str());
+
+      string winnerLabel;
+      if (!extractWinnerLabel(dirPath+"FIT_"+bestModelFile+".root", winnerLabel)) { return; }
+      winnerLabel = winnerLabel + winnerModelNames.at(i);
+      winnerLabels.push_back(winnerLabel);
+      i++;                        
+    }
+
+    // PRODUCING NEW INPUT FILES
+
+    string InputFile;
+
+    map<string, map<string, bool>> VARMAP = {
+      {"MASS", 
+       {
+         {"BKG",   true}, 
+         {"JPSI",  true}, 
+         {"PSI2S", false}
+       }
+      },
+      {"CTAU", 
+       {
+         {"BKG",   true}, 
+         {"JPSI",  true}, 
+         {"PSI2S", false},
+         {"RES",   true},
+         {"TRUE",  true},
+       }
+      }
+    };
+    map<string, bool> COLMAP = {{"PbPb", true}, {"PP", true}};
  
-     gSystem->CopyFile((plotDir+"pdf/"+bestModelFile+".pdf").c_str(), (outputDir+"pdf/"+outputFileName+".pdf").c_str());
-     gSystem->CopyFile((plotDir+"png/"+bestModelFile+".png").c_str(), (outputDir+"png/"+outputFileName+".png").c_str());
+    bool isPbPb = false;
+    if ( bestModelFiles.at(0).find("PbPb")!=std::string::npos ) { isPbPb = true; }
+    InputFile = Form("InitialParam_MASS_BKG_%s.csv", (isPbPb?"PbPb":"PP"));
+    vector< int > lineIndexToKeep;
+    keepLines(DIR["input"][j]+InputFile, lineIndexToKeep, winnerLabels);
+
+    typedef map<string, map<string, bool>>::iterator var_type;
+    typedef map<string, bool>::iterator it_type;
+    for(var_type VAR = VARMAP.begin(); VAR != VARMAP.end(); VAR++) {
+      map<string, bool> PARMAP = VAR->second;
+      string name1 = "InitialParam_" + VAR->first + "_";
+      for(it_type PAR = PARMAP.begin(); PAR != PARMAP.end(); PAR++) {
+        if (PAR->second) {
+          string name2 = name1 + PAR->first + "_";
+          for(it_type COL = COLMAP.begin(); COL != COLMAP.end(); COL++) {
+            if(COL->second) {
+              string name3 = name2 + COL->first + ".csv";
+              string InputFile = (DIR["input"][j] + name3);
+              string OutputFile = (outputDir + "Input/" + name3);
+              if (lineIndexToKeep.size()>0) reduceInputFile(InputFile, OutputFile, lineIndexToKeep);
+            }
+          }
+        }
+      }
+    }
   }
 
 };
 
 
-vector<string> printNLL(map< string, setModels_t > content, string outputDir, string type, string dirLabel, double pvalcut) 
+vector<string> printNLL(map< string, setModels_t > content, string outputDir, string type, double pvalcut, vector<string>& winnerModelNames) 
 { 
   vector<string> ans;
 
@@ -175,11 +271,12 @@ vector<string> printNLL(map< string, setModels_t > content, string outputDir, st
     }      
 
     // which is the best model for this bin?
-    string bestModelFile="NOTFOUND"; int minok=999; int maxpar=0;
+    string bestModelFile="NOTFOUND", bestModelName=""; int minok=999; int maxpar=0;
     for (vecModels_t::iterator it=modelNLLB.begin(); it!=modelNLLB.end();it++) {
        if (it->npar > maxpar) maxpar = it->npar;
        if (it->cnt>=2 && it->npar<minok) {
           bestModelFile=it->fileName;
+          bestModelName=it->modelName;
           minok = it->npar;
        }
     }
@@ -188,6 +285,7 @@ vector<string> printNLL(map< string, setModels_t > content, string outputDir, st
           int npar = it->npar;
           if (it->cnt>=maxpar-npar && npar<minok) {
              bestModelFile=it->fileName+" WARNING, HIGH ORDER";
+             bestModelName=it->modelName;
              minok = it->npar;
           }
        }
@@ -196,6 +294,7 @@ vector<string> printNLL(map< string, setModels_t > content, string outputDir, st
     cout << endl << " And the winner is... " << bestModelFile << endl << endl << endl;
     fout << endl << " And the winner is... " << bestModelFile << endl << endl << endl;
     ans.push_back(bestModelFile);
+    winnerModelNames.push_back(bestModelName);
 
     vector<string> TexTable;
     TexTable.push_back("\\begin{table}");
@@ -265,7 +364,7 @@ vector<string> printNLL(map< string, setModels_t > content, string outputDir, st
       TexTable.push_back(strLinLatex[j]);
     }
     TexTable.push_back("\\end{tabular}");
-    TexTable.push_back(Form("\\label{tab:LLRTEST_%s_%s}", dirLabel.c_str(), binName.c_str()));
+    TexTable.push_back(Form("\\label{tab:LLRTEST_%s}", binName.c_str()));
     string rapStr, centStr, ptStr, modelStr, colStr;
     if (bestModelFile.find("ExpChebychev")!=std::string::npos){ modelStr = "exponential chebychev polynomials"; }
     else if (bestModelFile.find("Chebychev")!=std::string::npos){ modelStr = "chebychev polynomials"; }
@@ -377,7 +476,7 @@ bool extractNLL(string fileName, model_t& value)
   f->Close(); delete f;
         
   return true;
-}
+};
 
 
 bool existDir(string dir)
@@ -461,4 +560,115 @@ bool findFiles(string dirPath, vector<string>& fileNames)
   }
   return true;
 
+};
+        
+        
+///////////////////////////////////////////////////////////////
+
+bool keepLines(string InputFile, vector< int >& lineIndexToKeep, vector< string > winnerLabels)
+{
+  vector< string > inputContent; 
+  if(!readInputFile(InputFile, inputContent, -1)){ return false; }
+  
+  int i = 0;
+  for(vector< string >::iterator iRow=inputContent.begin(); iRow!=inputContent.end(); ++iRow) {
+    string row = *iRow;
+    if ( i==0 ) { lineIndexToKeep.push_back(i); }
+    else {
+      bool found = false;
+      for(vector< string >::iterator iLine=winnerLabels.begin(); iLine!=winnerLabels.end(); ++iLine) {
+        if ( row.find(*iLine)!=std::string::npos ) { found=true; break; }
+      }
+      if (found==true) { lineIndexToKeep.push_back(i); }
+    }
+    i++;
+  }
+  return true;
+};
+
+bool reduceInputFile(string InputFile, string OutputFile, vector< int > lineIndexToKeep)
+{
+
+  vector< string > inputContent, outputContent; 
+  if(!readInputFile(InputFile, inputContent, -1)){ return false; }
+  
+  for(vector< int >::iterator index=lineIndexToKeep.begin(); index!=lineIndexToKeep.end(); ++index) {
+    int i = *index;
+    outputContent.push_back(inputContent[i]);
+  }
+
+  if (outputContent.size()>0) {
+    ofstream myfile(OutputFile.c_str());
+    if (myfile.is_open()){
+      for (vector<string>::iterator line = outputContent.begin(); line < outputContent.end(); line++) {
+        myfile << *line << endl;
+      }
+    }
+  }
+
+  return true;
+};
+
+
+bool readInputFile(string FileName, vector< string >& content, int nRow)
+{
+  if (nRow==0) { 
+    cout << "[WARNING] Ignoring content of File: " << FileName << endl; return true; 
+  }
+  if (nRow!=1) { cout << "[INFO] Checking file: " << FileName << endl; }
+  ifstream myfile(FileName.c_str());
+  if (myfile.is_open()){ 
+    string line;
+    while ( getline(myfile, line) ){
+      if (nRow==0) break; else {nRow=nRow-1;}
+      content.push_back(line);
+    }
+  } else {
+    cout << "[WARNING] File: " << FileName << " was not found!" << endl; return false;
+  }
+  return true;
+};
+
+
+void findSubDir(vector<string>& dirlist, string dirname)
+{
+  TSystemDirectory dir(dirname.c_str(), dirname.c_str());
+  TList *subdirs = dir.GetListOfFiles();
+  if (subdirs) {
+    TSystemFile *subdir;
+    TIter next(subdirs);
+    while ((subdir=(TSystemFile*)next())) {
+      if (subdir->IsDirectory() && string(subdir->GetName())!="." && string(subdir->GetName())!="..") {
+        dirlist.push_back(dirname + subdir->GetName() + "/");
+        cout << "[INFO] Input subdirectory: " << dirname + subdir->GetName() + "/" << " found!" << endl;
+      }
+    }
+  }
+  delete subdirs;
+  return;
+};
+
+
+bool extractWinnerLabel(string fileName, string& winnerLabel) 
+{
+  TFile *f = new TFile( fileName.c_str() );
+  if (!f) {
+    cout << "[Error] " << fileName << " not found" << endl; return false;
+  }
+  RooWorkspace *ws = (RooWorkspace*) f->Get("workspace");
+  if (!ws) {
+    f->Close(); delete f;
+    cout << "[ERROR] Workspace not found in " << fileName << endl; return false;
+  }    
+  
+  winnerLabel = Form("%.1f-%.1f;%.1f-%.1f;%.0f-%.0f;",
+                     ws->var("rap")->getMin(), ws->var("rap")->getMax(),
+                     ws->var("pt")->getMin(), ws->var("pt")->getMax(),
+                     ws->var("cent")->getMin(), (ws->var("cent")->getMax()/2.0)
+                     );
+
+  delete ws;
+  f->Close(); delete f;
+        
+  return true;
 };
