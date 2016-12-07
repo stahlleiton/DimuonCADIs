@@ -34,7 +34,7 @@ void results2tree(
       const char* workDirName, 
       const char* DSTag, //="DATA", // Data Set tag can be: "DATA","MCPSI2SP", "MCJPSIP" ...
       const char* prependPath, //="",
-      const char* thePoiNames, //="N_Jpsi,N_Jpsi_cor,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg",
+      const char* thePoiNames, //="N_Jpsi,N_Jpsi_cor,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg,eff,lumi,taa,ncoll,npart"
       bool wantPureSMC //=false
       ) {
    // workDirName: usual tag where to look for files in Output
@@ -100,7 +100,8 @@ void results2tree(
       ymax = thebin.rapbin().high();
       centmin = thebin.centbin().low();
       centmax = thebin.centbin().high();
-      strcpy(collSystem, (it->Index("PbPb")>0) ? "PbPb" : "PP");
+      strcpy(collSystem, (it->Contains("PbPb")) ? "PbPb" : "PP");
+      bool isPP = !(it->Contains("PbPb"));
 
       // get the model names
       from = 0;
@@ -169,26 +170,11 @@ void results2tree(
 
          // get the POIs
          for (vector<poi>::iterator itpoi=thePois.begin(); itpoi!=thePois.end(); itpoi++) {
-            RooRealVar *thevar = poiFromWS(ws, Form("_%s",collSystem), TString(itpoi->name).ReplaceAll("_cor",""));
+            RooRealVar *thevar = poiFromWS(ws, Form("_%s",collSystem), itpoi->name);
             itpoi->val = thevar ? thevar->getVal() : 0;
             itpoi->err = thevar ? thevar->getError() : 0;
 
-            // if we ask for a correction
-            if (TString(itpoi->name).Contains("_cor")) {
-               bool isPP = (TString(collSystem).Index("PP") != kNPOS);
-               double normfactor = 1.;
-
-               // luminosity and Ncoll
-               if (isPP) {
-                  normfactor = 1./lumipp;
-               } else {
-                  if (thebin.centbin().low()>=60) normfactor = 1./lumipbpb_peri;
-                  else normfactor = 1./lumipbpb_ABCD;
-                  normfactor *= 1./(208.*208.*(HI::findNcollAverage(thebin.centbin().low(),thebin.centbin().high())/HI::findNcollAverage(0,200)));
-                  normfactor *= 200./(thebin.centbin().high()-thebin.centbin().low());
-               }
-
-               // efficiency
+            if (TString(itpoi->name)=="eff") {
                TFile *feff = TFile::Open(Form("../Efficiency/files/histos_jpsi_%s.root", isPP ? "pp" : "pbpb"));
                bool isptdep = (thebin.centbin() == binI(0,200));
                int catmin, catmax;
@@ -216,14 +202,44 @@ void results2tree(
                numerr = hnum->GetBinError(ibin);
                denval = hden->GetBinContent(ibin);
                denerr = hden->GetBinError(ibin);
-               double efficiency = numval / denval;
-               cout << numval << " " << denval << " " << efficiency << " " << normfactor << " " << itpoi->val << endl;
-               normfactor = normfactor / efficiency;
+               double efficiency = (denval>0) ? numval / denval : 0;
+               itpoi->val = efficiency;
+               itpoi->err = (numval>0 && denval>0) ? efficiency*sqrt(pow(numerr/numval,2)+pow(denerr/denval,2)) : 0;
                delete feff;
-
-               itpoi->val = itpoi->val*normfactor;
-               itpoi->err = itpoi->err*normfactor;
             }
+            if (TString(itpoi->name)=="lumi") {
+               // luminosity and Ncoll
+               if (isPP) {
+                  itpoi->val = lumipp;
+                  itpoi->err = 0.023; // from LUM-16-001
+               } else {
+                  if (thebin.centbin().low()>=60) itpoi->val = lumipbpb_peri;
+                  else itpoi->val = lumipbpb_ABCD;
+                  itpoi->err = 0; // FIXME
+               }
+            }
+            if (TString(itpoi->name)=="ncoll") {
+               if (isPP) {
+                  itpoi->val=1; 
+                  itpoi->err=0;
+               } else {
+                  itpoi->val = HI::findNcollAverage(thebin.centbin().low(),thebin.centbin().high());
+                  itpoi->err = 0; //FIXME
+               }
+            }
+            if (TString(itpoi->name)=="npart") {
+               if (isPP) {
+                  itpoi->val=2; 
+                  itpoi->err=0;
+               } else {
+                  itpoi->val = HI::findNpartAverage(thebin.centbin().low(),thebin.centbin().high());
+                  itpoi->err = 0; //FIXME
+               }
+            }
+            if (TString(itpoi->name)=="taa") {
+               //FIXME
+            }
+
          }
 
          // delete model;

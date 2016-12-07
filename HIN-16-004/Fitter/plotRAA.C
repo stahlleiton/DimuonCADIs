@@ -35,7 +35,7 @@ using namespace std;
 #ifndef poiname_check
 #define poiname_check
 // const char* poiname = "RFrac2Svs1S"; // for double ratios
-const char* poiname       = "N_Jpsi_cor"; // for RAA (will correct automatically for efficiency)
+const char* poiname       = "N_Jpsi"; // for RAA (will correct automatically for efficiency)
 // const char* poiname = "N_Psi2S"; // for RAA (will correct automatically for efficiency)
 #endif
 const char* ylabel        = "R_{AA}";
@@ -56,6 +56,22 @@ void centrality2npart(TGraphAsymmErrors* tg, bool issyst=false, bool isMB=false,
 void plotLimits(vector<anabin> theCats, string xaxis, const char* filename="../Limits/csv/Limits_95.csv", double xshift=0, bool ULonly=true);
 void drawArrow(double x, double ylow, double yhigh, double dx, Color_t color);
 
+class raa_input {
+   public:
+      double npp;
+      double dnpp_stat;
+      double dnpp_syst;
+      double naa;
+      double dnaa_stat;
+      double dnaa_syst;
+      double effpp;
+      double effaa;
+      double taa;
+      double lumipp;
+      double lumiaa;
+      double ncoll;
+      syst   statpp;
+};
 
 
 /////////////////////////////////////////////
@@ -107,13 +123,11 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
    TTree *tr = (TTree*) f->Get("fitresults");
    if (!tr) return;
 
-   map<anabin, double> theVars_val;
-   map<anabin, double> theVars_stat;
-   map<anabin, double> theVars_syst;
-   map<anabin,syst> stat_PP; // statistical uncertainty on PP fits (useful for the case of the centrality dependence)
+   map<anabin, raa_input> theVars_inputs;
 
    vector<double> x, ex, y, ey;
    float ptmin, ptmax, ymin, ymax, centmin, centmax;
+   float eff, lumi, taa, ncoll;
    float val, err=0;
    int ival=-999;
    char collSystem[5];
@@ -126,6 +140,10 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
    tr->SetBranchAddress(Form("%s_val",poiname),&val);
    tr->SetBranchAddress(Form("%s_err",poiname),&err);
    tr->SetBranchAddress("collSystem",collSystem);
+   tr->SetBranchAddress("eff_val",&eff);
+   tr->SetBranchAddress("lumi_val",&lumi);
+   tr->SetBranchAddress("taa_val",&taa);
+   tr->SetBranchAddress("ncoll_val",&ncoll);
 
    int ntr = tr->GetEntries();
    for (int i=0; i<ntr; i++) {
@@ -134,15 +152,23 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
 
       bool ispp = (TString(collSystem)=="PP");
 
-
-      // raa = pbpb / pp
-      if (theVars_val[thebin] == 0) theVars_val[thebin] = 1;
-      theVars_val[thebin] = ispp ? theVars_val[thebin] / val : theVars_val[thebin] * val;
-      theVars_stat[thebin] = 0; // FIXME
-      theVars_syst[thebin] = 0; // FIXME
-
-      syst thestat_PP;
-      stat_PP[thebin] = thestat_PP;
+      if (ispp) {
+         theVars_inputs[thebin].npp = val;
+         theVars_inputs[thebin].dnpp_stat = err;
+         theVars_inputs[thebin].dnpp_syst = 0; // FIXME
+         syst thestat_PP; // FIXME
+         theVars_inputs[thebin].statpp = thestat_PP;
+         theVars_inputs[thebin].lumipp = lumi;
+         theVars_inputs[thebin].effpp = eff; 
+      } else {
+         theVars_inputs[thebin].naa = val;
+         theVars_inputs[thebin].dnaa_stat = err;
+         theVars_inputs[thebin].dnaa_syst = 0; // FIXME
+         theVars_inputs[thebin].lumiaa = lumi;
+         theVars_inputs[thebin].effaa = eff; 
+         theVars_inputs[thebin].taa = taa; 
+         theVars_inputs[thebin].ncoll = ncoll; 
+      }
    }
 
    map<anabin, vector<anabin> > theBins;
@@ -158,13 +184,32 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       theVarsBinned[*it] = vector<double>();
    }
 
-   for (map<anabin, double>::const_iterator it=theVars_val.begin(); it!=theVars_val.end(); it++) {
+   for (map<anabin, raa_input>::const_iterator it=theVars_inputs.begin(); it!=theVars_inputs.end(); it++) {
       anabin thebin = it->first;
+      raa_input s = it->second;
       if (!binok(thecats,xaxis,thebin)) continue;
+      anabin thebinPP = thebin; thebinPP.setcentbin(binI(0,200));
       theBins[thebin].push_back(it->first);
-      theVarsBinned[thebin].push_back(it->second);
-      theVarsBinned_stat[thebin].push_back(theVars_stat[it->first]);
-      theVarsBinned_syst[thebin].push_back(theVars_stat[it->first]);
+
+      double normfactorpp = 1., normfactoraa = 1.;
+      normfactorpp = 1./s.lumipp;
+      normfactoraa = 1./s.lumiaa;
+      normfactoraa *= 1./(208.*208.*(HI::findNcollAverage(it->first.centbin().low(),it->first.centbin().high())/HI::findNcollAverage(0,200)));
+      normfactoraa *= 200./(it->first.centbin().high()-it->first.centbin().low());
+
+      normfactorpp = normfactorpp / s.effpp;
+      normfactoraa = normfactoraa / s.effaa;
+
+      double naa = s.naa * normfactoraa;
+      double npp = s.npp * normfactorpp;
+      double dnaa = s.dnaa_stat * normfactoraa;
+      double dnpp = s.dnpp_stat * normfactorpp;
+      double raa = npp>0 ? naa / npp : 0;
+      cout << s.naa << " " << s.npp <<  " " << s.lumiaa << " " << s.lumipp << " " << s.effaa << "  " << s.effpp << " " << normfactoraa << "  " << normfactorpp << " -> " << raa << endl;
+      double draa = raa>0 ? raa*sqrt(pow(dnaa/naa,2) + pow(dnpp/npp,2)) : 0;
+      theVarsBinned[thebin].push_back(raa);
+      theVarsBinned_stat[thebin].push_back(draa);
+      theVarsBinned_syst[thebin].push_back(0); // FIXME
    }
 
    // systematics
@@ -175,7 +220,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
    if (xaxis=="cent") { // put the PP stat error into the PP syst, that will go into a box at 1
       vector< map<anabin, syst> > all_PP;
       all_PP.push_back(syst_PP);
-      all_PP.push_back(stat_PP);
+      // all_PP.push_back(stat_PP); // FIXME
       syst_PP = combineSyst(all_PP,"statsyst_PP");
    }
    map<anabin, syst> syst_PbPb;
@@ -231,7 +276,6 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
          y = theVarsBinned[*it][i];
          if (fiterrors) {
             eyl = fabs(theVarsBinned_stat[*it][i]);
-            if (isMB) eyl = sqrt(pow(theVarsBinned_stat[*it][i],2) + pow(stat_PP[*it].value_dR,2));
             eyh = eyl;
          } else {
             map<anabin, limits> maplim = readLimits("../Limits/csv/Limits_68.csv");
