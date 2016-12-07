@@ -71,19 +71,21 @@ void printLLRStudy(
 
   DIR["output"].push_back(outputDirPath);
   DIR["outputLLR"].push_back(outputDirPath);
+  DIR["inputLLR"].push_back(outputDirPath);
   if (existDir(DIR["output"][0])==false){ 
     cout << "[ERROR] Output directory: " << DIR["output"][0] << " does not exist!" << endl; 
     return;
   } else {
     findSubDir(DIR["output"], DIR["output"][0]);
     findSubDir(DIR["outputLLR"], DIR["outputLLR"][0], "LLR/");
+    findSubDir(DIR["inputLLR"], DIR["inputLLR"][0], "LLR/Input/");
   }
   DIR["input"].push_back(inputDirPath);
   for(uint j = 1; j < DIR["output"].size(); j++) {
     string subdir = DIR["output"][j];
     subdir.replace(subdir.find(DIR["output"][0]), std::string(DIR["output"][0]).length(), DIR["input"][0]);
     if (existDir(subdir.c_str())==false){
-      cout << "[ERROR] Input directory: " << DIR["input"][0] << " does not exist!" << endl;
+      cout << "[ERROR] Input directory: " << subdir.c_str() << " does not exist!" << endl;
       return;
     }
     DIR["input"].push_back(subdir);
@@ -106,7 +108,7 @@ void printLLRStudy(
     if (existDir(outputDir)==false){ 
       cout << "[INFO] Output directory: " << outputDir << " does not exist, will create it!" << endl;
       if (existDir(outputDir)==false){ gSystem->mkdir(outputDir.c_str(), kTRUE); }
-      if (existDir(outputDir+"Input/")==false) { gSystem->mkdir((outputDir+"Input/").c_str(), kTRUE);  }
+      if (existDir(DIR["inputLLR"][j].c_str())==false) { gSystem->mkdir(DIR["inputLLR"][j].c_str(), kTRUE);  }
       if (existDir(outputDir+"plot/pdf/")==false) { gSystem->mkdir((outputDir+"plot/pdf/").c_str(), kTRUE);  }
       if (existDir(outputDir+"plot/png/")==false) { gSystem->mkdir((outputDir+"plot/png/").c_str(), kTRUE);  }
       if (existDir(outputDir+"plot/root/")==false){ gSystem->mkdir((outputDir+"plot/root/").c_str(), kTRUE); }
@@ -115,7 +117,11 @@ void printLLRStudy(
     }
 
     // Loop over each kinematic bin and compute the LLR/AIC tests
-    map< string, vector< vector< string > > > winnerLabels; map< string, vector< string > > winnerModelNames; map< string, int> i;
+    map< string, vector< vector< string > > > winnerLabels; 
+    map< string, vector< string > > winnerModelNames;
+    vector<string> tmpVec; tmpVec.clear();
+    winnerModelNames["PbPb"] = tmpVec; winnerModelNames["PP"] = tmpVec;
+    map< string, int> i; i["PbPb"]=0; i["PP"]=0;
     vector<string> bestModelFiles = printNLL(content, outputDir, type, pvalcut, winnerModelNames); 
     cout << "[INFO] " << ((type=="Bkg")?"Background":"Signal") << " Study summary file done!" << endl; 
     
@@ -190,7 +196,7 @@ void printLLRStudy(
             if(COL->second) {
               string name3 = name2 + COL->first + ".csv";
               string InputFile = (DIR["input"][j] + name3);
-              string OutputFile = (outputDir + "Input/" + name3);
+              string OutputFile = (DIR["inputLLR"][j] + name3);
               if (InputFile.find("PbPb")!=std::string::npos) {
                 if (lineIndexToKeep.size()>0) reduceInputFile(InputFile, OutputFile, lineIndexToKeep["PbPb"]);
               } 
@@ -589,7 +595,7 @@ bool keepLines(string InputFile, vector< int >& lineIndexToKeep, vector< vector<
     else {
       bool found = false;
       for(vector< vector< string > >::iterator iLine=winnerLabels.begin(); iLine!=winnerLabels.end(); ++iLine) {
-        string kinematic = (*iLine)[0]; if (isPbPb==false) { kinematic.erase(kinematic.find("0-100"),string("0-100").length()); }
+        string kinematic = (*iLine)[0]; if (isPbPb==false) { kinematic.erase(kinematic.find("0-100;"),string("0-100;").length()); }
         string modelName = (*iLine)[1];
         if ( row.find(kinematic)!=std::string::npos && row.find(modelName)!=std::string::npos ) { found=true; break; }
       }
@@ -652,7 +658,7 @@ void findSubDir(vector<string>& dirlist, string dirname, string ext)
     TSystemFile *subdir;
     TIter next(subdirs);
     while ((subdir=(TSystemFile*)next())) {
-      if (subdir->IsDirectory() && string(subdir->GetName())!="." && string(subdir->GetName())!="..") {
+      if (subdir->IsDirectory() && string(subdir->GetName())!="." && string(subdir->GetName())!=".." && string(subdir->GetName())!="LLR") {
         dirlist.push_back(dirname + ext + subdir->GetName() + "/");
         cout << "[INFO] Input subdirectory: " << dirname + ext + subdir->GetName() + "/" << " found!" << endl;
       }
@@ -675,7 +681,7 @@ bool extractWinnerLabel(string fileName, string& winnerLabel)
     cout << "[ERROR] Workspace not found in " << fileName << endl; return false;
   }
   
-  winnerLabel = Form("%.1f-%.1f;%.1f-%.1f;%.0f-%.0f",
+  winnerLabel = Form("%.1f-%.1f;%.1f-%.1f;%.0f-%.0f;",
                      ws->var("rap")->getMin(), ws->var("rap")->getMax(),
                      ws->var("pt")->getMin(), ws->var("pt")->getMax(),
                      ws->var("cent")->getMin()/2.0, ws->var("cent")->getMax()/2.0
