@@ -22,6 +22,14 @@
 #include <vector>
 #include <iostream>
 
+///////////////
+// CONSTANTS //
+///////////////
+
+const double lumipp = 27.7e6;
+const double lumipbpb_ABCD = 351;
+const double lumipbpb_peri = 464;
+
 using namespace std;
 
 RooRealVar* poiFromFile(const char* filename, const char* token, const char* thepoiname);
@@ -55,7 +63,7 @@ void results2tree(
       const char* workDirName, 
       const char* DSTag="DATA", // Data Set tag can be: "DATA","MCPSI2SP", "MCJPSIP" ...
       const char* prependPath="",
-      const char* thePoiNames="RFrac2Svs1S,N_Jpsi,N_Psi2S,N_Psi2S_intpl,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg",
+      const char* thePoiNames="N_Jpsi,N_Jpsi_cor,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg,eff,lumi,taa,ncoll,npart",
       bool wantPureSMC=false
       );
 #include "../../results2tree.C"

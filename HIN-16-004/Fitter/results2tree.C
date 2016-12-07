@@ -17,6 +17,7 @@
 #include <cstring>
 
 #include "Macros/Utilities/resultUtils.h"
+#include "Macros/Utilities/EVENTUTILS.h"
 
 using namespace std;
 using namespace RooFit;
@@ -33,7 +34,7 @@ void results2tree(
       const char* workDirName, 
       const char* DSTag, //="DATA", // Data Set tag can be: "DATA","MCPSI2SP", "MCJPSIP" ...
       const char* prependPath, //="",
-      const char* thePoiNames, //="RFrac2Svs1S,N_Jpsi,N_Psi2S,N_Psi2S_intpl,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg",
+      const char* thePoiNames, //="N_Jpsi,N_Jpsi_cor,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg,eff,lumi,taa,ncoll,npart"
       bool wantPureSMC //=false
       ) {
    // workDirName: usual tag where to look for files in Output
@@ -46,7 +47,7 @@ void results2tree(
    // bin edges
    float ptmin, ptmax, ymin, ymax, centmin, centmax;
    // model names
-   Char_t jpsiName[128], psipName[128], bkgName[128];
+   Char_t jpsiName[128], bkgName[128];
    // collision system
    Char_t collSystem[8];
    // goodness of fit
@@ -69,7 +70,6 @@ void results2tree(
    tr->Branch("centmin",&centmin,"centmin/F");
    tr->Branch("centmax",&centmax,"centmax/F");
    tr->Branch("jpsiName",jpsiName,"jpsiName/C");
-   tr->Branch("psipName",psipName,"psipName/C");
    tr->Branch("bkgName",bkgName,"bkgName/C");
    tr->Branch("collSystem",collSystem,"collSystem/C");
    tr->Branch("nll",&nll,"nll/F");
@@ -100,17 +100,16 @@ void results2tree(
       ymax = thebin.rapbin().high();
       centmin = thebin.centbin().low();
       centmax = thebin.centbin().high();
-      strcpy(collSystem, (it->Index("PbPb")>0) ? "PbPb" : "PP");
+      strcpy(collSystem, (it->Contains("PbPb")) ? "PbPb" : "PP");
+      bool isPP = !(it->Contains("PbPb"));
 
       // get the model names
       from = 0;
-      bool catchjpsi=false, catchpsip=false, catchbkg=false;
+      bool catchjpsi=false, catchbkg=false;
       while (it->Tokenize(t, from, "_")) {
          if (catchjpsi) {strcpy(jpsiName, t.Data()); catchjpsi=false;}
-         if (catchpsip) {strcpy(psipName, t.Data()); catchpsip=false;}
          if (catchbkg) {strcpy(bkgName, t.Data()); catchbkg=false;}
          if (t=="Jpsi") catchjpsi=true;
-         if (t=="Psi2S") catchpsip=true;
          if (t=="Bkg") catchbkg=true;
       }
 
@@ -130,7 +129,7 @@ void results2tree(
          RooAbsPdf *model = pdfFromWS(ws, Form("_%s",collSystem), "pdfMASS_Tot");
 
          RooAbsPdf *model_bkg = pdfFromWS(ws, Form("_%s",collSystem), "pdfMASS_Bkg");
-          const char* token = (strcmp(DSTag,"DATA") && wantPureSMC) ? Form("_%s_NoBkg",collSystem) : Form("_%s",collSystem);
+         const char* token = (strcmp(DSTag,"DATA") && wantPureSMC) ? Form("_%s_NoBkg",collSystem) : Form("_%s",collSystem);
          RooAbsData *dat = dataFromWS(ws, token, Form("dOS_%s", DSTag));
          if (dat) {
             if (model) {
@@ -171,24 +170,76 @@ void results2tree(
 
          // get the POIs
          for (vector<poi>::iterator itpoi=thePois.begin(); itpoi!=thePois.end(); itpoi++) {
-            // special case of the interpolated number of psi2S events
-            if (TString(itpoi->name) == "N_Psi2S_intpl") {
-               if (!dat) {
-                 cout << "N_Psi2S_intpl cannot be computed, no dataset found" << endl;
-                  itpoi->val=0; itpoi->err=0;
+            RooRealVar *thevar = poiFromWS(ws, Form("_%s",collSystem), itpoi->name);
+            itpoi->val = thevar ? thevar->getVal() : 0;
+            itpoi->err = thevar ? thevar->getError() : 0;
+
+            if (TString(itpoi->name)=="eff") {
+               TFile *feff = TFile::Open(Form("../Efficiency/files/histos_jpsi_%s.root", isPP ? "pp" : "pbpb"));
+               bool isptdep = (thebin.centbin() == binI(0,200));
+               int catmin, catmax;
+               bool israpdep = !(thebin.rapbin() == binF(0,2.4));
+               if (israpdep) {
+                  catmin = thebin.rapbin().low()*10;
+                  catmax = thebin.rapbin().high()*10;
                } else {
-                  double mass1=(ymax<2) ? 3.25 : 3.3, mass2=3.5, mass3=3.9, mass4=4.2;
-                  double nsig = dat->reduce(Form("invMass>%f&&invMass<=%f",mass2,mass3))->numEntries();
-                  double nbkg1 = dat->reduce(Form("invMass>%f&&invMass<=%f",mass1,mass2))->numEntries();
-                  double nbkg2 = dat->reduce(Form("invMass>%f&&invMass<=%f",mass3,mass4))->numEntries();
-                  itpoi->val = nsig - (mass3-mass2)*(nbkg1/(mass2-mass1) + nbkg2/(mass4-mass3))/2.;
-                  itpoi->err = sqrt(nsig);
+                  catmin = thebin.centbin().low()/2;
+                  catmax = thebin.centbin().high()/2;
                }
-            } else {
-               RooRealVar *thevar = poiFromWS(ws, Form("_%s",collSystem), itpoi->name);
-               itpoi->val = thevar ? thevar->getVal() : 0;
-               itpoi->err = thevar ? thevar->getError() : 0;
+
+               TH1F *hnum = (TH1F*) feff->Get(Form("hnum_%s_%s%02i%02i", isptdep ? "pt" : "cent", israpdep ? "rap" : "cent", catmin, catmax));
+               TH1F *hden = (TH1F*) feff->Get(Form("hden_%s_%s%02i%02i", isptdep ? "pt" : "cent", israpdep ? "rap" : "cent", catmin, catmax));
+               if (!hnum || !hden) {
+                  itpoi->val = 0;
+                  itpoi->err = 0;
+                  continue;
+               }
+
+               double numval, numerr, denval, denerr;
+               int ibin = hnum->FindBin((thebin.centbin().low()+thebin.centbin().high())/4.);
+               if (isptdep) ibin = hnum->FindBin((thebin.ptbin().low()+thebin.ptbin().high())/2.);
+               numval = hnum->GetBinContent(ibin);
+               numerr = hnum->GetBinError(ibin);
+               denval = hden->GetBinContent(ibin);
+               denerr = hden->GetBinError(ibin);
+               double efficiency = (denval>0) ? numval / denval : 0;
+               itpoi->val = efficiency;
+               itpoi->err = (numval>0 && denval>0) ? efficiency*sqrt(pow(numerr/numval,2)+pow(denerr/denval,2)) : 0;
+               delete feff;
             }
+            if (TString(itpoi->name)=="lumi") {
+               // luminosity and Ncoll
+               if (isPP) {
+                  itpoi->val = lumipp;
+                  itpoi->err = 0.023; // from LUM-16-001
+               } else {
+                  if (thebin.centbin().low()>=60) itpoi->val = lumipbpb_peri;
+                  else itpoi->val = lumipbpb_ABCD;
+                  itpoi->err = 0; // FIXME
+               }
+            }
+            if (TString(itpoi->name)=="ncoll") {
+               if (isPP) {
+                  itpoi->val=1; 
+                  itpoi->err=0;
+               } else {
+                  itpoi->val = HI::findNcollAverage(thebin.centbin().low(),thebin.centbin().high());
+                  itpoi->err = 0; //FIXME
+               }
+            }
+            if (TString(itpoi->name)=="npart") {
+               if (isPP) {
+                  itpoi->val=2; 
+                  itpoi->err=0;
+               } else {
+                  itpoi->val = HI::findNpartAverage(thebin.centbin().low(),thebin.centbin().high());
+                  itpoi->err = 0; //FIXME
+               }
+            }
+            if (TString(itpoi->name)=="taa") {
+               //FIXME
+            }
+
          }
 
          // delete model;
