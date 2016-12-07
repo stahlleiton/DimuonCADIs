@@ -360,6 +360,7 @@ void drawingEff::drawHisto(vector<string> outname){
   can->SaveAs(Form("%s_rap.pdf",outname[1].c_str()));
 
   delete can;
+  delete lat;
   
 }
 
