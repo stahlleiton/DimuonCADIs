@@ -226,6 +226,9 @@ void drawingEff::loadHisto(){
 
 void drawingEff::getEfficiency(){
 
+  setTDRStyle();
+  gStyle->SetEndErrorSize(3);
+
   for (int i=0; i<nbins_4rap+2; i++) {
     TGraphAsymmErrors *geff = new TGraphAsymmErrors(hnum_cent_rap[i],hden_cent_rap[i],"n");
     heff_cent_rap.push_back(geff);
@@ -236,6 +239,7 @@ void drawingEff::getEfficiency(){
     
     heff_cent_rap[i]->GetXaxis()->SetTitle(hnum_cent_rap[i]->GetXaxis()->GetTitle());
     heff_cent_rap[i]->GetYaxis()->SetTitle(hnum_cent_rap[i]->GetYaxis()->GetTitle());
+    heff_cent_rap[i]->GetXaxis()->SetRangeUser(0,100);
     SetHistStyle(heff_cent_rap[i],i,i,0,1.3);
   }
   
@@ -249,6 +253,7 @@ void drawingEff::getEfficiency(){
 
     heff_pt_rap[i]->GetXaxis()->SetTitle(hnum_pt_rap[i]->GetXaxis()->GetTitle());
     heff_pt_rap[i]->GetYaxis()->SetTitle(hnum_pt_rap[i]->GetYaxis()->GetTitle());
+    heff_pt_rap[i]->GetXaxis()->SetRangeUser(0,50);
     SetHistStyle(heff_pt_rap[i],i,i,0,1.3);
   }
  
@@ -262,6 +267,7 @@ void drawingEff::getEfficiency(){
 
     heff_pt_cent[i]->GetXaxis()->SetTitle(hnum_pt_cent[i]->GetXaxis()->GetTitle());
     heff_pt_cent[i]->GetYaxis()->SetTitle(hnum_pt_cent[i]->GetYaxis()->GetTitle());
+    heff_pt_cent[i]->GetXaxis()->SetRangeUser(0,50);
     SetHistStyle(heff_pt_cent[i],i,i,0,1.3);
   }
 
@@ -273,17 +279,16 @@ void drawingEff::getEfficiency(){
 
   heff_rap->GetXaxis()->SetTitle(hnum_rap->GetXaxis()->GetTitle());
   heff_rap->GetYaxis()->SetTitle(hnum_rap->GetYaxis()->GetTitle());
+  heff_rap->GetXaxis()->SetRangeUser(0,2.4);
   SetHistStyle(heff_rap,0,0,0,1.3);
 }
 
 void drawingEff::drawHisto(vector<string> outname){
 
-  setTDRStyle();
   gStyle->SetEndErrorSize(3);
 
-  TLatex *lat = new TLatex(); lat->SetNDC(); lat->SetTextSize(0.035);
-  
   TCanvas *can = new TCanvas("can","can",600,600);
+  TLatex *lat = new TLatex(); lat->SetNDC(); lat->SetTextSize(0.035);
   TLegend *leg = new TLegend(0.6,0.7,0.9,0.9);
   SetLegendStyle(leg);
 
@@ -305,8 +310,6 @@ void drawingEff::drawHisto(vector<string> outname){
   delete leg;
   
 
-  setTDRStyle();
-  gStyle->SetEndErrorSize(3);
   // Eff vs pT in 4+1 |y| regions
   can = new TCanvas("can","can",600,600);
   leg = new TLegend(0.67,0.7,0.9,0.9);
@@ -327,8 +330,6 @@ void drawingEff::drawHisto(vector<string> outname){
   delete leg;
   
  
-  setTDRStyle();
-  gStyle->SetEndErrorSize(3);
   // Eff vs pT in 3 centrality regions
   can = new TCanvas("can","can",600,600);
   leg = new TLegend(0.67,0.7,0.9,0.9);
@@ -349,8 +350,6 @@ void drawingEff::drawHisto(vector<string> outname){
   delete leg;
   
 
-  setTDRStyle();
-  gStyle->SetEndErrorSize(3);
   // Eff vs rap integrated
   can = new TCanvas("can","can",600,600);
 

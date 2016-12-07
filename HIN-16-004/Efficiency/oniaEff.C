@@ -141,14 +141,15 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
    TH2F *hden2d = new TH2F("hden2d","hden2d",48,0,2.4,150,0,30);
 
 
-   ULong64_t nentries = fChain->GetEntries();
+   Long64_t nentries = fChain->GetEntries();
    cout << "nentries: " << nentries << endl;
 
-   ULong64_t nbytes = 0, nb = 0;
-   for (ULong64_t jentry=0; jentry<nentries;jentry++) {
+   Long64_t nbytes = 0, nb = 0;
+   for (Long64_t jentry=0; jentry<nentries;jentry++) {
       Long64_t ientry = LoadTree(jentry);
       if (ientry < 0) break;
-      if (ispbpb && ientry>=1000000) {
+      if (ispbpb && ientry>=400000) {
+        jentry=jentry+100000;
         continue;
       } else if (!ispbpb && ientry>=10000000) {
         break;
