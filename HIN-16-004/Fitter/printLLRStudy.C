@@ -37,7 +37,7 @@ struct model_t {
 typedef vector<model_t> vecModels_t;
 typedef set<model_t> setModels_t;
 
-vector<string> printNLL(map< string, setModels_t > content, string outputDir, string type, double pvalcut, vector<string>& winnerModelNames) ;
+vector<string> printNLL(map< string, setModels_t > content, string outputDir, string type, double pvalcut, map< string, vector<string> >& winnerModelNames) ;
 void setLines(vector<string>& strLin, vector<string> lin); 
 void printLines(vector<string> strLin, ofstream& fout); 
 bool findFiles(string dirPath, vector<string>& fileNames); 
@@ -46,16 +46,16 @@ void splitString(string stringOriginal, const string Key, string& stringWithoutK
 bool readFiles(string dirPath, vector<string> fileNames, map<string, setModels_t>& content, string type);
 bool extractNLL(string fileName, model_t& value);
 
-bool keepLines(string InputFile, vector< int >& lineIndexToKeep, vector< string > winnerLabels);
+bool keepLines(string InputFile, vector< int >& lineIndexToKeep, vector< vector< string > > winnerLabels);
 bool reduceInputFile(string InputFile, string OutputFile, vector< int > lineIndexToKeep);
 bool readInputFile(string FileName, vector< string >& content, int nRow);
-void findSubDir(vector<string>& dirlist, string dirname);
+void findSubDir(vector<string>& dirlist, string dirname, string ext="");
 bool extractWinnerLabel(string fileName, string& winnerLabel);
 
 
 void printLLRStudy(
                    string outputDirPath="Test",
-                   string inputDirPath="Test",
+                   string inputDirPath="",
                    string TAG = "DATA",
                    bool   cutSideBand = false,
                    string type = "Bkg",           // Type of the LLR test, available options are: "Bkg" , "Jpsi" and "Psi2S"
@@ -70,11 +70,13 @@ void printLLRStudy(
   if (outputDirPath.find("/")==std::string::npos) { outputDirPath = DIR["main"][0]+"/Output/"+outputDirPath+"/"; }
 
   DIR["output"].push_back(outputDirPath);
+  DIR["outputLLR"].push_back(outputDirPath);
   if (existDir(DIR["output"][0])==false){ 
     cout << "[ERROR] Output directory: " << DIR["output"][0] << " does not exist!" << endl; 
     return;
   } else {
     findSubDir(DIR["output"], DIR["output"][0]);
+    findSubDir(DIR["outputLLR"], DIR["outputLLR"][0], "LLR/");
   }
   DIR["input"].push_back(inputDirPath);
   for(uint j = 1; j < DIR["output"].size(); j++) {
@@ -99,7 +101,7 @@ void printLLRStudy(
     if (!readFiles(dirPath, fileNames, content, type)) { return; }
    
     string plotDir = Form("%smass%s/%s/plot/", DIR["output"][j].c_str(), (cutSideBand?"SB":""), TAG.c_str());
-    string outputDir = Form("%sLLR/%s/", DIR["output"][j].c_str(), TAG.c_str());
+    string outputDir = Form("%smass%s/%s/", DIR["outputLLR"][j].c_str(), (cutSideBand?"SB":""), TAG.c_str());
   
     if (existDir(outputDir)==false){ 
       cout << "[INFO] Output directory: " << outputDir << " does not exist, will create it!" << endl;
@@ -113,7 +115,7 @@ void printLLRStudy(
     }
 
     // Loop over each kinematic bin and compute the LLR/AIC tests
-    vector< string > winnerLabels; vector< string > winnerModelNames; int i=0;
+    map< string, vector< vector< string > > > winnerLabels; map< string, vector< string > > winnerModelNames; map< string, int> i;
     vector<string> bestModelFiles = printNLL(content, outputDir, type, pvalcut, winnerModelNames); 
     cout << "[INFO] " << ((type=="Bkg")?"Background":"Signal") << " Study summary file done!" << endl; 
     
@@ -136,11 +138,14 @@ void printLLRStudy(
       gSystem->CopyFile((plotDir+"png/PLOT_"+bestModelFile+".png").c_str(), (outputDir+"plot/png/PLOT_"+outputFileName+".png").c_str());
       gSystem->CopyFile((plotDir+"root/PLOT_"+bestModelFile+".root").c_str(), (outputDir+"plot/root/PLOT_"+outputFileName+".root").c_str());
 
-      string winnerLabel;
+      string winnerLabel; bool isPbPb = false;
+      if ( bestModelFile.find("PbPb")!=std::string::npos ) { isPbPb = true; }
       if (!extractWinnerLabel(dirPath+"FIT_"+bestModelFile+".root", winnerLabel)) { return; }
-      winnerLabel = winnerLabel + winnerModelNames.at(i);
-      winnerLabels.push_back(winnerLabel);
-      i++;                        
+      vector < string > tmpLabels;
+      tmpLabels.push_back(winnerLabel);
+      tmpLabels.push_back( winnerModelNames[(isPbPb?"PbPb":"PP")].at(i[(isPbPb?"PbPb":"PP")]) );
+      winnerLabels[(isPbPb?"PbPb":"PP")].push_back(tmpLabels);
+      i[(isPbPb?"PbPb":"PP")]++;                        
     }
 
     // PRODUCING NEW INPUT FILES
@@ -167,11 +172,11 @@ void printLLRStudy(
     };
     map<string, bool> COLMAP = {{"PbPb", true}, {"PP", true}};
  
-    bool isPbPb = false;
-    if ( bestModelFiles.at(0).find("PbPb")!=std::string::npos ) { isPbPb = true; }
-    InputFile = Form("InitialParam_MASS_BKG_%s.csv", (isPbPb?"PbPb":"PP"));
-    vector< int > lineIndexToKeep;
-    keepLines(DIR["input"][j]+InputFile, lineIndexToKeep, winnerLabels);
+    map< string, vector< int > > lineIndexToKeep;
+    InputFile = Form("InitialParam_MASS_BKG_%s.csv", "PbPb");
+    keepLines(DIR["input"][j]+InputFile, lineIndexToKeep["PbPb"], winnerLabels["PbPb"]);
+    InputFile = Form("InitialParam_MASS_BKG_%s.csv", "PP");
+    keepLines(DIR["input"][j]+InputFile, lineIndexToKeep["PP"], winnerLabels["PP"]);
 
     typedef map<string, map<string, bool>>::iterator var_type;
     typedef map<string, bool>::iterator it_type;
@@ -186,7 +191,10 @@ void printLLRStudy(
               string name3 = name2 + COL->first + ".csv";
               string InputFile = (DIR["input"][j] + name3);
               string OutputFile = (outputDir + "Input/" + name3);
-              if (lineIndexToKeep.size()>0) reduceInputFile(InputFile, OutputFile, lineIndexToKeep);
+              if (InputFile.find("PbPb")!=std::string::npos) {
+                if (lineIndexToKeep.size()>0) reduceInputFile(InputFile, OutputFile, lineIndexToKeep["PbPb"]);
+              } 
+              else { if (lineIndexToKeep.size()>0) reduceInputFile(InputFile, OutputFile, lineIndexToKeep["PP"]); }
             }
           }
         }
@@ -197,7 +205,7 @@ void printLLRStudy(
 };
 
 
-vector<string> printNLL(map< string, setModels_t > content, string outputDir, string type, double pvalcut, vector<string>& winnerModelNames) 
+vector<string> printNLL(map< string, setModels_t > content, string outputDir, string type, double pvalcut, map< string, vector<string> >& winnerModelNames) 
 { 
   vector<string> ans;
 
@@ -294,7 +302,9 @@ vector<string> printNLL(map< string, setModels_t > content, string outputDir, st
     cout << endl << " And the winner is... " << bestModelFile << endl << endl << endl;
     fout << endl << " And the winner is... " << bestModelFile << endl << endl << endl;
     ans.push_back(bestModelFile);
-    winnerModelNames.push_back(bestModelName);
+    bool isPbPb = false;
+    if (bestModelFile.find("PbPb")!=std::string::npos) isPbPb=true;
+    winnerModelNames[(isPbPb?"PbPb":"PP")].push_back(bestModelName);
 
     vector<string> TexTable;
     TexTable.push_back("\\begin{table}");
@@ -565,9 +575,11 @@ bool findFiles(string dirPath, vector<string>& fileNames)
         
 ///////////////////////////////////////////////////////////////
 
-bool keepLines(string InputFile, vector< int >& lineIndexToKeep, vector< string > winnerLabels)
+bool keepLines(string InputFile, vector< int >& lineIndexToKeep, vector< vector< string > > winnerLabels)
 {
-  vector< string > inputContent; 
+  vector< string > inputContent;
+  bool isPbPb = false;
+  if ( InputFile.find("PbPb")!=std::string::npos ) isPbPb = true;
   if(!readInputFile(InputFile, inputContent, -1)){ return false; }
   
   int i = 0;
@@ -576,8 +588,10 @@ bool keepLines(string InputFile, vector< int >& lineIndexToKeep, vector< string 
     if ( i==0 ) { lineIndexToKeep.push_back(i); }
     else {
       bool found = false;
-      for(vector< string >::iterator iLine=winnerLabels.begin(); iLine!=winnerLabels.end(); ++iLine) {
-        if ( row.find(*iLine)!=std::string::npos ) { found=true; break; }
+      for(vector< vector< string > >::iterator iLine=winnerLabels.begin(); iLine!=winnerLabels.end(); ++iLine) {
+        string kinematic = (*iLine)[0]; if (isPbPb==false) { kinematic.erase(kinematic.find("0-100"),string("0-100").length()); }
+        string modelName = (*iLine)[1];
+        if ( row.find(kinematic)!=std::string::npos && row.find(modelName)!=std::string::npos ) { found=true; break; }
       }
       if (found==true) { lineIndexToKeep.push_back(i); }
     }
@@ -630,7 +644,7 @@ bool readInputFile(string FileName, vector< string >& content, int nRow)
 };
 
 
-void findSubDir(vector<string>& dirlist, string dirname)
+void findSubDir(vector<string>& dirlist, string dirname, string ext)
 {
   TSystemDirectory dir(dirname.c_str(), dirname.c_str());
   TList *subdirs = dir.GetListOfFiles();
@@ -639,8 +653,8 @@ void findSubDir(vector<string>& dirlist, string dirname)
     TIter next(subdirs);
     while ((subdir=(TSystemFile*)next())) {
       if (subdir->IsDirectory() && string(subdir->GetName())!="." && string(subdir->GetName())!="..") {
-        dirlist.push_back(dirname + subdir->GetName() + "/");
-        cout << "[INFO] Input subdirectory: " << dirname + subdir->GetName() + "/" << " found!" << endl;
+        dirlist.push_back(dirname + ext + subdir->GetName() + "/");
+        cout << "[INFO] Input subdirectory: " << dirname + ext + subdir->GetName() + "/" << " found!" << endl;
       }
     }
   }
@@ -659,12 +673,12 @@ bool extractWinnerLabel(string fileName, string& winnerLabel)
   if (!ws) {
     f->Close(); delete f;
     cout << "[ERROR] Workspace not found in " << fileName << endl; return false;
-  }    
+  }
   
-  winnerLabel = Form("%.1f-%.1f;%.1f-%.1f;%.0f-%.0f;",
+  winnerLabel = Form("%.1f-%.1f;%.1f-%.1f;%.0f-%.0f",
                      ws->var("rap")->getMin(), ws->var("rap")->getMax(),
                      ws->var("pt")->getMin(), ws->var("pt")->getMax(),
-                     ws->var("cent")->getMin(), (ws->var("cent")->getMax()/2.0)
+                     ws->var("cent")->getMin()/2.0, ws->var("cent")->getMax()/2.0
                      );
 
   delete ws;
