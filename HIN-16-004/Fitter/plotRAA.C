@@ -81,10 +81,20 @@ class raa_input {
 void plotPt(string workDirName) {
    string xaxis = "pt";
    vector<anabin> theCats;
+
+   // 4 rapidity intervals
    theCats.push_back(anabin(0,0.6,6.5,50,0,200));
    theCats.push_back(anabin(0.6,1.2,6.5,50,0,200));
    theCats.push_back(anabin(1.2,1.8,6.5,50,0,200));
    theCats.push_back(anabin(1.8,2.4,6.5,50,0,200));
+
+   // // 3 centrality intervals
+   // theCats.push_back(anabin(0,2.4,6.5,50,0,20));
+   // theCats.push_back(anabin(0,2.4,6.5,50,20,60));
+   // theCats.push_back(anabin(0,2.4,6.5,50,60,200));
+
+   // // 1 rapidity interval
+   // theCats.push_back(anabin(0,2.4,6.5,50,0,200));
 
    plot(theCats,xaxis,workDirName);
 };
@@ -93,11 +103,17 @@ void plotCent(string workDirName) {
    string xaxis = "cent";
    vector<anabin> theCats;
 
-   // centrality dependence
+   // 4 rapidity intervals
    theCats.push_back(anabin(0,0.6,6.5,50,0,200));
    theCats.push_back(anabin(0.6,1.2,6.5,50,0,200));
    theCats.push_back(anabin(1.2,1.8,6.5,50,0,200));
    theCats.push_back(anabin(1.8,2.4,6.5,50,0,200));
+
+   // // 1 rapidity interval
+   // theCats.push_back(anabin(0,2.4,6.5,50,0,200));
+
+   // // fwd and low pt
+   // theCats.push_back(anabin(1.6,2.4,3,6.5,0,200));
 
    plot(theCats,xaxis,workDirName);
 };
@@ -189,24 +205,25 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       raa_input s = it->second;
       if (!binok(thecats,xaxis,thebin)) continue;
       anabin thebinPP = thebin; thebinPP.setcentbin(binI(0,200));
+      raa_input spp = theVars_inputs[thebinPP];
       theBins[thebin].push_back(it->first);
 
       double normfactorpp = 1., normfactoraa = 1.;
-      normfactorpp = 1./s.lumipp;
+      normfactorpp = 1./spp.lumipp;
       normfactoraa = 1./s.lumiaa;
       normfactoraa *= 1./(208.*208.*(HI::findNcollAverage(it->first.centbin().low(),it->first.centbin().high())/HI::findNcollAverage(0,200)));
       normfactoraa *= 200./(it->first.centbin().high()-it->first.centbin().low());
 
-      normfactorpp = normfactorpp / s.effpp;
+      normfactorpp = normfactorpp / spp.effpp;
       normfactoraa = normfactoraa / s.effaa;
 
       double naa = s.naa * normfactoraa;
-      double npp = s.npp * normfactorpp;
+      double npp = spp.npp * normfactorpp;
       double dnaa = s.dnaa_stat * normfactoraa;
-      double dnpp = s.dnpp_stat * normfactorpp;
+      double dnpp = spp.dnpp_stat * normfactorpp;
       double raa = npp>0 ? naa / npp : 0;
-      cout << s.naa << " " << s.npp <<  " " << s.lumiaa << " " << s.lumipp << " " << s.effaa << "  " << s.effpp << " " << normfactoraa << "  " << normfactorpp << " -> " << raa << endl;
       double draa = raa>0 ? raa*sqrt(pow(dnaa/naa,2) + pow(dnpp/npp,2)) : 0;
+      cout << raa << " " << s.naa << " " << spp.npp << " " << s.effaa << " " << spp.effpp << endl;
       theVarsBinned[thebin].push_back(raa);
       theVarsBinned_stat[thebin].push_back(draa);
       theVarsBinned_syst[thebin].push_back(0); // FIXME
@@ -320,7 +337,6 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    c1 = new TCanvas("c1","c1",600,600);
 
    // in the case of the centrality dependence, we need the minimum bias panel on the right
-   TPad *padl=NULL;
    // the axes
    TH1F *haxes=NULL; TLine line;
    if (xaxis=="pt") {
@@ -328,7 +344,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       line = TLine(0,1,50,1);
    }
    if (xaxis=="cent") {
-      haxes = new TH1F("haxesl","haxesl",1,0,420);
+      haxes = new TH1F("haxes","haxes",1,0,420);
       haxes->GetXaxis()->SetTickLength(gStyle->GetTickLength("X"));
       line = TLine(0,1,420,1);
    }
@@ -445,7 +461,6 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    if (plotlimits95) plotLimits(theCats,xaxis,"../Limits/csv/Limits_95.csv",0);
    if (fiterrors && FCerrors) plotLimits(theCats,xaxis,"../Limits/csv/Limits_68.csv",xaxis=="cent" ? 5 : 1, false);
 
-   if (xaxis=="cent") padl->cd();
    tleg->Draw();
 
    TLatex tl;
@@ -469,7 +484,6 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
 
    delete tleg;
    delete haxes; 
-   delete padl;
    delete c1;
 
    // close tex
