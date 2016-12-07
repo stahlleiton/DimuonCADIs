@@ -49,13 +49,13 @@ bool extractNLL(string fileName, model_t& value);
 bool keepLines(string InputFile, vector< int >& lineIndexToKeep, vector< vector< string > > winnerLabels);
 bool reduceInputFile(string InputFile, string OutputFile, vector< int > lineIndexToKeep);
 bool readInputFile(string FileName, vector< string >& content, int nRow);
-void findSubDir(vector<string>& dirlist, string dirname);
+void findSubDir(vector<string>& dirlist, string dirname, string ext="");
 bool extractWinnerLabel(string fileName, string& winnerLabel);
 
 
 void printLLRStudy(
                    string outputDirPath="Test",
-                   string inputDirPath="Test",
+                   string inputDirPath="",
                    string TAG = "DATA",
                    bool   cutSideBand = false,
                    string type = "Bkg",           // Type of the LLR test, available options are: "Bkg" , "Jpsi" and "Psi2S"
@@ -70,11 +70,13 @@ void printLLRStudy(
   if (outputDirPath.find("/")==std::string::npos) { outputDirPath = DIR["main"][0]+"/Output/"+outputDirPath+"/"; }
 
   DIR["output"].push_back(outputDirPath);
+  DIR["outputLLR"].push_back(outputDirPath);
   if (existDir(DIR["output"][0])==false){ 
     cout << "[ERROR] Output directory: " << DIR["output"][0] << " does not exist!" << endl; 
     return;
   } else {
     findSubDir(DIR["output"], DIR["output"][0]);
+    findSubDir(DIR["outputLLR"], DIR["outputLLR"][0], "LLR/");
   }
   DIR["input"].push_back(inputDirPath);
   for(uint j = 1; j < DIR["output"].size(); j++) {
@@ -99,7 +101,7 @@ void printLLRStudy(
     if (!readFiles(dirPath, fileNames, content, type)) { return; }
    
     string plotDir = Form("%smass%s/%s/plot/", DIR["output"][j].c_str(), (cutSideBand?"SB":""), TAG.c_str());
-    string outputDir = Form("%sLLR/%s/", DIR["output"][j].c_str(), TAG.c_str());
+    string outputDir = Form("%smass%s/%s/", DIR["outputLLR"][j].c_str(), (cutSideBand?"SB":""), TAG.c_str());
   
     if (existDir(outputDir)==false){ 
       cout << "[INFO] Output directory: " << outputDir << " does not exist, will create it!" << endl;
@@ -575,7 +577,9 @@ bool findFiles(string dirPath, vector<string>& fileNames)
 
 bool keepLines(string InputFile, vector< int >& lineIndexToKeep, vector< vector< string > > winnerLabels)
 {
-  vector< string > inputContent; 
+  vector< string > inputContent;
+  bool isPbPb = false;
+  if ( InputFile.find("PbPb")!=std::string::npos ) isPbPb = true;
   if(!readInputFile(InputFile, inputContent, -1)){ return false; }
   
   int i = 0;
@@ -585,7 +589,7 @@ bool keepLines(string InputFile, vector< int >& lineIndexToKeep, vector< vector<
     else {
       bool found = false;
       for(vector< vector< string > >::iterator iLine=winnerLabels.begin(); iLine!=winnerLabels.end(); ++iLine) {
-        string kinematic = (*iLine)[0];
+        string kinematic = (*iLine)[0]; if (isPbPb==false) { kinematic.erase(kinematic.find("0-100"),string("0-100").length()); }
         string modelName = (*iLine)[1];
         if ( row.find(kinematic)!=std::string::npos && row.find(modelName)!=std::string::npos ) { found=true; break; }
       }
@@ -640,7 +644,7 @@ bool readInputFile(string FileName, vector< string >& content, int nRow)
 };
 
 
-void findSubDir(vector<string>& dirlist, string dirname)
+void findSubDir(vector<string>& dirlist, string dirname, string ext)
 {
   TSystemDirectory dir(dirname.c_str(), dirname.c_str());
   TList *subdirs = dir.GetListOfFiles();
@@ -649,8 +653,8 @@ void findSubDir(vector<string>& dirlist, string dirname)
     TIter next(subdirs);
     while ((subdir=(TSystemFile*)next())) {
       if (subdir->IsDirectory() && string(subdir->GetName())!="." && string(subdir->GetName())!="..") {
-        dirlist.push_back(dirname + subdir->GetName() + "/");
-        cout << "[INFO] Input subdirectory: " << dirname + subdir->GetName() + "/" << " found!" << endl;
+        dirlist.push_back(dirname + ext + subdir->GetName() + "/");
+        cout << "[INFO] Input subdirectory: " << dirname + ext + subdir->GetName() + "/" << " found!" << endl;
       }
     }
   }
@@ -671,9 +675,10 @@ bool extractWinnerLabel(string fileName, string& winnerLabel)
     cout << "[ERROR] Workspace not found in " << fileName << endl; return false;
   }
   
-  winnerLabel = Form("%.1f-%.1f;%.1f-%.1f;",
+  winnerLabel = Form("%.1f-%.1f;%.1f-%.1f;%.0f-%.0f",
                      ws->var("rap")->getMin(), ws->var("rap")->getMax(),
-                     ws->var("pt")->getMin(), ws->var("pt")->getMax()
+                     ws->var("pt")->getMin(), ws->var("pt")->getMax(),
+                     ws->var("cent")->getMin()/2.0, ws->var("cent")->getMax()/2.0
                      );
 
   delete ws;
