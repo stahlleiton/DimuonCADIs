@@ -21,8 +21,8 @@ void fitter(
             // Select the type of datasets to fit
             bool fitData      = false,        // Fits Data datasets
             bool fitMC        = true,         // Fits MC datasets
-            bool fitPbPb      = false,         // Fits PbPb datasets
-            bool fitPP        = true,        // Fits PP datasets
+            bool fitPbPb      = true,         // Fits PbPb datasets
+            bool fitPP        = false,        // Fits PP datasets
             bool fitMass      = false,        // Fits invariant mass distribution
             bool fitCtau      = true,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
@@ -36,7 +36,7 @@ void fitter(
             // Select the fitting options
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
-            bool wantPureSMC  = true,        // Flag to indicate if we want to fit pure signal MC
+            bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
             const char* applyCorr  = "",     // Apply weight to data for correction (Acceptance & Ef , l_J/psi eff...). No correction if empty variable.
             int  numCores     = 16,            // Number of cores used for fitting
             // Select the drawing options
@@ -62,10 +62,14 @@ void fitter(
   binWidth["CTAUTRUE"] = 0.05;
 
   map<string, string> inputFitDir;
-  inputFitDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/DataFits/";
-  inputFitDir["CTAU"]     = "";
-  inputFitDir["CTAUERR"]  = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/DataFits/";
+  inputFitDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
+  inputFitDir["CTAU"]     = ""; 
+  inputFitDir["CTAUERR"]  = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/";
   inputFitDir["CTAUTRUE"] = "";
+
+  for (map<string, string>::iterator iMap=inputFitDir.begin();  iMap!=inputFitDir.end(); iMap++) {
+    if (iMap->first!="") { iMap->second += workDirName + "/"; }
+  }
 
   if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, doCtauErrPDF, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores)) { return; }
 
@@ -172,9 +176,9 @@ void fitter(
     },
     {"CTAU", 
      {
-       {"BKG",   fitCtau && incBkg}, 
-       {"JPSI",  fitCtau && incJpsi}, 
-       {"PSI2S", fitCtau && incPsi2S},
+       {"BKG",   fitCtau && incBkg && incNonPrompt}, 
+       {"JPSI",  fitCtau && incJpsi && incNonPrompt}, 
+       {"PSI2S", fitCtau && incPsi2S && incNonPrompt},
        {"RES",   fitCtau},
        {"TRUE",  fitCtauTrue || (fitCtau && incNonPrompt)},
      }
@@ -311,7 +315,6 @@ void fitter(
           } else {
             cout << "[ERROR] The workspace for " << wsName.Data() << " was not found!" << endl; return;
           }
-          return;
         }
     }
   }
