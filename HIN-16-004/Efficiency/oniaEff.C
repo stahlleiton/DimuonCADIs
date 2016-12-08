@@ -53,8 +53,8 @@ const int nbins_3cent = sizeof(bins_3cent)/sizeof(double) -1;
 const double maxdr = 0.03;
 const double massjpsi = 3.096;
 const double masspsip = 3.686;
-const double massdown = 0.25;
-const double massup = 0.15;
+const double massdown = 0.60;
+const double massup = 0.40;
 
 using namespace HI;
 using namespace std;
@@ -269,8 +269,8 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
          // mass cut
          double mass = ((TLorentzVector*) Reco_QQ_4mom->At(i))->M();
          double mass0 = isPsip ? masspsip : massjpsi;
-         double massdown = isPsip ? 0.5 : 0.6;
-         double massup = isPsip ? 0.5 : 0.4;
+//         double massdown = isPsip ? 0.5 : 0.6;
+//         double massup = isPsip ? 0.5 : 0.4;
          if (mass<(mass0-massdown) || mass>(mass0+massup)) continue;
          
          // gen-reco matching
