@@ -22,7 +22,7 @@ void fitter(
             bool fitData      = false,        // Fits Data datasets
             bool fitMC        = true,         // Fits MC datasets
             bool fitPbPb      = true,         // Fits PbPb datasets
-            bool fitPP        = false,        // Fits PP datasets
+            bool fitPP        = true,        // Fits PP datasets
             bool fitMass      = false,        // Fits invariant mass distribution
             bool fitCtau      = true,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
@@ -36,7 +36,7 @@ void fitter(
             // Select the fitting options
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
-            bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
+            bool wantPureSMC  = true,        // Flag to indicate if we want to fit pure signal MC
             const char* applyCorr  = "",     // Apply weight to data for correction (Acceptance & Ef , l_J/psi eff...). No correction if empty variable.
             int  numCores     = 16,            // Number of cores used for fitting
             // Select the drawing options
@@ -57,9 +57,9 @@ void fitter(
 
   map<string, double> binWidth;
   binWidth["MASS"]     = 0.05;
-  binWidth["CTAU"]     = 0.005;
+  binWidth["CTAU"]     = 0.0025;
   binWidth["CTAUERR"]  = 0.0025;
-  binWidth["CTAUTRUE"] = 0.05;
+  binWidth["CTAUTRUE"] = 0.005;
 
   map<string, string> inputFitDir;
   inputFitDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
@@ -462,11 +462,8 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
       cut.dMuon.ctauTrue.Min = v.at(0); 
       cut.dMuon.ctauTrue.Max = v.at(1);
     }
-    else if (label=="ctauCut"){
-      if (col->second=="") {
-        cout << "[ERROR] Input column 'ctauCut' has invalid value: " << col->second << endl; return false;
-      }
-      cut.dMuon.ctauCut = col->second;
+    else if (label=="ctauResCut"){ 
+      parIni[col->first] = col->second; 
     }
     else if (label.find("Model")!=std::string::npos){
       if (col->second=="") {

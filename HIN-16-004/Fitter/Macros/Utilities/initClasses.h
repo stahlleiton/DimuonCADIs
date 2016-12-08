@@ -305,7 +305,7 @@ bool isFitAlreadyFound(RooArgSet *newpars, string FileName, string pdfName)
 bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bool isPbPb, bool cutSideBand=false)
 {
   if (gSystem->AccessPathName(FileName.c_str())) {
-    cout << "[INFO] Results not found for: " << FileName << endl;
+    cout << "[INFO] File " << FileName << " was not found!" << endl;
     return false; // File was not found
   }
   TFile *file = new TFile(FileName.c_str());
@@ -313,7 +313,7 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
 
   RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
   if (!ws) {
-    cout << "[INFO] Workspace not found in: " << FileName << endl;
+    cout << "[INFO] Workspace was not found in: " << FileName << endl;
     file->Close(); delete file;
     return false;
   }
@@ -326,23 +326,14 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
   string print = "[INFO] Variables loaded: ";
   for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
     string name = it->GetName();
-    if ( name=="invMass" || name=="ctau" || 
+    if ( name=="invMass" || name=="ctau" || name=="ctauErr" ||
          name=="ctauTrue" || name=="pt" || name=="cent" || 
          name=="rap" || name=="One" ) continue;
     if ( (DSTAG.find("MC")!=std::string::npos || cutSideBand) && (name.find("N_")!=std::string::npos) ) continue; 
     if (myws.var(name.c_str())) {
-      if ( name!="ctauErr" ) {
-        print = print + Form("  %s: %.5f->%.5f ", name.c_str(), myws.var(name.c_str())->getValV(), ws->var(name.c_str())->getValV()) ;
-        myws.var(name.c_str())->setVal  ( ws->var(name.c_str())->getValV()  );
-        myws.var(name.c_str())->setError( ws->var(name.c_str())->getError() );
-      }
-      else if(name=="ctauErr" || myws.var(name.c_str())->getError()>0.0) {
-        myws.var(name.c_str())->setMin  ( ws->var(name.c_str())->getMin()   );
-        myws.var(name.c_str())->setMax  ( ws->var(name.c_str())->getMax()   );
-      }
-      if ( name=="ctauErr" ) {
-        print = print + Form("  %s: [ %.5f, %.5f ] ", name.c_str(), myws.var(name.c_str())->getMin(), myws.var(name.c_str())->getMax()) ;
-      }
+      print = print + Form("  %s: %.5f->%.5f ", name.c_str(), myws.var(name.c_str())->getValV(), ws->var(name.c_str())->getValV()) ;
+      myws.var(name.c_str())->setVal  ( ws->var(name.c_str())->getValV()  );
+      myws.var(name.c_str())->setError( ws->var(name.c_str())->getError() );
     } else {
       if ( (name==Form("lambdaDSS_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))) && myws.var(Form("lambdaDSS_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))) ) {
         print = print + Form("  %s: %.5f->%.5f", Form("lambdaDSS_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")), myws.var(Form("lambdaDSS_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")))->getValV(), ws->var(name.c_str())->getValV()) ;
@@ -387,6 +378,37 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
   }
   setFixedVarsToContantVars(myws);
   cout << printFun << endl;
+
+  delete ws;
+  file->Close(); delete file;
+  return true;
+};
+
+
+bool loadCtauErrRange(RooWorkspace& myws, string FileName, struct KinCuts& cut)
+{
+  if (gSystem->AccessPathName(FileName.c_str())) {
+    cout << "[INFO] File " << FileName << " was not found!" << endl;
+    return false; // File was not found
+  }
+  TFile *file = new TFile(FileName.c_str());
+  if (!file) return false;
+  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  if (!ws) {
+    cout << "[INFO] Workspace was not found in: " << FileName << endl;
+    file->Close(); delete file;
+    return false;
+  }
+
+  if (ws->var("ctauErr")) {
+    cut.dMuon.ctauErr.Min = ws->var("ctauErr")->getMin();
+    cut.dMuon.ctauErr.Max = ws->var("ctauErr")->getMax();
+  } else { 
+    cout << Form("[WARNING] ctauErr was not found!") << endl;
+    delete ws;
+    file->Close(); delete file;
+    return false;
+  }
 
   delete ws;
   file->Close(); delete file;
@@ -495,8 +517,8 @@ void printChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, s
   double chi2=0; unsigned int ndof=0;
   Pad->cd();
   TLatex *t = new TLatex(); t->SetNDC(); t->SetTextSize(0.1); 
-  unsigned int nFitPar = myws.pdf(pdfLabel.c_str())->getParameters(*myws.data(dataLabel.c_str()))->selectByAttrib("Constant",kFALSE)->getSize(); 
-  TH1 *hdatact = myws.data(dataLabel.c_str())->reduce(cut.c_str())->createHistogram("hdatact", *myws.var(varLabel.c_str()), Binning(nBins));
+  unsigned int nFitPar = myws.pdf(pdfLabel.c_str())->getParameters(*myws.data(dataLabel.c_str()))->selectByAttrib("Constant",kFALSE)->getSize();
+  TH1* hdatact = myws.data(dataLabel.c_str())->createHistogram("hdatact", *myws.var(varLabel.c_str()), Binning(frame->GetNbinsX(),frame->GetXaxis()->GetXmin(),frame->GetXaxis()->GetXmax()));
 //  RooHist *hpull = frame->pullHist("hdatact",pdfLabel.c_str(), true);
   RooHist *hpull = frame->pullHist(0,0, true);
   double* ypulls = hpull->GetY();

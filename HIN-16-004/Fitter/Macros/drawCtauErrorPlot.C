@@ -242,12 +242,13 @@ void setCtauErrorRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool s
   frame->GetYaxis()->SetRangeUser(Ydown,Yup);
   delete h;
 
-  TLine   *minline = new TLine(rangeErr[0], 0.0, rangeErr[0], (setLogScale?TMath::Power(Yup,0.5):Yup*0.5));
+
+  TLine   *minline = new TLine(rangeErr[0], 0.0, rangeErr[0], (setLogScale?(Ydown*TMath::Power((Yup/Ydown),0.5)):(Ydown + (Yup-Ydown)*0.5)));
   minline->SetLineStyle(2);
   minline->SetLineColor(1);
   minline->SetLineWidth(3);
   frame->addObject(minline);
-  TLine   *maxline = new TLine(rangeErr[1], 0.0, rangeErr[1], (setLogScale?TMath::Power(Yup,0.5):Yup*0.5));
+  TLine   *maxline = new TLine(rangeErr[1], 0.0, rangeErr[1], (setLogScale?(Ydown*TMath::Power((Yup/Ydown),0.5)):(Ydown + (Yup-Ydown)*0.5)));
   maxline->SetLineStyle(2);
   maxline->SetLineColor(1);
   maxline->SetLineWidth(3);

@@ -233,7 +233,7 @@ bool histToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, vector<double> rang
   // 1) Remove the Under and Overflow bins
   hist->ClearUnderflowAndOverflow();
   // 2) Set negative bin content to zero
-  for (int i=0; i<=hist->GetNbinsX(); i++) { if (hist->GetBinContent(i)<0) { hist->SetBinContent(i, 0.001); } }
+  for (int i=0; i<=hist->GetNbinsX(); i++) { if (hist->GetBinContent(i)<0) { hist->SetBinContent(i, 0.0000000001); } }
   // 2) Reduce the range of histogram and rebin it
   TH1* hClean = rebinhist(hist, rangeErr[0], rangeErr[1]);
   hClean->Draw();
@@ -280,7 +280,7 @@ TH1* rebinhist(TH1 *hist, double xmin, double xmax)
     } else {
       int nrebin=2;
       for (i++; i<=imax; i++) {
-        if (hcopy->GetBinContent(i)>0.1) {
+        if (hcopy->GetBinContent(i)>0.000000001) {
           newbins.push_back(hcopy->GetBinLowEdge(i)+hcopy->GetBinWidth(i));
           hcopy->SetBinContent(i,hcopy->GetBinContent(i)/nrebin);
           break;

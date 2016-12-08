@@ -9,7 +9,7 @@ void setCtauCuts(struct KinCuts& cut, bool isPbPb);
 bool setMassModel( struct OniaModel& model, map<string, string>&  parIni, bool isPbPb, bool incJpsi, bool incPsi2S, bool incBkg );
 void setMassFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut, bool isPbPb, bool cutSideBand=false, bool doSimulFit=false) ;
 void setMassGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, bool incJpsi, bool incPsi2S, bool incBkg, bool wantPureSMC=false);
-void setMassCutParameters(struct KinCuts& cut, bool incJpsi, bool incPsi2S, bool isMC=false);
+void setMassCutParameters(struct KinCuts& cut, bool incJpsi, bool incPsi2S, bool isMC=false, bool useForCtauFits=false);
 
 
 bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
@@ -202,7 +202,8 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
     // check if we have already done this fit. If yes, do nothing and return true.
     string FileName = "";
     setMassFileName(FileName, (inputFitDir=="" ? outputDir : inputFitDir), DSTAG, plotLabel, cut, isPbPb, cutSideBand);
-    if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir!="") { 
+    if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir!="") {
+      cout << "[INFO] File : " << FileName << " was not found!";
       setMassFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, cutSideBand);
     }
     bool found =  true; bool skipFit = !doFit;
@@ -396,13 +397,13 @@ void setMassFileName(string& FileName, string outputDir, string TAG, string plot
 };
 
 
-void setMassCutParameters(struct KinCuts& cut, bool incJpsi, bool incPsi2S, bool isMC)
+void setMassCutParameters(struct KinCuts& cut, bool incJpsi, bool incPsi2S, bool isMC, bool useForCtauFits)
 {
   // Define the mass range
   if (cut.dMuon.M.Max==5 && cut.dMuon.M.Min==2) { 
     // Default mass values, means that the user did not specify a mass range
     if ( incJpsi && !incPsi2S) {
-      if (isMC){
+      if (isMC && !useForCtauFits){
         cut.dMuon.M.Min = 2.2;
         cut.dMuon.M.Max = 4.0;
       } else {
@@ -411,7 +412,7 @@ void setMassCutParameters(struct KinCuts& cut, bool incJpsi, bool incPsi2S, bool
       }
     }
     else if ( !incJpsi && incPsi2S) {
-      if(isMC) {
+      if(isMC && !useForCtauFits) {
         cut.dMuon.M.Min = 2.8;
         cut.dMuon.M.Max = 4.6;
       } else {
