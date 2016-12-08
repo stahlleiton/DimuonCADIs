@@ -63,7 +63,7 @@ void results2tree(
       const char* workDirName, 
       const char* DSTag="DATA", // Data Set tag can be: "DATA","MCPSI2SP", "MCJPSIP" ...
       const char* prependPath="",
-      const char* thePoiNames="N_Jpsi,N_Jpsi_cor,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg,eff,lumi,taa,ncoll,npart",
+      const char* thePoiNames="N_Jpsi,N_Jpsi_cor,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg,eff,effnp,lumi,taa,ncoll,npart",
       bool wantPureSMC=false
       );
 #include "../../results2tree.C"
@@ -259,7 +259,12 @@ bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck, bool override)
          ok=true;
          if (override) tocheck.setcentbin(it->centbin());
          break;
-      } else if (((it->centbin().low()<=0 && it->centbin().high()<=0) || xaxis=="rap")
+      } else if (xaxis=="rap" && it->centbin()==tocheck.centbin() && it->ptbin()==tocheck.ptbin()
+            && ! (it->rapbin()==tocheck.rapbin())) {
+         ok=true;
+         if (override) tocheck.setrapbin(it->rapbin());
+         break;
+      } else if ((it->centbin().low()<=0 && it->centbin().high()<=0)
             && it->rapbin()==tocheck.rapbin() && it->ptbin()==tocheck.ptbin()
             &&  (abs(it->centbin().low())==abs(tocheck.centbin().low()) && abs(it->centbin().high())==abs(tocheck.centbin().high()))) {
          ok=true;

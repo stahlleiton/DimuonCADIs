@@ -34,7 +34,7 @@ void results2tree(
       const char* workDirName, 
       const char* DSTag, //="DATA", // Data Set tag can be: "DATA","MCPSI2SP", "MCJPSIP" ...
       const char* prependPath, //="",
-      const char* thePoiNames, //="N_Jpsi,N_Jpsi_cor,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg,eff,lumi,taa,ncoll,npart"
+      const char* thePoiNames, //="N_Jpsi,N_Jpsi_cor,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg,eff,lumi,taa,ncoll,npart,effnp"
       bool wantPureSMC //=false
       ) {
    // workDirName: usual tag where to look for files in Output
@@ -174,12 +174,16 @@ void results2tree(
             itpoi->val = thevar ? thevar->getVal() : 0;
             itpoi->err = thevar ? thevar->getError() : 0;
 
-            if (TString(itpoi->name)=="eff") {
-               TFile *feff = TFile::Open(Form("../Efficiency/files/histos_jpsi_%s.root", isPP ? "pp" : "pbpb"));
-               bool isptdep = (thebin.centbin() == binI(0,200));
+            if (TString(itpoi->name).Contains("eff")) {
+               TFile *feff = TFile::Open(Form("../Efficiency/files/histos_%s_%s.root", 
+                        TString(itpoi->name)=="effnp" ? "npjpsi" : "jpsi", 
+                        isPP ? "pp" : "pbpb"));
+               bool isallcent = (thebin.centbin() == binI(0,200));
                int catmin, catmax;
-               bool israpdep = !(thebin.rapbin() == binF(0,2.4));
-               if (israpdep) {
+               bool isallrap = (thebin.rapbin() == binF(0,2.4));
+               bool islowpt = (thebin.ptbin() == binF(3,6.5));
+               bool ishighpt = ((thebin.ptbin() == binF(6.5,50)) || (thebin.ptbin() == binF(6.5,30)) );
+               if (isallcent || (!isallcent && ishighpt)) {
                   catmin = thebin.rapbin().low()*10;
                   catmax = thebin.rapbin().high()*10;
                } else {
@@ -187,9 +191,27 @@ void results2tree(
                   catmax = thebin.centbin().high()/2;
                }
 
-               TH1F *hnum = (TH1F*) feff->Get(Form("hnum_%s_%s%02i%02i", isptdep ? "pt" : "cent", israpdep ? "rap" : "cent", catmin, catmax));
-               TH1F *hden = (TH1F*) feff->Get(Form("hden_%s_%s%02i%02i", isptdep ? "pt" : "cent", israpdep ? "rap" : "cent", catmin, catmax));
+               TString hnumname, hdenname;
+               TString tag1, tag2;
+               if (isallcent && ishighpt) {
+                  tag1 = "rap";
+                  hnumname = "hnum_rap";
+                  hdenname = "hden_rap";
+               } else if (!islowpt) {
+                  tag2 = (isallcent || (!isallcent && ishighpt)) ? "rap" : "cent";
+                  tag1 = ishighpt ? "cent" : "pt";
+                  hnumname = Form("hnum_%s_%s%02i%02i", tag1.Data(), tag2.Data(), catmin, catmax);
+                  hdenname = Form("hden_%s_%s%02i%02i", tag1.Data(), tag2.Data(), catmin, catmax);
+               } else {
+                  tag1 = "cent";
+                  hnumname = "hnum_cent_rap1824_pt3065";
+                  hdenname = "hden_cent_rap1824_pt3065";
+               }
+               TH1F *hnum = (TH1F*) feff->Get(hnumname);
+               TH1F *hden = (TH1F*) feff->Get(hdenname);
                if (!hnum || !hden) {
+                  thebin.print();
+                  cout << hnumname << " not found!" << endl;
                   itpoi->val = 0;
                   itpoi->err = 0;
                   continue;
@@ -197,11 +219,17 @@ void results2tree(
 
                double numval, numerr, denval, denerr;
                int ibin = hnum->FindBin((thebin.centbin().low()+thebin.centbin().high())/4.);
-               if (isptdep) ibin = hnum->FindBin((thebin.ptbin().low()+thebin.ptbin().high())/2.);
+               if (tag1 == "pt") ibin = hnum->FindBin((thebin.ptbin().low()+thebin.ptbin().high())/2.);
+               if (tag1 == "rap") ibin = hnum->FindBin((thebin.rapbin().low()+thebin.rapbin().high())/2.);
                numval = hnum->GetBinContent(ibin);
                numerr = hnum->GetBinError(ibin);
                denval = hden->GetBinContent(ibin);
                denerr = hden->GetBinError(ibin);
+               // special case of the all integrated efficiency
+               if ((isallcent && isallrap && ishighpt) || (isallcent && islowpt)) {
+                  numval = hnum->IntegralAndError(1,hnum->GetNbinsX(),numerr);
+                  denval = hden->IntegralAndError(1,hden->GetNbinsX(),denerr);
+               }
                double efficiency = (denval>0) ? numval / denval : 0;
                itpoi->val = efficiency;
                itpoi->err = (numval>0 && denval>0) ? efficiency*sqrt(pow(numerr/numval,2)+pow(denerr/denval,2)) : 0;
