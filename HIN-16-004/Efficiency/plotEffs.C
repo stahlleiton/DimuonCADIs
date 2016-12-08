@@ -294,15 +294,15 @@ void drawingEff::drawHisto(vector<string> outname){
 
   TCanvas *can = new TCanvas("can","can",600,600);
   TLatex *lat = new TLatex(); lat->SetNDC(); lat->SetTextSize(0.035);
-  TLegend *leg = new TLegend(0.6,0.7,0.9,0.9);
+  TLegend *leg = new TLegend(0.55,0.60,0.94,0.88);
   SetLegendStyle(leg);
 
   // Eff vs centrality in 4+1 |y| regions (6.5-50 GeV/c), forward & low pT region
   heff_cent_rap[0]->Draw("ap");
-  leg->AddEntry(heff_cent_rap[0],"|y|: 0-2.4","p");
+  leg->AddEntry(heff_cent_rap[0],"|y|: 0-2.4, 6.5-50 GeV/c","p");
   for (int i=0; i<nbins_4rap; i++) {
     heff_cent_rap[i+1]->Draw("p");
-    leg->AddEntry(heff_cent_rap[i+1],Form("|y|: %.1f-%.1f",bins_4rap[i],bins_4rap[i+1]),"p");
+    leg->AddEntry(heff_cent_rap[i+1],Form("|y|: %.1f-%.1f, 6.5-50 GeV/c",bins_4rap[i],bins_4rap[i+1]),"p");
   }
   heff_cent_rap[nbins_4rap+1]->Draw("p");
   leg->AddEntry(heff_cent_rap[nbins_4rap+1],Form("|y|: %.1f-%.1f, 3-6.5 GeV/c",bins_4rap[nbins_4rap-1],bins_4rap[nbins_4rap]),"p");
@@ -310,6 +310,7 @@ void drawingEff::drawHisto(vector<string> outname){
   lat->DrawLatex(0.2,0.85,outname[0].c_str());
   can->SaveAs(Form("%s_cent_rap.png",outname[1].c_str()));
   can->SaveAs(Form("%s_cent_rap.pdf",outname[1].c_str()));
+  can->SaveAs(Form("%s_cent_rap.root",outname[1].c_str()));
 
   delete can;
   delete leg;
@@ -317,19 +318,22 @@ void drawingEff::drawHisto(vector<string> outname){
 
   // Eff vs pT in 4+1 |y| regions
   can = new TCanvas("can","can",600,600);
-  leg = new TLegend(0.67,0.7,0.9,0.9);
+  leg = new TLegend(0.6,0.68,0.9,0.88);
   SetLegendStyle(leg);
 
   heff_pt_rap[0]->Draw("ap");
-  leg->AddEntry(heff_pt_rap[0],"|y|: 0-2.4","p");
+  if (ispbpb) leg->AddEntry(heff_pt_rap[0],"|y|: 0-2.4, 0-100%","p");
+  else leg->AddEntry(heff_pt_rap[0],"|y|: 0-2.4","p");
   for (int i=0; i<nbins_4rap; i++) {
     heff_pt_rap[i+1]->Draw("p");
-    leg->AddEntry(heff_pt_rap[i+1],Form("|y|: %.1f-%.1f",bins_4rap[i],bins_4rap[i+1]),"p");
+    if (ispbpb) leg->AddEntry(heff_pt_rap[i+1],Form("|y|: %.1f-%.1f, 0-100%%",bins_4rap[i],bins_4rap[i+1]),"p");
+    else leg->AddEntry(heff_pt_rap[i+1],Form("|y|: %.1f-%.1f",bins_4rap[i],bins_4rap[i+1]),"p");
   }
   leg->Draw();
   lat->DrawLatex(0.2,0.85,outname[0].c_str());
   can->SaveAs(Form("%s_pt_rap.png",outname[1].c_str()));
   can->SaveAs(Form("%s_pt_rap.pdf",outname[1].c_str()));
+  can->SaveAs(Form("%s_pt_rap.root",outname[1].c_str()));
 
   delete can;
   delete leg;
@@ -337,7 +341,7 @@ void drawingEff::drawHisto(vector<string> outname){
  
   // Eff vs pT in 3 centrality regions
   can = new TCanvas("can","can",600,600);
-  leg = new TLegend(0.67,0.7,0.9,0.9);
+  leg = new TLegend(0.67,0.68,0.9,0.88);
   SetLegendStyle(leg);
 
   heff_pt_cent[0]->Draw("ap");
@@ -350,8 +354,10 @@ void drawingEff::drawHisto(vector<string> outname){
     leg->Draw();
   }
   lat->DrawLatex(0.2,0.85,outname[0].c_str());
+  lat->DrawLatex(0.2,0.80,"|y| < 2.4");
   can->SaveAs(Form("%s_pt_cent.png",outname[1].c_str()));
   can->SaveAs(Form("%s_pt_cent.pdf",outname[1].c_str()));
+  can->SaveAs(Form("%s_pt_cent.root",outname[1].c_str()));
 
   delete can;
   delete leg;
@@ -362,8 +368,11 @@ void drawingEff::drawHisto(vector<string> outname){
 
   heff_rap->Draw("ap");
   lat->DrawLatex(0.2,0.85,outname[0].c_str());
+  lat->DrawLatex(0.2,0.80,"6.5-50 GeV/c");
+  if (ispbpb) lat->DrawLatex(0.2,0.75,"0-100%");
   can->SaveAs(Form("%s_rap.png",outname[1].c_str()));
   can->SaveAs(Form("%s_rap.pdf",outname[1].c_str()));
+  can->SaveAs(Form("%s_rap.root",outname[1].c_str()));
 
   delete can;
   
