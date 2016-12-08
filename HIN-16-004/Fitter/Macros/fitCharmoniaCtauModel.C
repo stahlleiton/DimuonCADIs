@@ -137,8 +137,10 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
 
   // check if we have already done this fit. If yes, do nothing and return true.
   string FileName = "";
-
- setCtauFileName(FileName, (inputFitDir["CTAU"]=="" ? outputDir : inputFitDir["CTAU"]), DSTAG, plotLabel, cut, isPbPb, cutSideBand);
+  setCtauFileName(FileName, (inputFitDir["CTAU"]=="" ? outputDir : inputFitDir["CTAU"]), DSTAG, plotLabel, cut, isPbPb, cutSideBand);
+  if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAU"]!="") { 
+    setCtauFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, cutSideBand);
+  }
   bool found =  true; bool skipFit = !doFit;
   RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*myws.var("ctau")));
   found = found && isFitAlreadyFound(newpars, FileName, pdfName.c_str());

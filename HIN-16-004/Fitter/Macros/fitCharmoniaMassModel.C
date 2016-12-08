@@ -154,6 +154,9 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
     // check if we have already done this fit. If yes, do nothing and return true.
     string FileName = "";
     setMassFileName(FileName, (inputFitDir=="" ? outputDir : inputFitDir), DSTAG, (plotLabelPP + plotLabelPbPb), cut, isPbPb, cutSideBand, doSimulFit);
+    if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir!="") { 
+      setMassFileName(FileName, outputDir, DSTAG, (plotLabelPP + plotLabelPbPb), cut, isPbPb, cutSideBand, doSimulFit);
+    }
     bool found =  true; bool skipFit = !doFit;
     RooArgSet *newpars = myws.pdf("simPdf")->getParameters(*(myws.var("invMass")));
     myws.saveSnapshot("simPdf_parIni", *newpars, kTRUE);
@@ -199,6 +202,9 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
     // check if we have already done this fit. If yes, do nothing and return true.
     string FileName = "";
     setMassFileName(FileName, (inputFitDir=="" ? outputDir : inputFitDir), DSTAG, plotLabel, cut, isPbPb, cutSideBand);
+    if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir!="") { 
+      setMassFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, cutSideBand);
+    }
     bool found =  true; bool skipFit = !doFit;
     RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(*(myws.var("invMass")));
     found = found && isFitAlreadyFound(newpars, FileName, pdfName.c_str());
@@ -339,6 +345,7 @@ void setMassGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni
         }
     }
   else {
+    myws.var("invMass")->setRange("InclusiveMassRegion", 2.2, cut.dMuon.M.Max);
     myws.var("invMass")->setRange("FullWindow", cut.dMuon.M.Min, cut.dMuon.M.Max);
     myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, cut.dMuon.M.Max);
     parIni["MassRange_Cut"] = Form("(invMass>%.6f && invMass<%.6f)", cut.dMuon.M.Min, cut.dMuon.M.Max);

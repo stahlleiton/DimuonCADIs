@@ -39,45 +39,45 @@ void drawCtauErrorPlot(RooWorkspace& myws,   // Local workspace
   RooMsgService::instance().setGlobalKillBelow(RooFit::WARNING) ;
 
 
+  string hOSName = Form("dhCTAUERRTot_Tot_%s", (isPbPb?"PbPb":"PP"));
   string dsOSName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   string dsSSName = Form("dSS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   if (plotPureSMC) dsOSName = Form("dOS_%s_%s_NoBkg", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
 
-  TH1D* hTMP = (TH1D*)myws.data(dsOSName.c_str())->createHistogram(Form("%s_TMP_%s", "hCTAUERR", (isPbPb?"PbPb":"PP")), *myws.var("ctauErr"), Binning(nBins, cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max));
-  RooBinning bins(cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max);
-  vector<double> rangeErr;
-  setBinning(hTMP, (int)(ceil(nBins/200)), bins, rangeErr);
+  vector<double> rangeErr; rangeErr.push_back(cut.dMuon.ctauErr.Min); rangeErr.push_back(cut.dMuon.ctauErr.Max);
 
   // Create the main plot of the fitq
   double minRange = (double)(floor(rangeErr[0]*10.)/10.);
   double maxRange = (double)(ceil(rangeErr[1]*10.)/10.);
   RooPlot* frame     = myws.var("ctauErr")->frame(Range(minRange, maxRange));
-  Double_t norm = myws.data(dsOSName.c_str())->sumEntries();
+  RooBinning bins(nBins, cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max);
+  Double_t norm = myws.data(hOSName.c_str())->sumEntries();
+  Double_t outTot = myws.data(dsOSName.c_str())->sumEntries();
   Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctauErr>%.6f || ctauErr<%.6f)", rangeErr[1], rangeErr[0]))->sumEntries();
  
-  myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2), Binning(bins), DataError(RooAbsData::SumW2));
-  if (incJpsi&&incBkg) { myws.pdf(Form("pdfCTAUERR_Tot_%s", (isPbPb?"PbPb":"PP")))->plotOn(frame,Name("PDF"), LineStyle(1), LineColor(kGreen+1), Normalization(norm, RooAbsReal::NumEvent), Precision(1e-6), NormRange("CtauErrFullWindow"), Range("CtauErrFullWindow") ); }
+  myws.data(hOSName.c_str())->plotOn(frame, Name("dOS"), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2), DataError(RooAbsData::SumW2), Binning(bins));
+  if (incJpsi&&incBkg) { myws.pdf(Form("pdfCTAUERRTot_Tot_%s", (isPbPb?"PbPb":"PP")))->plotOn(frame,Name("PDF"), LineStyle(1), LineColor(kGreen+1), Precision(1e-6) ); }
   if (incBkg) {
     string pdfName = Form("pdfCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"));
     string dataName = Form("dhCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"));
-    myws.data(dataName.c_str())->plotOn(frame, Name("BKGDATA"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlue-4), MarkerSize(0.8), Binning(bins));
+    myws.data(dataName.c_str())->plotOn(frame, Name("BKGDATA"), DataError(RooAbsData::SumW2), MarkerColor(kBlue-4), MarkerSize(0.8), Binning(bins));
     myws.pdf(pdfName.c_str())->plotOn(frame,Name("BKG"), LineStyle(1), LineColor(kBlue+1), Precision(1e-6) );
   }
   if (incPsi2S) {
     string pdfName = Form("pdfCTAUERR_Psi2S_%s", (isPbPb?"PbPb":"PP")); 
     string dataName = Form("dhCTAUERR_Psi2S_%s", (isPbPb?"PbPb":"PP"));
-    myws.data(dataName.c_str())->plotOn(frame, Name("PSI2SDATA"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kViolet-2), MarkerSize(0.8), Binning(bins));
+    myws.data(dataName.c_str())->plotOn(frame, Name("PSI2SDATA"), DataError(RooAbsData::SumW2), MarkerColor(kViolet-2), MarkerSize(0.8), Binning(bins));
     myws.pdf(pdfName.c_str())->plotOn(frame,Name("PSI2S"), LineStyle(1), LineColor(kViolet+2), Precision(1e-6) );
   }
   if (incJpsi) {
     string pdfName = Form("pdfCTAUERR_Jpsi_%s", (isPbPb?"PbPb":"PP")); 
     string dataName = Form("dhCTAUERR_Jpsi_%s", (isPbPb?"PbPb":"PP"));
-    myws.data(dataName.c_str())->plotOn(frame, Name("JPSIDATA"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kRed-4), MarkerSize(0.8), Binning(bins));
+    myws.data(dataName.c_str())->plotOn(frame, Name("JPSIDATA"), DataError(RooAbsData::SumW2), MarkerColor(kRed-4), MarkerSize(0.8), Binning(bins));
     myws.pdf(pdfName.c_str())->plotOn(frame,Name("JPSI"), LineStyle(1), LineColor(kRed+3), Precision(1e-6) );
   }
  
   if (incSS) { 
-    myws.data(dsSSName.c_str())->plotOn(frame, Name("dSS"), MarkerColor(kRed), LineColor(kRed), MarkerSize(1.2)); 
+    myws.data(dsSSName.c_str())->plotOn(frame, Name("dSS"), MarkerColor(kRed), LineColor(kRed), MarkerSize(1.2), Binning(bins)); 
   }
 
   // Create the pull distribution of the fit
@@ -135,7 +135,7 @@ void drawCtauErrorPlot(RooWorkspace& myws,   // Local workspace
   } 
   if (isPbPb) {t->DrawLatex(0.21, 0.86-dy, Form("Cent. %d-%d%%", (int)(cut.Centrality.Start/2), (int)(cut.Centrality.End/2))); dy+=0.045;}
   t->DrawLatex(0.21, 0.86-dy, Form("%.1f #leq p_{T}^{#mu#mu} < %.1f GeV/c",cut.dMuon.Pt.Min,cut.dMuon.Pt.Max)); dy+=0.045;
-  t->DrawLatex(0.70, 0.86-dy, Form("Loss: (%.4f%%) %.0f evts", (outErr*100.0/norm), outErr));
+  t->DrawLatex(0.70, 0.86-dy, Form("Loss: (%.4f%%) %.0f evts", (outErr*100.0/outTot), outErr));
   t->DrawLatex(0.21, 0.86-dy, Form("%.1f #leq |y^{#mu#mu}| < %.1f",cut.dMuon.AbsRap.Min,cut.dMuon.AbsRap.Max)); dy+=1.5*0.045;
 
   // Drawing the Legend
@@ -195,6 +195,9 @@ void drawCtauErrorPlot(RooWorkspace& myws,   // Local workspace
   
   // *** Print chi2/ndof 
   //printChi2(myws, pad2, frame, "ctauTrue", dsOSName.c_str(), pdfTotName.c_str(), nBins, isWeighted, parIni["CtauTrueRange_Cut"]);
+
+  myws.var("ctauErr")->setMin(rangeErr[0]);
+  myws.var("ctauErr")->setMax(rangeErr[1]);
 
   pline->Draw("same");
   pad2->Update();

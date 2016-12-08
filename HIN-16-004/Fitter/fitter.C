@@ -19,18 +19,18 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 void fitter(
             const string workDirName="Test", // Working directory
             // Select the type of datasets to fit
-            bool fitData      = true,        // Fits Data datasets
-            bool fitMC        = false,         // Fits MC datasets
-            bool fitPbPb      = false,         // Fits PbPb datasets
-            bool fitPP        = true,        // Fits PP datasets
+            bool fitData      = false,        // Fits Data datasets
+            bool fitMC        = true,         // Fits MC datasets
+            bool fitPbPb      = true,         // Fits PbPb datasets
+            bool fitPP        = false,        // Fits PP datasets
             bool fitMass      = false,        // Fits invariant mass distribution
-            bool fitCtau      = false,       // Fits ctau distribution
+            bool fitCtau      = true,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
-            bool doCtauErrPDF = true,       // If yes, it builds the Ctau Error PDFs from data
+            bool doCtauErrPDF = false,       // If yes, it builds the Ctau Error PDFs from data
             // Select the type of object to fit
             bool incJpsi      = true,          // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
-            bool incBkg       = true,         // Includes Background model
+            bool incBkg       = false,         // Includes Background model
             bool incPrompt    = true,         // Includes Prompt ctau model
             bool incNonPrompt = false,          // Includes Non Prompt ctau model 
             // Select the fitting options
@@ -58,20 +58,37 @@ void fitter(
   map<string, double> binWidth;
   binWidth["MASS"]     = 0.05;
   binWidth["CTAU"]     = 0.005;
-  binWidth["CTAUERR"]  = 0.0005;
+  binWidth["CTAUERR"]  = 0.0025;
   binWidth["CTAUTRUE"] = 0.05;
 
   map<string, string> inputFitDir;
-  inputFitDir["MASS"]     = "";
-  inputFitDir["CTAU"]     = "";
-  inputFitDir["CTAUERR"]  = "";
+  inputFitDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
+  inputFitDir["CTAU"]     = ""; 
+  inputFitDir["CTAUERR"]  = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/";
   inputFitDir["CTAUTRUE"] = "";
+
+  for (map<string, string>::iterator iMap=inputFitDir.begin();  iMap!=inputFitDir.end(); iMap++) {
+    if (iMap->first!="") { iMap->second += workDirName + "/"; }
+  }
 
   if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, doCtauErrPDF, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores)) { return; }
 
   map< string, vector<string> > DIR;
   if(!iniWorkEnv(DIR, workDirName)){ return; }
- 
+
+  vector< map<string, string> > inputFitDirs;
+  inputFitDirs.push_back(inputFitDir);
+  for(uint i=1; i<DIR["input"].size(); i++) {
+    inputFitDirs.push_back(inputFitDir);
+    for(map<string, string>::iterator iter=inputFitDirs[i].begin(); iter!=inputFitDirs[i].end(); iter++) {
+      string key = iter->first;
+      if (inputFitDirs[i][key]!="") {
+        inputFitDirs[i][key] = DIR["input"][i];
+        inputFitDirs[i][key].replace(inputFitDirs[i][key].find(DIR["input"][0]), DIR["input"][0].length(), inputFitDirs[0][key]);
+      }
+    }
+  }
+
   // -------------------------------------------------------------------------------
   // STEP 1: CREATE/LOAD THE ROODATASETS
   /*
@@ -159,9 +176,9 @@ void fitter(
     },
     {"CTAU", 
      {
-       {"BKG",   fitCtau && incBkg}, 
-       {"JPSI",  fitCtau && incJpsi}, 
-       {"PSI2S", fitCtau && incPsi2S},
+       {"BKG",   fitCtau && incBkg && incNonPrompt}, 
+       {"JPSI",  fitCtau && incJpsi && incNonPrompt}, 
+       {"PSI2S", fitCtau && incPsi2S && incNonPrompt},
        {"RES",   fitCtau},
        {"TRUE",  fitCtauTrue || (fitCtau && incNonPrompt)},
      }
@@ -244,7 +261,7 @@ void fitter(
                                  cutCtau,         // Apply prompt ctau cuts
                                  doSimulFit,      // Do simultaneous fitC
                                  wantPureSMC,     // Flag to indicate if we want to fit pure signal MC
-                                 inputFitDir,     // Map of user-defined directory paths of previous fit results
+                                 inputFitDirs[index], // Map of user-defined directory paths of previous fit results
                                  applyCorr,       // Flag to indicate if we want corrected dataset and which correction
                                  numCores,        // Number of cores used for fitting
                                  // Select the drawing options
@@ -283,7 +300,7 @@ void fitter(
                                             cutCtau,         // Apply prompt ctau cuts
                                             doSimulFit,      // Do simultaneous fit
                                             wantPureSMC,           // Flag to indicate if we want to fit pure signal MC
-                                            inputFitDir,     // Map of user-defined directory paths of previous fit results
+                                            inputFitDirs[index],// Map of user-defined directory paths of previous fit results
                                             applyCorr,       // Flag to indicate if we want corrected dataset and which correction
                                             numCores,        // Number of cores used for fitting
                                             // Select the drawing options
@@ -302,6 +319,7 @@ void fitter(
     }
   }
 
+  aDSTAG->Delete();
   delete aDSTAG;
 };
   

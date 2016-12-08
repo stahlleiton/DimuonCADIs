@@ -9,7 +9,8 @@
 void setCtauErrCutParameters(struct KinCuts& cut);
 bool isCtauErrPdfAlreadyFound(RooWorkspace& myws, string FileName, vector<string> pdfNames, bool loadCtauErrPdf=false);
 void setCtauErrFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut, bool isPbPb, bool cutSideBand);
-void setCtauErrGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label);
+void setCtauErrGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label, double binWidth);
+void reNormMassVar( RooWorkspace& myws, string obj, bool isPbPb);
 
 
 bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspace
@@ -52,8 +53,8 @@ bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspac
   wantPureSMC = (isMC && wantPureSMC);
   bool cutSideBand = (incBkg && (!incPsi2S && !incJpsi));
 
-  setCtauErrCutParameters(cut);
   setMassCutParameters(cut, incJpsi, incPsi2S, isMC);
+  setCtauErrCutParameters(cut);
   
   string pdfType = "pdfCTAUERR";
   string COLL = (isPbPb ? "PbPb" : "PP" );
@@ -74,7 +75,7 @@ bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspac
   else if (doCtauErrPdf && !(myws.data(dsName.c_str()))) { cout << "[ERROR] No local dataset was found to make the ctau Error Pdf!" << endl; return false; }
 
   // Set global parameters
-  setCtauErrGlobalParameterRange(myws, parIni, cut, label);
+  setCtauErrGlobalParameterRange(myws, parIni, cut, label, binWidth["CTAUERR"]);
 
   if (!isMC && (incJpsi || incPsi2S)) { 
     // Setting extra input information needed by each fitter
@@ -96,6 +97,12 @@ bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspac
                                  setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
                                  ) 
          ) { return false; }
+    if (myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
+      myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE); 
+    } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
+    if (myws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))))   { reNormMassVar(myws, "Bkg", isPbPb);   }
+    if (myws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))))  { reNormMassVar(myws, "Jpsi", isPbPb);  }
+    if (myws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP")))) { reNormMassVar(myws, "Psi2S", isPbPb); }
   }
 
   // Define pdf and plot names
@@ -109,6 +116,9 @@ bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspac
   // check if we have already done this fit. If yes, do nothing and return true.
   string FileName = "";
   setCtauErrFileName(FileName, (inputFitDir["CTAUERR"]=="" ? outputDir : inputFitDir["CTAUERR"]), DSTAG, plotLabel, cut, isPbPb, cutSideBand);
+  if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAUERR"]!="") { 
+    setCtauErrFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, cutSideBand);
+  }
   bool found =  true; bool skipCtauErrPdf = !doCtauErrPdf;
   found = found && isCtauErrPdfAlreadyFound(myws, FileName, pdfNames, loadCtauErrPdf);
   if (found) {
@@ -123,7 +133,7 @@ bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspac
 
   // Create the ctau Error Pdf
   if (skipCtauErrPdf==false) {
-    // Build the Ctau Error Template     
+    // Build the Ctau Error Template
     int nBins = min(int( round((cut.dMuon.ctauErr.Max - cut.dMuon.ctauErr.Min)/binWidth["CTAUERR"]) ), 1000);
     if (!buildCharmoniaCtauErrModel(myws, parIni, cut, dsName, incJpsi, incPsi2S, nBins, numEntries))  { return false; }
     string pdfName = Form("%s_Tot_%s", pdfType.c_str(), COLL.c_str());
@@ -144,10 +154,17 @@ bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspac
 };
 
 
-void setCtauErrGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label)
+void setCtauErrGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label, double binWidth)
 {
   Double_t ctauErrMax; Double_t ctauErrMin;
   myws.data(Form("dOS_%s", label.c_str()))->getRange(*myws.var("ctauErr"), ctauErrMin, ctauErrMax);
+  int nBins = min(int( round((ctauErrMax - ctauErrMin)/binWidth) ), 1000);
+  myws.var("ctauErr")->setMin(ctauErrMin); myws.var("ctauErr")->setMax(ctauErrMax);
+  TH1D* hTot = (TH1D*)myws.data(Form("dOS_%s", label.c_str()))->createHistogram("TMP", *myws.var("ctauErr"), Binning(nBins, ctauErrMin, ctauErrMax));
+  vector<double> rangeErr; getCtauErrRange(hTot, (int)(ceil(2)), rangeErr);
+  hTot->Delete();
+  ctauErrMin = rangeErr[0];
+  ctauErrMax = rangeErr[1];
   if (ctauErrMin<cut.dMuon.ctauErr.Min) { ctauErrMin = cut.dMuon.ctauErr.Min; }
   if (ctauErrMax>cut.dMuon.ctauErr.Max) { ctauErrMax = cut.dMuon.ctauErr.Max; }
   cout << "[INFO] Range from data: ctauErrMin: " << ctauErrMin << "  ctauErrMax: " << ctauErrMax << endl;
@@ -155,8 +172,6 @@ void setCtauErrGlobalParameterRange(RooWorkspace& myws, map<string, string>& par
   parIni["CtauErrRange_Cut"]   = Form("(%.12f <= ctauErr && ctauErr < %.12f)", ctauErrMin, ctauErrMax);
   cut.dMuon.ctauErr.Max = ctauErrMax;
   cut.dMuon.ctauErr.Min = ctauErrMin;
-  //myws.var("ctauErr")->setMin(cut.dMuon.ctauErr.Min);
-  //myws.var("ctauErr")->setMax(cut.dMuon.ctauErr.Max);
   myws.var("ctauErr")->setRange("CtauErrFullWindow", cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max);
   myws.var("ctauErr")->setRange("FullWindow", cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max);
   myws.var("ctauErr")->setRange("SideBandTOP_FULL", cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max); 
@@ -235,5 +250,15 @@ void setCtauErrCutParameters(struct KinCuts& cut)
 };
 
 
+void reNormMassVar( RooWorkspace& myws, string obj, bool isPbPb)
+{
+  string pdfName = Form("pdfMASS_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"));
+  string varName = Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"));
+  if (obj=="Bkg") { ((RooChebychev*)myws.pdf(pdfName.c_str()))->selectNormalizationRange("InclusiveMassRange", kTRUE); }
+  double NormFactor = 1.0/(myws.pdf(pdfName.c_str())->createIntegral(*myws.var("invMass"), NormSet(*myws.var("invMass")), Range("InclusiveMassRange"))->getValV());
+  myws.var(varName.c_str())->setVal(myws.var(varName.c_str())->getValV()*NormFactor);
+  cout << "[INFO] NORM FACTOR FOR " << obj << " : " << NormFactor << endl;
+  return;
+};
 
 #endif // #ifndef fitCharmoniaCtauErrModel_C

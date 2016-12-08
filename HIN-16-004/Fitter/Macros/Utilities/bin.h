@@ -41,6 +41,7 @@ class anabin : public tuple<binF,binF,binI> {
 
 set<anabin> allbins() {
    set<anabin> ans;
+   // HIN-16-004
    ans.insert(anabin(0,1.6,6.5,30,0,200));
    ans.insert(anabin(0,1.6,6.5,30,0,20));
    ans.insert(anabin(0,1.6,6.5,30,20,40));
@@ -60,6 +61,144 @@ set<anabin> allbins() {
    ans.insert(anabin(1.6,2.4,3,6.5,0,200));
    ans.insert(anabin(1.6,2.4,6.5,12,0,200));
    ans.insert(anabin(1.6,2.4,12,30,0,200));
+
+   // centrality dependence
+   // thinner binning (for jpsi RAA only)
+   // 1 rapidity interval
+   ans.insert(anabin(0,2.4,6.5,50,0,10));
+   ans.insert(anabin(0,2.4,6.5,50,10,20));
+   ans.insert(anabin(0,2.4,6.5,50,20,30));
+   ans.insert(anabin(0,2.4,6.5,50,30,40));
+   ans.insert(anabin(0,2.4,6.5,50,40,50));
+   ans.insert(anabin(0,2.4,6.5,50,50,60));
+   ans.insert(anabin(0,2.4,6.5,50,60,70));
+   ans.insert(anabin(0,2.4,6.5,50,70,80));
+   ans.insert(anabin(0,2.4,6.5,50,80,90));
+   ans.insert(anabin(0,2.4,6.5,50,90,100));
+   ans.insert(anabin(0,2.4,6.5,50,100,120));
+   ans.insert(anabin(0,2.4,6.5,50,120,140));
+   ans.insert(anabin(0,2.4,6.5,50,140,200));
+
+   // fwd rapidity and low pt
+   ans.insert(anabin(1.8,2.4,3.,6.5,0,20));
+   ans.insert(anabin(1.8,2.4,3.,6.5,20,40));
+   ans.insert(anabin(1.8,2.4,3.,6.5,40,60));
+   ans.insert(anabin(1.8,2.4,3.,6.5,60,80));
+   ans.insert(anabin(1.8,2.4,3.,6.5,80,100));
+   ans.insert(anabin(1.8,2.4,3.,6.5,100,200));
+
+   // 4 rapidity intervals
+   // |y|<0.6
+   ans.insert(anabin(0,0.6,6.5,50,0,20));
+   ans.insert(anabin(0,0.6,6.5,50,20,40));
+   ans.insert(anabin(0,0.6,6.5,50,40,60));
+   ans.insert(anabin(0,0.6,6.5,50,60,80));
+   ans.insert(anabin(0,0.6,6.5,50,80,100));
+   ans.insert(anabin(0,0.6,6.5,50,100,200));
+   // 0.6<|y|<1.2
+   ans.insert(anabin(0.6,1.2,6.5,50,0,20));
+   ans.insert(anabin(0.6,1.2,6.5,50,20,40));
+   ans.insert(anabin(0.6,1.2,6.5,50,40,60));
+   ans.insert(anabin(0.6,1.2,6.5,50,60,80));
+   ans.insert(anabin(0.6,1.2,6.5,50,80,100));
+   ans.insert(anabin(0.6,1.2,6.5,50,100,200));
+   // 1.2<|y|<1.8
+   ans.insert(anabin(1.2,1.8,6.5,50,0,20));
+   ans.insert(anabin(1.2,1.8,6.5,50,20,40));
+   ans.insert(anabin(1.2,1.8,6.5,50,40,60));
+   ans.insert(anabin(1.2,1.8,6.5,50,60,80));
+   ans.insert(anabin(1.2,1.8,6.5,50,80,100));
+   ans.insert(anabin(1.2,1.8,6.5,50,100,200));
+   // 1.8<|y|<2.4
+   ans.insert(anabin(1.8,2.4,6.5,50,0,20));
+   ans.insert(anabin(1.8,2.4,6.5,50,20,40));
+   ans.insert(anabin(1.8,2.4,6.5,50,40,60));
+   ans.insert(anabin(1.8,2.4,6.5,50,60,80));
+   ans.insert(anabin(1.8,2.4,6.5,50,80,100));
+   ans.insert(anabin(1.8,2.4,6.5,50,100,200));
+
+
+   // pt dependence
+   // thinner binning (for jpsi raa only)
+   // 1 rapidity interval
+   ans.insert(anabin(0,2.4,6.5,7.5,0,200));
+   ans.insert(anabin(0,2.4,7.5,8.5,0,200));
+   ans.insert(anabin(0,2.4,8.5,9.5,0,200));
+   ans.insert(anabin(0,2.4,9.5,11,0,200));
+   ans.insert(anabin(0,2.4,11,13,0,200));
+   ans.insert(anabin(0,2.4,13,15,0,200));
+   ans.insert(anabin(0,2.4,15,20,0,200));
+   ans.insert(anabin(0,2.4,20,30,0,200));
+   ans.insert(anabin(0,2.4,30,50,0,200));
+
+   // 4 rapidity intervals
+   // |y|<0.6
+   ans.insert(anabin(0,0.6,6.5,8.5,0,200));
+   ans.insert(anabin(0,0.6,8.5,9.5,0,200));
+   ans.insert(anabin(0,0.6,9.5,11,0,200));
+   ans.insert(anabin(0,0.6,11,15,0,200));
+   ans.insert(anabin(0,0.6,15,50,0,200));
+   // 0.6<|y|<1.2
+   ans.insert(anabin(0.6,1.2,6.5,8.5,0,200));
+   ans.insert(anabin(0.6,1.2,8.5,9.5,0,200));
+   ans.insert(anabin(0.6,1.2,9.5,11,0,200));
+   ans.insert(anabin(0.6,1.2,11,15,0,200));
+   ans.insert(anabin(0.6,1.2,15,50,0,200));
+   // 0.6<|y|<1.8
+   ans.insert(anabin(1.2,1.8,6.5,7.5,0,200));
+   ans.insert(anabin(1.2,1.8,7.5,8.5,0,200));
+   ans.insert(anabin(1.2,1.8,8.5,9.5,0,200));
+   ans.insert(anabin(1.2,1.8,9.5,11,0,200));
+   ans.insert(anabin(1.2,1.8,11,15,0,200));
+   ans.insert(anabin(1.2,1.8,15,50,0,200));
+   // 1.8<|y|<2.4
+   ans.insert(anabin(1.8,2.4,3.0,4.5,0,200));
+   ans.insert(anabin(1.8,2.4,4.5,5.5,0,200));
+   ans.insert(anabin(1.8,2.4,5.5,6.5,0,200));
+   ans.insert(anabin(1.8,2.4,6.5,7.5,0,200));
+   ans.insert(anabin(1.8,2.4,7.5,8.5,0,200));
+   ans.insert(anabin(1.8,2.4,8.5,9.5,0,200));
+   ans.insert(anabin(1.8,2.4,9.5,11,0,200));
+   ans.insert(anabin(1.8,2.4,11,15,0,200));
+   ans.insert(anabin(1.8,2.4,15,50,0,200));
+
+   // 3 centrality intervals
+   // 0-10%
+   ans.insert(anabin(0,2.4,6.5,7.5,0,20));
+   ans.insert(anabin(0,2.4,7.5,8.5,0,20));
+   ans.insert(anabin(0,2.4,8.5,9.5,0,20));
+   ans.insert(anabin(0,2.4,9.5,11,0,20));
+   ans.insert(anabin(0,2.4,11,13,0,20));
+   ans.insert(anabin(0,2.4,13,15,0,20));
+   ans.insert(anabin(0,2.4,15,20,0,20));
+   ans.insert(anabin(0,2.4,20,50,0,20));
+   // 10-30%
+   ans.insert(anabin(0,2.4,6.5,7.5,20,60));
+   ans.insert(anabin(0,2.4,7.5,8.5,20,60));
+   ans.insert(anabin(0,2.4,8.5,9.5,20,60));
+   ans.insert(anabin(0,2.4,9.5,11,20,60));
+   ans.insert(anabin(0,2.4,11,13,20,60));
+   ans.insert(anabin(0,2.4,13,15,20,60));
+   ans.insert(anabin(0,2.4,15,20,20,60));
+   ans.insert(anabin(0,2.4,20,50,20,60));
+   // 30-100%
+   ans.insert(anabin(0,2.4,6.5,7.5,60,200));
+   ans.insert(anabin(0,2.4,7.5,8.5,60,200));
+   ans.insert(anabin(0,2.4,8.5,9.5,60,200));
+   ans.insert(anabin(0,2.4,9.5,11,60,200));
+   ans.insert(anabin(0,2.4,11,13,60,200));
+   ans.insert(anabin(0,2.4,13,15,60,200));
+   ans.insert(anabin(0,2.4,15,20,60,200));
+   ans.insert(anabin(0,2.4,20,50,60,200));
+
+   // rapidity dependence
+   ans.insert(anabin(0.0,0.4,6.5,50,0,200));
+   ans.insert(anabin(0.4,0.8,6.5,50,0,200));
+   ans.insert(anabin(0.8,1.2,6.5,50,0,200));
+   ans.insert(anabin(1.2,1.6,6.5,50,0,200));
+   ans.insert(anabin(1.6,2.0,6.5,50,0,200));
+   ans.insert(anabin(2.0,2.4,6.5,50,0,200));
+
    return ans;
 };
 
