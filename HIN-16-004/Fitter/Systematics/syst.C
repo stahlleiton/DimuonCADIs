@@ -93,31 +93,32 @@ map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name)
    return ans;
 };
 
-map<anabin, syst> readSyst_all(const char* prependPath, bool doPrintTex, const char* texName) {
-   vector<TString> tags;
-   // tags.push_back("fitpp");
-   // tags.push_back("fitpbpb");
-   // tags.push_back("TAA");
-   // tags.push_back("lumipp");
-   // tags.push_back("lumipbpb");
-   // tags.push_back("mceff");
-   // tags.push_back("tnp");
-   tags.push_back("dummy");
+map<anabin, syst> readSyst_all(const char* prependPath, const char* collSystem, bool doPrintTex, const char* texName) {
+   vector<TString> filelist;
+   // filelist.push_back("fit_PP");
+   // filelist.push_back("fit_PbPb");
+   // filelist.push_back("TAA_PbPb");
+   // filelist.push_back("lumi_PP");
+   // filelist.push_back("lumi_PbPb");
+   // filelist.push_back("mceff_PP");
+   // filelist.push_back("mceff_PbPb");
+   // filelist.push_back("tnp_PP");
+   // filelist.push_back("tnp_PbPb");
+   filelist.push_back("Systematics/csv/syst_PbPb_dummy_allbins.csv");
+   filelist.push_back("Systematics/csv/syst_PP_dummy_allbins.csv");
   
    vector< map<anabin, syst> > systmap_all;
 
-   for (vector<TString>::const_iterator it=tags.begin(); it!=tags.end(); it++) {
-      vector<TString> filelist = fileList_syst(*it, prependPath);
-      for (unsigned int i=0; i<filelist.size(); i++) {
-         map<anabin,syst> systmap = readSyst(filelist[i].Data());
-         systmap_all.push_back(systmap);
-      }
+   for (unsigned int i=0; i<filelist.size(); i++) {
+      if (!filelist[i].Contains(collSystem)) continue;
+      map<anabin,syst> systmap = readSyst(filelist[i].Data());
+      systmap_all.push_back(systmap);
    }
 
-   map<anabin,syst> ans = combineSyst(systmap_all, "Total" ,true);
+   map<anabin,syst> ans = combineSyst(systmap_all, "Total");
    systmap_all.push_back(ans);
 
-   if (doPrintTex) printTex(systmap_all, texName, true);
+   if (doPrintTex) printTex(systmap_all, texName);
 
    return ans;
 };

@@ -25,9 +25,9 @@ using namespace std;
 
 vector<TString> fileList_syst(const char* token, const char* prependPath="");
 map<anabin, syst> readSyst(const char* systfile);
-map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name="Total", bool isdRSyst=false);
-map<anabin, syst> readSyst_all(const char* prependPath="", bool doPrintTex=false, const char* texName="Systematics/systs.tex");
-void printTex(vector< map<anabin, syst> > theSysts, const char* texName="Systematics/systs.tex", bool isdRSyst=false);
+map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name="Total");
+map<anabin, syst> readSyst_all(const char* prependPath="", const char* collSystem="", bool doPrintTex=false, const char* texName="Systematics/systs.tex");
+void printTex(vector< map<anabin, syst> > theSysts, const char* texName="Systematics/systs.tex");
 map<anabin, vector<syst> > vm2mv(vector< map<anabin,syst> > v);
 RooWorkspace* getWorkspaceFromBin(anabin thebin, const char* workDirName, const char* token="", const char* path2Fitter="");
 void expandsyst(const char* input, const char* output, bool ptdep=false, bool rapdep=false, bool centdep=false);

@@ -26,7 +26,7 @@
 // CONSTANTS //
 ///////////////
 
-const double lumipp = 27.7e6;
+const double lumipp = 28.0e6;
 const double lumipbpb_ABCD = 351;
 const double lumipbpb_peri = 464;
 
