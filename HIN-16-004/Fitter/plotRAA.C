@@ -231,6 +231,9 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       if (!binok(thecats,xaxis,thebin)) continue;
       anabin thebinPP = it->first; thebinPP.setcentbin(binI(0,200));
       raa_input spp = theVars_inputs[thebinPP];
+
+      if (s.effaa <= 0 || spp.effpp <= 0 || s.naa <= 0 || spp.npp <= 0) continue;
+
       theBins[thebin].push_back(it->first);
 
       double normfactorpp = 1., normfactoraa = 1.;
