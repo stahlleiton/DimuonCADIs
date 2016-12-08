@@ -32,7 +32,7 @@ const double bins_pt_rap0612[] = {6.5, 8.5, 9.5, 11, 15, 50};
 const int nbins_pt_rap0612 = sizeof(bins_pt_rap0612)/sizeof(double) -1;
 const double bins_pt_rap1218[] = {6.5, 7.5, 8.5, 9.5, 11, 15, 50};
 const int nbins_pt_rap1218 = sizeof(bins_pt_rap1218)/sizeof(double) -1;
-const double bins_pt_rap1824[] = {2, 3, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 11, 15, 50};
+const double bins_pt_rap1824[] = {3, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 11, 15, 50};
 const int nbins_pt_rap1824 = sizeof(bins_pt_rap1824)/sizeof(double) -1;
 const double bins_pt_cent010[] = {6.5, 7.5, 8.5, 9.5, 11, 13, 15, 20, 50};
 const int nbins_pt_cent010 = sizeof(bins_pt_cent010)/sizeof(double) -1;
@@ -53,8 +53,8 @@ const int nbins_3cent = sizeof(bins_3cent)/sizeof(double) -1;
 const double maxdr = 0.03;
 const double massjpsi = 3.096;
 const double masspsip = 3.686;
-const double massdown = 0.25;
-const double massup = 0.15;
+const double massdown = 0.60;
+const double massup = 0.40;
 
 using namespace HI;
 using namespace std;
@@ -125,8 +125,8 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
    // Eff vs pT in 3 centrality regions
    TH1F *hnum_pt_cent[nbins_3cent];
    TH1F *hden_pt_cent[nbins_3cent];
-   hnum_pt_cent[0] = new TH1F("hnum_pt_cent010",";p_{T} [GeV/c];Efficiency",nbins_pt_cent010,bins_pt_cent010);
-   hden_pt_cent[0] = new TH1F("hden_pt_cent010",";p_{T} [GeV/c];Efficiency",nbins_pt_cent010,bins_pt_cent010);
+   hnum_pt_cent[0] = new TH1F("hnum_pt_cent0010",";p_{T} [GeV/c];Efficiency",nbins_pt_cent010,bins_pt_cent010);
+   hden_pt_cent[0] = new TH1F("hden_pt_cent0010",";p_{T} [GeV/c];Efficiency",nbins_pt_cent010,bins_pt_cent010);
    hnum_pt_cent[1] = new TH1F("hnum_pt_cent1030",";p_{T} [GeV/c];Efficiency",nbins_pt_cent1030,bins_pt_cent1030);
    hden_pt_cent[1] = new TH1F("hden_pt_cent1030",";p_{T} [GeV/c];Efficiency",nbins_pt_cent1030,bins_pt_cent1030);
    hnum_pt_cent[2] = new TH1F("hnum_pt_cent30100",";p_{T} [GeV/c];Efficiency",nbins_pt_cent30100,bins_pt_cent30100);
@@ -148,10 +148,7 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
       Long64_t ientry = LoadTree(jentry);
       if (ientry < 0) break;
-      if (ispbpb && ientry>=400000) {
-        jentry=jentry+100000;
-        continue;
-      } else if (!ispbpb && ientry>=10000000) {
+      if (!ispbpb && ientry>=10000000) {
         break;
       }
       if (jentry%100000==0)
@@ -180,7 +177,7 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
       // check that the dimuon is inside the analysis bins
       bool gen_inbin = false;
       if (genrap<1.8 && genpt>=6.5 && genpt<50.) gen_inbin = true;
-      if (genrap>=1.8 && genrap<2.4 && genpt>=2. && genpt<50.) gen_inbin = true;
+      if (genrap>=1.8 && genrap<2.4 && genpt>=3. && genpt<50.) gen_inbin = true;
       //if (!gen_inbin) continue;
       if (!gen_inbin) isgenok=false;
       
@@ -211,15 +208,15 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
       
       if(isgenok) {
         // Eff vs rap integrated
-        if (genrap>=0 && genrap<2.4)
+        if (genrap>=0 && genrap<2.4 && genpt>=6.5 && genpt<50)
           hden_rap->Fill(genrap,weight);
 
         // Eff vs cent in 4 |y| regions (6.5-50 GeV/c)
-        if (genrap>=bins_4rap[0] && genrap<bins_4rap[nbins_4rap])
+        if (genrap>=bins_4rap[0] && genrap<bins_4rap[nbins_4rap] && genpt>=6.5 && genpt<50)
           hden_cent_rap[0]->Fill(Centrality/2.0,weight); //[0] is for 0-100
         
         for (int i=0; i<nbins_4rap; i++) {
-          if (genrap>=bins_4rap[i] && genrap<bins_4rap[i+1])
+          if (genrap>=bins_4rap[i] && genrap<bins_4rap[i+1] && genpt>=6.5 && genpt<50)
             hden_cent_rap[i+1]->Fill(Centrality/2.0,weight); //[0] is for 0-100
         }
         
@@ -229,118 +226,122 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
         }
         
         // Eff vs pt in 4 |y| regions
-        if (genrap>=bins_4rap[0] && genrap<bins_4rap[nbins_4rap])
+        if (genrap>=bins_4rap[0] && genrap<bins_4rap[nbins_4rap] && genpt>=6.5 && genpt<50)
           hden_pt_rap[0]->Fill(genpt,weight); //[0] is for 0024
         
         for (int i=0; i<nbins_4rap; i++) {
-          if (genrap>=bins_4rap[i] && genrap<bins_4rap[i+1])
+          if ( genrap>=bins_4rap[i] && genrap<bins_4rap[i+1] &&
+             ( (genrap<1.8 && genpt>=6.5) || (genrap>=1.8 && genpt>=3) ) &&
+             genpt<50 )
             hden_pt_rap[i+1]->Fill(genpt,weight); //[0] is for 0024
         }
         
         // Eff vs pt in 3 cent regions
         for (int i=0; i<nbins_3cent; i++) {
-          if (Centrality/2.0>=bins_3cent[i] && Centrality/2.0<bins_3cent[i+1])
+          if (Centrality/2.0>=bins_3cent[i] && Centrality/2.0<bins_3cent[i+1] && genpt>=6.5 && genpt<50) {
             hden_pt_cent[i]->Fill(genpt,weight);
+          }
         }
-      
-        ///// start reco loop
-        // is there at least one reco dimuon?
-        b_Reco_QQ_size->GetEntry(ientry);
-        if (Reco_QQ_size==0) continue;
-
-        // ok, now read all other branches
-        nb = fChain->GetEntry(jentry);   nbytes += nb;
-        // if (Cut(ientry) < 0) continue;
-
-        // loop on the reconstructed dimuons to find the one matched to the gen one
-        double mindr=999.;
-        int ibestqq=-1;
-        double tnp_weight = 1.0;
-        for (int i=0; i<Reco_QQ_size; i++) {
-          // acceptance
-          if (!areMuonsInAcceptance2015(i)) continue;
-           // sign
-           if (Reco_QQ_sign[i]!=0) continue;
-           // quality cuts
-           if (!passQualityCuts2015(i)) continue;
-           // trigger matching
-           if (!isTriggerMatch(i,0)) continue; // HLT_HIL1DoubleMu0_v1
-           // mass cut
-           double mass = ((TLorentzVector*) Reco_QQ_4mom->At(i))->M();
-           double mass0 = isPsip ? masspsip : massjpsi;
-           double massdown = isPsip ? 0.5 : 0.6;
-           double massup = isPsip ? 0.5 : 0.4;
-           if (mass<(mass0-massdown) || mass>(mass0+massup)) continue;
-           
-           // gen-reco matching
-           TLorentzVector *tlvrecpl = (TLorentzVector*) Reco_QQ_mupl_4mom->At(i);
-           TLorentzVector *tlvrecmi = (TLorentzVector*) Reco_QQ_mumi_4mom->At(i);
-           double dr = max(tlvrecpl->DeltaR(*tlvgenpl),tlvrecmi->DeltaR(*tlvgenmi));
-           if (dr<mindr) {
-             mindr = dr;
-             ibestqq = i;
-           }
-
-        } // Reco_QQ loop
-        
-        if (ibestqq<0) continue;
-        
-        TLorentzVector *tlvrecqq = (TLorentzVector*) Reco_QQ_4mom->At(ibestqq);
-        double recopt = tlvrecqq->Pt();
-        double recorap = fabs(tlvrecqq->Rapidity());
-
-        // check that the dimuon is inside the analysis bins
-        bool rec_inbin = false;
-        if (recorap<1.8 && recopt>=6.5 && recopt<50.) rec_inbin = true;
-        if (recorap>=1.8 && recorap<2.4 && recopt>=2. && recopt<50.) rec_inbin = true;
-        if (!rec_inbin) continue;
-         
-        TLorentzVector *tlvrecpl = (TLorentzVector*) Reco_QQ_mupl_4mom->At(ibestqq);
-        TLorentzVector *tlvrecmi = (TLorentzVector*) Reco_QQ_mumi_4mom->At(ibestqq);
-        double recMuPlpt = tlvrecpl->Pt();
-        double recMuPlEta = tlvrecpl->Eta();
-        double recMuMipt = tlvrecmi->Pt();
-        double recMuMiEta = tlvrecmi->Eta();
-        
-        tnp_weight = tnp_weight_sta_pbpb(recMuPlpt, recMuPlEta, 0)*tnp_weight_sta_pbpb(recMuMipt, recMuMiEta, 0)*tnp_weight_muidtrg_pbpb(recMuPlpt, recMuPlEta, 0) * tnp_weight_muidtrg_pbpb(recMuMipt, recMuMiEta, 0);
-        //weight = weight*tnp_weight;
-        
-        // fill the numerators
-        // Eff vs rap integrated
-        if (recorap>=0 && recorap<2.4)
-          hnum_rap->Fill(genrap,weight);
-
-        // Eff vs cent in 4 |y| regions (6.5-50 GeV/c)
-        if (recorap>=bins_4rap[0] && recorap<bins_4rap[nbins_4rap])
-          hnum_cent_rap[0]->Fill(Centrality/2.0,weight); //[0] is for 0-100
-        
-        for (int i=0; i<nbins_4rap; i++) {
-          if (recorap>=bins_4rap[i] && recorap<bins_4rap[i+1])
-            hnum_cent_rap[i+1]->Fill(Centrality/2.0,weight); //[0] is for 0-100
-        
-        }
-        // Eff vs cent at 1.8-2.4, 3-6.5
-        if (recorap>=1.8 && recorap<2.4 && recopt>=3 && recopt<6.5)
-            hnum_cent_rap[nbins_4rap+1]->Fill(Centrality/2.0,weight); //last histogram is for low pT
-        
-        // Eff vs pt in 4 |y| regions
-        if (recorap>=bins_4rap[0] && recorap<bins_4rap[nbins_4rap])
-          hnum_pt_rap[0]->Fill(genpt,weight); //[0] is for 0024
-        
-        for (int i=0; i<nbins_4rap; i++) {
-          if (recorap>=bins_4rap[i] && recorap<bins_4rap[i+1])
-            hnum_pt_rap[i+1]->Fill(genpt,weight); //[0] is for 0024
-        }
-        
-        // Eff vs pt in 3 cent regions
-        for (int i=0; i<nbins_3cent; i++) {
-          if (Centrality/2.0>=bins_3cent[i] && Centrality/2.0<bins_3cent[i+1])
-            hnum_pt_cent[i]->Fill(genpt,weight);
-        }
-        
-        hnum2d->Fill(recorap,recopt,weight);
       } // end of if(isgenok)
+
+      ///// start reco loop
+      // is there at least one reco dimuon?
+      b_Reco_QQ_size->GetEntry(ientry);
+      if (Reco_QQ_size==0) continue;
+
+      // ok, now read all other branches
+      nb = fChain->GetEntry(jentry);   nbytes += nb;
+      // if (Cut(ientry) < 0) continue;
+
+      // loop on the reconstructed dimuons to find the one matched to the gen one
+      double mindr=999.;
+      int ibestqq=-1;
+      double tnp_weight = 1.0;
+      for (int i=0; i<Reco_QQ_size; i++) {
+        // acceptance
+        if (!areMuonsInAcceptance2015(i)) continue;
+         // sign
+         if (Reco_QQ_sign[i]!=0) continue;
+         // quality cuts
+         if (!passQualityCuts2015(i)) continue;
+         // trigger matching
+         if (!isTriggerMatch(i,0)) continue; // HLT_HIL1DoubleMu0_v1
+         // mass cut
+         double mass = ((TLorentzVector*) Reco_QQ_4mom->At(i))->M();
+         double mass0 = isPsip ? masspsip : massjpsi;
+//         double massdown = isPsip ? 0.5 : 0.6;
+//         double massup = isPsip ? 0.5 : 0.4;
+         if (mass<(mass0-massdown) || mass>(mass0+massup)) continue;
+         
+         // gen-reco matching
+         TLorentzVector *tlvrecpl = (TLorentzVector*) Reco_QQ_mupl_4mom->At(i);
+         TLorentzVector *tlvrecmi = (TLorentzVector*) Reco_QQ_mumi_4mom->At(i);
+         double dr = max(tlvrecpl->DeltaR(*tlvgenpl),tlvrecmi->DeltaR(*tlvgenmi));
+         if (dr<mindr) {
+           mindr = dr;
+           ibestqq = i;
+         }
+
+      } // Reco_QQ loop
       
+      if (ibestqq<0) continue;
+      
+      TLorentzVector *tlvrecqq = (TLorentzVector*) Reco_QQ_4mom->At(ibestqq);
+      double recopt = tlvrecqq->Pt();
+      double recorap = fabs(tlvrecqq->Rapidity());
+
+      // check that the dimuon is inside the analysis bins
+      bool rec_inbin = false;
+      if (recorap<1.8 && recopt>=6.5 && recopt<50.) rec_inbin = true;
+      if (recorap>=1.8 && recorap<2.4 && recopt>=3. && recopt<50.) rec_inbin = true;
+      if (!rec_inbin) continue;
+       
+      TLorentzVector *tlvrecpl = (TLorentzVector*) Reco_QQ_mupl_4mom->At(ibestqq);
+      TLorentzVector *tlvrecmi = (TLorentzVector*) Reco_QQ_mumi_4mom->At(ibestqq);
+      double recMuPlpt = tlvrecpl->Pt();
+      double recMuPlEta = tlvrecpl->Eta();
+      double recMuMipt = tlvrecmi->Pt();
+      double recMuMiEta = tlvrecmi->Eta();
+      
+      tnp_weight = tnp_weight_sta_pbpb(recMuPlpt, recMuPlEta, 0)*tnp_weight_sta_pbpb(recMuMipt, recMuMiEta, 0)*tnp_weight_muidtrg_pbpb(recMuPlpt, recMuPlEta, 0) * tnp_weight_muidtrg_pbpb(recMuMipt, recMuMiEta, 0);
+      //weight = weight*tnp_weight;
+      
+      // fill the numerators
+      // Eff vs rap integrated
+      if (recorap>=0 && recorap<2.4 && recopt>=6.5 && recopt<50)
+        hnum_rap->Fill(genrap,weight);
+
+      // Eff vs cent in 4 |y| regions (6.5-50 GeV/c)
+      if (recorap>=bins_4rap[0] && recorap<bins_4rap[nbins_4rap] && recopt>=6.5 && recopt<50)
+        hnum_cent_rap[0]->Fill(Centrality/2.0,weight); //[0] is for 0-100
+      
+      for (int i=0; i<nbins_4rap; i++) {
+        if (recorap>=bins_4rap[i] && recorap<bins_4rap[i+1] && recopt>=6.5 && recopt<50)
+          hnum_cent_rap[i+1]->Fill(Centrality/2.0,weight); //[0] is for 0-100
+      }
+      // Eff vs cent at 1.8-2.4, 3-6.5
+      if (recorap>=1.8 && recorap<2.4 && recopt>=3 && recopt<6.5)
+          hnum_cent_rap[nbins_4rap+1]->Fill(Centrality/2.0,weight); //last histogram is for low pT
+      
+      // Eff vs pt in 4 |y| regions
+      if (recorap>=bins_4rap[0] && recorap<bins_4rap[nbins_4rap] && recopt>=6.5 && recopt<50)
+        hnum_pt_rap[0]->Fill(genpt,weight); //[0] is for 0024
+      
+      for (int i=0; i<nbins_4rap; i++) {
+        if ( recorap>=bins_4rap[i] && recorap<bins_4rap[i+1] &&
+           ( (recorap<1.8 && recopt>=6.5) || (recorap>=1.8 && recopt>=3) ) &&
+           recopt<50 )
+          hnum_pt_rap[i+1]->Fill(genpt,weight); //[0] is for 0024
+      }
+      
+      // Eff vs pt in 3 cent regions
+      for (int i=0; i<nbins_3cent; i++) {
+        if (Centrality/2.0>=bins_3cent[i] && Centrality/2.0<bins_3cent[i+1] && recopt>=6.5 && recopt<50)
+          hnum_pt_cent[i]->Fill(genpt,weight);
+      }
+      
+      hnum2d->Fill(recorap,recopt,weight);
+    
    } // event loop
   
 

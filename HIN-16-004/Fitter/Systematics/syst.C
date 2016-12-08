@@ -30,7 +30,7 @@ vector<TString> fileList_syst(const char* token, const char* prependPath) {
 };
 
 
-map<anabin, syst> readSyst(const char* systfile, const char* workDirName, const char* path2Fitter, int mode, const char* workDirNameFail) {
+map<anabin, syst> readSyst(const char* systfile) {
    map<anabin, syst> ans;
 
    ifstream file(systfile);
@@ -63,29 +63,6 @@ map<anabin, syst> readSyst(const char* systfile, const char* workDirName, const 
       }
       anabin thebin(rapmin, rapmax, ptmin, ptmax, centmin, centmax);
       syst thesyst; thesyst.value = value; thesyst.name = systname;
-     
-      if ( strcmp(workDirName,"") ) {
-         double doubleR;
-         if (mode==0) doubleR = doubleratio_pass_nominal(workDirName, thebin, path2Fitter);
-         else if (mode==1) doubleR = doubleratio_prompt_nominal(workDirName, workDirNameFail, thebin, path2Fitter);
-         else doubleR = doubleratio_nonprompt_nominal(workDirName, workDirNameFail, thebin, path2Fitter);
-
-         TString sfile(systfile), systtag;
-         if (sfile.Contains("bhad_add")) systtag = "Bhad_add";
-         else if (sfile.Contains("bhad") || sfile.Contains("eff")) systtag = "DR";
-         else if (sfile.Contains("PbPb_fit")) systtag = "fitpbpb";
-         else if (sfile.Contains("PP_fit")) systtag = "fitpp";
-
-         if (mode==0) thesyst.value_dR = doubleratio_pass_syst(workDirName, thebin, path2Fitter, systtag.Data());
-         else if (mode==1) thesyst.value_dR = doubleratio_prompt_syst(workDirName, workDirNameFail, thebin, path2Fitter, systtag.Data());
-         else thesyst.value_dR = doubleratio_nonprompt_syst(workDirName, workDirNameFail, thebin, path2Fitter, systtag.Data());
-
-         thesyst.value_dR_rel = thesyst.value_dR/doubleR;
-      } else {
-         thesyst.value_dR = -99.;
-         thesyst.value_dR_rel = -99.;
-      }
-
       ans[thebin] = thesyst;
    }
 
@@ -94,7 +71,7 @@ map<anabin, syst> readSyst(const char* systfile, const char* workDirName, const 
    return ans;
 };
 
-map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name, bool isdRSyst) {
+map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name) {
    map<anabin, syst> ans;
 
    vector< map<anabin, syst> >::const_iterator it;
@@ -106,14 +83,8 @@ map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name,
          thesyst.name = name;
 
          // if we already have a syst for this bin, sum quadractically the existing syst and the new syst
-         if (ans.find(thebin) != ans.end())
-         {
-           if (isdRSyst)
-           {
-           thesyst.value_dR = sqrt(pow(thesyst.value_dR,2) + pow(ans[thebin].value_dR,2));
-           thesyst.value_dR_rel = sqrt(pow(thesyst.value_dR_rel,2) + pow(ans[thebin].value_dR_rel,2));
-           }
-           else thesyst.value = sqrt(pow(thesyst.value,2) + pow(ans[thebin].value,2));
+         if (ans.find(thebin) != ans.end()) {
+           thesyst.value = sqrt(pow(thesyst.value,2) + pow(ans[thebin].value,2));
          }
          ans[thebin] = thesyst;
       }
@@ -122,74 +93,37 @@ map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name,
    return ans;
 };
 
-map<anabin, syst> readSyst_all_pass(const char* token, const char* prependPath, const char* workDirName) {
-   map<anabin,syst> ans;
-   set<anabin> all = allbins();
-   for (set<anabin>::const_iterator it = all.begin(); it!=all.end(); it++) {
-      syst thesyst;
-      thesyst.name = token;
-      thesyst.value = doubleratio_pass_syst(workDirName, *it, prependPath, token);
-      thesyst.value_dR = thesyst.value;
-      thesyst.value_dR_rel = thesyst.value / doubleratio_pass_nominal(workDirName, *it, prependPath);
-      ans[*it] = thesyst;
-   }
-   return ans;
-}
-
-map<anabin, syst> readSyst_all_prompt(const char* token, const char* prependPath, const char* workDirName, const char* workDirNameFail) {
-   map<anabin,syst> ans;
-   set<anabin> all = allbins();
-   for (set<anabin>::const_iterator it = all.begin(); it!=all.end(); it++) {
-      syst thesyst;
-      thesyst.name = token;
-      thesyst.value = doubleratio_prompt_syst(workDirName, workDirNameFail, *it, prependPath, token);
-      thesyst.value_dR = thesyst.value;
-      thesyst.value_dR_rel = thesyst.value / doubleratio_prompt_nominal(workDirName, workDirNameFail, *it, prependPath);
-      ans[*it] = thesyst;
-   }
-   return ans;
-}
-
-map<anabin, syst> readSyst_all_nonprompt(const char* token, const char* prependPath, const char* workDirName, const char* workDirNameFail) {
-   map<anabin,syst> ans;
-   set<anabin> all = allbins();
-   for (set<anabin>::const_iterator it = all.begin(); it!=all.end(); it++) {
-      syst thesyst;
-      thesyst.name = token;
-      thesyst.value = doubleratio_nonprompt_syst(workDirName, workDirNameFail, *it, prependPath, token);
-      thesyst.value_dR = thesyst.value;
-      thesyst.value_dR_rel = thesyst.value / doubleratio_nonprompt_nominal(workDirName, workDirNameFail, *it, prependPath);
-      ans[*it] = thesyst;
-   }
-   return ans;
-}
-
-map<anabin, syst> readSyst_all(const char* prependPath, const char* workDirName, bool doPrintTex, const char* texName, int mode, const char* workDirNameFail) {
-   vector<TString> tags;
-   tags.push_back("fitpp");
-   tags.push_back("fitpbpb");
-   tags.push_back("DR");
-   tags.push_back("Bhad_add");
+map<anabin, syst> readSyst_all(const char* prependPath, const char* collSystem, bool doPrintTex, const char* texName) {
+   vector<TString> filelist;
+   // filelist.push_back("fit_PP");
+   // filelist.push_back("fit_PbPb");
+   // filelist.push_back("TAA_PbPb");
+   // filelist.push_back("lumi_PP");
+   // filelist.push_back("lumi_PbPb");
+   // filelist.push_back("mceff_PP");
+   // filelist.push_back("mceff_PbPb");
+   // filelist.push_back("tnp_PP");
+   // filelist.push_back("tnp_PbPb");
+   filelist.push_back("Systematics/csv/syst_PbPb_dummy_allbins.csv");
+   filelist.push_back("Systematics/csv/syst_PP_dummy_allbins.csv");
   
    vector< map<anabin, syst> > systmap_all;
 
-   for (vector<TString>::const_iterator it=tags.begin(); it!=tags.end(); it++) {
-      map<anabin,syst> systmap;
-      if (mode==0) systmap = readSyst_all_pass(it->Data(),prependPath,workDirName);
-      else if (mode==1) systmap = readSyst_all_prompt(it->Data(),prependPath,workDirName,workDirNameFail);
-      else systmap = readSyst_all_nonprompt(it->Data(),prependPath,workDirName,workDirNameFail);
+   for (unsigned int i=0; i<filelist.size(); i++) {
+      if (!filelist[i].Contains(collSystem)) continue;
+      map<anabin,syst> systmap = readSyst(filelist[i].Data());
       systmap_all.push_back(systmap);
    }
 
-   map<anabin,syst> ans = combineSyst(systmap_all, "Total" ,true);
+   map<anabin,syst> ans = combineSyst(systmap_all, "Total");
    systmap_all.push_back(ans);
 
-   if (doPrintTex) printTex(systmap_all, texName, true);
+   if (doPrintTex) printTex(systmap_all, texName);
 
    return ans;
 };
 
-void printTex(vector< map<anabin, syst> > theSysts, const char* texName, bool isdRSyst) {
+void printTex(vector< map<anabin, syst> > theSysts, const char* texName) {
    unsigned int nsyst = theSysts.size();
 
    ofstream file(texName);
@@ -233,13 +167,11 @@ void printTex(vector< map<anabin, syst> > theSysts, const char* texName, bool is
       file << " & ";
       file.unsetf(ios::fixed);
       file << thebin.centbin().low()/2 << "-" << thebin.centbin().high()/2 << "\\% ";
-      if (isdRSyst) file.precision(3);
-      else file.precision(1);
+      file.precision(1);
       file.setf(ios::fixed);
 
       for (unsigned int i=0; i<nsyst; i++) {
-         if (isdRSyst) file << " & " << v[i].value_dR;
-         else file << " & " << 100.*v[i].value;
+         file << " & " << 100.*v[i].value;
       }
       file << " \\\\" << endl;
 
@@ -323,6 +255,38 @@ RooWorkspace* getWorkspaceFromBin(anabin thebin, const char* workDirName, const 
   RooWorkspace* wsClone = (RooWorkspace*)(ws->Clone());
   f->Close(); delete f;
   return wsClone;
+}
+
+void expandsyst(const char* input, const char* output, bool ptdep, bool rapdep, bool centdep) {
+   set<anabin> sb = allbins();
+   map<anabin, syst> ms = readSyst(input);
+
+   ofstream of(output);
+   if (ms.size()>0) of << ms.begin()->second.name << endl;
+   else {
+      cout << "Error, empty input " << input << endl; 
+      of.close(); 
+      return;
+   }
+
+   for (set<anabin>::const_iterator it=sb.begin(); it!=sb.end(); it++) {
+      double value=0;
+      for (map<anabin,syst>::const_iterator it2=ms.begin(); it2!=ms.end(); it2++) {
+         bool okpt = (!ptdep) || (it->ptbin() == it2->first.ptbin());
+         bool okrap = (!rapdep) || (it->rapbin() == it2->first.rapbin());
+         bool okcent = (!centdep) || (it->centbin() == it2->first.centbin());
+         if (okpt && okrap && okcent) {
+            value = it2->second.value;
+            break;
+         }
+      }
+      of << it->rapbin().low() << "," << it->rapbin().high() << ","
+         << it->ptbin().low() << "," << it->ptbin().high() << ","
+         << it->centbin().low() << "," << it->centbin().high() << ","
+         << value << endl;
+   }
+
+   of.close();
 }
 
 #endif // ifndef syst_C

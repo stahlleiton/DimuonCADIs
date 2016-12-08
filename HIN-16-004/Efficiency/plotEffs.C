@@ -127,22 +127,33 @@ drawingEff::drawingEff(string fname, bool ispbpb_){
 void drawingEff::checkUnderFlow(TH1 *hnum, TH1 *hden){
 
   cout << "\ncheckUnderFlow: " << hnum->GetName() << " " << hden->GetName() << endl;
-  for (int j=0; j<=hnum->GetNbinsX(); j++) {
+  for (int j=0; j<=hnum->GetNbinsX()+1; j++) {
     double num0 = hnum->GetBinContent(j);
     double den0 = hden->GetBinContent(j);
     
-    // If underflow bin has more entries in numerator than denominator, set it to 0
-    if (j==0 && num0>den0) {
-      hnum->SetBinContent(0,0);
-      hden->SetBinContent(0,0);
-      hnum->SetBinError(0,0);
-      hden->SetBinError(0,0);
+    // prints bincontent for cross-check!
+    if (num0>den0) {
+      cout << "Bin " << j << ": "
+           << hnum->GetBinContent(j) << " " << hden->GetBinContent(j) << " " 
+           << hnum->GetBinContent(j) / hden->GetBinContent(j)
+           << endl;
     }
 
-    // prints bincontent for cross-check!
-    cout << hnum->GetBinContent(j) << " " << hden->GetBinContent(j) << " " 
-         << hnum->GetBinContent(j) / hden->GetBinContent(j)
-         << endl;
+    // If underflow bin has more entries in numerator than denominator, set it to 0
+    if ((j==0 && num0>den0) || (j==hnum->GetNbinsX()+1 && num0>den0)) {
+      hnum->SetBinContent(j,0);
+      hden->SetBinContent(j,0);
+      hnum->SetBinError(j,0);
+      hden->SetBinError(j,0);
+    }
+    
+    if (num0>den0) {
+      cout << "Bin " << j << ": "
+           << hnum->GetBinContent(j) << " " << hden->GetBinContent(j) << " " 
+           << hnum->GetBinContent(j) / hden->GetBinContent(j)
+           << endl;
+    }
+
   }
 
 }
@@ -197,25 +208,19 @@ void drawingEff::loadHisto(){
   }
 
   // Eff vs pT in 3 centrality regions
-  hnum = (TH1F*)finput->Get( Form("hnum_pt_cent%0.0f%0.0f",bins_3cent[0],bins_3cent[1]) );
-  hden = (TH1F*)finput->Get( Form("hden_pt_cent%0.0f%0.0f",bins_3cent[0],bins_3cent[1]) );
-  checkUnderFlow(hnum,hden);
-  hnum_pt_cent.push_back(hnum);
-  hden_pt_cent.push_back(hden);
-  for (int i=1; i<nbins_3cent; i++) {
-    if (ispbpb) {
-      TH1F *hnum1 = (TH1F*)finput->Get( Form("hnum_pt_cent%0.0f%0.0f",bins_3cent[i],bins_3cent[i+1]) );
-      TH1F *hden1 = (TH1F*)finput->Get( Form("hden_pt_cent%0.0f%0.0f",bins_3cent[i],bins_3cent[i+1]) );
-      checkUnderFlow(hnum1,hden1);
-      hnum_pt_cent.push_back(hnum1);
-      hden_pt_cent.push_back(hden1);
-    } else {
-      TH1F *hnum1 = (TH1F*)hnum->Clone( Form("hnum_pt_cent%0.0f%0.0f",bins_3cent[i],bins_3cent[i+1]) );
-      TH1F *hden1 = (TH1F*)hden->Clone( Form("hden_pt_cent%0.0f%0.0f",bins_3cent[i],bins_3cent[i+1]) );
-      checkUnderFlow(hnum1,hden1);
-      hnum_pt_cent.push_back(hnum1);
-      hden_pt_cent.push_back(hden1);
-    }
+  for (int i=0; i<(ispbpb?nbins_3cent-1:1); i++) { // for pp, only the 1st bin is necessary
+    TH1F *hnum1 = (TH1F*)finput->Get( Form("hnum_pt_cent%02.0f%02.0f",bins_3cent[i],bins_3cent[i+1]) );
+    TH1F *hden1 = (TH1F*)finput->Get( Form("hden_pt_cent%02.0f%02.0f",bins_3cent[i],bins_3cent[i+1]) );
+    checkUnderFlow(hnum1,hden1);
+    hnum_pt_cent.push_back(hnum1);
+    hden_pt_cent.push_back(hden1);
+  }
+  if (ispbpb) {
+    hnum = (TH1F*)finput->Get( Form("hnum_pt_cent%02.0f%03.0f",bins_3cent[nbins_3cent-1],bins_3cent[nbins_3cent]) );
+    hden = (TH1F*)finput->Get( Form("hden_pt_cent%02.0f%03.0f",bins_3cent[nbins_3cent-1],bins_3cent[nbins_3cent]) );
+    checkUnderFlow(hnum,hden);
+    hnum_pt_cent.push_back(hnum);
+    hden_pt_cent.push_back(hden);
   }
 
   // Eff vs rap integrated
@@ -257,7 +262,7 @@ void drawingEff::getEfficiency(){
     SetHistStyle(heff_pt_rap[i],i,i,0,1.3);
   }
  
-  for (int i=0; i<nbins_3cent; i++) {
+  for (int i=0; i<(ispbpb?nbins_3cent:1); i++) {
     TGraphAsymmErrors *geff = new TGraphAsymmErrors(hnum_pt_cent[i],hden_pt_cent[i],"n");
     heff_pt_cent.push_back(geff);
     
@@ -289,15 +294,15 @@ void drawingEff::drawHisto(vector<string> outname){
 
   TCanvas *can = new TCanvas("can","can",600,600);
   TLatex *lat = new TLatex(); lat->SetNDC(); lat->SetTextSize(0.035);
-  TLegend *leg = new TLegend(0.6,0.7,0.9,0.9);
+  TLegend *leg = new TLegend(0.55,0.60,0.94,0.88);
   SetLegendStyle(leg);
 
   // Eff vs centrality in 4+1 |y| regions (6.5-50 GeV/c), forward & low pT region
   heff_cent_rap[0]->Draw("ap");
-  leg->AddEntry(heff_cent_rap[0],"|y|: 0-2.4","p");
+  leg->AddEntry(heff_cent_rap[0],"|y|: 0-2.4, 6.5-50 GeV/c","p");
   for (int i=0; i<nbins_4rap; i++) {
     heff_cent_rap[i+1]->Draw("p");
-    leg->AddEntry(heff_cent_rap[i+1],Form("|y|: %.1f-%.1f",bins_4rap[i],bins_4rap[i+1]),"p");
+    leg->AddEntry(heff_cent_rap[i+1],Form("|y|: %.1f-%.1f, 6.5-50 GeV/c",bins_4rap[i],bins_4rap[i+1]),"p");
   }
   heff_cent_rap[nbins_4rap+1]->Draw("p");
   leg->AddEntry(heff_cent_rap[nbins_4rap+1],Form("|y|: %.1f-%.1f, 3-6.5 GeV/c",bins_4rap[nbins_4rap-1],bins_4rap[nbins_4rap]),"p");
@@ -305,6 +310,7 @@ void drawingEff::drawHisto(vector<string> outname){
   lat->DrawLatex(0.2,0.85,outname[0].c_str());
   can->SaveAs(Form("%s_cent_rap.png",outname[1].c_str()));
   can->SaveAs(Form("%s_cent_rap.pdf",outname[1].c_str()));
+  can->SaveAs(Form("%s_cent_rap.root",outname[1].c_str()));
 
   delete can;
   delete leg;
@@ -312,19 +318,22 @@ void drawingEff::drawHisto(vector<string> outname){
 
   // Eff vs pT in 4+1 |y| regions
   can = new TCanvas("can","can",600,600);
-  leg = new TLegend(0.67,0.7,0.9,0.9);
+  leg = new TLegend(0.6,0.68,0.9,0.88);
   SetLegendStyle(leg);
 
   heff_pt_rap[0]->Draw("ap");
-  leg->AddEntry(heff_pt_rap[0],"|y|: 0-2.4","p");
+  if (ispbpb) leg->AddEntry(heff_pt_rap[0],"|y|: 0-2.4, 0-100%","p");
+  else leg->AddEntry(heff_pt_rap[0],"|y|: 0-2.4","p");
   for (int i=0; i<nbins_4rap; i++) {
     heff_pt_rap[i+1]->Draw("p");
-    leg->AddEntry(heff_pt_rap[i+1],Form("|y|: %.1f-%.1f",bins_4rap[i],bins_4rap[i+1]),"p");
+    if (ispbpb) leg->AddEntry(heff_pt_rap[i+1],Form("|y|: %.1f-%.1f, 0-100%%",bins_4rap[i],bins_4rap[i+1]),"p");
+    else leg->AddEntry(heff_pt_rap[i+1],Form("|y|: %.1f-%.1f",bins_4rap[i],bins_4rap[i+1]),"p");
   }
   leg->Draw();
   lat->DrawLatex(0.2,0.85,outname[0].c_str());
   can->SaveAs(Form("%s_pt_rap.png",outname[1].c_str()));
   can->SaveAs(Form("%s_pt_rap.pdf",outname[1].c_str()));
+  can->SaveAs(Form("%s_pt_rap.root",outname[1].c_str()));
 
   delete can;
   delete leg;
@@ -332,19 +341,23 @@ void drawingEff::drawHisto(vector<string> outname){
  
   // Eff vs pT in 3 centrality regions
   can = new TCanvas("can","can",600,600);
-  leg = new TLegend(0.67,0.7,0.9,0.9);
+  leg = new TLegend(0.67,0.68,0.9,0.88);
   SetLegendStyle(leg);
 
   heff_pt_cent[0]->Draw("ap");
   leg->AddEntry(heff_pt_cent[0],Form("%.0f-%.0f%%",bins_3cent[0],bins_3cent[1]),"p");
-  for (int i=1; i<nbins_3cent; i++) {
-    heff_pt_cent[i]->Draw("p");
-    leg->AddEntry(heff_pt_cent[i],Form("%.0f-%.0f%%",bins_3cent[i],bins_3cent[i+1]),"p");
+  if (ispbpb) {
+    for (int i=1; i<nbins_3cent; i++) {
+      heff_pt_cent[i]->Draw("p");
+      leg->AddEntry(heff_pt_cent[i],Form("%.0f-%.0f%%",bins_3cent[i],bins_3cent[i+1]),"p");
+    }
+    leg->Draw();
   }
-  leg->Draw();
   lat->DrawLatex(0.2,0.85,outname[0].c_str());
+  lat->DrawLatex(0.2,0.80,"|y| < 2.4");
   can->SaveAs(Form("%s_pt_cent.png",outname[1].c_str()));
   can->SaveAs(Form("%s_pt_cent.pdf",outname[1].c_str()));
+  can->SaveAs(Form("%s_pt_cent.root",outname[1].c_str()));
 
   delete can;
   delete leg;
@@ -355,8 +368,11 @@ void drawingEff::drawHisto(vector<string> outname){
 
   heff_rap->Draw("ap");
   lat->DrawLatex(0.2,0.85,outname[0].c_str());
+  lat->DrawLatex(0.2,0.80,"6.5-50 GeV/c");
+  if (ispbpb) lat->DrawLatex(0.2,0.75,"0-100%");
   can->SaveAs(Form("%s_rap.png",outname[1].c_str()));
   can->SaveAs(Form("%s_rap.pdf",outname[1].c_str()));
+  can->SaveAs(Form("%s_rap.root",outname[1].c_str()));
 
   delete can;
   

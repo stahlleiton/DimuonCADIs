@@ -17,7 +17,7 @@ using namespace std;
 
 #ifndef poiname_check
 #define poiname_check
-const char* poiname = "RFrac2Svs1S";
+const char* poiname = "N_Jpsi";
 #endif
 
 //////////////////
@@ -80,12 +80,12 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
             cout << "p(" << chi2 << "," << ndof << ")=" << TMath::Prob(chi2,ndof) << endl;
             mapvals[trbin].push_back(-999);
          } else {
-            val= poiFromBin(workDirName.Data(),collTag,"RFrac2Svs1S",trbin);
+            val= poiFromBin(workDirName.Data(),collTag,"N_Jpsi",trbin);
             mapvals[trbin].push_back(val);
          }
          mapchi2[trbin].push_back(chi2);
          mapndof[trbin].push_back(ndof);
-         if (cnt==0) maperr[trbin] = poiErrFromBin(workDirName.Data(),collTag,"RFrac2Svs1S",trbin);
+         if (cnt==0) maperr[trbin] = poiErrFromBin(workDirName.Data(),collTag,"N_Jpsi",trbin);
       }
       cnt++;
    }
@@ -171,7 +171,7 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
       }
 
       // and at last the systematic
-      texfile << " & " << 100.*mapsyst[thebin]/vval[0] << "\\%";
+      texfile << " & " << 100.*mapsyst[thebin] << "\\%";
       texfile << " \\\\" << endl;
 
       oldbin = thebin;
