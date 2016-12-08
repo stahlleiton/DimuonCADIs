@@ -40,7 +40,7 @@ const char* poiname       = "N_Jpsi"; // for RAA (will correct automatically for
 const char* ylabel        = "R_{AA}";
 const bool  fiterrors     = true;  // statistical errors are from the fit
 const bool  plotsysts     = true;  // display systematics
-const char* nameTag       = "";    // can put here e.g. "_prompt", "_nonprompt", ...
+const string nameTag_base = "";    // can put here e.g. "_prompt", "_nonprompt", ...
 
 //////////////////
 // DECLARATIONS //
@@ -52,6 +52,7 @@ void plot(vector<anabin> thecats, string xaxis, string workDirName);
 void centrality2npart(TGraphAsymmErrors* tg, bool issyst=false, double xshift=0.);
 int color(int i);
 int markerstyle(int i);
+string nameTag;
 
 class raa_input {
    public:
@@ -75,49 +76,70 @@ class raa_input {
 // MAIN FUNCTIONS TO BE CALLED BY THE USER //
 /////////////////////////////////////////////
 
-void plotPt(string workDirName) {
+void plotPt(string workDirName, int iplot) {
    string xaxis = "pt";
    vector<anabin> theCats;
 
    // 4 rapidity intervals
-   theCats.push_back(anabin(0,0.6,6.5,50,0,200));
-   theCats.push_back(anabin(0.6,1.2,6.5,50,0,200));
-   theCats.push_back(anabin(1.2,1.8,6.5,50,0,200));
-   theCats.push_back(anabin(1.8,2.4,6.5,50,0,200));
+   if (iplot==0) {
+      theCats.push_back(anabin(0,0.6,6.5,50,0,200));
+      theCats.push_back(anabin(0.6,1.2,6.5,50,0,200));
+      theCats.push_back(anabin(1.2,1.8,6.5,50,0,200));
+      theCats.push_back(anabin(1.8,2.4,6.5,50,0,200));
+   }
 
-   // // 3 centrality intervals
-   // theCats.push_back(anabin(0,2.4,6.5,50,0,20));
-   // theCats.push_back(anabin(0,2.4,6.5,50,20,60));
-   // theCats.push_back(anabin(0,2.4,6.5,50,60,200));
+   // 3 centrality intervals
+   if (iplot==1) { 
+      theCats.push_back(anabin(0,2.4,6.5,50,0,20));
+      theCats.push_back(anabin(0,2.4,6.5,50,20,60));
+      theCats.push_back(anabin(0,2.4,6.5,50,60,200));
+   }
 
-   // // 1 rapidity interval
-   // theCats.push_back(anabin(0,2.4,6.5,50,0,200));
+   // 1 rapidity interval
+   if (iplot==2) {
+      theCats.push_back(anabin(0,2.4,6.5,50,0,200));
+   }
 
+   nameTag = nameTag_base + Form("_%i",iplot);
    plot(theCats,xaxis,workDirName);
 };
 
-void plotCent(string workDirName) {
+void plotCent(string workDirName, int iplot) {
    string xaxis = "cent";
    vector<anabin> theCats;
 
    // 4 rapidity intervals
-   theCats.push_back(anabin(0,0.6,6.5,50,0,200));
-   theCats.push_back(anabin(0.6,1.2,6.5,50,0,200));
-   theCats.push_back(anabin(1.2,1.8,6.5,50,0,200));
-   theCats.push_back(anabin(1.8,2.4,6.5,50,0,200));
+   if (iplot==0) {
+      theCats.push_back(anabin(0,0.6,6.5,50,0,200));
+      theCats.push_back(anabin(0.6,1.2,6.5,50,0,200));
+      theCats.push_back(anabin(1.2,1.8,6.5,50,0,200));
+      theCats.push_back(anabin(1.8,2.4,6.5,50,0,200));
+   }
 
-   // // 1 rapidity interval
-   // theCats.push_back(anabin(0,2.4,6.5,50,0,200));
+   // 1 rapidity interval
+   if (iplot==1) {
+      theCats.push_back(anabin(0,2.4,6.5,50,0,200));
+   }
 
-   // // fwd and low pt
-   // theCats.push_back(anabin(1.6,2.4,3,6.5,0,200));
+   // fwd and low pt
+   if (iplot==2) {
+      theCats.push_back(anabin(1.8,2.4,3,6.5,0,200));
+      theCats.push_back(anabin(1.8,2.4,6.5,50,0,200));
+   }
 
+   nameTag = nameTag_base + Form("_%i",iplot);
    plot(theCats,xaxis,workDirName);
 };
 
-// to be implemented!
-// void plotRap(string workDirName) {
-// }
+void plotRap(string workDirName) {
+   string xaxis = "rap";
+   vector<anabin> theCats;
+
+   theCats.push_back(anabin(0,2.4,6.5,30,0,200));
+
+   nameTag = nameTag_base;
+   plot(theCats,xaxis,workDirName);
+};
 
 /////////////////////
 // OTHER FUNCTIONS //
@@ -226,7 +248,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       double dnpp = spp.dnpp_stat * normfactorpp;
       double raa = npp>0 ? naa / npp : 0;
       double draa = raa>0 ? raa*sqrt(pow(dnaa/naa,2) + pow(dnpp/npp,2)) : 0;
-      // cout << it->first.ptbin().low() << " " << it->first.ptbin().high() << " -> " << raa << " " << s.naa << " " << spp.npp << " " << s.effaa << " " << spp.effpp << endl;
+      cout << it->first.ptbin().low() << " " << it->first.ptbin().high() << " -> " << raa << " " << s.naa << " " << spp.npp << " " << s.effaa << " " << spp.effpp << endl;
       double syst = raa*sqrt(pow(spp.systpp,2)+pow(s.systaa,2));
 
       // case of the centrality dependence: factor out pp uncertainties
@@ -269,13 +291,18 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
          double low=0, high=0; 
          anabin thebin = theBins[*it][i];
          y = theVarsBinned[*it][i];
-         if (xaxis=="pt") {
-            low= thebin.ptbin().low();
-            high = thebin.ptbin().high();
+         if (xaxis=="pt" || xaxis=="rap") {
+            if (xaxis=="pt") {
+               low= thebin.ptbin().low();
+               high = thebin.ptbin().high();
+            } else {
+               low= thebin.rapbin().low();
+               high = thebin.rapbin().high();
+            }
             x = (low+high)/2.;
             exh = (high-low)/2.;
             exl = (high-low)/2.;
-            exsyst = 0.5;
+            exsyst = (xaxis=="pt") ? 0.5 : 0.05;
             eysyst = plotsysts ? y*sqrt(pow(syst_PP[thebin].value,2) + pow(syst_PbPb[thebin].value,2)) : 0; // quadratic sum of PP and PbPb systs
          }
          if (xaxis=="cent") {
@@ -328,6 +355,10 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       haxes = new TH1F("haxes","haxes",1,0,50);
       line = TLine(0,1,50,1);
    }
+   if (xaxis=="rap") {
+      haxes = new TH1F("haxes","haxes",1,0,2.4);
+      line = TLine(0,1,2.4,1);
+   }
    if (xaxis=="cent") {
       haxes = new TH1F("haxes","haxes",1,0,420);
       haxes->GetXaxis()->SetTickLength(gStyle->GetTickLength("X"));
@@ -335,7 +366,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    }
    haxes->GetYaxis()->SetRangeUser(0,1.5);
    haxes->GetYaxis()->SetTitle(ylabel);
-   const char* xlabel = (xaxis=="pt") ? "p_{T} (GeV/c)" : "N_{part}";
+   const char* xlabel = (xaxis=="pt") ? "p_{T} (GeV/c)" : ((xaxis=="rap") ? "|y|" : "N_{part}");
    haxes->GetXaxis()->SetTitle(xlabel);
    haxes->Draw();
    line.Draw();
@@ -347,9 +378,9 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    tleg->SetTextSize(0.03);
 
    // prepare for the printing of the result tables
-   const char* xname = (xaxis=="cent") ? "Centrality" : "\\pt";
+   const char* xname = (xaxis=="cent") ? "Centrality" : (xaxis=="pt" ? "\\pt" : "$|y|$");
    gSystem->mkdir(Form("Output/%s/tex/", outputDir.c_str()), kTRUE); 
-   char texname[2048]; sprintf(texname, "Output/%s/tex/result_%s%s.tex",outputDir.c_str(),xaxis.c_str(),nameTag);
+   char texname[2048]; sprintf(texname, "Output/%s/tex/result_%s%s.tex",outputDir.c_str(),xaxis.c_str(),nameTag.c_str());
    string yname("\\doubleRatio");
    inittex(texname, xname, yname);
 
@@ -383,9 +414,9 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
 
       TString raplabel = Form("%.1f < |y| < %.1f, ",it->first.rapbin().low(),it->first.rapbin().high());
       if (it->first.rapbin().low()<0.1) raplabel = Form("|y| < %.1f, ",it->first.rapbin().high());
-      TString otherlabel = "BWAA";
+      TString otherlabel = "";
       if (xaxis == "pt") otherlabel.Form("%i-%i%s",(int) (it->first.centbin().low()/2.), (int) (it->first.centbin().high()/2.), "%");
-      if (xaxis == "cent") otherlabel.Form("%g < p_{T} < %g GeV/c",it->first.ptbin().low(), it->first.ptbin().high());
+      if (xaxis == "cent" || xaxis == "rap") otherlabel.Form("%g < p_{T} < %g GeV/c",it->first.ptbin().low(), it->first.ptbin().high());
       tleg->AddEntry(tg, (raplabel + otherlabel), "p");
 
       // print tex
@@ -393,7 +424,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       oss.precision(1); oss.setf(ios::fixed);
       oss << "$" << it->first.rapbin().low() << "<|y|<" << it->first.rapbin().high() << "$, ";
       if (xaxis == "pt") oss << (int) (it->first.centbin().low()/2.) << "\\% - " << (int) (it->first.centbin().high()/2.) << "\\%";
-      if (xaxis == "cent") oss << "$" << it->first.ptbin().low() << "<\\pt<" << it->first.ptbin().high() << "\\GeVc $";
+      if (xaxis == "cent" || xaxis == "rap") oss << "$" << it->first.ptbin().low() << "<\\pt<" << it->first.ptbin().high() << "\\GeVc $";
 
       addline(texname,oss.str());
       printGraph(tg, tg_syst, texname);
@@ -446,11 +477,11 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    c1->Update();
    c1->RedrawAxis();
    gSystem->mkdir(Form("Output/%s/plot/RESULT/root/", outputDir.c_str()), kTRUE); 
-   c1->SaveAs(Form("Output/%s/plot/RESULT/root/result_%s%s.root",outputDir.c_str(), xaxis.c_str(), nameTag));
+   c1->SaveAs(Form("Output/%s/plot/RESULT/root/result_%s%s.root",outputDir.c_str(), xaxis.c_str(), nameTag.c_str()));
    gSystem->mkdir(Form("Output/%s/plot/RESULT/png/", outputDir.c_str()), kTRUE);
-   c1->SaveAs(Form("Output/%s/plot/RESULT/png/result_%s%s.png",outputDir.c_str(), xaxis.c_str(), nameTag));
+   c1->SaveAs(Form("Output/%s/plot/RESULT/png/result_%s%s.png",outputDir.c_str(), xaxis.c_str(), nameTag.c_str()));
    gSystem->mkdir(Form("Output/%s/plot/RESULT/pdf/", outputDir.c_str()), kTRUE);
-   c1->SaveAs(Form("Output/%s/plot/RESULT/pdf/result_%s%s.pdf",outputDir.c_str(), xaxis.c_str(), nameTag));
+   c1->SaveAs(Form("Output/%s/plot/RESULT/pdf/result_%s%s.pdf",outputDir.c_str(), xaxis.c_str(), nameTag.c_str()));
 
    delete tleg;
    delete haxes; 
