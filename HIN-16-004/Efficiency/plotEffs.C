@@ -208,25 +208,19 @@ void drawingEff::loadHisto(){
   }
 
   // Eff vs pT in 3 centrality regions
-  hnum = (TH1F*)finput->Get( Form("hnum_pt_cent%0.0f%0.0f",bins_3cent[0],bins_3cent[1]) );
-  hden = (TH1F*)finput->Get( Form("hden_pt_cent%0.0f%0.0f",bins_3cent[0],bins_3cent[1]) );
-  checkUnderFlow(hnum,hden);
-  hnum_pt_cent.push_back(hnum);
-  hden_pt_cent.push_back(hden);
-  for (int i=1; i<nbins_3cent; i++) {
-    if (ispbpb) {
-      TH1F *hnum1 = (TH1F*)finput->Get( Form("hnum_pt_cent%0.0f%0.0f",bins_3cent[i],bins_3cent[i+1]) );
-      TH1F *hden1 = (TH1F*)finput->Get( Form("hden_pt_cent%0.0f%0.0f",bins_3cent[i],bins_3cent[i+1]) );
-      checkUnderFlow(hnum1,hden1);
-      hnum_pt_cent.push_back(hnum1);
-      hden_pt_cent.push_back(hden1);
-    } else {
-      TH1F *hnum1 = (TH1F*)hnum->Clone( Form("hnum_pt_cent%0.0f%0.0f",bins_3cent[i],bins_3cent[i+1]) );
-      TH1F *hden1 = (TH1F*)hden->Clone( Form("hden_pt_cent%0.0f%0.0f",bins_3cent[i],bins_3cent[i+1]) );
-      checkUnderFlow(hnum1,hden1);
-      hnum_pt_cent.push_back(hnum1);
-      hden_pt_cent.push_back(hden1);
-    }
+  for (int i=0; i<(ispbpb?nbins_3cent-1:1); i++) { // for pp, only the 1st bin is necessary
+    TH1F *hnum1 = (TH1F*)finput->Get( Form("hnum_pt_cent%02.0f%02.0f",bins_3cent[i],bins_3cent[i+1]) );
+    TH1F *hden1 = (TH1F*)finput->Get( Form("hden_pt_cent%02.0f%02.0f",bins_3cent[i],bins_3cent[i+1]) );
+    checkUnderFlow(hnum1,hden1);
+    hnum_pt_cent.push_back(hnum1);
+    hden_pt_cent.push_back(hden1);
+  }
+  if (ispbpb) {
+    hnum = (TH1F*)finput->Get( Form("hnum_pt_cent%02.0f%03.0f",bins_3cent[nbins_3cent-1],bins_3cent[nbins_3cent]) );
+    hden = (TH1F*)finput->Get( Form("hden_pt_cent%02.0f%03.0f",bins_3cent[nbins_3cent-1],bins_3cent[nbins_3cent]) );
+    checkUnderFlow(hnum,hden);
+    hnum_pt_cent.push_back(hnum);
+    hden_pt_cent.push_back(hden);
   }
 
   // Eff vs rap integrated
@@ -268,7 +262,7 @@ void drawingEff::getEfficiency(){
     SetHistStyle(heff_pt_rap[i],i,i,0,1.3);
   }
  
-  for (int i=0; i<nbins_3cent; i++) {
+  for (int i=0; i<(ispbpb?nbins_3cent:1); i++) {
     TGraphAsymmErrors *geff = new TGraphAsymmErrors(hnum_pt_cent[i],hden_pt_cent[i],"n");
     heff_pt_cent.push_back(geff);
     
@@ -348,11 +342,13 @@ void drawingEff::drawHisto(vector<string> outname){
 
   heff_pt_cent[0]->Draw("ap");
   leg->AddEntry(heff_pt_cent[0],Form("%.0f-%.0f%%",bins_3cent[0],bins_3cent[1]),"p");
-  for (int i=1; i<nbins_3cent; i++) {
-    heff_pt_cent[i]->Draw("p");
-    leg->AddEntry(heff_pt_cent[i],Form("%.0f-%.0f%%",bins_3cent[i],bins_3cent[i+1]),"p");
+  if (ispbpb) {
+    for (int i=1; i<nbins_3cent; i++) {
+      heff_pt_cent[i]->Draw("p");
+      leg->AddEntry(heff_pt_cent[i],Form("%.0f-%.0f%%",bins_3cent[i],bins_3cent[i+1]),"p");
+    }
+    leg->Draw();
   }
-  leg->Draw();
   lat->DrawLatex(0.2,0.85,outname[0].c_str());
   can->SaveAs(Form("%s_pt_cent.png",outname[1].c_str()));
   can->SaveAs(Form("%s_pt_cent.pdf",outname[1].c_str()));
