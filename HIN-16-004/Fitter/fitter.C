@@ -19,18 +19,18 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 void fitter(
             const string workDirName="Test", // Working directory
             // Select the type of datasets to fit
-            bool fitData      = true,        // Fits Data datasets
-            bool fitMC        = false,         // Fits MC datasets
+            bool fitData      = false,        // Fits Data datasets
+            bool fitMC        = true,         // Fits MC datasets
             bool fitPbPb      = true,         // Fits PbPb datasets
             bool fitPP        = false,        // Fits PP datasets
-            bool fitMass      = true,        // Fits invariant mass distribution
-            bool fitCtau      = false,       // Fits ctau distribution
+            bool fitMass      = false,        // Fits invariant mass distribution
+            bool fitCtau      = true,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
             bool doCtauErrPDF = false,       // If yes, it builds the Ctau Error PDFs from data
             // Select the type of object to fit
             bool incJpsi      = true,          // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
-            bool incBkg       = true,         // Includes Background model
+            bool incBkg       = false,         // Includes Background model
             bool incPrompt    = true,         // Includes Prompt ctau model
             bool incNonPrompt = false,          // Includes Non Prompt ctau model 
             // Select the fitting options
@@ -62,10 +62,14 @@ void fitter(
   binWidth["CTAUTRUE"] = 0.05;
 
   map<string, string> inputFitDir;
-  inputFitDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/DataFits/";
-  inputFitDir["CTAU"]     = "";
-  inputFitDir["CTAUERR"]  = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/DataFits/";
+  inputFitDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
+  inputFitDir["CTAU"]     = ""; 
+  inputFitDir["CTAUERR"]  = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/";
   inputFitDir["CTAUTRUE"] = "";
+
+  for (map<string, string>::iterator iMap=inputFitDir.begin();  iMap!=inputFitDir.end(); iMap++) {
+    if (iMap->first!="") { iMap->second += workDirName + "/"; }
+  }
 
   if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, doCtauErrPDF, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores)) { return; }
 
