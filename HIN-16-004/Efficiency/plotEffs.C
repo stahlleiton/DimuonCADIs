@@ -127,22 +127,33 @@ drawingEff::drawingEff(string fname, bool ispbpb_){
 void drawingEff::checkUnderFlow(TH1 *hnum, TH1 *hden){
 
   cout << "\ncheckUnderFlow: " << hnum->GetName() << " " << hden->GetName() << endl;
-  for (int j=0; j<=hnum->GetNbinsX(); j++) {
+  for (int j=0; j<=hnum->GetNbinsX()+1; j++) {
     double num0 = hnum->GetBinContent(j);
     double den0 = hden->GetBinContent(j);
     
-    // If underflow bin has more entries in numerator than denominator, set it to 0
-    if (j==0 && num0>den0) {
-      hnum->SetBinContent(0,0);
-      hden->SetBinContent(0,0);
-      hnum->SetBinError(0,0);
-      hden->SetBinError(0,0);
+    // prints bincontent for cross-check!
+    if (num0>den0) {
+      cout << "Bin " << j << ": "
+           << hnum->GetBinContent(j) << " " << hden->GetBinContent(j) << " " 
+           << hnum->GetBinContent(j) / hden->GetBinContent(j)
+           << endl;
     }
 
-    // prints bincontent for cross-check!
-    cout << hnum->GetBinContent(j) << " " << hden->GetBinContent(j) << " " 
-         << hnum->GetBinContent(j) / hden->GetBinContent(j)
-         << endl;
+    // If underflow bin has more entries in numerator than denominator, set it to 0
+    if ((j==0 && num0>den0) || (j==hnum->GetNbinsX()+1 && num0>den0)) {
+      hnum->SetBinContent(j,0);
+      hden->SetBinContent(j,0);
+      hnum->SetBinError(j,0);
+      hden->SetBinError(j,0);
+    }
+    
+    if (num0>den0) {
+      cout << "Bin " << j << ": "
+           << hnum->GetBinContent(j) << " " << hden->GetBinContent(j) << " " 
+           << hnum->GetBinContent(j) / hden->GetBinContent(j)
+           << endl;
+    }
+
   }
 
 }
