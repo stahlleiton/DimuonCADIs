@@ -125,8 +125,8 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
    // Eff vs pT in 3 centrality regions
    TH1F *hnum_pt_cent[nbins_3cent];
    TH1F *hden_pt_cent[nbins_3cent];
-   hnum_pt_cent[0] = new TH1F("hnum_pt_cent010",";p_{T} [GeV/c];Efficiency",nbins_pt_cent010,bins_pt_cent010);
-   hden_pt_cent[0] = new TH1F("hden_pt_cent010",";p_{T} [GeV/c];Efficiency",nbins_pt_cent010,bins_pt_cent010);
+   hnum_pt_cent[0] = new TH1F("hnum_pt_cent0010",";p_{T} [GeV/c];Efficiency",nbins_pt_cent010,bins_pt_cent010);
+   hden_pt_cent[0] = new TH1F("hden_pt_cent0010",";p_{T} [GeV/c];Efficiency",nbins_pt_cent010,bins_pt_cent010);
    hnum_pt_cent[1] = new TH1F("hnum_pt_cent1030",";p_{T} [GeV/c];Efficiency",nbins_pt_cent1030,bins_pt_cent1030);
    hden_pt_cent[1] = new TH1F("hden_pt_cent1030",";p_{T} [GeV/c];Efficiency",nbins_pt_cent1030,bins_pt_cent1030);
    hnum_pt_cent[2] = new TH1F("hnum_pt_cent30100",";p_{T} [GeV/c];Efficiency",nbins_pt_cent30100,bins_pt_cent30100);
@@ -148,10 +148,7 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
       Long64_t ientry = LoadTree(jentry);
       if (ientry < 0) break;
-      if (ispbpb && ientry>=400000) {
-        jentry=jentry+100000;
-        continue;
-      } else if (!ispbpb && ientry>=10000000) {
+      if (!ispbpb && ientry>=10000000) {
         break;
       }
       if (jentry%100000==0)
