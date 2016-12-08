@@ -233,7 +233,7 @@ void setFixedVarsToContantVars(RooWorkspace& ws)
   RooArgSet listVar = ws.allVars();
   TIterator* parIt = listVar.createIterator();
   for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
-    if ( it->getMin()==it->getMax() ) it->setConstant(kTRUE);
+    if ( it->getMin()==it->getMax() || it->getError()==0 ) it->setConstant(kTRUE);
   }
 };
 
@@ -244,9 +244,9 @@ bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2) {
     double val = pars2->getRealValue(it->GetName(),-1e99);
     if ( strcmp(it->GetName(),"ctauErr")==0 || strcmp(it->GetName(),"ctau")==0 || strcmp(it->GetName(),"ctauTrue")==0 ) continue;
     if (val==-1e99) return false;          // the parameter was not found!
-    if (val != it->getVal()) return false; // the parameter was found, but with a different value!
-    if ( ((RooRealVar&)(*pars2)[it->GetName()]).getMin() != it->getMin() ) return false; // the parameter has different lower limit
-    if ( ((RooRealVar&)(*pars2)[it->GetName()]).getMax() != it->getMax() ) return false; // the parameter has different upper limit
+    if (val != it->getVal()) return false;  // the parameter was found, but with a different value!
+    if ( ((RooRealVar&)(*pars2)[it->GetName()]).getMin() != it->getMin() ) return false;  // the parameter has different lower limit
+    if ( ((RooRealVar&)(*pars2)[it->GetName()]).getMax() != it->getMax() ) return false;  // the parameter has different upper limit
   }
   return true;
 };
@@ -272,19 +272,21 @@ bool saveWorkSpace(RooWorkspace& myws, string outputDir, string FileName)
 bool isFitAlreadyFound(RooArgSet *newpars, string FileName, string pdfName) 
 {
   if (gSystem->AccessPathName(FileName.c_str())) {
-    cout << "FileName: " << FileName << " was not found" << endl;
+    cout << "[INFO] FileName: " << FileName << " was not found" << endl;
     return false; // File was not found
   }
   TFile *file = new TFile(FileName.c_str());
   if (!file) return false;  
   RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
   if (!ws) {
+    cout << "[INFO] Workspace was not found" << endl;
     file->Close(); delete file;
     return false;
   }
   string snapShotName = Form("%s_parIni", pdfName.c_str());
   const RooArgSet *params = ws->getSnapshot(snapShotName.c_str());
   if (!params) {
+    cout << "[INFO] Snapshot parIni was not found" << endl;
     delete ws;
     file->Close(); delete file;
     return false;
@@ -331,8 +333,10 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
         myws.var(name.c_str())->setVal  ( ws->var(name.c_str())->getValV()  );
         myws.var(name.c_str())->setError( ws->var(name.c_str())->getError() );
       }
-      myws.var(name.c_str())->setMin  ( ws->var(name.c_str())->getMin()   );
-      myws.var(name.c_str())->setMax  ( ws->var(name.c_str())->getMax()   );
+      else if(name=="ctauErr" || myws.var(name.c_str())->getError()>0.0) {
+        myws.var(name.c_str())->setMin  ( ws->var(name.c_str())->getMin()   );
+        myws.var(name.c_str())->setMax  ( ws->var(name.c_str())->getMax()   );
+      }
       if ( name=="ctauErr" ) {
         print = print + Form("  %s: [ %.5f, %.5f ] ", name.c_str(), myws.var(name.c_str())->getMin(), myws.var(name.c_str())->getMax()) ;
       }
@@ -516,9 +520,8 @@ void printChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, s
 };
 
 
-void setBinning(TH1* hist, int nMaxBins, RooBinning& bins, vector<double>& rangeErr)
+void getCtauErrRange(TH1* hist, int nMaxBins, vector<double>& rangeErr)
 {
-  hist->ClearUnderflowAndOverflow();
   // 1) Find the bin with the maximum Y value
   int binMaximum = hist->GetMaximumBin();
   // 2) Loop backward and find the first bin
@@ -526,7 +529,7 @@ void setBinning(TH1* hist, int nMaxBins, RooBinning& bins, vector<double>& range
   int firstBin = 1;
   for (int i=binMaximum; i>0; i--) {
     if (hist->GetBinContent(i)>0.0) {
-      if ( binWithContent>0 && ((binWithContent-i) > nMaxBins) ) { firstBin = binWithContent; break; }
+      if ( binWithContent>0 && ((binWithContent-i) > nMaxBins) && hist->GetBinContent(i)<9.0 ) { firstBin = binWithContent; break; }
       else { binWithContent = i; }
     }
   }
@@ -535,7 +538,7 @@ void setBinning(TH1* hist, int nMaxBins, RooBinning& bins, vector<double>& range
   int lastBin = hist->GetNbinsX();
   for (int i=binMaximum; i<hist->GetNbinsX(); i++) {
     if (hist->GetBinContent(i)>0.0) {
-      if ( binWithContent>0 && ((i - binWithContent) > nMaxBins) ) { lastBin = binWithContent+1; break; }
+      if ( binWithContent>0 && ((i - binWithContent) > nMaxBins) && hist->GetBinContent(i)<9.0 ) { lastBin = binWithContent+1; break; }
       else { binWithContent = i; }
     }
   }
@@ -549,15 +552,10 @@ void setBinning(TH1* hist, int nMaxBins, RooBinning& bins, vector<double>& range
     int iBin = startBin + i;
     binning[i] = hist->GetBinLowEdge(iBin); 
   }
-  // 5) Apply the new binning over the histogram
-  hist->SetBins(nNewBins, binning);
-  if (firstBin>1) { bins.addUniform(1, binning[0], binning[1]); }
-  bins.addUniform(nNewBins-((firstBin>1)?2:1), binning[((firstBin>1)?1:0)], binning[nNewBins-1]);
-  bins.addUniform(1, binning[nNewBins-1], binning[nNewBins]);
   rangeErr.push_back(binning[(firstBin>1)?1:0]);
   rangeErr.push_back(binning[nNewBins-1]);
 
-  cout << "[INFO] Binning set to be: [ " <<  binning[0] << ", {" << binning[1] << ", " << binning[nNewBins-1] << "}, " << binning[nNewBins] << " ]" << endl;
+  cout << "[INFO] Ctau error range set to be: [ " <<  rangeErr[0] << ", " << rangeErr[1] << " ]" << endl;
 
   return;
 };
