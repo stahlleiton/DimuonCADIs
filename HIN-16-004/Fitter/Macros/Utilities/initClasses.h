@@ -233,7 +233,10 @@ void setFixedVarsToContantVars(RooWorkspace& ws)
   RooArgSet listVar = ws.allVars();
   TIterator* parIt = listVar.createIterator();
   for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
-    if ( it->getMin()==it->getMax() || it->getError()==0 ) it->setConstant(kTRUE);
+    if ( it->getMin()==it->getMax() ) {
+      cout << "[INFO] Setting " << it->GetName() << " constant!" << endl;
+      it->setConstant(kTRUE);
+    }
   }
 };
 
