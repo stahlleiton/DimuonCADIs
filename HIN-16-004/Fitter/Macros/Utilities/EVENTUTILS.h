@@ -122,6 +122,70 @@ namespace HI {
      for(int i=hiBinLow; i<hiBinHigh; i++)  w+=Npart[i]/(hiBinHigh-hiBinLow);
      return w;
   };
+
+  float findTaaAverage(int hiBinLow, int hiBinHigh) {
+     // take it from the official table https://twiki.cern.ch/twiki/pub/CMS/HiCentrality2016/AN-15-080_temp_20161206.pdf
+     if (hiBinLow==0&&hiBinHigh==200) return 5.607;
+     if (hiBinLow==0&&hiBinHigh==20) return 23.22;
+     if (hiBinLow==20&&hiBinHigh==40) return 14.35;
+     if (hiBinLow==40&&hiBinHigh==60) return 8.66;
+     if (hiBinLow==60&&hiBinHigh==80) return 4.978;
+     if (hiBinLow==80&&hiBinHigh==100) return 2.66;
+     if (hiBinLow==100&&hiBinHigh==200) return 0.4395;
+     if (hiBinLow==0&&hiBinHigh==60) return 11.51;
+     if (hiBinLow==60&&hiBinHigh==200) return 1.405;
+     if (hiBinLow==0&&hiBinHigh==10) return 25.98;
+     if (hiBinLow==10&&hiBinHigh==20) return 20.46;
+     if (hiBinLow==20&&hiBinHigh==30) return 16.11;
+     if (hiBinLow==30&&hiBinHigh==40) return 12.6;
+     if (hiBinLow==40&&hiBinHigh==50) return 9.799;
+     if (hiBinLow==50&&hiBinHigh==60) return 7.522;
+     if (hiBinLow==60&&hiBinHigh==70) return 5.706;
+     if (hiBinLow==70&&hiBinHigh==80) return 4.251;
+     if (hiBinLow==80&&hiBinHigh==90) return 3.103;
+     if (hiBinLow==90&&hiBinHigh==100) return 2.217;
+     if (hiBinLow==100&&hiBinHigh==120) return 1.296;
+     if (hiBinLow==120&&hiBinHigh==140) return 0.5729;
+     if (hiBinLow==140&&hiBinHigh==200) return 0.1095;
+     if (hiBinLow==20&&hiBinHigh==60) return 11.51;
+     if (hiBinLow==60&&hiBinHigh==100) return 3.819;
+     if (hiBinLow==100&&hiBinHigh==140) return 0.9345;
+     if (hiBinLow==140&&hiBinHigh==180) return 0.1525;
+     // if we don't know the answer... return -1, the user should worry and ask the global observables group!!
+     return -1;
+  };
+
+  float findTaaAverage_err(int hiBinLow, int hiBinHigh) {
+     // take it from the official table https://twiki.cern.ch/twiki/pub/CMS/HiCentrality2016/AN-15-080_temp_20161206.pdf
+     if (hiBinLow==0&&hiBinHigh==200) return 0.501;
+     if (hiBinLow==0&&hiBinHigh==20) return 0.392;
+     if (hiBinLow==20&&hiBinHigh==40) return 0.287;
+     if (hiBinLow==40&&hiBinHigh==60) return 0.24;
+     if (hiBinLow==60&&hiBinHigh==80) return 0.201;
+     if (hiBinLow==80&&hiBinHigh==100) return 0.155;
+     if (hiBinLow==100&&hiBinHigh==200) return 0.0642;
+     if (hiBinLow==0&&hiBinHigh==60) return 0.274;
+     if (hiBinLow==60&&hiBinHigh==200) return 0.166;
+     if (hiBinLow==0&&hiBinHigh==10) return 0.431;
+     if (hiBinLow==10&&hiBinHigh==20) return 0.351;
+     if (hiBinLow==20&&hiBinHigh==30) return 0.301;
+     if (hiBinLow==30&&hiBinHigh==40) return 0.269;
+     if (hiBinLow==40&&hiBinHigh==50) return 0.246;
+     if (hiBinLow==50&&hiBinHigh==60) return 0.227;
+     if (hiBinLow==60&&hiBinHigh==70) return 0.208;
+     if (hiBinLow==70&&hiBinHigh==80) return 0.188;
+     if (hiBinLow==80&&hiBinHigh==90) return 0.165;
+     if (hiBinLow==90&&hiBinHigh==100) return 0.141;
+     if (hiBinLow==100&&hiBinHigh==120) return 0.106;
+     if (hiBinLow==120&&hiBinHigh==140) return 0.0629;
+     if (hiBinLow==140&&hiBinHigh==200) return 0.0197;
+     if (hiBinLow==20&&hiBinHigh==60) return 0.274;
+     if (hiBinLow==60&&hiBinHigh==100) return 0.188;
+     if (hiBinLow==100&&hiBinHigh==140) return 0.0893;
+     if (hiBinLow==140&&hiBinHigh==180) return 0.0245;
+     // if we don't know the answer... return -1, the user should worry and ask the global observables group!!
+     return -1;
+  };
 };
 
 namespace PP {
