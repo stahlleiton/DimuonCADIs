@@ -13,9 +13,9 @@ using namespace std;
 // define a few common uses of the template class
 template <typename T> class bin : public pair<T,T> {
    public:
-      bin(T a, T b) : pair<T,T>(a,b) {};
-      T low() const {return this->first;}
-      T high() const {return this->second;}
+      bin(T a, T b) : pair<T,T>(b,a) {};
+      T low() const {return this->second;}
+      T high() const {return this->first;}
 };
 typedef bin<double> binD;
 typedef bin<float> binF;

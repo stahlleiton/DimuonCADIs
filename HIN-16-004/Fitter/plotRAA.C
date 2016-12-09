@@ -392,7 +392,7 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    const char* xname = (xaxis=="cent") ? "Centrality" : (xaxis=="pt" ? "\\pt" : "$|y|$");
    gSystem->mkdir(Form("Output/%s/tex/", outputDir.c_str()), kTRUE); 
    char texname[2048]; sprintf(texname, "Output/%s/tex/result_%s%s.tex",outputDir.c_str(),xaxis.c_str(),nameTag.c_str());
-   string yname("\\doubleRatio");
+   string yname("$\\raa (\\Jpsi)$");
    inittex(texname, xname, yname);
 
    int cnt=0;

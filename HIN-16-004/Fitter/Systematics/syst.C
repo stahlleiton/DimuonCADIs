@@ -116,12 +116,24 @@ map<anabin, syst> readSyst_all(const char* collSystem, bool doPrintTex, const ch
    map<anabin,syst> ans = combineSyst(systmap_all, "Total");
    systmap_all.push_back(ans);
 
-   if (doPrintTex) printTex(systmap_all, texName);
+   if (doPrintTex) {
+      printTex(systmap_all, TString(texName).ReplaceAll(".tex","_cent.tex").Data(), anabin(0,2.4,6.5,50,0,0));
+      printTex(systmap_all, TString(texName).ReplaceAll(".tex","_pt.tex").Data(), anabin(0,2.4,0,0,0,200));
+      printTex(systmap_all, TString(texName).ReplaceAll(".tex","_rap.tex").Data(), anabin(0,0,6.5,50,0,200));
+      printTex(systmap_all, TString(texName).ReplaceAll(".tex","_ptrap.tex").Data(), anabin(0,-2.4,-6.5,-50,0,200));
+      printTex(systmap_all, TString(texName).ReplaceAll(".tex","_centrap.tex").Data(), anabin(0,-2.4,6.5,50,0,-200));
+      printTex(systmap_all, TString(texName).ReplaceAll(".tex","_ptcent.tex").Data(), anabin(0,2.4,-6.5,-50,0,-200));
+      printTex(systmap_all, TString(texName).ReplaceAll(".tex","_fwd.tex").Data(), anabin(1.8,2.4,0,0,0,-200));
+   }
 
    return ans;
 };
 
-void printTex(vector< map<anabin, syst> > theSysts, const char* texName) {
+void printTex(vector< map<anabin, syst> > theSysts, const char* texName, anabin mask) {
+   // for the different components BIN (in rapidity bin, pt bin, centrality bin):
+   // - if BIN = (0,0), then do not filter
+   // - if BIN = (xx,yy), print ONLY bins that match these conditions
+   // - if BIN = (-xx,-yy), print all bins EXCEPT those that match these conditions
    unsigned int nsyst = theSysts.size();
 
    ofstream file(texName);
@@ -148,6 +160,15 @@ void printTex(vector< map<anabin, syst> > theSysts, const char* texName) {
          return;
       }
       anabin thebin = itm->first;
+
+      // filter
+      if ((mask.rapbin().low()>0 || mask.rapbin().high()>0) && (thebin.rapbin() != mask.rapbin())) continue;
+      if ((mask.rapbin().low()<0 || mask.rapbin().high()<0) && (thebin.rapbin() == binF(-mask.rapbin().low(),-mask.rapbin().high()))) continue;
+      if ((mask.ptbin().low()>0 || mask.ptbin().high()>0) && (thebin.ptbin() != mask.ptbin())) continue;
+      if ((mask.ptbin().low()<0 || mask.ptbin().high()<0) && (thebin.ptbin() == binF(-mask.ptbin().low(),-mask.ptbin().high()))) continue;
+      if ((mask.centbin().low()>0 || mask.centbin().high()>0) && (thebin.centbin() != mask.centbin())) continue;
+      if ((mask.centbin().low()<0 || mask.centbin().high()<0) && (thebin.centbin() == binI(-mask.centbin().low(),-mask.centbin().high()))) continue;
+
       if (thebin.rapbin() == oldbin.rapbin()) {
          file << " - ";
       } else {
