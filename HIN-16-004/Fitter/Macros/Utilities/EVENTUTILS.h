@@ -123,7 +123,7 @@ namespace HI {
      return w;
   };
 
-  float findTaaAverage(int hiBinLow, intHiBinHigh) {
+  float findTaaAverage(int hiBinLow, int hiBinHigh) {
      // take it from the official table https://twiki.cern.ch/twiki/pub/CMS/HiCentrality2016/AN-15-080_temp_20161206.pdf
      if (hiBinLow==0&&hiBinHigh==200) return 5.607;
      if (hiBinLow==0&&hiBinHigh==20) return 23.22;
@@ -155,7 +155,7 @@ namespace HI {
      return -1;
   };
 
-  float findTaaAverage_err(int hiBinLow, intHiBinHigh) {
+  float findTaaAverage_err(int hiBinLow, int hiBinHigh) {
      // take it from the official table https://twiki.cern.ch/twiki/pub/CMS/HiCentrality2016/AN-15-080_temp_20161206.pdf
      if (hiBinLow==0&&hiBinHigh==200) return 0.501;
      if (hiBinLow==0&&hiBinHigh==20) return 0.392;

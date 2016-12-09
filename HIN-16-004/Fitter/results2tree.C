@@ -265,7 +265,8 @@ void results2tree(
                }
             }
             if (TString(itpoi->name)=="taa") {
-               //FIXME
+               itpoi->val=HI::findTaaAverage(thebin.centbin().low(),thebin.centbin().high());
+               itpoi->err=HI::findTaaAverage_err(thebin.centbin().low(),thebin.centbin().high());
             }
 
          }
