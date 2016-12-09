@@ -437,7 +437,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
      frame2->Draw(); 
 
      // *** Print chi2/ndof 
-     printChi2(myws, pad2, frameTMP, "invMass", dsOSName.c_str(), pdfName.c_str(), nBinsTMP, isWeighted, parIni["MassRange_Cut"]);
+     printChi2(myws, pad2, frameTMP, "invMass", dsOSName.c_str(), pdfName.c_str(), nBinsTMP);
 
      pline->Draw("same");
      pad2->Update();

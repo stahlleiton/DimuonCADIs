@@ -18,26 +18,26 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 
 void fitter(
             const string workDirName="Test", // Working directoryi
-            bool useExtFiles  = true, // Use external fit files as input
+            bool useExtFiles  = false, // Use external fit files as input
             // Select the type of datasets to fit
-            bool fitData      = false,        // Fits Data datasets
-            bool fitMC        = true,         // Fits MC datasets
+            bool fitData      = true,        // Fits Data datasets
+            bool fitMC        = false,         // Fits MC datasets
             bool fitPbPb      = true,         // Fits PbPb datasets
-            bool fitPP        = true,        // Fits PP datasets
+            bool fitPP        = false,        // Fits PP datasets
             bool fitMass      = false,        // Fits invariant mass distribution
             bool fitCtau      = true,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
             bool doCtauErrPDF = false,       // If yes, it builds the Ctau Error PDFs from data
             // Select the type of object to fit
-            bool incJpsi      = true,          // Includes Jpsi model
+            bool incJpsi      = false,          // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
-            bool incBkg       = false,         // Includes Background model
+            bool incBkg       = true,         // Includes Background model
             bool incPrompt    = true,         // Includes Prompt ctau model
-            bool incNonPrompt = false,          // Includes Non Prompt ctau model 
+            bool incNonPrompt = true,          // Includes Non Prompt ctau model 
             // Select the fitting options
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
-            bool wantPureSMC  = true,        // Flag to indicate if we want to fit pure signal MC
+            bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
             const char* applyCorr  = "",     // Apply weight to data for correction (Acceptance & Ef , l_J/psi eff...). No correction if empty variable.
             int  numCores     = 16,            // Number of cores used for fitting
             // Select the drawing options
@@ -61,14 +61,16 @@ void fitter(
   binWidth["CTAU"]     = 0.0025;
   binWidth["CTAUERR"]  = 0.0025;
   binWidth["CTAUTRUE"] = 0.005;
-  binWidth["CTAURES"] = 0.0025;
+  binWidth["CTAURES"]  = 0.0025;
+  binWidth["CTAUSB"]   = 0.025;
 
   map<string, string> inputFitDir;
   inputFitDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
   inputFitDir["CTAU"]     = ""; 
   inputFitDir["CTAUERR"]  = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/";
   inputFitDir["CTAUTRUE"] = "";
-  inputFitDir["CTAURES"] = "";
+  inputFitDir["CTAURES"]  = "";
+  inputFitDir["CTAUSB"]   = "";
 
   for (map<string, string>::iterator iMap=inputFitDir.begin();  iMap!=inputFitDir.end(); iMap++) {
     if (iMap->second!="") { 

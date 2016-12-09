@@ -5,8 +5,8 @@
 
 void setCtauErrDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries);
 bool histToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, vector<double> rangeErr);
-bool makeCtauErrPdf(RooWorkspace& ws, vector<TH1D*>& outputHist, vector<string> objectColl, vector<string> rangeColl, vector<string> cutColl, string dsName, struct KinCuts cut, int nBins);
-bool createCtauErrTemplate(RooWorkspace& ws, string dsName, string pdfType, struct KinCuts cut,  map<string,string> parIni, bool incJpsi, bool incPsi2S, int nBins);
+bool makeCtauErrPdf(RooWorkspace& ws, vector<TH1D*>& outputHist, vector<string> objectColl, vector<string> rangeColl, vector<string> cutColl, string dsName, struct KinCuts cut, double binWidth);
+bool createCtauErrTemplate(RooWorkspace& ws, string dsName, string pdfType, struct KinCuts cut,  map<string,string> parIni, bool incJpsi, bool incPsi2S, double binWidth);
 bool addCtauErrModel(RooWorkspace& ws, string object, string pdfType, map<string,string> parIni, bool isPbPb);
 TH1* rebinhist(TH1 *hist, double xmin=1e99, double xmax=-1e99);
 
@@ -16,12 +16,11 @@ bool buildCharmoniaCtauErrModel(RooWorkspace& ws, map<string, string>  parIni,
                                 string dsName,               // Name of current input dataset
                                 bool incJpsi,                // Include Jpsi model
                                 bool incPsi2S,               // Include Psi(2S) model
-                                int  nBins,                  // Number of bins
+                                double  binWidth,            // Bin width
                                 double  numEntries = 300000. // Number of entries in the dataset
                                 )
 {
 
-  //nBins = nBins;
   bool isMC = false;
   if (dsName.find("MC")!=std::string::npos) { isMC = true; }
   bool isPbPb = false;
@@ -33,7 +32,7 @@ bool buildCharmoniaCtauErrModel(RooWorkspace& ws, map<string, string>  parIni,
   // C r e a t e   m o d e l 
 
   string pdfType = "pdfCTAUERR";
-  if(!createCtauErrTemplate(ws, dsName, pdfType, cut, parIni, incJpsi, incPsi2S, nBins)) { cout << "[ERROR] Creating the Ctau Error Templates failed" << endl; return false; }
+  if(!createCtauErrTemplate(ws, dsName, pdfType, cut, parIni, incJpsi, incPsi2S, binWidth)) { cout << "[ERROR] Creating the Ctau Error Templates failed" << endl; return false; }
   if (incJpsi)  {  if(!addCtauErrModel(ws, "Jpsi", pdfType, parIni, isPbPb))  { return false; }  }
   if (incPsi2S) {  if(!addCtauErrModel(ws, "Psi2S", pdfType, parIni, isPbPb)) { return false; }  }
   if (!isMC)    {  if(!addCtauErrModel(ws, "Bkg", pdfType, parIni, isPbPb))   { return false; }  }
@@ -78,7 +77,7 @@ bool addCtauErrModel(RooWorkspace& ws, string object, string pdfType, map<string
 };
  
 
-bool createCtauErrTemplate(RooWorkspace& ws, string dsName, string pdfType, struct KinCuts cut,  map<string,string> parIni, bool incJpsi, bool incPsi2S, int nBins)
+bool createCtauErrTemplate(RooWorkspace& ws, string dsName, string pdfType, struct KinCuts cut,  map<string,string> parIni, bool incJpsi, bool incPsi2S, double binWidth)
 {
   string hType = pdfType;
   hType.replace(hType.find("pdf"), string("pdf").length(), "h");
@@ -88,7 +87,9 @@ bool createCtauErrTemplate(RooWorkspace& ws, string dsName, string pdfType, stru
   bool isMC = false;
   if (dsName.find("MC")!=std::string::npos) { isMC = true; }
 
-  TH1D* hTot = (TH1D*)ws.data(dsName.c_str())->createHistogram(Form("%s_Tot_%s", hType.c_str(), (isPbPb?"PbPb":"PP")), *ws.var("ctauErr"), Binning(nBins, cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max));
+  double ctauErrMax = cut.dMuon.ctauErr.Max, ctauErrMin = cut.dMuon.ctauErr.Min;
+  int nBins = min(int( round((ctauErrMax - ctauErrMin)/binWidth) ), 1000);
+  TH1D* hTot = (TH1D*)ws.data(dsName.c_str())->createHistogram(Form("%s_Tot_%s", hType.c_str(), (isPbPb?"PbPb":"PP")), *ws.var("ctauErr"), Binning(nBins, ctauErrMin, ctauErrMax));
   vector<double> rangeErr; rangeErr.push_back(cut.dMuon.ctauErr.Min); rangeErr.push_back(cut.dMuon.ctauErr.Max);
 
   // Set the range of the ctau Error
@@ -106,7 +107,7 @@ bool createCtauErrTemplate(RooWorkspace& ws, string dsName, string pdfType, stru
       rangeColl.push_back("JpsiWindow"); cutColl.push_back(parIni["JpsiMassRange_Cut"]);  objectColl.push_back("Jpsi");
       rangeColl.push_back(parIni["BkgMassRange_JPSI_Label"]); cutColl.push_back(parIni["BkgMassRange_JPSI_Cut"]);   objectColl.push_back("Bkg");
       vector<TH1D*> outputHist_JPSI;
-      if ( !makeCtauErrPdf(ws, outputHist_JPSI, objectColl, rangeColl, cutColl, dsName, cut, nBins) ) { return false; }
+      if ( !makeCtauErrPdf(ws, outputHist_JPSI, objectColl, rangeColl, cutColl, dsName, cut, binWidth) ) { return false; }
       hBkg->Add(outputHist_JPSI.at(0), -1.0);
       if ( !histToPdf(ws, outputHist_JPSI.at(0), Form("%s_Jpsi_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP")), rangeErr)) { return false; }
       if (!incPsi2S) {
@@ -119,7 +120,7 @@ bool createCtauErrTemplate(RooWorkspace& ws, string dsName, string pdfType, stru
       rangeColl.push_back("Psi2SWindow"); cutColl.push_back(parIni["Psi2SMassRange_Cut"]);  objectColl.push_back("Psi2S");
       rangeColl.push_back(parIni["BkgMassRange_PSI2S_Label"]); cutColl.push_back(parIni["BkgMassRange_PSI2S_Cut"]);   objectColl.push_back("Bkg");
       vector<TH1D*> outputHist_PSI2S;
-      if ( !makeCtauErrPdf(ws, outputHist_PSI2S, objectColl, rangeColl, cutColl, dsName, cut, nBins) ) { return false; }
+      if ( !makeCtauErrPdf(ws, outputHist_PSI2S, objectColl, rangeColl, cutColl, dsName, cut, binWidth) ) { return false; }
       hBkg->Add(outputHist_PSI2S.at(0), -1.0);
       if ( !histToPdf(ws, outputHist_PSI2S.at(0), Form("%s_Psi2S_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP")), rangeErr)) { return false; }
       if (!incJpsi) {
@@ -139,11 +140,14 @@ bool createCtauErrTemplate(RooWorkspace& ws, string dsName, string pdfType, stru
 };
 
 
-bool makeCtauErrPdf(RooWorkspace& ws, vector<TH1D*>& outputHist, vector<string> objectColl, vector<string> rangeColl, vector<string> cutColl, string dsName, struct KinCuts cut, int nBins)
+bool makeCtauErrPdf(RooWorkspace& ws, vector<TH1D*>& outputHist, vector<string> objectColl, vector<string> rangeColl, vector<string> cutColl, string dsName, struct KinCuts cut, double binWidth)
 {
   if (objectColl.size()!=rangeColl.size() || objectColl.size()<1) {
     cout << "[ERROR] Object and range collections are wrong, CtauErrPdf maker failed!" << endl; return false;
   }
+
+  double ctauErrMax = cut.dMuon.ctauErr.Max, ctauErrMin = cut.dMuon.ctauErr.Min;
+  int nBins = min(int( round((ctauErrMax - ctauErrMin)/binWidth) ), 1000);
 
   bool isPbPb = false;
   if (dsName.find("PbPb")!=std::string::npos) { isPbPb = true; }
@@ -170,7 +174,7 @@ bool makeCtauErrPdf(RooWorkspace& ws, vector<TH1D*>& outputHist, vector<string> 
   vector<TH1*> histCtauErr;
   for (unsigned int j=0; j<rangeColl.size(); j++) {
     RooDataSet* data = (RooDataSet*)ws.data(dsName.c_str())->reduce(*ws.var("ctauErr"), cutColl.at(j).c_str());
-    histCtauErr.push_back( (TH1*)data->createHistogram(Form("hCtauErr_Range_%s_%s", rangeColl.at(j).c_str(), (isPbPb?"PbPb":"PP")), *ws.var("ctauErr"), Binning(nBins, cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max)) );
+    histCtauErr.push_back( (TH1*)data->createHistogram(Form("hCtauErr_Range_%s_%s", rangeColl.at(j).c_str(), (isPbPb?"PbPb":"PP")), *ws.var("ctauErr"), Binning(nBins, ctauErrMin, ctauErrMax)) );
     histCtauErr.at(j)->Scale(1/histCtauErr.at(j)->GetEntries());
     delete data;
   }
@@ -193,7 +197,7 @@ bool makeCtauErrPdf(RooWorkspace& ws, vector<TH1D*>& outputHist, vector<string> 
     }
   }
   // Get the inverse of the coefficients
-  //CoefficientMatrix.Print();
+  CoefficientMatrix.Print();
   Double_t Det = CoefficientMatrix.Determinant();
   TMatrixD InvMatrix = CoefficientMatrix;
   if (Det>0) {
@@ -207,7 +211,7 @@ bool makeCtauErrPdf(RooWorkspace& ws, vector<TH1D*>& outputHist, vector<string> 
 
   // Get the ctau error histrograms for each physics object
   for (unsigned int j=0; j<objectColl.size(); j++) {
-    outputHist.push_back(new TH1D(Form("h_%s_%s", objectColl.at(j).c_str(), (isPbPb?"PbPb":"PP")), "", nBins, cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max));
+    outputHist.push_back(new TH1D(Form("h_%s_%s", objectColl.at(j).c_str(), (isPbPb?"PbPb":"PP")), "", nBins, ctauErrMin, ctauErrMax));
     for (unsigned int i=0; i<rangeColl.size(); i++) {
       outputHist.at(j)->Add(histCtauErr.at(i), InvMatrix(j, i));
     }

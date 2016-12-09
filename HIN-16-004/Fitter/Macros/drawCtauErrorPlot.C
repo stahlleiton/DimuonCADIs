@@ -25,7 +25,7 @@ void drawCtauErrorPlot(RooWorkspace& myws,   // Local workspace
                        // Select the drawing options
                        bool setLogScale,     // Draw plot with log scale
                        bool incSS,           // Include Same Sign data
-                       int  nBins            // Number of bins used for plotting
+                       double  binWidth      // Bin width
                        ) 
 {
   
@@ -49,6 +49,7 @@ void drawCtauErrorPlot(RooWorkspace& myws,   // Local workspace
   // Create the main plot of the fitq
   double minRange = (double)(floor(rangeErr[0]*10.)/10.);
   double maxRange = (double)(ceil(rangeErr[1]*10.)/10.);
+  int nBins = min(int( round((cut.dMuon.ctauErr.Max - cut.dMuon.ctauErr.Min)/binWidth) ), 1000);
   RooPlot* frame     = myws.var("ctauErr")->frame(Range(minRange, maxRange));
   RooBinning bins(nBins, cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max);
   Double_t norm = myws.data(hOSName.c_str())->sumEntries();
@@ -194,7 +195,7 @@ void drawCtauErrorPlot(RooWorkspace& myws,   // Local workspace
   frame2->Draw(); 
   
   // *** Print chi2/ndof 
-  //printChi2(myws, pad2, frame, "ctauTrue", dsOSName.c_str(), pdfTotName.c_str(), nBins, isWeighted, parIni["CtauTrueRange_Cut"]);
+  //printChi2(myws, pad2, frame, "ctauErr", dsOSName.c_str(), pdfTotName.c_str(), nBins);
 
   myws.var("ctauErr")->setMin(rangeErr[0]);
   myws.var("ctauErr")->setMax(rangeErr[1]);

@@ -62,6 +62,7 @@ bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspac
   // Define pdf and plot names
   vector<string> pdfNames;
   string plotLabel = "";
+  pdfNames.push_back(Form("%sTot_Tot_%s", pdfType.c_str(), COLL.c_str()));
   if (incJpsi)  { plotLabel = plotLabel + "_Jpsi";   pdfNames.push_back(Form("%s_Jpsi_%s", pdfType.c_str(), COLL.c_str()));  }
   if (incPsi2S) { plotLabel = plotLabel + "_Psi2S";  pdfNames.push_back(Form("%s_Psi2S_%s", pdfType.c_str(), COLL.c_str())); }
   if (!isMC)    { plotLabel = plotLabel + "_Bkg";    pdfNames.push_back(Form("%s_Bkg_%s", pdfType.c_str(), COLL.c_str()));   }
@@ -71,7 +72,8 @@ bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspac
   string FileName = "";
   setCtauErrFileName(FileName, (inputFitDir["CTAUERR"]=="" ? outputDir : inputFitDir["CTAUERR"]), DSTAG, plotLabel, cut, isPbPb, cutSideBand);
   if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAUERR"]!="") {
-    cout << "[INFO] User Input File : " << FileName << " was not found!" << endl;
+    cout << "[WARNING] User Input File : " << FileName << " was not found!" << endl;
+    if (loadCtauErrPdf) return false;
     setCtauErrFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, cutSideBand);
   }
   bool found =  true; bool skipCtauErrPdf = !doCtauErrPdf;
@@ -135,15 +137,14 @@ bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspac
   if (skipCtauErrPdf==false) {
     // Create the ctau Error Pdf
     // Build the Ctau Error Template
-    int nBins = min(int( round((cut.dMuon.ctauErr.Max - cut.dMuon.ctauErr.Min)/binWidth["CTAUERR"]) ), 1000);
-    if (!buildCharmoniaCtauErrModel(myws, parIni, cut, dsName, incJpsi, incPsi2S, nBins, numEntries))  { return false; }
+    if (!buildCharmoniaCtauErrModel(myws, parIni, cut, dsName, incJpsi, incPsi2S, binWidth["CTAUERR"], numEntries))  { return false; }
     string pdfName = Form("%s_Tot_%s", pdfType.c_str(), COLL.c_str());
     bool isWeighted = myws.data(dsName.c_str())->isWeighted();
     //RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(isWeighted), Range("CtauErrWindow"), NumCPU(numCores), Save());
     //fitResult->Print("v");
     //myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str()));
     // Draw the mass plot
-    drawCtauErrorPlot(myws, outputDir, opt, cut, parIni, plotLabel, DSTAG, isPbPb, incJpsi, incPsi2S, incBkg, wantPureSMC, setLogScale, incSS, nBins);
+    drawCtauErrorPlot(myws, outputDir, opt, cut, parIni, plotLabel, DSTAG, isPbPb, incJpsi, incPsi2S, incBkg, wantPureSMC, setLogScale, incSS, binWidth["CTAUERR"]);
     // Save the results
     string FileName = ""; setCtauErrFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, cutSideBand);
     RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(*(myws.var("ctauErr")));

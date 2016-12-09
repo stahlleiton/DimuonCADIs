@@ -154,7 +154,9 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
     // check if we have already done this fit. If yes, do nothing and return true.
     string FileName = "";
     setMassFileName(FileName, (inputFitDir=="" ? outputDir : inputFitDir), DSTAG, (plotLabelPP + plotLabelPbPb), cut, isPbPb, cutSideBand, doSimulFit);
-    if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir!="") { 
+    if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir!="") {
+      cout << "[WARNING] User Input File : " << FileName << " was not found!" << endl;
+      if (loadFitResult) return false;
       setMassFileName(FileName, outputDir, DSTAG, (plotLabelPP + plotLabelPbPb), cut, isPbPb, cutSideBand, doSimulFit);
     }
     bool found =  true; bool skipFit = !doFit;
@@ -203,7 +205,8 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
     string FileName = "";
     setMassFileName(FileName, (inputFitDir=="" ? outputDir : inputFitDir), DSTAG, plotLabel, cut, isPbPb, cutSideBand);
     if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir!="") {
-      cout << "[INFO] File : " << FileName << " was not found!";
+      cout << "[WARNING] User Input File : " << FileName << " was not found!" << endl;
+      if (loadFitResult) return false;
       setMassFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, cutSideBand);
     }
     bool found =  true; bool skipFit = !doFit;
@@ -367,7 +370,7 @@ void setMassGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni
       parIni["BkgMassRange_PSI2S_Label"] = "SideBandMID_PSI2S";
       if (cut.dMuon.M.Min < 2.8) {
         myws.var("invMass")->setRange("SideBandBOT_FULL", cut.dMuon.M.Min, 2.8);
-        myws.var("invMass")->setRange("SideBandBOT_JPSI", cut.dMuon.M.Min/*((cut.dMuon.M.Min<2.5)?2.5:cut.dMuon.M.Min)*/, 2.8);
+        myws.var("invMass")->setRange("SideBandBOT_JPSI", cut.dMuon.M.Min, 2.8);
         parIni["BkgMassRange_FULL_Label"] = parIni["BkgMassRange_FULL_Label"] + "," + "SideBandBOT_FULL";
         parIni["BkgMassRange_JPSI_Label"] = parIni["BkgMassRange_JPSI_Label"] + "," + "SideBandBOT_JPSI";
       }
@@ -379,8 +382,8 @@ void setMassGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni
       }
       parIni["BkgMassRange_FULL_Cut"]  = Form("(%.6f < invMass && invMass < %.6f)",       cut.dMuon.M.Min,       cut.dMuon.M.Max);
       parIni["BkgMassRange_FULL_Cut"]  = parIni["BkgMassRange_FULL_Cut"]  + "&&" + "((2.0 < invMass && invMass < 2.8) || (3.3 < invMass && invMass < 3.5) || (3.9 < invMass && invMass < 5.0))";
-      parIni["BkgMassRange_JPSI_Cut"]  = parIni["BkgMassRange_FULL_Cut"]  + "&&" + "((2.5 < invMass && invMass < 3.4))";
-      parIni["BkgMassRange_PSI2S_Cut"] = parIni["BkgMassRange_FULL_Cut"] + "&&" + "((3.4 < invMass && invMass < 4.2))";
+      parIni["BkgMassRange_JPSI_Cut"]  = parIni["BkgMassRange_FULL_Cut"]  + "&&" + "(2.0 < invMass && invMass < 3.4)";
+      parIni["BkgMassRange_PSI2S_Cut"] = parIni["BkgMassRange_FULL_Cut"] + "&&" + "(3.4 < invMass && invMass < 5.0)";
       parIni["BkgMassRange_FULL_Cut"]  = "("+parIni["BkgMassRange_FULL_Cut"]+")";
       parIni["BkgMassRange_JPSI_Cut"]  = "("+parIni["BkgMassRange_JPSI_Cut"]+")";
       parIni["BkgMassRange_PSI2S_Cut"] = "("+parIni["BkgMassRange_PSI2S_Cut"]+")";

@@ -46,7 +46,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   string dsOSName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   if (plotPureSMC) dsOSName = Form("dOS_%s_%s_NoBkg", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   string dsOSNameCut = dsOSName+"_CTAUCUT";
-  string hOSName = Form("dhCTAUERR_Tot_%s", (isPbPb?"PbPb":"PP"));
+  string hOSName = Form("dhCTAUERRTot_Tot_%s", (isPbPb?"PbPb":"PP"));
   string hOSNameBkg  = Form("dhCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"));
   string hOSNameJpsi = Form("dhCTAUERR_Jpsi_%s", (isPbPb?"PbPb":"PP"));
   string hOSNamePsi2S = Form("dhCTAUERR_Psi2S_%s", (isPbPb?"PbPb":"PP"));
@@ -58,7 +58,11 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
 
   double minRange = (double)(floor(rangeErr[0]*10.)/10.)+0.1;
   double maxRange = (double)(ceil(rangeErr[1]*10.)/10.)+0.1;
-  if (abs(maxRange)>abs(minRange)) { minRange = -1.0*abs(maxRange); } else { maxRange = abs(minRange); }
+  if (!incNonPrompt) {
+    if (abs(maxRange)>abs(minRange)) { minRange = -1.0*abs(maxRange); } else { maxRange = abs(minRange); }
+  } else {
+    minRange = -2.0; maxRange = 5.0;
+  }
   Double_t outTot = myws.data(dsOSName.c_str())->sumEntries();
   Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctau>%.6f || ctau<%.6f)", rangeErr[1], rangeErr[0]))->sumEntries();
 
@@ -103,31 +107,32 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
                                            FillStyle(1001), FillColor(kAzure-9), VLines(), DrawOption("LCF"), NumCPU(32)
                                            );
     }
-  } 
+  }
+  if (incSS) { 
+    myws.data(dsSSName.c_str())->plotOn(frame, Name("dSS"), MarkerColor(kRed), LineColor(kRed), MarkerSize(1.2)); 
+  }
+  myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
   if (incBkg && (!incJpsi && !incPsi2S)) {
     myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("BKG"),  Normalization(normBkg, RooAbsReal::NumEvent), NumCPU(32),
                                          ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(hOSNameBkg.c_str()), kTRUE),
                                          FillStyle(1001), FillColor(kAzure-9), VLines(), DrawOption("LCF"), Precision(1e-4)
                                          );
-    myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("BKGNoPR"),Components(RooArgSet(*myws.pdf(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP"))))),
-                                         ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(hOSNameBkg.c_str()), kTRUE),
-                                         Normalization(normBkg, RooAbsReal::NumEvent),
-                                         LineColor(kGreen+2), Precision(1e-4), NumCPU(32)
-                                         );
+    myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
     myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("BKGPR"),Components(RooArgSet(*myws.pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP"))))),
                                          ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(hOSNameBkg.c_str()), kTRUE),
                                          Normalization(normBkg, RooAbsReal::NumEvent),
                                          LineColor(kRed+2), Precision(1e-4), NumCPU(32)
+                                         );
+    myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("BKGNoPR"),Components(RooArgSet(*myws.pdf(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP"))))),
+                                         ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(hOSNameBkg.c_str()), kTRUE),
+                                         Normalization(normBkg, RooAbsReal::NumEvent),
+                                         LineColor(kOrange+10), Precision(1e-4), NumCPU(32)
                                          );
     myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PDF"),  Normalization(normBkg, RooAbsReal::NumEvent), NumCPU(32),
                                          ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(hOSNameBkg.c_str()), kTRUE),
                                          LineColor(kBlack), Precision(1e-4)
                                          );
   } 
-  if (incSS) { 
-    myws.data(dsSSName.c_str())->plotOn(frame, Name("dSS"), MarkerColor(kRed), LineColor(kRed), MarkerSize(1.2)); 
-  }
-  myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
   if (!incBkg || (incJpsi || incPsi2S)) {
     if (incPrompt) {
       if (incJpsi) {
@@ -227,10 +232,10 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   if (isPbPb) {t->DrawLatex(0.21, 0.86-dy, Form("Cent. %d-%d%%", (int)(cut.Centrality.Start/2), (int)(cut.Centrality.End/2))); dy+=0.045;}
   t->DrawLatex(0.21, 0.86-dy, Form("%.1f #leq p_{T}^{#mu#mu} < %.1f GeV/c",cut.dMuon.Pt.Min,cut.dMuon.Pt.Max)); dy+=0.045;
   t->DrawLatex(0.21, 0.86-dy, Form("%.1f #leq |y^{#mu#mu}| < %.1f",cut.dMuon.AbsRap.Min,cut.dMuon.AbsRap.Max)); dy+=0.045;
-  if (isPbPb) {
-    t->DrawLatex(0.21, 0.86-dy, Form("Loss: (%.4f%%) %.4f evts", (outErr*100.0/outTot), outErr)); dy+=1.5*0.045;
+  if (isPbPb && isMC) {
+    t->DrawLatex(0.21, 0.86-dy, Form("Excl: (%.4f%%) %.4f evts", (outErr*100.0/outTot), outErr)); dy+=1.5*0.045;
   } else {
-    t->DrawLatex(0.21, 0.86-dy, Form("Loss: (%.4f%%) %.0f evts", (outErr*100.0/outTot), outErr)); dy+=1.5*0.045;
+    t->DrawLatex(0.21, 0.86-dy, Form("Excl: (%.4f%%) %.0f evts", (outErr*100.0/outTot), outErr)); dy+=1.5*0.045;
   }
 
   // Drawing the Legend
@@ -287,7 +292,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   frame2->Draw(); 
   
   // *** Print chi2/ndof 
-  printChi2(myws, pad2, frame, "ctau", dsOSName.c_str(), pdfTotName.c_str(), nBins, isWeighted);
+  printChi2(myws, pad2, frame, "ctau", dsOSName.c_str(), pdfTotName.c_str(), nBins);
   
   pline->Draw("same");
   pad2->Update();
@@ -330,12 +335,12 @@ void setCtauRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLog
   frame->GetYaxis()->SetRangeUser(Ydown,Yup);
   delete h;
 
-  TLine   *minline = new TLine(rangeErr[0], 0.0, rangeErr[0], (setLogScale?(Ydown*TMath::Power((Yup/Ydown),0.5)):(Ydown + (Yup-Ydown)*0.5)));
+  TLine   *minline = new TLine(rangeErr[0], 0.0, rangeErr[0], (setLogScale?(Ydown*TMath::Power((Yup/Ydown),0.4)):(Ydown + (Yup-Ydown)*0.4)));
   minline->SetLineStyle(2);
   minline->SetLineColor(1);
   minline->SetLineWidth(3);
   frame->addObject(minline);
-  TLine   *maxline = new TLine(rangeErr[1], 0.0, rangeErr[1], (setLogScale?(Ydown*TMath::Power((Yup/Ydown),0.5)):(Ydown + (Yup-Ydown)*0.5)));
+  TLine   *maxline = new TLine(rangeErr[1], 0.0, rangeErr[1], (setLogScale?(Ydown*TMath::Power((Yup/Ydown),0.4)):(Ydown + (Yup-Ydown)*0.4)));
   maxline->SetLineStyle(2);
   maxline->SetLineColor(1);
   maxline->SetLineWidth(3);

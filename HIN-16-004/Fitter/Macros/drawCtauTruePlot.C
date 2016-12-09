@@ -161,7 +161,7 @@ void drawCtauTruePlot(RooWorkspace& myws,   // Local workspace
   frame2->Draw(); 
   
   // *** Print chi2/ndof 
-  printChi2(myws, pad2, frame, "ctauTrue", dsOSName.c_str(), pdfTotName.c_str(), nBins, isWeighted, parIni["CtauTrueRange_Cut"]);
+  printChi2(myws, pad2, frame, "ctauTrue", dsOSName.c_str(), pdfTotName.c_str(), nBins);
   
   pline->Draw("same");
   pad2->Update();

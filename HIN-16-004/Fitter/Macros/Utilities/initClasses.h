@@ -512,7 +512,7 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut,
 };
 
 
-void printChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, string dataLabel, string pdfLabel, int nBins, bool isWeighted, string cut="")
+void printChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, string dataLabel, string pdfLabel, int nBins)
 {
   double chi2=0; unsigned int ndof=0;
   Pad->cd();
@@ -530,12 +530,6 @@ void printChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, s
     }
   }
   ndof = nFullBins - nFitPar;
-  //chi2 = myws.pdf(pdfLabel.c_str())->createChi2(*((RooDataSet*)myws.data(dataLabel.c_str())))->getVal(); 
-  //chi2 = frame->chiSquare(nFitPar)*ndof;
-//  RooDataHist dummy("dummy", "dummy", *myws.var("invMass"), hdatact);
-//  if (isWeighted) {
-//    chi2 = RooChi2Var("chi2", "chi2", *myws.pdf(pdfLabel.c_str()), dummy, kFALSE, 0, 0, 8, RooFit::Interleave, kFALSE, kFALSE, RooDataHist::SumW2).getVal();
-//  }  
   t->DrawLatex(0.7, 0.85, Form("#chi^{2}/ndof = %.0f / %d ", chi2, ndof));
   RooRealVar chi2Var("chi2","chi2",chi2);
   RooRealVar ndofVar("ndof","ndof",ndof);
@@ -554,7 +548,7 @@ void getCtauErrRange(TH1* hist, int nMaxBins, vector<double>& rangeErr)
   int firstBin = 1;
   for (int i=binMaximum; i>0; i--) {
     if (hist->GetBinContent(i)>0.0) {
-      if ( binWithContent>0 && ((binWithContent-i) > nMaxBins) && hist->GetBinContent(i)<9.0 ) { firstBin = binWithContent; break; }
+      if ( binWithContent>0 && ((binWithContent-i) > nMaxBins) && hist->GetBinContent(i)<3.0 ) { firstBin = binWithContent; break; }
       else { binWithContent = i; }
     }
   }
@@ -563,7 +557,7 @@ void getCtauErrRange(TH1* hist, int nMaxBins, vector<double>& rangeErr)
   int lastBin = hist->GetNbinsX();
   for (int i=binMaximum; i<hist->GetNbinsX(); i++) {
     if (hist->GetBinContent(i)>0.0) {
-      if ( binWithContent>0 && ((i - binWithContent) > nMaxBins) && hist->GetBinContent(i)<9.0 ) { lastBin = binWithContent+1; break; }
+      if ( binWithContent>0 && ((i - binWithContent) > nMaxBins) && hist->GetBinContent(i)<3.0 ) { lastBin = binWithContent+1; break; }
       else { binWithContent = i; }
     }
   }
@@ -583,6 +577,21 @@ void getCtauErrRange(TH1* hist, int nMaxBins, vector<double>& rangeErr)
   cout << "[INFO] Ctau error range set to be: [ " <<  rangeErr[0] << ", " << rangeErr[1] << " ]" << endl;
 
   return;
+};
+
+
+bool setConstant( RooWorkspace& myws, string parName, bool CONST)
+{
+  if (myws.var(parName.c_str())) { 
+    myws.var(parName.c_str())->setConstant(CONST);
+    cout << "[INFO] Setting parameter " << parName << " : " << myws.var(parName.c_str())->getVal() << " to constant value!" << endl;
+  }
+  else if (!myws.function(parName.c_str())) { 
+    cout << "[ERROR] Parameter " << parName << " was not found!" << endl;
+    return false;
+  }
+
+  return true;
 };
 
 

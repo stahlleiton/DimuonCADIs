@@ -57,15 +57,17 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
   getMeanPT = false;
   wantPureSMC = (DSTAG.find("MC")!=std::string::npos && wantPureSMC);
   // Setting default user-defined input fit directories ( "" means use current working directory )
-  if (inputFitDir.count("MASS")==0)     { inputFitDir["MASS"]     = ""; }
-  if (inputFitDir.count("CTAUTRUE")==0) { inputFitDir["CTAUTRUE"] = ""; }
-  if (inputFitDir.count("CTAUERR")==0)  { inputFitDir["CTAUERR"] = "";  }
-  if (inputFitDir.count("CTAU")==0)     { inputFitDir["CTAU"]     = ""; }
+  if (inputFitDir.count("MASS")==0)     { inputFitDir["MASS"]     = "";   }
+  if (inputFitDir.count("CTAUTRUE")==0) { inputFitDir["CTAUTRUE"] = "";   }
+  if (inputFitDir.count("CTAUERR")==0)  { inputFitDir["CTAUERR"] = "";    }
+  if (inputFitDir.count("CTAU")==0)     { inputFitDir["CTAU"]     = "";   }
+  if (inputFitDir.count("CTAURES")==0)     { inputFitDir["CTAURES"] = ""; }
   // Setting default user-defined bin width
-  if (binWidth.count("MASS")==0)     { binWidth["MASS"]     = 0.05; }
-  if (binWidth.count("CTAUTRUE")==0) { binWidth["CTAUTRUE"] = 0.05; }
-  if (binWidth.count("CTAUERR")==0)  { binWidth["CTAUERR"] = 0.05;  }
-  if (binWidth.count("CTAU")==0)     { binWidth["CTAU"]     = 0.05; }
+  if (binWidth.count("MASS")==0)     { binWidth["MASS"]     = 0.05;   }
+  if (binWidth.count("CTAUTRUE")==0) { binWidth["CTAUTRUE"] = 0.05;   }
+  if (binWidth.count("CTAUERR")==0)  { binWidth["CTAUERR"] = 0.05;    }
+  if (binWidth.count("CTAU")==0)     { binWidth["CTAU"]     = 0.05;   }
+  if (binWidth.count("CTAURES")==0)     { binWidth["CTAURES"] = 0.05; }
 
   if (isPbPb==false) {
     cut.Centrality.Start = 0;

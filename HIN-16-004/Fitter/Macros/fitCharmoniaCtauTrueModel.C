@@ -89,7 +89,9 @@ bool fitCharmoniaCtauTrueModel( RooWorkspace& myws,             // Local Workspa
   // check if we have already done this fit. If yes, do nothing and return true.
   string FileName = "";
   setCtauTrueFileName(FileName, (inputFitDir=="" ? outputDir : inputFitDir), DSTAG, plotLabel, cut, isPbPb);
-  if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir!="") { 
+  if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir!="") {
+    cout << "[WARNING] User Input File : " << FileName << " was not found!" << endl;
+    if (loadFitResult) return false;
     setCtauTrueFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
   }
   bool found =  true; bool skipFit = !doFit;

@@ -731,13 +731,11 @@ void setCtauDefaultParameters(map<string, string> &parIni, bool isPbPb, double n
   if (parIni.count(Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
     parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.0, 0.01, 2.0);
   }
-  if (parIni.count(Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0) {
-    if (parIni[Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
+  if (parIni.count(Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
       parIni[Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.1, 0.8, 2.0);
-    }
-    parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{%s,%s})", Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")),
-                                                                parIni[Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str(), Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP") ));
   }
+  parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{%s,%s})", Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                                                                 parIni[Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str(), Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP") ));
   //if (parIni.count(Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
   //  parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 0.001, 600.0);
   //}
