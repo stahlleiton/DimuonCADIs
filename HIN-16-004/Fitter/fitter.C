@@ -17,7 +17,8 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 
 
 void fitter(
-            const string workDirName="Test", // Working directory
+            const string workDirName="Test", // Working directoryi
+            bool useExtFiles  = true, // Use external fit files as input
             // Select the type of datasets to fit
             bool fitData      = false,        // Fits Data datasets
             bool fitMC        = true,         // Fits MC datasets
@@ -56,19 +57,23 @@ void fitter(
   */
 
   map<string, double> binWidth;
-  binWidth["MASS"]     = 0.05;
+  binWidth["MASS"]     = 0.025;
   binWidth["CTAU"]     = 0.0025;
   binWidth["CTAUERR"]  = 0.0025;
   binWidth["CTAUTRUE"] = 0.005;
+  binWidth["CTAURES"] = 0.0025;
 
   map<string, string> inputFitDir;
   inputFitDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
   inputFitDir["CTAU"]     = ""; 
   inputFitDir["CTAUERR"]  = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/";
   inputFitDir["CTAUTRUE"] = "";
+  inputFitDir["CTAURES"] = "";
 
   for (map<string, string>::iterator iMap=inputFitDir.begin();  iMap!=inputFitDir.end(); iMap++) {
-    if (iMap->first!="") { iMap->second += workDirName + "/"; }
+    if (iMap->second!="") { 
+      if (!useExtFiles) iMap->second = "";
+      else  iMap->second += workDirName + "/";}
   }
 
   if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, doCtauErrPDF, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores)) { return; }
@@ -117,7 +122,8 @@ void fitter(
     vector<string> InputFileNames = FileCollection->second; 
     string         OutputFileName;
     // If we have data, check if the user wants to fit data
-    if ( (FILETAG.find("DATA")!=std::string::npos) && (fitData==true || fitCtau==true) ) {
+    bool checkData = (fitCtau && fitMC && (existDir(inputFitDirs[inputFitDirs.size()-1]["CTAUERR"]+"ctauErr/")==false) );
+    if ( (FILETAG.find("DATA")!=std::string::npos) && (fitData==true || checkData==true) ) {
       if ( (FILETAG.find("PP")!=std::string::npos)   && !fitPP   ) continue; // If we find PP, check if the user wants PP
       if ( (FILETAG.find("PbPb")!=std::string::npos) && !fitPbPb ) continue; // If we find PbPb, check if the user wants PbPb
       if(strcmp(applyCorr,"")){
@@ -127,7 +133,7 @@ void fitter(
       else {
         OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + ".root";
         string NAMETAG = DSTAG;
-        if (fitCtau) { NAMETAG = string("MC")+(incJpsi?"JPSI":"PSI2S")+(incNonPrompt?"NOPR":"PR")+"_"+(fitPP?"PP":"PbPb"); }
+        if (checkData) { NAMETAG = string("MC")+(incJpsi?"JPSI":"PSI2S")+(incNonPrompt?"NOPR":"PR")+"_"+(fitPP?"PP":"PbPb"); }
         if(!tree2DataSet(Workspace[NAMETAG], InputFileNames, FILETAG, OutputFileName)){ return; }
       }
       if (fitData && !aDSTAG->FindObject(DSTAG.c_str())) aDSTAG->Add(new TObjString(DSTAG.c_str()));
@@ -165,13 +171,18 @@ void fitter(
   string InputFile;
   vector< vector< struct KinCuts > >       cutVectors;
   vector< vector< map<string, string> > >  parIniVectors;
+ 
+  bool existMassFits = (existDir(inputFitDirs[inputFitDirs.size()-1]["MASS"]+"mass/")==true);
+  bool existCtauErr = (existDir(inputFitDirs[inputFitDirs.size()-1]["CTAUERR"]+"ctauErr/")==true);
+  bool existCtauRes = (existDir(inputFitDirs[inputFitDirs.size()-1]["CTAURES"]+"ctau/")==true);
+  bool existCtauTrue = (existDir(inputFitDirs[inputFitDirs.size()-1]["CTAUTRUE"]+"ctauTrue/")==true);
 
   map<string, map<string, bool>> VARMAP = {
     {"MASS", 
      {
-       {"BKG",   ((fitMass || doCtauErrPDF)  && incBkg) || fitCtau}, 
-       {"JPSI",  (fitMass || doCtauErrPDF || fitCtau) && incJpsi}, 
-       {"PSI2S", (fitMass || doCtauErrPDF || fitCtau) && incPsi2S}
+       {"BKG",   ((!existMassFits && (fitMass  && incBkg)) || (!existCtauErr && (fitCtau || doCtauErrPDF)))}, 
+       {"JPSI",  ((!existMassFits && fitMass) || (!existCtauErr && (fitCtau || doCtauErrPDF))) && incJpsi}, 
+       {"PSI2S", ((!existMassFits && fitMass) || (!existCtauErr && (fitCtau || doCtauErrPDF))) && incPsi2S}
      }
     },
     {"CTAU", 
@@ -179,8 +190,8 @@ void fitter(
        {"BKG",   fitCtau && incBkg && incNonPrompt}, 
        {"JPSI",  fitCtau && incJpsi && incNonPrompt}, 
        {"PSI2S", fitCtau && incPsi2S && incNonPrompt},
-       {"RES",   fitCtau},
-       {"TRUE",  fitCtauTrue || (fitCtau && incNonPrompt)},
+       {"RES",   fitCtau && !existCtauRes},
+       {"TRUE",  !existCtauTrue && (fitCtauTrue || (fitCtau && incNonPrompt))},
      }
     }
   };
