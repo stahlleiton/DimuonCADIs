@@ -93,24 +93,22 @@ map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name)
    return ans;
 };
 
-map<anabin, syst> readSyst_all(const char* prependPath, const char* collSystem, bool doPrintTex, const char* texName) {
+map<anabin, syst> readSyst_all(const char* collSystem, bool doPrintTex, const char* texName) {
    vector<TString> filelist;
-   // filelist.push_back("fit_PP");
-   // filelist.push_back("fit_PbPb");
-   // filelist.push_back("TAA_PbPb");
-   // filelist.push_back("lumi_PP");
-   // filelist.push_back("lumi_PbPb");
-   // filelist.push_back("mceff_PP");
-   // filelist.push_back("mceff_PbPb");
-   // filelist.push_back("tnp_PP");
-   // filelist.push_back("tnp_PbPb");
-   filelist.push_back("Systematics/csv/syst_PbPb_dummy_allbins.csv");
-   filelist.push_back("Systematics/csv/syst_PP_dummy_allbins.csv");
+   filelist.push_back("Systematics/csv/syst_PbPb_bkgsyst.csv");
+   filelist.push_back("Systematics/csv/syst_PbPb_sigsyst.csv");
+   filelist.push_back("Systematics/csv/syst_PP_bkgsyst.csv");
+   // filelist.push_back("Systematics/csv/syst_PP_lumi.csv"); // special case, do not include in the list
+   filelist.push_back("Systematics/csv/syst_PbPb_dummytnp.csv");
+   // filelist.push_back("Systematics/csv/syst_PbPb_taa.csv"); // special case, do not include in the list
+   filelist.push_back("Systematics/csv/syst_PP_dummytnp.csv");
+   filelist.push_back("Systematics/csv/syst_PP_sigsyst.csv");
   
    vector< map<anabin, syst> > systmap_all;
 
    for (unsigned int i=0; i<filelist.size(); i++) {
       if (!filelist[i].Contains(collSystem)) continue;
+      cout << filelist[i].Data() << endl;
       map<anabin,syst> systmap = readSyst(filelist[i].Data());
       systmap_all.push_back(systmap);
    }
@@ -118,12 +116,24 @@ map<anabin, syst> readSyst_all(const char* prependPath, const char* collSystem, 
    map<anabin,syst> ans = combineSyst(systmap_all, "Total");
    systmap_all.push_back(ans);
 
-   if (doPrintTex) printTex(systmap_all, texName);
+   if (doPrintTex) {
+      printTex(systmap_all, TString(texName).ReplaceAll(".tex","_cent.tex").Data(), anabin(0,2.4,6.5,50,0,0));
+      printTex(systmap_all, TString(texName).ReplaceAll(".tex","_pt.tex").Data(), anabin(0,2.4,0,0,0,200));
+      printTex(systmap_all, TString(texName).ReplaceAll(".tex","_rap.tex").Data(), anabin(0,0,6.5,50,0,200));
+      printTex(systmap_all, TString(texName).ReplaceAll(".tex","_ptrap.tex").Data(), anabin(0,-2.4,-6.5,-50,0,200));
+      printTex(systmap_all, TString(texName).ReplaceAll(".tex","_centrap.tex").Data(), anabin(0,-2.4,6.5,50,0,-200));
+      printTex(systmap_all, TString(texName).ReplaceAll(".tex","_ptcent.tex").Data(), anabin(0,2.4,-6.5,-50,0,-200));
+      printTex(systmap_all, TString(texName).ReplaceAll(".tex","_fwd.tex").Data(), anabin(1.8,2.4,0,0,0,-200));
+   }
 
    return ans;
 };
 
-void printTex(vector< map<anabin, syst> > theSysts, const char* texName) {
+void printTex(vector< map<anabin, syst> > theSysts, const char* texName, anabin mask) {
+   // for the different components BIN (in rapidity bin, pt bin, centrality bin):
+   // - if BIN = (0,0), then do not filter
+   // - if BIN = (xx,yy), print ONLY bins that match these conditions
+   // - if BIN = (-xx,-yy), print all bins EXCEPT those that match these conditions
    unsigned int nsyst = theSysts.size();
 
    ofstream file(texName);
@@ -150,6 +160,15 @@ void printTex(vector< map<anabin, syst> > theSysts, const char* texName) {
          return;
       }
       anabin thebin = itm->first;
+
+      // filter
+      if ((mask.rapbin().low()>0 || mask.rapbin().high()>0) && (thebin.rapbin() != mask.rapbin())) continue;
+      if ((mask.rapbin().low()<0 || mask.rapbin().high()<0) && (thebin.rapbin() == binF(-mask.rapbin().low(),-mask.rapbin().high()))) continue;
+      if ((mask.ptbin().low()>0 || mask.ptbin().high()>0) && (thebin.ptbin() != mask.ptbin())) continue;
+      if ((mask.ptbin().low()<0 || mask.ptbin().high()<0) && (thebin.ptbin() == binF(-mask.ptbin().low(),-mask.ptbin().high()))) continue;
+      if ((mask.centbin().low()>0 || mask.centbin().high()>0) && (thebin.centbin() != mask.centbin())) continue;
+      if ((mask.centbin().low()<0 || mask.centbin().high()<0) && (thebin.centbin() == binI(-mask.centbin().low(),-mask.centbin().high()))) continue;
+
       if (thebin.rapbin() == oldbin.rapbin()) {
          file << " - ";
       } else {

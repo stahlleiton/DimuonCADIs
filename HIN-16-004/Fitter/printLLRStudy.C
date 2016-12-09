@@ -657,11 +657,17 @@ void findSubDir(vector<string>& dirlist, string dirname, string ext)
   if (subdirs) {
     TSystemFile *subdir;
     TIter next(subdirs);
+    int countDirs(0);
     while ((subdir=(TSystemFile*)next())) {
-      if (subdir->IsDirectory() && string(subdir->GetName())!="." && string(subdir->GetName())!=".." && string(subdir->GetName())!="LLR") {
+      if (subdir->IsDirectory() && string(subdir->GetName())!="." && string(subdir->GetName())!=".." && string(subdir->GetName())!="LLR" && string(subdir->GetName()).find("mass")!=std::string::npos && string(subdir->GetName()).find("ctau")!=std::string::npos) {
         dirlist.push_back(dirname + ext + subdir->GetName() + "/");
         cout << "[INFO] Input subdirectory: " << dirname + ext + subdir->GetName() + "/" << " found!" << endl;
+        countDirs++;
       }
+    }
+    if (countDirs==0){
+      dirlist.push_back(dirname + ext);
+      cout << "[INFO] Input subdirectory: " << dirname + ext << " found!" << endl;
     }
   }
   delete subdirs;

@@ -27,6 +27,14 @@ const char* poiname = "N_Jpsi";
 // methods for computing the systematic
 double rms(vector<double> v, bool isrelative);
 double maxdiff(vector<double> v, bool isrelative);
+void printTex(map<anabin, vector<double> > mapvals, 
+      map<anabin, vector<double> > mapchi2, 
+      map<anabin, vector<int> > mapndof, 
+      map<anabin, double> mapsyst,
+      map<anabin, double> maperr,
+      vector<string> vnames, 
+      string texName, 
+      anabin mask);
 
 ///////////////////
 // MAIN FUNCTION //
@@ -115,9 +123,53 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
    cout << "Closed " << fullSystFileName << endl << endl;
 
    cout << "At last, let's summarize the differences in a TeX table." << endl;
+   
    string texName(fullSystFileName);
    myReplace(texName,"csv","tex");
    gSystem->mkdir("Systematics/tex", kTRUE); 
+
+   printTex(mapvals, mapchi2, mapndof, mapsyst, maperr, vnames, TString(texName).ReplaceAll(".tex","_cent.tex").Data(), anabin(0,2.4,6.5,50,0,0));
+   printTex(mapvals, mapchi2, mapndof, mapsyst, maperr, vnames, TString(texName).ReplaceAll(".tex","_pt.tex").Data(), anabin(0,2.4,0,0,0,200));
+   printTex(mapvals, mapchi2, mapndof, mapsyst, maperr, vnames, TString(texName).ReplaceAll(".tex","_rap.tex").Data(), anabin(0,0,6.5,50,0,200));
+   printTex(mapvals, mapchi2, mapndof, mapsyst, maperr, vnames, TString(texName).ReplaceAll(".tex","_ptrap.tex").Data(), anabin(0,-2.4,-6.5,-50,0,200));
+   printTex(mapvals, mapchi2, mapndof, mapsyst, maperr, vnames, TString(texName).ReplaceAll(".tex","_centrap.tex").Data(), anabin(0,-2.4,6.5,50,0,-200));
+   printTex(mapvals, mapchi2, mapndof, mapsyst, maperr, vnames, TString(texName).ReplaceAll(".tex","_ptcent.tex").Data(), anabin(0,2.4,-6.5,-50,0,-200));
+   printTex(mapvals, mapchi2, mapndof, mapsyst, maperr, vnames, TString(texName).ReplaceAll(".tex","_fwd.tex").Data(), anabin(1.8,2.4,0,0,0,-200));
+}
+
+double rms(vector<double> v, bool isrelative) {
+   if (v.size()==0 || v[0]==0) return 0;
+    double s=0,s2=0;
+    for (unsigned int i=0; i<v.size(); i++) {
+       if (v[i]==-999) continue;
+       s+=v[i];
+       s2+=v[i]*v[i];
+    }
+    double ans = sqrt(s2-(s*s));
+    if (isrelative) ans = ans/v[0];
+    return ans;
+ }
+
+double maxdiff(vector<double> v, bool isrelative) {
+   if (v.size()==0 || v[0]==0) return 0;
+   double maxdiff=0;
+    for (unsigned int i=1; i<v.size(); i++) {
+       if (v[i]==-999) continue;
+       maxdiff=max(maxdiff,fabs(v[i]-v[0]));
+    }
+    double ans = maxdiff;
+    if (isrelative) ans = ans/v[0];
+    return ans;
+}
+
+void printTex(map<anabin, vector<double> > mapvals, 
+      map<anabin, vector<double> > mapchi2, 
+      map<anabin, vector<int> > mapndof, 
+      map<anabin, double> mapsyst,
+      map<anabin, double> maperr,
+      vector<string> vnames, 
+      string texName, 
+      anabin mask) {
    ofstream texfile(texName.c_str());
    texfile << "\\begin{tabular}{|ccc|"; 
    for (unsigned int i=0; i<vnames.size()+1; i++) {
@@ -182,29 +234,3 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
    texfile.close();
    cout << "Closed " << texName << endl;
 }
-
-double rms(vector<double> v, bool isrelative) {
-   if (v.size()==0 || v[0]==0) return 0;
-    double s=0,s2=0;
-    for (unsigned int i=0; i<v.size(); i++) {
-       if (v[i]==-999) continue;
-       s+=v[i];
-       s2+=v[i]*v[i];
-    }
-    double ans = sqrt(s2-(s*s));
-    if (isrelative) ans = ans/v[0];
-    return ans;
- }
-
-double maxdiff(vector<double> v, bool isrelative) {
-   if (v.size()==0 || v[0]==0) return 0;
-   double maxdiff=0;
-    for (unsigned int i=1; i<v.size(); i++) {
-       if (v[i]==-999) continue;
-       maxdiff=max(maxdiff,fabs(v[i]-v[0]));
-    }
-    double ans = maxdiff;
-    if (isrelative) ans = ans/v[0];
-    return ans;
-}
-

@@ -68,8 +68,8 @@ void fitter(
   inputFitDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
   inputFitDir["CTAU"]     = ""; 
   inputFitDir["CTAUERR"]  = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/";
-  inputFitDir["CTAUTRUE"] = "";
-  inputFitDir["CTAURES"]  = "";
+  inputFitDir["CTAUTRUE"] = "/afs/cern.ch/user/v/vabdulla/public/";
+  inputFitDir["CTAURES"] = "";
   inputFitDir["CTAUSB"]   = "";
 
   for (map<string, string>::iterator iMap=inputFitDir.begin();  iMap!=inputFitDir.end(); iMap++) {
