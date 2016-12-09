@@ -61,6 +61,8 @@ set<anabin> allbins() {
    ans.insert(anabin(1.6,2.4,3,6.5,0,200));
    ans.insert(anabin(1.6,2.4,6.5,12,0,200));
    ans.insert(anabin(1.6,2.4,12,30,0,200));
+   // all integrated
+   ans.insert(anabin(0,2.4,6.5,50,0,200));
 
    // centrality dependence
    // thinner binning (for jpsi RAA only)
@@ -86,6 +88,8 @@ set<anabin> allbins() {
    ans.insert(anabin(1.8,2.4,3.,6.5,60,80));
    ans.insert(anabin(1.8,2.4,3.,6.5,80,100));
    ans.insert(anabin(1.8,2.4,3.,6.5,100,200));
+   // integrated bin in pp
+   ans.insert(anabin(1.8,2.4,3.,6.5,0,200));
 
    // 4 rapidity intervals
    // |y|<0.6
@@ -116,6 +120,11 @@ set<anabin> allbins() {
    ans.insert(anabin(1.8,2.4,6.5,50,60,80));
    ans.insert(anabin(1.8,2.4,6.5,50,80,100));
    ans.insert(anabin(1.8,2.4,6.5,50,100,200));
+   // integrated bins in pp
+   ans.insert(anabin(0,0.6,6.5,50,0,200));
+   ans.insert(anabin(0.6,1.2,6.5,50,0,200));
+   ans.insert(anabin(1.2,1.8,6.5,50,0,200));
+   ans.insert(anabin(1.8,2.4,6.5,50,0,200));
 
 
    // pt dependence

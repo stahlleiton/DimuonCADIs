@@ -93,24 +93,22 @@ map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name)
    return ans;
 };
 
-map<anabin, syst> readSyst_all(const char* prependPath, const char* collSystem, bool doPrintTex, const char* texName) {
+map<anabin, syst> readSyst_all(const char* collSystem, bool doPrintTex, const char* texName) {
    vector<TString> filelist;
-   // filelist.push_back("fit_PP");
-   // filelist.push_back("fit_PbPb");
-   // filelist.push_back("TAA_PbPb");
-   // filelist.push_back("lumi_PP");
-   // filelist.push_back("lumi_PbPb");
-   // filelist.push_back("mceff_PP");
-   // filelist.push_back("mceff_PbPb");
-   // filelist.push_back("tnp_PP");
-   // filelist.push_back("tnp_PbPb");
-   filelist.push_back("Systematics/csv/syst_PbPb_dummy_allbins.csv");
-   filelist.push_back("Systematics/csv/syst_PP_dummy_allbins.csv");
+   filelist.push_back("Systematics/csv/syst_PbPb_bkgsyst.csv");
+   filelist.push_back("Systematics/csv/syst_PbPb_sigsyst.csv");
+   filelist.push_back("Systematics/csv/syst_PP_bkgsyst.csv");
+   // filelist.push_back("Systematics/csv/syst_PP_lumi.csv"); // special case, do not include in the list
+   filelist.push_back("Systematics/csv/syst_PbPb_dummytnp.csv");
+   // filelist.push_back("Systematics/csv/syst_PbPb_taa.csv"); // special case, do not include in the list
+   filelist.push_back("Systematics/csv/syst_PP_dummytnp.csv");
+   filelist.push_back("Systematics/csv/syst_PP_sigsyst.csv");
   
    vector< map<anabin, syst> > systmap_all;
 
    for (unsigned int i=0; i<filelist.size(); i++) {
       if (!filelist[i].Contains(collSystem)) continue;
+      cout << filelist[i].Data() << endl;
       map<anabin,syst> systmap = readSyst(filelist[i].Data());
       systmap_all.push_back(systmap);
    }
