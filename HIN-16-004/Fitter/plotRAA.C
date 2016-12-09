@@ -160,10 +160,12 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
 
    map<anabin, raa_input> theVars_inputs;
 
-   map<anabin, syst> syst_PP = readSyst_all("","PP");
-   map<anabin, syst> stat_PP;
-   map<anabin, syst> syst_PbPb = readSyst_all("","PbPb");
-   map<anabin, syst> syst_glb;
+   map<anabin, syst> syst_PP = readSyst_all("PP");
+   map<anabin, syst> syst_PbPb = readSyst_all("PbPb");
+   map<anabin, syst> syst_taa = readSyst("Systematics/csv/syst_PbPb_taa.csv");
+   map<anabin, syst> syst_lumipp = readSyst("Systematics/csv/syst_PP_lumi.csv");
+   map<anabin, syst> stat_PP; // for PP statistics
+   map<anabin, syst> syst_glb; // for the boxes at 1
 
    vector<double> x, ex, y, ey;
    float ptmin, ptmax, ymin, ymax, centmin, centmax;
@@ -251,13 +253,13 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       double dnpp = spp.dnpp_stat * normfactorpp;
       double raa = npp>0 ? naa / npp : 0;
       double draa = raa>0 ? raa*sqrt(pow(dnaa/naa,2) + pow(dnpp/npp,2)) : 0;
-      cout << it->first.ptbin().low() << " " << it->first.ptbin().high() << " -> " << raa << " " << s.naa << " " << spp.npp << " " << s.effaa << " " << spp.effpp << endl;
+      // cout << it->first.ptbin().low() << " " << it->first.ptbin().high() << " -> " << raa << " " << s.naa << " " << spp.npp << " " << s.effaa << " " << spp.effpp << endl;
       double syst = raa*sqrt(pow(spp.systpp,2)+pow(s.systaa,2));
 
-      // case of the centrality dependence: factor out pp uncertainties
+      // case of the centrality dependence: factor out pp uncertainties, but include taa
       if (xaxis=="cent") {
          draa = raa*dnaa/naa;
-         syst = raa*s.systaa;
+         syst = raa*sqrt(pow(s.systaa,2)+pow(syst_taa[it->first].value,2));
       }
 
       theVarsBinned[thebin].push_back(raa);
@@ -267,10 +269,16 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
 
    // systematics
    if (xaxis=="cent") { // put the PP stat error into the PP syst, that will go into a box at 1
-      vector< map<anabin, syst> > all_PP;
-      all_PP.push_back(syst_PP);
-      all_PP.push_back(stat_PP); 
-      syst_glb = combineSyst(all_PP,"statsyst_PP");
+      vector< map<anabin, syst> > all_glb;
+      all_glb.push_back(syst_PP);
+      all_glb.push_back(stat_PP); 
+      all_glb.push_back(syst_lumipp);
+      syst_glb = combineSyst(all_glb,"global");
+   } else {
+      vector< map<anabin, syst> > all_glb;
+      all_glb.push_back(syst_taa);
+      all_glb.push_back(syst_lumipp);
+      syst_glb = combineSyst(all_glb,"global");
    }
 
    // make TGraphAsymmErrors
@@ -330,7 +338,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
          theGraphs[*it]->SetPointError(i,exl,exh,eyl,eyh);
          theGraphs_syst[*it]->SetPoint(i,x,y);
          theGraphs_syst[*it]->SetPointError(i,exsyst,exsyst,eysyst,eysyst);
-         cout << x << " " << y << " " << eyl << " " << eyh << " " << eysyst << endl;
+         // cout << x << " " << y << " " << eyl << " " << eyh << " " << eysyst << endl;
 
          // theGraphs[*it]->Sort();
          // theGraphs_syst[*it]->Sort();
@@ -439,26 +447,32 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       }
 
       // in the case where the centrality dependence is plotted: treat the PP uncertainties as global systematics
-      if (xaxis == "cent") {
-         double x, dx, y, dy;
+      // if (xaxis == "cent") {
+      double x, dx, y, dy;
+      if (xaxis=="cent") {
          dx = 10;
-         x = 2*dx*(thebin.rapbin().low()/1.6) + dx;
-         y = 1;
-         anabin thebin(it->first.rapbin().low(),
-               it->first.rapbin().high(),
-               it->first.ptbin().low(),
-               it->first.ptbin().high(),
-               0,200);
-         dy = gsyst[thebin].value;
-         cout << "global syst: " << dy << endl;
-         TBox *tbox = new TBox(x-dx,y-dy,x+dx,y+dy);
-         tbox->SetFillColorAlpha(color(cnt)-11, 1);
-         tbox->SetLineColor(color(cnt));
-         tbox->Draw("l");
-         TBox *tboxl = (TBox*) tbox->Clone("tboxl");
-         tboxl->SetFillStyle(0);
-         tboxl->Draw("l");
+      } else if (xaxis=="pt") {
+         dx = 1.25;
+      } else if (xaxis=="rap") {
+         dx = 0.06;
       }
+      x = 2*dx*cnt + dx;
+      y = 1;
+      anabin thebinglb(it->first.rapbin().low(),
+            it->first.rapbin().high(),
+            it->first.ptbin().low(),
+            it->first.ptbin().high(),
+            0,200);
+      dy = gsyst[thebinglb].value;
+      cout << "global syst: " << dy << endl;
+      TBox *tbox = new TBox(x-dx,y-dy,x+dx,y+dy);
+      tbox->SetFillColorAlpha(color(cnt)-11, 1);
+      tbox->SetLineColor(color(cnt));
+      tbox->Draw("l");
+      TBox *tboxl = (TBox*) tbox->Clone("tboxl");
+      tboxl->SetFillStyle(0);
+      tboxl->Draw("l");
+      // }
 
       cnt++;
       it_syst++;
