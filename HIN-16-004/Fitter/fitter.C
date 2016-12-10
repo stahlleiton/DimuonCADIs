@@ -72,11 +72,11 @@ void fitter(
   inputFitDir["CTAUSB"]   = "";
 
   map<string, string> inputInitialFilesDir;
-  inputFitDir["MASS"]     = "";
-  inputFitDir["CTAUTRUE"] = "";
-  inputFitDir["CTAURES"]  = "";
-  inputFitDir["CTAUSB"]   = "";
-  inputFitDir["CTAU"]     = "";
+  inputInitialFilesDir["MASS"]     = "";
+  inputInitialFilesDir["CTAUTRUE"] = "";
+  inputInitialFilesDir["CTAURES"]  = "";
+  inputInitialFilesDir["CTAUSB"]   = "";
+  inputInitialFilesDir["CTAU"]     = "";
 
   for (map<string, string>::iterator iMap=inputFitDir.begin();  iMap!=inputFitDir.end(); iMap++) {
     if (iMap->second!="") { 
