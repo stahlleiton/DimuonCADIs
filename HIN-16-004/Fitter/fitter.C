@@ -68,8 +68,8 @@ void fitter(
   inputFitDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/"; 
   inputFitDir["CTAUERR"]  = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/";
   inputFitDir["CTAUTRUE"] = "/afs/cern.ch/user/v/vabdulla/public/";
-  inputFitDir["CTAURES"]  = "";
-  inputFitDir["CTAUSB"]   = "";
+  inputFitDir["CTAURES"]  = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
+  inputFitDir["CTAUSB"]   = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
 
   map<string, string> inputInitialFilesDir;
   inputInitialFilesDir["MASS"]     = "";
