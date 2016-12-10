@@ -23,7 +23,7 @@ void fitter(
             bool fitData      = true,        // Fits Data datasets
             bool fitMC        = false,         // Fits MC datasets
             bool fitPbPb      = true,         // Fits PbPb datasets
-            bool fitPP        = false,        // Fits PP datasets
+            bool fitPP        = true,        // Fits PP datasets
             bool fitMass      = false,        // Fits invariant mass distribution
             bool fitCtau      = true,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
@@ -65,11 +65,10 @@ void fitter(
   binWidth["CTAUSB"]   = 0.025;
 
   map<string, string> inputFitDir;
-  inputFitDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
-  inputFitDir["CTAU"]     = ""; 
+  inputFitDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/"; 
   inputFitDir["CTAUERR"]  = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/";
   inputFitDir["CTAUTRUE"] = "/afs/cern.ch/user/v/vabdulla/public/";
-  inputFitDir["CTAURES"] = "";
+  inputFitDir["CTAURES"]  = "";
   inputFitDir["CTAUSB"]   = "";
 
   for (map<string, string>::iterator iMap=inputFitDir.begin();  iMap!=inputFitDir.end(); iMap++) {

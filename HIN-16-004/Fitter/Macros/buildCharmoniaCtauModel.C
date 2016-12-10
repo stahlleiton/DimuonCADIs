@@ -57,12 +57,12 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                         Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))
                         ));
       }
-      // if ( ws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))) ){
-      //   ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_JpsiPR_%s", (isPbPb?"PbPb":"PP")),
-      //                   Form("%s_JpsiPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
-      //                   Form("pdfMASS_Jpsi_%s",(isPbPb?"PbPb":"PP"))
-      //                   ));
-      // }
+      if ( ws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))) ){
+        ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_JpsiPR_%s", (isPbPb?"PbPb":"PP")),
+                       Form("%s_JpsiPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
+                       Form("pdfMASS_Jpsi_%s",(isPbPb?"PbPb":"PP"))
+                       ));
+      }
       ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_JpsiPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("%s_JpsiPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))
@@ -79,12 +79,12 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                         Form("pdfCTAUCOND_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))
                         ));
       }
-      // if ( ws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))) ){
-      //   ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")),
-      //                   Form("%s_JpsiNoPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
-      //                   Form("pdfMASS_Jpsi_%s",(isPbPb?"PbPb":"PP"))
-      //                   ));
-      // }
+      if ( ws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))) ){
+        ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")),
+                         Form("%s_JpsiNoPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
+                         Form("pdfMASS_Jpsi_%s",(isPbPb?"PbPb":"PP"))
+                         ));
+      }
       ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_JpsiNoPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("%s_JpsiNoPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))
@@ -154,12 +154,12 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                         Form("pdfCTAUCOND_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))
                         ));
       }
-      // if ( ws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ){
-      //   ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_Psi2SPR_%s", (isPbPb?"PbPb":"PP")),
-      //                   Form("%s_Psi2SPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
-      //                   Form("pdfMASS_Psi2S_%s",(isPbPb?"PbPb":"PP"))
-      //                   ));
-      // }
+      if ( ws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ){
+         ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_Psi2SPR_%s", (isPbPb?"PbPb":"PP")),
+                         Form("%s_Psi2SPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
+                         Form("pdfMASS_Psi2S_%s",(isPbPb?"PbPb":"PP"))
+                         ));
+       }
       ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_Psi2SPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("%s_Psi2SPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))
@@ -176,12 +176,12 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                         Form("pdfCTAUCOND_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))
                         ));
       }
-      // if ( ws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ){
-      //   ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")),
-      //                   Form("%s_Psi2SNoPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
-      //                   Form("pdfMASS_Psi2S_%s",(isPbPb?"PbPb":"PP"))
-      //                   ));
-      // }
+      if ( ws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ){
+        ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")),
+                        Form("%s_Psi2SNoPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
+                        Form("pdfMASS_Psi2S_%s",(isPbPb?"PbPb":"PP"))
+                        ));
+      }
       ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_Psi2SNoPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("%s_Psi2SNoPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))
@@ -219,12 +219,12 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                         Form("pdfCTAUCOND_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))
                         ));
       }
-      // if ( ws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ){
-      //   ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_Psi2S_%s", (isPbPb?"PbPb":"PP")),
-      //                   Form("%s_Psi2S_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
-      //                   Form("pdfMASS_Psi2S_%s",(isPbPb?"PbPb":"PP"))
-      //                   ));
-      // }
+      if ( ws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ){
+        ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_Psi2S_%s", (isPbPb?"PbPb":"PP")),
+                        Form("%s_Psi2S_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
+                        Form("pdfMASS_Psi2S_%s",(isPbPb?"PbPb":"PP"))
+                        ));
+      }
       ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_Psi2S_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("%s_Psi2S_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))
@@ -247,12 +247,12 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                        ); 
         ws.import(pdf);
       }
-      // if ( ws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) ){
-      //   ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_BkgPR_%s", (isPbPb?"PbPb":"PP")),
-      //                   Form("%s_BkgPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
-      //                   Form("pdfMASS_Bkg_%s",(isPbPb?"PbPb":"PP"))
-      //                   ));
-      // }
+      if ( ws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) ){
+        ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_BkgPR_%s", (isPbPb?"PbPb":"PP")),
+                        Form("%s_BkgPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
+                        Form("pdfMASS_Bkg_%s",(isPbPb?"PbPb":"PP"))
+                        ));
+      }
       ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_BkgPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("%s_BkgPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))
@@ -265,12 +265,12 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                        ); 
         ws.import(pdf);
       }
-      // if ( ws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) ){
-      //   ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_BkgNoPR_%s", (isPbPb?"PbPb":"PP")),
-      //                   Form("%s_BkgNoPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
-      //                   Form("pdfMASS_Bkg_%s",(isPbPb?"PbPb":"PP"))
-      //                   ));
-      // }
+      if ( ws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) ){
+        ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_BkgNoPR_%s", (isPbPb?"PbPb":"PP")),
+                        Form("%s_BkgNoPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
+                        Form("pdfMASS_Bkg_%s",(isPbPb?"PbPb":"PP"))
+                        ));
+      }
       ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_BkgNoPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("%s_BkgNoPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))
@@ -302,12 +302,12 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                         Form("pdfCTAUCOND_BkgPR_%s", (isPbPb?"PbPb":"PP"))
                         ));
       }
-      // if ( ws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) ){
-      //   ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_Bkg_%s", (isPbPb?"PbPb":"PP")),
-      //                   Form("%s_Bkg_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
-      //                   Form("pdfMASS_Bkg_%s",(isPbPb?"PbPb":"PP"))
-      //                   ));
-      // }
+      if ( ws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) ){
+        ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_Bkg_%s", (isPbPb?"PbPb":"PP")),
+                        Form("%s_Bkg_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
+                        Form("pdfMASS_Bkg_%s",(isPbPb?"PbPb":"PP"))
+                        ));
+      }
       ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_Bkg_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("%s_Bkg_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))
@@ -407,11 +407,6 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
   }
   ws.import(*themodel);
   //ws.pdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")))->setNormRange("CtauWindow");
-
-  // save the initial values of the model we've just created
-  RooArgSet* params = (RooArgSet*) themodel->getParameters(RooArgSet(*ws.var("ctau"), *ws.var("invMass"), *ws.var("ctauErr"))) ;
-  pdfName+=Form("_Tot_%s_parIni", (isPbPb?"PbPb":"PP"));
-  ws.saveSnapshot(pdfName.c_str(),*params,kTRUE) ;
   
   return true;
 };

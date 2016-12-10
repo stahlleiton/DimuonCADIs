@@ -57,17 +57,18 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
   getMeanPT = false;
   wantPureSMC = (DSTAG.find("MC")!=std::string::npos && wantPureSMC);
   // Setting default user-defined input fit directories ( "" means use current working directory )
-  if (inputFitDir.count("MASS")==0)     { inputFitDir["MASS"]     = "";   }
-  if (inputFitDir.count("CTAUTRUE")==0) { inputFitDir["CTAUTRUE"] = "";   }
-  if (inputFitDir.count("CTAUERR")==0)  { inputFitDir["CTAUERR"] = "";    }
-  if (inputFitDir.count("CTAU")==0)     { inputFitDir["CTAU"]     = "";   }
-  if (inputFitDir.count("CTAURES")==0)     { inputFitDir["CTAURES"] = ""; }
+  if (inputFitDir.count("MASS")==0)     { inputFitDir["MASS"]     = ""; }
+  if (inputFitDir.count("CTAUTRUE")==0) { inputFitDir["CTAUTRUE"] = ""; }
+  if (inputFitDir.count("CTAUERR")==0)  { inputFitDir["CTAUERR"]  = ""; }
+  if (inputFitDir.count("CTAURES")==0)  { inputFitDir["CTAURES"]  = ""; }
+  if (inputFitDir.count("CTAUSB")==0)   { inputFitDir["CTAUSB"]   = ""; }
   // Setting default user-defined bin width
-  if (binWidth.count("MASS")==0)     { binWidth["MASS"]     = 0.05;   }
-  if (binWidth.count("CTAUTRUE")==0) { binWidth["CTAUTRUE"] = 0.05;   }
-  if (binWidth.count("CTAUERR")==0)  { binWidth["CTAUERR"] = 0.05;    }
-  if (binWidth.count("CTAU")==0)     { binWidth["CTAU"]     = 0.05;   }
-  if (binWidth.count("CTAURES")==0)     { binWidth["CTAURES"] = 0.05; }
+  if (binWidth.count("MASS")==0)     { binWidth["MASS"]     = 0.05; }
+  if (binWidth.count("CTAUTRUE")==0) { binWidth["CTAUTRUE"] = 0.05; }
+  if (binWidth.count("CTAUERR")==0)  { binWidth["CTAUERR"]  = 0.05; }
+  if (binWidth.count("CTAUSB")==0)   { binWidth["CTAUSB"]   = 0.05; }
+  if (binWidth.count("CTAURES")==0)  { binWidth["CTAURES"]  = 0.05; }
+  if (binWidth.count("CTAU")==0)     { binWidth["CTAU"]     = 0.05; }
 
   if (isPbPb==false) {
     cut.Centrality.Start = 0;
@@ -137,12 +138,11 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
     bool loadFitResult = false;
     bool doFit = true;
     bool importDS = true;
-    bool fitMass = false;
 
     if ( !fitCharmoniaCtauModel( myws, inputWorkspace, cut, parIni, opt, outputDir, 
                            DSTAG, isPbPb, importDS, 
                            incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, 
-                           doFit, fitMass, wantPureSMC, loadFitResult, inputFitDir, numCores, 
+                           doFit, wantPureSMC, loadFitResult, inputFitDir, numCores, 
                            setLogScale, incSS, binWidth
                            ) 
          ) { return false; }

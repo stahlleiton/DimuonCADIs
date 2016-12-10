@@ -27,19 +27,20 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
                   // Select the drawing options
                   bool setLogScale,     // Draw plot with log scale
                   bool incSS,           // Include Same Sign data
-                  int  nBins            // Number of bins used for plotting
+                  double binWidth       // Bin width
                   ) 
 {
 
-  //RooMsgService::instance().getStream(0).removeTopic(Caching);  
-  //RooMsgService::instance().getStream(1).removeTopic(Caching);
-  //RooMsgService::instance().getStream(0).removeTopic(Plotting);
-  //RooMsgService::instance().getStream(1).removeTopic(Plotting);
-  //RooMsgService::instance().getStream(0).removeTopic(Integration);
-  //RooMsgService::instance().getStream(1).removeTopic(Integration);
-  //RooMsgService::instance().setGlobalKillBelow(RooFit::WARNING) ;
+  RooMsgService::instance().getStream(0).removeTopic(Caching);  
+  RooMsgService::instance().getStream(1).removeTopic(Caching);
+  RooMsgService::instance().getStream(0).removeTopic(Plotting);
+  RooMsgService::instance().getStream(1).removeTopic(Plotting);
+  RooMsgService::instance().getStream(0).removeTopic(Integration);
+  RooMsgService::instance().getStream(1).removeTopic(Integration);
+  RooMsgService::instance().setGlobalKillBelow(RooFit::WARNING) ;
 
   if (DSTAG.find("_")!=std::string::npos) DSTAG.erase(DSTAG.find("_"));
+  int nBins = min(int( round((cut.dMuon.ctau.Max - cut.dMuon.ctau.Min)/binWidth) ), 1000);
 
   string pdfTotName  = Form("pdfCTAU_Tot_%s", (isPbPb?"PbPb":"PP"));
   if (fitMass) { pdfTotName  = Form("pdfCTAUMASS_Tot_%s", (isPbPb?"PbPb":"PP")); }
@@ -299,12 +300,12 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   
   bool SB = (incBkg&&(!incPsi2S&&!incJpsi));
   // Save the plot in different formats
-  gSystem->mkdir(Form("%sctau%s/%s/plot/root/", outputDir.c_str(), (SB?"SB":""), DSTAG.c_str()), kTRUE); 
-  cFig->SaveAs(Form("%sctau%s/%s/plot/root/PLOT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), (SB?"SB":""), DSTAG.c_str(), "CTAU", DSTAG.c_str(), (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End));
-  gSystem->mkdir(Form("%sctau%s/%s/plot/png/", outputDir.c_str(), (SB?"SB":""), DSTAG.c_str()), kTRUE);
-  cFig->SaveAs(Form("%sctau%s/%s/plot/png/PLOT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.png", outputDir.c_str(), (SB?"SB":""), DSTAG.c_str(), "CTAU", DSTAG.c_str(), (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End));
-  gSystem->mkdir(Form("%sctau%s/%s/plot/pdf/", outputDir.c_str(), (SB?"SB":""), DSTAG.c_str()), kTRUE);
-  cFig->SaveAs(Form("%sctau%s/%s/plot/pdf/PLOT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.pdf", outputDir.c_str(), (SB?"SB":""), DSTAG.c_str(), "CTAU", DSTAG.c_str(), (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End));
+  gSystem->mkdir(Form("%sctau%s/%s/plot/root/", outputDir.c_str(), (fitMass?"Mass":(SB?"SB":"")), DSTAG.c_str()), kTRUE); 
+  cFig->SaveAs(Form("%sctau%s/%s/plot/root/PLOT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), (fitMass?"Mass":(SB?"SB":"")), DSTAG.c_str(), (fitMass?"CTAUMASS":"CTAU"), DSTAG.c_str(), (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End));
+  gSystem->mkdir(Form("%sctau%s/%s/plot/png/", outputDir.c_str(), (fitMass?"Mass":(SB?"SB":"")), DSTAG.c_str()), kTRUE);
+  cFig->SaveAs(Form("%sctau%s/%s/plot/png/PLOT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.png", outputDir.c_str(), (fitMass?"Mass":(SB?"SB":"")), DSTAG.c_str(), (fitMass?"CTAUMASS":"CTAU"), DSTAG.c_str(), (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End));
+  gSystem->mkdir(Form("%sctau%s/%s/plot/pdf/", outputDir.c_str(), (fitMass?"Mass":(SB?"SB":"")), DSTAG.c_str()), kTRUE);
+  cFig->SaveAs(Form("%sctau%s/%s/plot/pdf/PLOT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.pdf", outputDir.c_str(), (fitMass?"Mass":(SB?"SB":"")), DSTAG.c_str(), (fitMass?"CTAUMASS":"CTAU"), DSTAG.c_str(), (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End));
   
 
   cFig->Clear();

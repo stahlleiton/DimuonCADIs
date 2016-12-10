@@ -31,7 +31,6 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
                             bool incNonPrompt  = false,     // Includes NonPrompt ctau model
                             // Select the fitting options
                             bool doFit         = true,      // Flag to indicate if we want to perform the fit
-                            bool fitMass       = false,     // Indicates if the mass is fitted (2D fit)
                             bool wantPureSMC   = false,     // Flag to indicate if we want to fit pure signal MC
                             bool loadFitResult = false,     // Load previous fit results
                             map<string, string> inputFitDir={},// User-defined Location of the fit results
@@ -56,7 +55,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
     isMC = true;
   }
   if (!isMC) { wantPureSMC=false; }
-  if (isMC) { fitMass = false; }
+  bool fitMass = false;
   bool fitSideBand = (incBkg && (!incPsi2S && !incJpsi));
 
   string COLL = (isPbPb ? "PbPb" : "PP" );
@@ -112,13 +111,6 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
 
   // Define pdf and plot names
   string pdfName = Form("pdfCTAU_Tot_%s", COLL.c_str());
-  string plotLabel = "";
-  if (parIni.count(Form("Model_Ctau_%s", COLL.c_str()))>0) {
-    if (incJpsi || incPsi2S) { plotLabel = plotLabel + Form("_Ctau_%s", parIni[Form("Model_Ctau_%s", COLL.c_str())].c_str());        }
-  }
-  plotLabel = plotLabel + Form("_CtauRes_%s", parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str());
-  //if (incResol)            { plotLabel = plotLabel + Form("_CtauRes_%s", parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str()) ; }
-  if (wantPureSMC) { plotLabel = plotLabel + "_NoBkg"; }
   
   if (!loadFitResult) {
     // Set models based on initial parameters
@@ -142,31 +134,8 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
            ) { return false; }
     }
     // Build the Fit Model
-    if (!buildCharmoniaCtauModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsNameCut, isPbPb, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt,  numEntries))  { return false; }
-  }
+    if (!buildCharmoniaCtauModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsName, isPbPb, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt,  numEntries))  { return false; }
 
-
-  // check if we have already done this fit. If yes, do nothing and return true.
-  string FileName = "";
-  setCtauFileName(FileName, (inputFitDir[fitType.c_str()]=="" ? outputDir : inputFitDir[fitType.c_str()]), DSTAG, plotLabel, cut, isPbPb, fitSideBand);
-  if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir[fitType.c_str()]!="") {
-    cout << "[WARNING] User Input File : " << FileName << " was not found!" << endl;
-    if (loadFitResult) return false;
-    setCtauFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, fitSideBand);
-  }
-  bool found =  true; bool skipFit = !doFit;
-  RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*myws.var("ctau")));
-  found = found && isFitAlreadyFound(newpars, FileName, pdfName.c_str());
-  if (loadFitResult) {
-    if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) { skipFit = true; } else  { skipFit = false; }
-    if (skipFit) { cout << "[INFO] This ctau fit was already done, so I'll load the fit results." << endl; }
-    myws.saveSnapshot(Form("%s_parLoad", pdfName.c_str()),*newpars,kTRUE);
-  } else if (found) {
-    cout << "[INFO] This ctau fit was already done, so I'll just go to the next one." << endl;
-    return true;
-  }
-
-  if (!loadFitResult) {
     //// LOAD CTAU RESOLUTION PDF
     if (fitSideBand) {
       // check if we have already done the resolution fits. If yes, load their results
@@ -203,19 +172,55 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
       if (!setConstant(myws, Form("ctau2_CtauRes_%s", COLL.c_str()), true))    { return false; }
       if (!setConstant(myws, Form("f_CtauRes_%s", COLL.c_str()), true))        { return false; }
     }
+
+    // save the initial values of the model we've just created
+    RooArgSet* params = (RooArgSet*) myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("invMass"), *myws.var("ctauErr")));
+    myws.saveSnapshot((pdfName+"_parIni").c_str(),*params,kTRUE);
+    delete params;
+  }
+
+  string plotLabel = "";
+  map<string, bool> plotLabels = {{"JpsiNoPR", (incJpsi&&incNonPrompt)}, 
+                                  {"Psi2SNoPR", (incPsi2S&&incNonPrompt)}, 
+                                  {"BkgNoPR", (incBkg&&incNonPrompt)}, 
+                                  {"CtauRes", (true)}};
+  for (map<string, bool>::iterator iter = plotLabels.begin(); iter!=plotLabels.end(); iter++) {
+    string obj = iter->first;
+    bool cond = iter->second;
+    if (cond && parIni.count(Form("Model_%s_%s", obj.c_str(), COLL.c_str()))>0) { 
+      plotLabel = plotLabel + Form("_%s_%s", obj.c_str(), parIni[Form("Model_%s_%s", obj.c_str(), COLL.c_str())].c_str()); 
+    }
+  }
+  if (wantPureSMC) { plotLabel = plotLabel + "_NoBkg"; }
+
+  // check if we have already done this fit. If yes, do nothing and return true.
+  string FileName = "";
+  setCtauFileName(FileName, (inputFitDir[fitType.c_str()]=="" ? outputDir : inputFitDir[fitType.c_str()]), DSTAG, plotLabel, cut, isPbPb, fitSideBand);
+  if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir[fitType.c_str()]!="") {
+    cout << "[WARNING] User Input File : " << FileName << " was not found!" << endl;
+    if (loadFitResult) return false;
+    setCtauFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, fitSideBand);
+  }
+  bool found =  true; bool skipFit = !doFit;
+  RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("ctauErr")));
+  found = found && isFitAlreadyFound(newpars, FileName, pdfName.c_str());
+  if (loadFitResult) {
+    if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) { skipFit = true; } else  { skipFit = false; }
+    if (skipFit) { cout << "[INFO] This ctau fit was already done, so I'll load the fit results." << endl; }
+    myws.saveSnapshot(Form("%s_parLoad", pdfName.c_str()),*newpars,kTRUE);
+  } else if (found) {
+    cout << "[INFO] This ctau fit was already done, so I'll just go to the next one." << endl;
+    return true;
   }
 
   // Fit the Datasets
   if (skipFit==false) {
-    bool isWeighted = myws.data(dsNameCut.c_str())->isWeighted();
-    RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), NumCPU(numCores), ConditionalObservables(*myws.var("ctauErr")), SumW2Error(isWeighted));
-    if (fitResult) {
-      fitResult->Print("v");
-      myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str()));
-    }
+    bool isWeighted = myws.data(dsName.c_str())->isWeighted();
+    RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), NumCPU(numCores), ConditionalObservables(*myws.var("ctauErr")), SumW2Error(isWeighted), Save());
+    fitResult->Print("v");
+    myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str()));
     // Draw the mass plot
-    int nBins = min(int( round((cut.dMuon.ctau.Max - cut.dMuon.ctau.Min)/binWidth[fitType.c_str()]) ), 1000);
-    drawCtauPlot(myws, outputDir, opt, cut, parIni, plotLabel, DSTAG, isPbPb, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, wantPureSMC, setLogScale, incSS, nBins);
+    drawCtauPlot(myws, outputDir, opt, cut, parIni, plotLabel, DSTAG, isPbPb, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, wantPureSMC, setLogScale, incSS, binWidth[fitType.c_str()]);
     // Save the results
     string FileName = ""; setCtauFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, fitSideBand);
     myws.saveSnapshot(Form("%s_parFit", pdfName.c_str()),*newpars,kTRUE);

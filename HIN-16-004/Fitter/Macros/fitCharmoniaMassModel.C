@@ -123,7 +123,7 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
     }
     else if (doFit && !(myws.data(dsName.c_str()))) { cout << "[ERROR] No local dataset was found to perform the fit!" << endl; return false; }
       
-  // Set global parameters
+    // Set global parameters
     setMassGlobalParameterRange(myws, parIni, cut, incJpsi, incPsi2S, incBkg, wantPureSMC);
 
     // Build the Fit Model
