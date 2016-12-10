@@ -6,6 +6,7 @@
 #include "fitCharmoniaCtauModel.C"
 #include "fitCharmoniaCtauErrModel.C"
 #include "fitCharmoniaCtauTrueModel.C"
+#include "fitCharmoniaCtauMassModel.C"
 
 void setOptions(struct InputOpt* opt);
 
@@ -145,6 +146,19 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
                            doFit, wantPureSMC, loadFitResult, inputFitDir, numCores, 
                            setLogScale, incSS, binWidth
                            ) 
+         ) { return false; }
+  }
+
+  if (fitCtau && fitMass && !doCtauErrPDF && !fitCtauTrue ) {
+
+    // Setting extra input information needed by each fitter
+   
+    if ( !fitCharmoniaCtauMassModel( myws, inputWorkspace, cut, parIni, opt, outputDir, 
+                                     DSTAG, isPbPb,
+                                     incJpsi, incPsi2S, 
+                                     inputFitDir, numCores,
+                                     setLogScale, incSS, binWidth
+                                     ) 
          ) { return false; }
   }
 

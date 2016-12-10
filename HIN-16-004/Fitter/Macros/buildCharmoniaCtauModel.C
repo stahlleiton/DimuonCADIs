@@ -28,22 +28,23 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
   }
 
   // C r e a t e   m o d e l 
-     
+  bool usePromptCtauRes = true;
+
   bool fitMass = false;
   if ( ws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP"))) ) { fitMass = true; } 
 
   string pdfName     = "pdfCTAU";
-  //if (fitMass) { pdfName = "pdfCTAUMASS"; }
+  if (fitMass) { pdfName = "pdfCTAUMASS"; }
   bool isMC = (dsName.find("MC")!=std::string::npos);
   bool incCtauErrPDF = true;
   
   if (incJpsi) {
     if (incPrompt) {
-      if(!defineCtauResolModel(ws, "JpsiPR", model.CtauRes, parIni, isPbPb, true)) { cout << "[ERROR] Defining the Prompt Ctau Resolution Model failed" << endl; return false; }
+      if(!defineCtauResolModel(ws, "JpsiPR", model.CtauRes, parIni, isPbPb, usePromptCtauRes)) { cout << "[ERROR] Defining the Prompt Ctau Resolution Model failed" << endl; return false; }
       if(!addSignalCtauModel(ws, "JpsiPR", model.Jpsi.Ctau.Prompt, parIni, isPbPb)) { cout << "[ERROR] Adding Prompt Jpsi Ctau Model failed" << endl; return false; }
     }
     if (incNonPrompt) {
-      if(!defineCtauResolModel(ws, "JpsiNoPR", model.CtauRes, parIni, isPbPb, false)) { cout << "[ERROR] Defining the Non-Prompt Ctau Resolution Model failed" << endl; return false; }
+      if(!defineCtauResolModel(ws, "JpsiNoPR", model.CtauRes, parIni, isPbPb, usePromptCtauRes)) { cout << "[ERROR] Defining the Non-Prompt Ctau Resolution Model failed" << endl; return false; }
       if(!addSignalCtauModel(ws, "JpsiNoPR", model.Jpsi.Ctau.NonPrompt, parIni, isPbPb)) { cout << "[ERROR] Adding NonPrompt Jpsi Ctau Model failed" << endl; return false; }
     }
     if (incPrompt && !incNonPrompt) {
@@ -122,12 +123,12 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                         Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))
                         ));
       }
-      // if ( ws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))) ){
-      //   ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_Jpsi_%s", (isPbPb?"PbPb":"PP")),
-      //                   Form("%s_Jpsi_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
-      //                   Form("pdfMASS_Jpsi_%s",(isPbPb?"PbPb":"PP"))
-      //                   ));
-      // }
+      if ( ws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))) ){
+        ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_Jpsi_%s", (isPbPb?"PbPb":"PP")),
+                        Form("%s_Jpsi_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
+                        Form("pdfMASS_Jpsi_%s",(isPbPb?"PbPb":"PP"))
+                        ));
+      }
       ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_Jpsi_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("%s_Jpsi_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))
@@ -136,11 +137,11 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
   }
   if (incPsi2S) {
     if (incPrompt) {
-      if(!defineCtauResolModel(ws, "Psi2SPR", model.CtauRes, parIni, isPbPb, true)) { cout << "[ERROR] Defining the Prompt Ctau Resolution Model failed" << endl; return false; }
+      if(!defineCtauResolModel(ws, "Psi2SPR", model.CtauRes, parIni, isPbPb, usePromptCtauRes)) { cout << "[ERROR] Defining the Prompt Ctau Resolution Model failed" << endl; return false; }
       if(!addSignalCtauModel(ws, "Psi2SPR", model.Psi2S.Ctau.Prompt, parIni, isPbPb)) { cout << "[ERROR] Adding Prompt Psi2S Ctau Model failed" << endl; return false; }
     }
     if (incNonPrompt) {
-      if(!defineCtauResolModel(ws, "Psi2SNoPR", model.CtauRes, parIni, isPbPb, false)) { cout << "[ERROR] Defining the Non-Prompt Ctau Resolution Model failed" << endl; return false; }
+      if(!defineCtauResolModel(ws, "Psi2SNoPR", model.CtauRes, parIni, isPbPb, usePromptCtauRes)) { cout << "[ERROR] Defining the Non-Prompt Ctau Resolution Model failed" << endl; return false; }
       if(!addSignalCtauModel(ws, "Psi2SNoPR", model.Psi2S.Ctau.NonPrompt, parIni, isPbPb)) { cout << "[ERROR] Adding NonPrompt Psi2S Ctau Model failed" << endl; return false; }
     }
     if (incPrompt && !incNonPrompt) {
@@ -233,11 +234,11 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
   }  
   if (incBkg) {
     if (incPrompt) {
-      if(!defineCtauResolModel(ws, "BkgPR", model.CtauRes, parIni, isPbPb, true)) { cout << "[ERROR] Defining the Prompt Ctau Resolution Model failed" << endl; return false; }
+      if(!defineCtauResolModel(ws, "BkgPR", model.CtauRes, parIni, isPbPb, usePromptCtauRes)) { cout << "[ERROR] Defining the Prompt Ctau Resolution Model failed" << endl; return false; }
       if(!addBackgroundCtauModel(ws, "BkgPR", model.Bkg.Ctau.Prompt, parIni, isPbPb)) { cout << "[ERROR] Adding Prompt Bkg Ctau Model failed" << endl; return false; }
     }
     if (incNonPrompt) {
-      if(!defineCtauResolModel(ws, "BkgNoPR", model.CtauRes, parIni, isPbPb, true)) { cout << "[ERROR] Defining the Non-Prompt Ctau Resolution Model failed" << endl; return false; }
+      if(!defineCtauResolModel(ws, "BkgNoPR", model.CtauRes, parIni, isPbPb, usePromptCtauRes)) { cout << "[ERROR] Defining the Non-Prompt Ctau Resolution Model failed" << endl; return false; }
       if(!addBackgroundCtauModel(ws, "BkgNoPR", model.Bkg.Ctau.NonPrompt, parIni, isPbPb)) { cout << "[ERROR] Adding NonPrompt Bkg Ctau Model failed" << endl; return false; }
     }
     if (incPrompt && !incNonPrompt) {
@@ -729,11 +730,12 @@ void setCtauDefaultParameters(map<string, string> &parIni, bool isPbPb, double n
   if (parIni.count(Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
       parIni[Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.1, 0.8, 2.0);
   }
-  parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{%s,%s})", Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")),
-                                                                 parIni[Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str(), Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP") ));
-  //if (parIni.count(Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-  //  parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 0.001, 600.0);
-  //}
+  if (parIni.count(Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0) {
+    parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{%s,%s})", Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                                                                   parIni[Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str(), Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP") ));
+  } else if ( parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
+    parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 0.001, 600.0);
+  }
   if (parIni.count(Form("sigmaMC_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("sigmaMC_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))]=="") { 
     parIni[Form("sigmaMC_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("sigmaMC_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")), 0.000001, 0.0000001, 1.0);
   }

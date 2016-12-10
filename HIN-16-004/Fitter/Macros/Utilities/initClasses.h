@@ -548,7 +548,7 @@ void getCtauErrRange(TH1* hist, int nMaxBins, vector<double>& rangeErr)
   int firstBin = 1;
   for (int i=binMaximum; i>0; i--) {
     if (hist->GetBinContent(i)>0.0) {
-      if ( binWithContent>0 && ((binWithContent-i) > nMaxBins) && hist->GetBinContent(i)<3.0 ) { firstBin = binWithContent; break; }
+      if ( binWithContent>0 && ((binWithContent-i) > nMaxBins) && hist->GetBinContent(i)<5.0 ) { firstBin = binWithContent; break; }
       else { binWithContent = i; }
     }
   }
@@ -557,7 +557,7 @@ void getCtauErrRange(TH1* hist, int nMaxBins, vector<double>& rangeErr)
   int lastBin = hist->GetNbinsX();
   for (int i=binMaximum; i<hist->GetNbinsX(); i++) {
     if (hist->GetBinContent(i)>0.0) {
-      if ( binWithContent>0 && ((i - binWithContent) > nMaxBins) && hist->GetBinContent(i)<3.0 ) { lastBin = binWithContent+1; break; }
+      if ( binWithContent>0 && ((i - binWithContent) > nMaxBins) && hist->GetBinContent(i)<5.0 ) { lastBin = binWithContent+1; break; }
       else { binWithContent = i; }
     }
   }
@@ -584,7 +584,7 @@ bool setConstant( RooWorkspace& myws, string parName, bool CONST)
 {
   if (myws.var(parName.c_str())) { 
     myws.var(parName.c_str())->setConstant(CONST);
-    cout << "[INFO] Setting parameter " << parName << " : " << myws.var(parName.c_str())->getVal() << " to constant value!" << endl;
+    if (CONST) { cout << "[INFO] Setting parameter " << parName << " : " << myws.var(parName.c_str())->getVal() << " to constant value!" << endl; }
   }
   else if (!myws.function(parName.c_str())) { 
     cout << "[ERROR] Parameter " << parName << " was not found!" << endl;
