@@ -188,10 +188,22 @@ void printTex(map<anabin, vector<double> > mapvals,
    map<anabin, vector<double> >::const_iterator itm;
    for (itm=mapvals.begin(); itm!=mapvals.end(); itm++) {
       anabin thebin = itm->first;
+
+      // filter
+      if ((mask.rapbin().low()>0 || mask.rapbin().high()>0) && (thebin.rapbin() != mask.rapbin())) continue;
+      if ((mask.rapbin().low()<0 || mask.rapbin().high()<0) && (thebin.rapbin() == binF(-mask.rapbin().low(),-mask.rapbin().high()))) continue;
+      if ((mask.ptbin().low()>0 || mask.ptbin().high()>0) && (thebin.ptbin() != mask.ptbin())) continue;
+      if ((mask.ptbin().low()<0 || mask.ptbin().high()<0) && (thebin.ptbin() == binF(-mask.ptbin().low(),-mask.ptbin().high()))) continue;
+      if ((mask.centbin().low()>0 || mask.centbin().high()>0) && (thebin.centbin() != mask.centbin())) continue;
+      if ((mask.centbin().low()<0 || mask.centbin().high()<0) && (thebin.centbin() == binI(-mask.centbin().low(),-mask.centbin().high()))) continue;
+
       vector<double> vval, vchi2; vector<int> vndof;
       vval = itm->second;
       vchi2 = mapchi2[thebin];
       vndof = mapndof[thebin];
+
+      // skip problematic bins
+      if (vval.size()==0 || vval[0]<=0 || vchi2[0]<=0 || vndof[0]<=0) continue;
 
       if (thebin.rapbin() == oldbin.rapbin()) {
          texfile << " - ";
@@ -214,7 +226,7 @@ void printTex(map<anabin, vector<double> > mapvals,
       texfile.setf(ios::fixed);
 
       // first print the nominal value
-      texfile << " & " << 100.*vval[0] << "\\% (" << 100.*maperr[thebin]/vval[0] << "\\%, " << vchi2[0] << "/" << vndof[0] << ")";
+      texfile << " & " << vval[0] << " (" << 100.*maperr[thebin]/vval[0] << "\\%, " << vchi2[0] << "/" << vndof[0] << ")";
 
       // then the alternative values
       for (unsigned int i=1; i<vval.size(); i++) {
