@@ -24,12 +24,12 @@ void fitter(
             bool fitMC        = false,         // Fits MC datasets
             bool fitPbPb      = true,         // Fits PbPb datasets
             bool fitPP        = true,        // Fits PP datasets
-            bool fitMass      = false,        // Fits invariant mass distribution
+            bool fitMass      = true,        // Fits invariant mass distribution
             bool fitCtau      = true,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
             bool doCtauErrPDF = false,       // If yes, it builds the Ctau Error PDFs from data
             // Select the type of object to fit
-            bool incJpsi      = false,          // Includes Jpsi model
+            bool incJpsi      = true,          // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
             bool incBkg       = true,         // Includes Background model
             bool incPrompt    = true,         // Includes Prompt ctau model
@@ -58,9 +58,9 @@ void fitter(
 
   map<string, double> binWidth;
   binWidth["MASS"]     = 0.025;
-  binWidth["CTAU"]     = 0.0025;
+  binWidth["CTAU"]     = 0.025;
   binWidth["CTAUERR"]  = 0.0025;
-  binWidth["CTAUTRUE"] = 0.005;
+  binWidth["CTAUTRUE"] = 0.025;
   binWidth["CTAURES"]  = 0.0025;
   binWidth["CTAUSB"]   = 0.025;
 
@@ -68,10 +68,22 @@ void fitter(
   inputFitDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/"; 
   inputFitDir["CTAUERR"]  = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/";
   inputFitDir["CTAUTRUE"] = "/afs/cern.ch/user/v/vabdulla/public/";
-  inputFitDir["CTAURES"]  = "";
-  inputFitDir["CTAUSB"]   = "";
+  inputFitDir["CTAURES"]  = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
+  inputFitDir["CTAUSB"]   = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
+
+  map<string, string> inputInitialFilesDir;
+  inputInitialFilesDir["MASS"]     = "";
+  inputInitialFilesDir["CTAUTRUE"] = "";
+  inputInitialFilesDir["CTAURES"]  = "";
+  inputInitialFilesDir["CTAUSB"]   = "";
+  inputInitialFilesDir["CTAU"]     = "";
 
   for (map<string, string>::iterator iMap=inputFitDir.begin();  iMap!=inputFitDir.end(); iMap++) {
+    if (iMap->second!="") { 
+      if (!useExtFiles) iMap->second = "";
+      else  iMap->second += workDirName + "/";}
+  }
+  for (map<string, string>::iterator iMap=inputInitialFilesDir.begin();  iMap!=inputInitialFilesDir.end(); iMap++) {
     if (iMap->second!="") { 
       if (!useExtFiles) iMap->second = "";
       else  iMap->second += workDirName + "/";}
@@ -91,6 +103,19 @@ void fitter(
       if (inputFitDirs[i][key]!="") {
         inputFitDirs[i][key] = DIR["input"][i];
         inputFitDirs[i][key].replace(inputFitDirs[i][key].find(DIR["input"][0]), DIR["input"][0].length(), inputFitDirs[0][key]);
+      }
+    }
+  }
+
+  vector< map<string, string> > inputInitialFilesDirs;
+  inputInitialFilesDirs.push_back(inputInitialFilesDir);
+  for(uint i=1; i<DIR["input"].size(); i++) {
+    inputInitialFilesDirs.push_back(inputInitialFilesDir);
+    for(map<string, string>::iterator iter=inputInitialFilesDirs[i].begin(); iter!=inputInitialFilesDirs[i].end(); iter++) {
+      string key = iter->first;
+      if (inputInitialFilesDirs[i][key]!="") {
+        inputInitialFilesDirs[i][key] = DIR["input"][i];
+        inputInitialFilesDirs[i][key].replace(inputInitialFilesDirs[i][key].find(DIR["input"][0]), DIR["input"][0].length(), inputInitialFilesDirs[0][key]);
       }
     }
   }
@@ -191,8 +216,8 @@ void fitter(
        {"BKG",   fitCtau && incBkg && incNonPrompt}, 
        {"JPSI",  fitCtau && incJpsi && incNonPrompt}, 
        {"PSI2S", fitCtau && incPsi2S && incNonPrompt},
-       {"RES",   fitCtau && !existCtauRes},
-       {"TRUE",  !existCtauTrue && (fitCtauTrue || (fitCtau && incNonPrompt))},
+       {"RES",   fitCtau},
+       {"TRUE",  fitCtauTrue && !existCtauTrue},
      }
     }
   };
@@ -212,8 +237,14 @@ void fitter(
           string name2 = name1 + PAR->first + "_";
           for(it_type COL = COLMAP.begin(); COL != COLMAP.end(); COL++) {
             if(COL->second) {
+              string dir = DIR["input"][j];
+              if (PAR->first=="MASS" && inputInitialFilesDirs[j]["MASS"]!="") { dir = inputInitialFilesDirs[j]["MASS"]; }
+              if (PAR->first=="CTAU" && COL->first=="TRUE" && inputInitialFilesDirs[j]["CTAUTRUE"]!="") { dir = inputInitialFilesDirs[j]["CTAUTRUE"]; }
+              if (PAR->first=="CTAU" && COL->first=="RES"  && inputInitialFilesDirs[j]["CTAURES"]!="" ) { dir = inputInitialFilesDirs[j]["CTAURES"];  }
+              if (PAR->first=="CTAU" && COL->first=="BKG"  && inputInitialFilesDirs[j]["CTAUSB"]!=""  ) { dir = inputInitialFilesDirs[j]["CTAUSB"];   }
+              if (PAR->first=="CTAU" && COL->first=="JPSI" && inputInitialFilesDirs[j]["CTAU"]!=""    ) { dir = inputInitialFilesDirs[j]["CTAU"];     }
               string name3 = name2 + COL->first + ".csv";
-              InputFile = (DIR["input"][j] + name3);
+              InputFile = (dir + name3);
               if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
             }
           }

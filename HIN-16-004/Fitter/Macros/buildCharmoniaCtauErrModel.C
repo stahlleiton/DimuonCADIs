@@ -9,6 +9,7 @@ bool makeCtauErrPdf(RooWorkspace& ws, vector<TH1D*>& outputHist, vector<string> 
 bool createCtauErrTemplate(RooWorkspace& ws, string dsName, string pdfType, struct KinCuts cut,  map<string,string> parIni, bool incJpsi, bool incPsi2S, double binWidth);
 bool addCtauErrModel(RooWorkspace& ws, string object, string pdfType, map<string,string> parIni, bool isPbPb);
 TH1* rebinhist(TH1 *hist, double xmin=1e99, double xmax=-1e99);
+void MatrixInverse2x2(TMatrixD& Inverse);
 
 
 bool buildCharmoniaCtauErrModel(RooWorkspace& ws, map<string, string>  parIni, 
@@ -111,7 +112,7 @@ bool createCtauErrTemplate(RooWorkspace& ws, string dsName, string pdfType, stru
       hBkg->Add(outputHist_JPSI.at(0), -1.0);
       if ( !histToPdf(ws, outputHist_JPSI.at(0), Form("%s_Jpsi_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP")), rangeErr)) { return false; }
       if (!incPsi2S) {
-        if ( !histToPdf(ws, outputHist_JPSI.at(1), Form("%s_Bkg_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP")), rangeErr)) { return false; }
+        if ( !histToPdf(ws, hBkg/*outputHist_JPSI.at(1)*/, Form("%s_Bkg_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP")), rangeErr)) { return false; }
       }
       delete outputHist_JPSI.at(0); delete outputHist_JPSI.at(1);
     }
@@ -196,6 +197,7 @@ bool makeCtauErrPdf(RooWorkspace& ws, vector<TH1D*>& outputHist, vector<string> 
       cout << "[ERROR] Normalization factor for Range: " << rangeColl.at(j) << " is invalid: " << Form("%.4f",Norm) << endl; return false;
     }
   }
+
   // Get the inverse of the coefficients
   CoefficientMatrix.Print();
   Double_t Det = CoefficientMatrix.Determinant();
@@ -204,7 +206,7 @@ bool makeCtauErrPdf(RooWorkspace& ws, vector<TH1D*>& outputHist, vector<string> 
     InvMatrix.Invert();
     TMatrixD TestMatrix = InvMatrix * CoefficientMatrix;
     double testDet = TestMatrix.Determinant();
-    if (fabs(testDet-1.0)>0.0000001) { cout << Form("[WARNING] Determinant of invMatrix * CoefficienctMatrix is: %.10f", testDet) << endl; }
+    if (fabs(testDet-1.0)>0.000000001) { cout << Form("[WARNING] Determinant of invMatrix * CoefficienctMatrix is: %.10f", testDet) << endl; }
   } else {
     cout << "[ERROR] Determinant of Coefficient Matrix is invalid: " << Form("%.4f",Det) << endl; return false;
   }
@@ -319,6 +321,23 @@ void setCtauErrDefaultParameters(map<string, string> &parIni, bool isPbPb, doubl
   if (parIni.count(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))]=="") { 
     parIni[Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.12f,%.12f,%.12f]", Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")), numEntries, 0.0, numEntries*2.0);
   }
+
+  return;
+};
+
+
+void MatrixInverse2x2(TMatrixD& Inverse)
+{
+  Double_t A = Inverse(0,0)  ,  B = Inverse(1,0);
+  Double_t C = Inverse(0,1)  ,  D = Inverse(1,1);
+
+  Double_t det = ( ( A*D ) - ( B*C ) );
+
+  Double_t Ainv = ( D/det )       ,  Binv = -1.0*( B/det );
+  Double_t Cinv = -1.0*( C/det )  ,  Dinv = ( A/det );
+
+  Inverse(0,0) = Ainv;   Inverse(1,0) = Binv;
+  Inverse(0,1) = Cinv;   Inverse(1,1) = Dinv;
 
   return;
 };

@@ -387,8 +387,9 @@ bool setCtauModel( struct OniaModel& model, map<string, string>&  parIni, bool i
 void setCtauGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label, double binWidth, bool fitCtauRes)
 {
   Double_t ctauMax; Double_t ctauMin;
-  int nBins = min(int( round((cut.dMuon.ctau.Max - cut.dMuon.ctau.Min)/binWidth) ), 1000);
   myws.data(Form("dOS_%s", label.c_str()))->getRange(*myws.var("ctau"), ctauMin, ctauMax);
+  int nBins = min(int( round((ctauMax - ctauMin)/binWidth) ), 1000);
+  myws.var("ctau")->setMin(ctauMin); myws.var("ctau")->setMax(ctauMax);
   TH1D* hTot = (TH1D*)myws.data(Form("dOS_%s", label.c_str()))->createHistogram("TMP", *myws.var("ctau"), Binning(nBins, ctauMin, ctauMax));
   vector<double> rangeErr; 
   getCtauErrRange(hTot, (int)(ceil(2)), rangeErr);
