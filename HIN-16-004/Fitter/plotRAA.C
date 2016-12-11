@@ -147,6 +147,16 @@ void plotRap(string workDirName) {
    plot(theCats,xaxis,workDirName);
 };
 
+void plotAll(string workDirName) {
+   plotPt(workDirName,0);
+   plotPt(workDirName,1);
+   plotPt(workDirName,2);
+   plotCent(workDirName,0);
+   plotCent(workDirName,1);
+   plotCent(workDirName,2);
+   plotRap(workDirName);
+};
+
 /////////////////////
 // OTHER FUNCTIONS //
 /////////////////////
@@ -521,9 +531,11 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
    tleg->Draw();
 
    TLatex tl;
-   double tlx = 0.2+xshift;
+   double tlx = 0.92;
    double tly = 0.69;
-   // tl.DrawLatexNDC(tlx,tly,"Passing #font[12]{l}_{J/#psi}^{3D} cut");
+   tl.SetTextAlign(32); // right adjusted
+   if (doprompt) tl.DrawLatexNDC(tlx,tly,"Prompt J/#psi");
+   if (dononprompt) tl.DrawLatexNDC(tlx,tly,"Nonprompt J/#psi");
 
    int iPos = 33;
    CMS_lumi( (TPad*) gPad, 106, iPos, "" );
