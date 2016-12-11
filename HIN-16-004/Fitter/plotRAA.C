@@ -33,20 +33,22 @@ using namespace std;
 
 #ifndef poiname_check
 #define poiname_check
-// const char* poiname = "RFrac2Svs1S"; // for double ratios
 const char* poiname       = "N_Jpsi"; // for RAA (will correct automatically for efficiency)
-// const char* poiname = "N_Psi2S"; // for RAA (will correct automatically for efficiency)
 #endif
 const char* ylabel        = "R_{AA}";
-const bool  fiterrors     = true;  // statistical errors are from the fit
-const bool  plotsysts     = true;  // display systematics
-const string nameTag_base = "";    // can put here e.g. "_prompt", "_nonprompt", ...
+
+bool  fiterrors     = true;  // statistical errors are from the fit
+bool  plotsysts     = true;  // display systematics
+bool  doprompt      = true;  // prompt Jpsi
+bool  dononprompt   = false;  // nonprompt Jpsi
+string nameTag_base = "_prompt";    // can put here e.g. "_prompt", "_nonprompt", ...
 
 //////////////////
 // DECLARATIONS //
 //////////////////
 
-// plot
+void printOptions();
+void setOptions(bool afiterrors, bool aplotsysts, bool adoprompt, bool adononprompt, string anameTag_base);
 void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsymmErrors*> theGraphs_syst, string xaxis, string outputDir, map<anabin, syst> gsyst);
 void plot(vector<anabin> thecats, string xaxis, string workDirName);
 void centrality2npart(TGraphAsymmErrors* tg, bool issyst=false, double xshift=0.);
@@ -68,6 +70,10 @@ class raa_input {
       double lumipp;
       double lumiaa;
       double ncoll;
+      double bfracpp;
+      double dbfracpp;
+      double bfracaa;
+      double dbfracaa;
       syst   statpp;
 };
 
@@ -149,6 +155,11 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
    // thecats contains the categories. eg 0<y<1.6 and 1.6<y<2.4
    // xaxis is the variable to be plotted. "pt", "rap" or "cent"
 
+   if (doprompt && dononprompt) {
+      cout << "ERROR you can't set both doprompt and dononprompt to true." << endl;
+      return;
+   }
+
    TFile *f = new TFile(treeFileName(outputDir.c_str(),"DATA"));
    if (!f || !f->IsOpen()) {
       results2tree(outputDir.c_str(),"DATA");
@@ -171,6 +182,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
    float ptmin, ptmax, ymin, ymax, centmin, centmax;
    float eff, lumi, taa, ncoll;
    float val, err=0;
+   float bfrac, bfrac_err;
    int ival=-999;
    char collSystem[5];
    tr->SetBranchAddress("ptmin",&ptmin);
@@ -182,10 +194,13 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
    tr->SetBranchAddress(Form("%s_val",poiname),&val);
    tr->SetBranchAddress(Form("%s_err",poiname),&err);
    tr->SetBranchAddress("collSystem",collSystem);
-   tr->SetBranchAddress("eff_val",&eff);
+   if (!dononprompt) tr->SetBranchAddress("eff_val",&eff);
+   else tr->SetBranchAddress("effnp_val",&eff);
    tr->SetBranchAddress("lumi_val",&lumi);
    tr->SetBranchAddress("taa_val",&taa);
    tr->SetBranchAddress("ncoll_val",&ncoll);
+   tr->SetBranchAddress("b_Jpsi_val",&bfrac);
+   tr->SetBranchAddress("b_Jpsi_err",&bfrac_err);
 
    int ntr = tr->GetEntries();
    for (int i=0; i<ntr; i++) {
@@ -197,6 +212,8 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       if (ispp) {
          theVars_inputs[thebin].npp = val;
          theVars_inputs[thebin].dnpp_stat = err;
+         theVars_inputs[thebin].bfracpp = bfrac;
+         theVars_inputs[thebin].dbfracpp = bfrac_err;
          theVars_inputs[thebin].systpp = syst_PP[thebin].value;
          syst thestat_PP; thestat_PP.name = "stat_PP"; thestat_PP.value = err/val;
          stat_PP[thebin] = thestat_PP;
@@ -206,6 +223,8 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       } else {
          theVars_inputs[thebin].naa = val;
          theVars_inputs[thebin].dnaa_stat = err;
+         theVars_inputs[thebin].bfracaa = bfrac;
+         theVars_inputs[thebin].dbfracaa = bfrac_err;
          theVars_inputs[thebin].systaa = syst_PbPb[thebin].value;
          theVars_inputs[thebin].lumiaa = lumi;
          theVars_inputs[thebin].effaa = eff; 
@@ -235,6 +254,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       raa_input spp = theVars_inputs[thebinPP];
 
       if (s.effaa <= 0 || spp.effpp <= 0 || s.naa <= 0 || spp.npp <= 0) continue;
+      if ((doprompt || dononprompt) && (spp.bfracpp<=0 || s.bfracaa<=0)) continue;
 
       theBins[thebin].push_back(it->first);
 
@@ -247,13 +267,32 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       normfactorpp = normfactorpp / spp.effpp;
       normfactoraa = normfactoraa / s.effaa;
 
-      double naa = s.naa * normfactoraa;
-      double npp = spp.npp * normfactorpp;
-      double dnaa = s.dnaa_stat * normfactoraa;
-      double dnpp = spp.dnpp_stat * normfactorpp;
+      double naa = s.naa;
+      double npp = spp.npp;
+      double dnaa = s.dnaa_stat;
+      double dnpp = spp.dnpp_stat;
+
+      if (doprompt) {
+         naa = s.naa*(1.-s.bfracaa);
+         npp = spp.npp*(1.-spp.bfracpp);
+         dnaa = naa*sqrt(pow(s.dnaa_stat/s.naa,2) + pow(s.dbfracaa/s.bfracaa,2));
+         dnpp = npp*sqrt(pow(spp.dnpp_stat/spp.npp,2) + pow(spp.dbfracpp/spp.bfracpp,2));
+      }
+      if (dononprompt) {
+         naa = s.naa*s.bfracaa;
+         npp = spp.npp*spp.bfracpp;
+         dnaa = naa*sqrt(pow(s.dnaa_stat/s.naa,2) + pow(s.dbfracaa/s.bfracaa,2));
+         dnpp = npp*sqrt(pow(spp.dnpp_stat/spp.npp,2) + pow(spp.dbfracpp/spp.bfracpp,2));
+      }
+
+      naa *= normfactoraa;
+      npp *= normfactorpp;
+      dnaa *= normfactoraa;
+      dnpp *= normfactorpp;
+
       double raa = npp>0 ? naa / npp : 0;
       double draa = raa>0 ? raa*sqrt(pow(dnaa/naa,2) + pow(dnpp/npp,2)) : 0;
-      // cout << it->first.ptbin().low() << " " << it->first.ptbin().high() << " -> " << raa << " " << s.naa << " " << spp.npp << " " << s.effaa << " " << spp.effpp << endl;
+      // cout << it->first.ptbin().low() << " " << it->first.ptbin().high() << " -> " << raa << " " << s.naa << " " << spp.npp << " " << s.effaa << " " << spp.effpp << ", " << s.bfracaa << " " << spp.bfracpp << endl;
       double syst = raa*sqrt(pow(spp.systpp,2)+pow(s.systaa,2));
 
       // case of the centrality dependence: factor out pp uncertainties, but include taa
@@ -541,6 +580,7 @@ int color(int i) {
    else if (i==5) return kOrange+2;
    else return kBlack;
 }
+
 int markerstyle(int i) {
    if (i==0) return kFullSquare;
    else if (i==1) return kFullCircle;
@@ -549,4 +589,24 @@ int markerstyle(int i) {
    else if (i==4) return kOpenSquare;
    else if (i==5) return kOpenCircle;
    else return kOpenStar;
+}
+
+void setOptions(bool afiterrors, bool aplotsysts, bool adoprompt, bool adononprompt, string anameTag_base) {
+   fiterrors = afiterrors;
+   plotsysts = aplotsysts;
+   doprompt = adoprompt;
+   dononprompt = adononprompt;
+   nameTag_base = anameTag_base;
+   if (doprompt) nameTag_base += "_prompt";
+   if (dononprompt) nameTag_base += "_nonprompt";
+}
+
+void printOptions() {
+   cout << 
+      "fiterrors = " << fiterrors << ", "
+      "plotsysts = " << plotsysts << ", "
+      "doprompt = " << doprompt << ", "
+      "dononprompt = " << dononprompt << ", "
+      "nameTag_base = \"" << nameTag_base << "\"" << 
+      endl;
 }
