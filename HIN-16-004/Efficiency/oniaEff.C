@@ -59,7 +59,7 @@ const double massup = 0.40;
 using namespace HI;
 using namespace std;
 
-void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
+void oniaEff::Loop(const char* fname, bool ispbpb, const int tnptype)
 {
 //   In a ROOT session, you can do:
 //      root> .L oniaEff.C
@@ -268,7 +268,8 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
          if (!isTriggerMatch(i,0)) continue; // HLT_HIL1DoubleMu0_v1
          // mass cut
          double mass = ((TLorentzVector*) Reco_QQ_4mom->At(i))->M();
-         double mass0 = isPsip ? masspsip : massjpsi;
+         double mass0 = massjpsi;
+//         double mass0 = isPsip ? masspsip : massjpsi;
 //         double massdown = isPsip ? 0.5 : 0.6;
 //         double massup = isPsip ? 0.5 : 0.4;
          if (mass<(mass0-massdown) || mass>(mass0+massup)) continue;
@@ -302,9 +303,49 @@ void oniaEff::Loop(const char* fname, bool ispbpb, bool isPsip)
       double recMuPlEta = tlvrecpl->Eta();
       double recMuMipt = tlvrecmi->Pt();
       double recMuMiEta = tlvrecmi->Eta();
-      
-      tnp_weight = tnp_weight_sta_pbpb(recMuPlpt, recMuPlEta, 0)*tnp_weight_sta_pbpb(recMuMipt, recMuMiEta, 0)*tnp_weight_muidtrg_pbpb(recMuPlpt, recMuPlEta, 0) * tnp_weight_muidtrg_pbpb(recMuMipt, recMuMiEta, 0);
-      //weight = weight*tnp_weight;
+     
+      if (ispbpb) { 
+        if (tnptype == tnpTypes::trg) { // nominal
+          tnp_weight = tnp_weight_trg_pbpb(recMuPlpt, recMuPlEta, 0) * tnp_weight_trg_pbpb(recMuMipt, recMuMiEta, 0);
+        } else if (tnptype == tnpTypes::trg_binned) {
+          tnp_weight = tnp_weight_trg_pbpb(recMuPlpt, recMuPlEta, -10) * tnp_weight_trg_pbpb(recMuMipt, recMuMiEta, -10);
+        } else if (tnptype == tnpTypes::trg_plus1sigma) {
+          tnp_weight = tnp_weight_trg_pbpb(recMuPlpt, recMuPlEta, -1) * tnp_weight_trg_pbpb(recMuMipt, recMuMiEta, -1);
+        } else if (tnptype == tnpTypes::trg_minus1sigma) {
+          tnp_weight = tnp_weight_trg_pbpb(recMuPlpt, recMuPlEta, -2) * tnp_weight_trg_pbpb(recMuMipt, recMuMiEta, -2);
+        } else if (tnptype == tnpTypes::trg__muid__sta) {
+          tnp_weight = tnp_weight_sta_pp(recMuPlpt, recMuPlEta) * tnp_weight_sta_pp(recMuMipt, recMuMiEta) *
+                       tnp_weight_trg_pbpb(recMuPlpt, recMuPlEta, 0) * tnp_weight_trg_pbpb(recMuMipt, recMuMiEta, 0) *
+                       tnp_weight_muid_pbpb(recMuPlpt, recMuPlEta) * tnp_weight_muid_pbpb(recMuMipt, recMuMiEta);
+        } else if (tnptype == tnpTypes::trg__muid) {
+          tnp_weight = tnp_weight_trg_pbpb(recMuPlpt, recMuPlEta, 0) * tnp_weight_trg_pbpb(recMuMipt, recMuMiEta, 0) *
+                       tnp_weight_muid_pbpb(recMuPlpt, recMuPlEta) * tnp_weight_muid_pbpb(recMuMipt, recMuMiEta);
+        } else if (tnptype == tnpTypes::trg__sta) {
+          tnp_weight = tnp_weight_trg_pbpb(recMuPlpt, recMuPlEta, 0) * tnp_weight_trg_pbpb(recMuMipt, recMuMiEta, 0) *
+                       tnp_weight_sta_pp(recMuPlpt, recMuPlEta) * tnp_weight_sta_pp(recMuMipt, recMuMiEta);
+        }
+      } else { //pp
+        if (tnptype == tnpTypes::trg) { // nominal
+          tnp_weight = tnp_weight_trg_pp(recMuPlpt, recMuPlEta, 0) * tnp_weight_trg_pp(recMuMipt, recMuMiEta, 0);
+        } else if (tnptype == tnpTypes::trg_binned) {
+          tnp_weight = tnp_weight_trg_pp(recMuPlpt, recMuPlEta, -10) * tnp_weight_trg_pp(recMuMipt, recMuMiEta, -10);
+        } else if (tnptype == tnpTypes::trg_plus1sigma) {
+          tnp_weight = tnp_weight_trg_pp(recMuPlpt, recMuPlEta, -1) * tnp_weight_trg_pp(recMuMipt, recMuMiEta, -1);
+        } else if (tnptype == tnpTypes::trg_minus1sigma) {
+          tnp_weight = tnp_weight_trg_pp(recMuPlpt, recMuPlEta, -2) * tnp_weight_trg_pp(recMuMipt, recMuMiEta, -2);
+        } else if (tnptype == tnpTypes::trg__muid__sta) {
+          tnp_weight = tnp_weight_sta_pp(recMuPlpt, recMuPlEta) * tnp_weight_sta_pp(recMuMipt, recMuMiEta) *
+                       tnp_weight_trg_pp(recMuPlpt, recMuPlEta, 0) * tnp_weight_trg_pp(recMuMipt, recMuMiEta, 0) *
+                       tnp_weight_muid_pp(recMuPlpt, recMuPlEta) * tnp_weight_muid_pp(recMuMipt, recMuMiEta);
+        } else if (tnptype == tnpTypes::trg__muid) {
+          tnp_weight = tnp_weight_trg_pp(recMuPlpt, recMuPlEta, 0) * tnp_weight_trg_pp(recMuMipt, recMuMiEta, 0) *
+                       tnp_weight_muid_pp(recMuPlpt, recMuPlEta) * tnp_weight_muid_pp(recMuMipt, recMuMiEta);
+        } else if (tnptype == tnpTypes::trg__sta) {
+          tnp_weight = tnp_weight_trg_pp(recMuPlpt, recMuPlEta, 0) * tnp_weight_trg_pp(recMuMipt, recMuMiEta, 0) *
+                       tnp_weight_sta_pp(recMuPlpt, recMuPlEta) * tnp_weight_sta_pp(recMuMipt, recMuMiEta);
+        }
+      }
+      weight = weight*tnp_weight;
       
       // fill the numerators
       // Eff vs rap integrated

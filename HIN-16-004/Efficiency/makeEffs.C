@@ -41,19 +41,19 @@ void makeEffs() {
 
    cout << "Efficiencies for pp prompt Jpsi" << endl;
    oniaEff obj_jpsi_pp(tch_jpsi_pp);
-   obj_jpsi_pp.Loop(Form("%s/histos_jpsi_pp.root",dir.c_str()),false,false);
+   obj_jpsi_pp.Loop(Form("%s/histos_jpsi_pp.root",dir.c_str()),false,0);
 
    cout << "Efficiencies for pp non-prompt Jpsi" << endl;
    oniaEff obj_npjpsi_pp(tch_npjpsi_pp);
-   obj_npjpsi_pp.Loop(Form("%s/histos_npjpsi_pp.root",dir.c_str()),false,false);
+   obj_npjpsi_pp.Loop(Form("%s/histos_npjpsi_pp.root",dir.c_str()),false,0);
 
 
    cout << "Efficiencies for pbpb prompt Jpsi" << endl;
    oniaEff obj_jpsi_pbpb(tch_jpsi_pbpb);
-   obj_jpsi_pbpb.Loop(Form("%s/histos_jpsi_pbpb.root",dir.c_str()),true,false);
+   obj_jpsi_pbpb.Loop(Form("%s/histos_jpsi_pbpb.root",dir.c_str()),true,0);
 
    cout << "Efficiencies for pbpb non-prompt Jpsi" << endl;
    oniaEff obj_npjpsi_pbpb(tch_npjpsi_pbpb);
-   obj_npjpsi_pbpb.Loop(Form("%s/histos_npjpsi_pbpb.root",dir.c_str()),true,false);
+   obj_npjpsi_pbpb.Loop(Form("%s/histos_npjpsi_pbpb.root",dir.c_str()),true,0);
 
 }
