@@ -199,6 +199,15 @@ set<anabin> allbins() {
    ans.insert(anabin(0,2.4,13,15,60,200));
    ans.insert(anabin(0,2.4,15,20,60,200));
    ans.insert(anabin(0,2.4,20,50,60,200));
+   // 0-100% (for pp)
+   ans.insert(anabin(0,2.4,6.5,7.5,0,200));
+   ans.insert(anabin(0,2.4,7.5,8.5,0,200));
+   ans.insert(anabin(0,2.4,8.5,9.5,0,200));
+   ans.insert(anabin(0,2.4,9.5,11,0,200));
+   ans.insert(anabin(0,2.4,11,13,0,200));
+   ans.insert(anabin(0,2.4,13,15,0,200));
+   ans.insert(anabin(0,2.4,15,20,0,200));
+   ans.insert(anabin(0,2.4,20,50,0,200));
 
    // rapidity dependence
    ans.insert(anabin(0.0,0.4,6.5,50,0,200));

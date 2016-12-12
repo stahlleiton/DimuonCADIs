@@ -38,7 +38,7 @@ void results2tree(
       // lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg,b_Bkg,
       // ctau1_CtauRes,ctau2_CtauRes,f_CtauRes,rSigma21_CtauRes,sigma1_CtauRes,
       // fDFSS_BkgNoPR,fDLIV_BkgNoPR,lambdaDDS_BkgNoPR,lambdaDF_BkgNoPR,lambdaDSS_BkgNoPR,lambdaDSS_JpsiNoPR,
-      // eff,effnp,lumi,taa,ncoll,npart",
+      // eff,effnp,lumi,taa,ncoll,npart,correl_N_Jpsi_vs_b_Jpsi",
       bool wantPureSMC //=false
       ) {
    // workDirName: usual tag where to look for files in Output
@@ -109,12 +109,15 @@ void results2tree(
 
       // get the model names
       from = 0;
-      bool catchjpsi=false, catchbkg=false;
+      bool catchjpsi=false, catchbkg=false, catchtype=false;
+      TString modelType;
       while (it->Tokenize(t, from, "_")) {
          if (catchjpsi) {strcpy(jpsiName, t.Data()); catchjpsi=false;}
          if (catchbkg) {strcpy(bkgName, t.Data()); catchbkg=false;}
+         if (catchtype) {modelType = t; catchtype=false;}
          if (t=="Jpsi") catchjpsi=true;
          if (t=="Bkg") catchbkg=true;
+         if (t.EndsWith("FIT")) catchtype=true;
       }
 
       TFile *f = TFile::Open(*it); RooWorkspace *ws = NULL;
@@ -130,9 +133,9 @@ void results2tree(
       nll=0; chi2=0; npar=0; ndof=0;
       if (f && ws) {
          // get the model for nll and npar
-         RooAbsPdf *model = pdfFromWS(ws, Form("_%s",collSystem), "pdfMASS_Tot");
+         RooAbsPdf *model = pdfFromWS(ws, Form("_%s",collSystem), Form("pdf%s_Tot",modelType.Data()));
 
-         RooAbsPdf *model_bkg = pdfFromWS(ws, Form("_%s",collSystem), "pdfMASS_Bkg");
+         RooAbsPdf *model_bkg = pdfFromWS(ws, Form("_%s",collSystem), Form("pdf%s_Bkg",modelType.Data()));
          const char* token = (strcmp(DSTag,"DATA") && wantPureSMC) ? Form("_%s_NoBkg",collSystem) : Form("_%s",collSystem);
          RooAbsData *dat = dataFromWS(ws, token, Form("dOS_%s", DSTag));
          if (dat) {
@@ -178,7 +181,25 @@ void results2tree(
             itpoi->val = thevar ? thevar->getVal() : 0;
             itpoi->err = thevar ? thevar->getError() : 0;
 
-            if (TString(itpoi->name).Contains("eff")) {
+            if (TString(itpoi->name).Contains("correl_")) {
+               // correlation between two variables
+               TString toparse = TString(itpoi->name).ReplaceAll("correl_","");
+               TString var1name, var2name;
+               from = 0; int i=0;
+               while (toparse.Tokenize(t, from, "_vs_")) {
+                  if (i==0) var1name = t;
+                  if (i==1) var2name = t;
+                  i++;
+               }
+               RooFitResult *fr = (RooFitResult*) ws->obj(Form("fitResult_pdf%s_Tot_%s",modelType.Data(),collSystem));
+               RooRealVar *thevar1 = poiFromWS(ws, Form("_%s",collSystem), var1name);
+               RooRealVar *thevar2 = poiFromWS(ws, Form("_%s",collSystem), var2name);
+               if (fr) {
+                  itpoi->val = fr->correlation(Form("%s_%s",var1name.Data(),collSystem),Form("%s_%s",var2name.Data(),collSystem));
+                  itpoi->err = thevar1 && thevar2 ? itpoi->val * thevar1->getError() * thevar2->getError() : 0;
+               }
+            } else if (TString(itpoi->name).Contains("eff")) {
+               // efficiency
                TFile *feff = TFile::Open(Form("../Efficiency/files/histos_%s_%s.root", 
                         TString(itpoi->name)=="effnp" ? "npjpsi" : "jpsi", 
                         isPP ? "pp" : "pbpb"));
@@ -238,8 +259,7 @@ void results2tree(
                itpoi->val = efficiency;
                itpoi->err = (numval>0 && denval>0) ? efficiency*sqrt(pow(numerr/numval,2)+pow(denerr/denval,2)) : 0;
                delete feff;
-            }
-            if (TString(itpoi->name)=="lumi") {
+            } else if (TString(itpoi->name)=="lumi") {
                // luminosity and Ncoll
                if (isPP) {
                   itpoi->val = lumipp;
@@ -249,8 +269,7 @@ void results2tree(
                   else itpoi->val = lumipbpb_ABCD;
                   itpoi->err = 0; // FIXME
                }
-            }
-            if (TString(itpoi->name)=="ncoll") {
+            } else if (TString(itpoi->name)=="ncoll") {
                if (isPP) {
                   itpoi->val=1; 
                   itpoi->err=0;
@@ -258,8 +277,7 @@ void results2tree(
                   itpoi->val = HI::findNcollAverage(thebin.centbin().low(),thebin.centbin().high());
                   itpoi->err = 0; //FIXME
                }
-            }
-            if (TString(itpoi->name)=="npart") {
+            } else if (TString(itpoi->name)=="npart") {
                if (isPP) {
                   itpoi->val=2; 
                   itpoi->err=0;

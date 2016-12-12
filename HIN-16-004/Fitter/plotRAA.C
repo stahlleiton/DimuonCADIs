@@ -74,6 +74,8 @@ class raa_input {
       double dbfracpp;
       double bfracaa;
       double dbfracaa;
+      double correlaa;
+      double correlpp;
       syst   statpp;
 };
 
@@ -193,6 +195,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
    float eff, lumi, taa, ncoll;
    float val, err=0;
    float bfrac, bfrac_err;
+   float correl=0;
    int ival=-999;
    char collSystem[5];
    tr->SetBranchAddress("ptmin",&ptmin);
@@ -211,6 +214,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
    tr->SetBranchAddress("ncoll_val",&ncoll);
    tr->SetBranchAddress("b_Jpsi_val",&bfrac);
    tr->SetBranchAddress("b_Jpsi_err",&bfrac_err);
+   tr->SetBranchAddress("correl_N_Jpsi_vs_b_Jpsi_val",&correl);
 
    int ntr = tr->GetEntries();
    for (int i=0; i<ntr; i++) {
@@ -230,6 +234,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
          theVars_inputs[thebin].statpp = thestat_PP;
          theVars_inputs[thebin].lumipp = lumi;
          theVars_inputs[thebin].effpp = eff; 
+         theVars_inputs[thebin].correlpp = correl; 
       } else {
          theVars_inputs[thebin].naa = val;
          theVars_inputs[thebin].dnaa_stat = err;
@@ -240,6 +245,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
          theVars_inputs[thebin].effaa = eff; 
          theVars_inputs[thebin].taa = taa; 
          theVars_inputs[thebin].ncoll = ncoll; 
+         theVars_inputs[thebin].correlaa = correl; 
       }
    }
 
@@ -285,14 +291,22 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       if (doprompt) {
          naa = s.naa*(1.-s.bfracaa);
          npp = spp.npp*(1.-spp.bfracpp);
-         dnaa = naa*sqrt(pow(s.dnaa_stat/s.naa,2) + pow(s.dbfracaa/s.bfracaa,2));
-         dnpp = npp*sqrt(pow(spp.dnpp_stat/spp.npp,2) + pow(spp.dbfracpp/spp.bfracpp,2));
+         dnaa = naa*sqrt(pow(s.dnaa_stat/s.naa,2) 
+               - 2.*s.correlaa*s.dnaa_stat*s.dbfracaa/(s.naa*s.bfracaa)
+               + pow(s.dbfracaa/s.bfracaa,2));
+         dnpp = npp*sqrt(pow(spp.dnpp_stat/spp.npp,2) 
+               - 2.*spp.correlpp*spp.dnpp_stat*spp.dbfracpp/(spp.npp*spp.bfracpp)
+               + pow(spp.dbfracpp/spp.bfracpp,2));
       }
       if (dononprompt) {
          naa = s.naa*s.bfracaa;
          npp = spp.npp*spp.bfracpp;
-         dnaa = naa*sqrt(pow(s.dnaa_stat/s.naa,2) + pow(s.dbfracaa/s.bfracaa,2));
-         dnpp = npp*sqrt(pow(spp.dnpp_stat/spp.npp,2) + pow(spp.dbfracpp/spp.bfracpp,2));
+         dnaa = naa*sqrt(pow(s.dnaa_stat/s.naa,2) 
+               + 2.*s.correlaa*s.dnaa_stat*s.dbfracaa/(s.naa*s.bfracaa)
+               + pow(s.dbfracaa/s.bfracaa,2));
+         dnpp = npp*sqrt(pow(spp.dnpp_stat/spp.npp,2) 
+               + 2.*spp.correlpp*spp.dnpp_stat*spp.dbfracpp/(spp.npp*spp.bfracpp)
+               + pow(spp.dbfracpp/spp.bfracpp,2));
       }
 
       naa *= normfactoraa;
