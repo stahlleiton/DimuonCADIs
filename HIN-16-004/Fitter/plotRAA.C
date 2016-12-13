@@ -43,6 +43,8 @@ bool  doprompt      = true;  // prompt Jpsi
 bool  dononprompt   = false;  // nonprompt Jpsi
 string nameTag_base = "_prompt";    // can put here e.g. "_prompt", "_nonprompt", ...
 
+const bool useNcoll = true; // false -> use TAA / NMB, true -> use Ncoll / lumiPbPb
+
 //////////////////
 // DECLARATIONS //
 //////////////////
@@ -276,8 +278,14 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
 
       double normfactorpp = 1., normfactoraa = 1.;
       normfactorpp = 1./spp.lumipp;
-      normfactoraa = 1./s.lumiaa;
-      normfactoraa *= 1./(208.*208.*(HI::findNcollAverage(it->first.centbin().low(),it->first.centbin().high())/HI::findNcollAverage(0,200)));
+
+      if (useNcoll) {
+         normfactoraa = 1./s.lumiaa;
+         normfactoraa *= 1./(208.*208.*(HI::findNcollAverage(it->first.centbin().low(),it->first.centbin().high())/HI::findNcollAverage(0,200)));
+      } else {
+         double myNmb = NMB * s.lumiaa / lumipbpb_ABCD;
+         normfactoraa = 1./(myNmb*s.taa*1e-3); // the 1e-3 factor is because taa is in mb-1 while lumis are in mub-1
+      }
       normfactoraa *= 200./(it->first.centbin().high()-it->first.centbin().low());
 
       normfactorpp = normfactorpp / spp.effpp;
