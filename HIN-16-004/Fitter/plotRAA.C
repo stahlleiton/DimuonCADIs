@@ -188,6 +188,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
    map<anabin, syst> syst_PP = readSyst_all("PP");
    map<anabin, syst> syst_PbPb = readSyst_all("PbPb");
    map<anabin, syst> syst_taa = readSyst("Systematics/csv/syst_PbPb_taa.csv");
+   map<anabin, syst> syst_Nmb = readSyst("Systematics/csv/syst_PbPb_Nmb.csv");
    map<anabin, syst> syst_lumipp = readSyst("Systematics/csv/syst_PP_lumi.csv");
    map<anabin, syst> stat_PP; // for PP statistics
    map<anabin, syst> syst_glb; // for the boxes at 1
@@ -344,11 +345,13 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
       all_glb.push_back(syst_PP);
       all_glb.push_back(stat_PP); 
       all_glb.push_back(syst_lumipp);
+      all_glb.push_back(syst_Nmb);
       syst_glb = combineSyst(all_glb,"global");
    } else {
       vector< map<anabin, syst> > all_glb;
       all_glb.push_back(syst_taa);
       all_glb.push_back(syst_lumipp);
+      all_glb.push_back(syst_Nmb);
       syst_glb = combineSyst(all_glb,"global");
    }
 
