@@ -133,7 +133,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
          ) { return false; }
   }
 
-  if (fitCtau && !doCtauErrPDF && !fitCtauTrue && !fitMass) {
+  if (fitCtau && !doCtauErrPDF && !fitCtauTrue && !fitMass && (incJpsi!=incBkg)) {
 
     // Setting extra input information needed by each fitter
     bool loadFitResult = false;

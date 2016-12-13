@@ -58,7 +58,7 @@ void fitter(
 
   map<string, double> binWidth;
   binWidth["MASS"]     = 0.025;
-  binWidth["CTAU"]     = 0.025;
+  binWidth["CTAU"]     = 0.100;
   binWidth["CTAUERR"]  = 0.0025;
   binWidth["CTAUTRUE"] = 0.025;
   binWidth["CTAURES"]  = 0.0025;

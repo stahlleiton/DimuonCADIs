@@ -161,10 +161,11 @@ void setCtauErrGlobalParameterRange(RooWorkspace& myws, map<string, string>& par
   if (!useForCtauFits) {
     Double_t ctauErrMax; Double_t ctauErrMin;
     myws.data(Form("dOS_%s", label.c_str()))->getRange(*myws.var("ctauErr"), ctauErrMin, ctauErrMax);
+    ctauErrMin -= 0.00001;  ctauErrMax += 0.00001;
     int nBins = min(int( round((ctauErrMax - ctauErrMin)/binWidth) ), 1000);
     myws.var("ctauErr")->setMin(ctauErrMin); myws.var("ctauErr")->setMax(ctauErrMax);
     TH1D* hTot = (TH1D*)myws.data(Form("dOS_%s", label.c_str()))->createHistogram("TMP", *myws.var("ctauErr"), Binning(nBins, ctauErrMin, ctauErrMax));
-    vector<double> rangeErr; getCtauErrRange(hTot, (int)(ceil(2)), rangeErr);
+    vector<double> rangeErr; getCtauErrRange(hTot, (int)(ceil(3)), rangeErr);
     hTot->Delete();
     ctauErrMin = rangeErr[0];
     ctauErrMax = rangeErr[1];
@@ -246,7 +247,7 @@ void setCtauErrCutParameters(struct KinCuts& cut)
   if (cut.dMuon.ctauErr.Min==-100.0 && cut.dMuon.ctauErr.Max==100.0) { 
     // Default ctau error values, means that the user did not specify a ctau error range
     cut.dMuon.ctauErr.Min = 0.0000001; 
-    cut.dMuon.ctauErr.Max = 1.0;;
+    cut.dMuon.ctauErr.Max = 1.0;
   }
   cout << "[INFO] Setting ctauErr range to min: " << cut.dMuon.ctauErr.Min << " and max " << cut.dMuon.ctauErr.Max << endl;
 

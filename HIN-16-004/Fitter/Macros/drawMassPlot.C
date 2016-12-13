@@ -30,8 +30,7 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
                   bool zoomPsi,         // Zoom Psi(2S) peak on extra pad
                   int  nBins,           // Number of bins used for plotting
                   bool getMeanPT=false, // Compute the mean PT (NEED TO FIX)
-                  bool paperStyle=false,// if true, print less info
-                  bool saveWS=true      // save the workspace into a file
+                  bool paperStyle=false // if true, print less info
                   ) 
 {
 
