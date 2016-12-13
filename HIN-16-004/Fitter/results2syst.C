@@ -17,7 +17,8 @@ using namespace std;
 
 #ifndef poiname_check
 #define poiname_check
-const char* poiname = "N_Jpsi";
+// const char* poiname = "N_Jpsi";
+const char* poiname = "eff";
 #endif
 
 //////////////////
@@ -75,8 +76,8 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
          double chi2 = poiFromBin(workDirName.Data(),collTag,"chi2",trbin);
          double ndof = poiFromBin(workDirName.Data(),collTag,"ndof",trbin);
 
-         // in the case of a really bad chi2, print a warning
-         if (ndof==-999 || TMath::Prob(chi2,ndof)<1e-10) {
+         // in the case of a really bad chi2, print a warning -- except if we are looking at efficiencies
+         if (TString(poiname).Contains("eff") && (ndof==-999 || TMath::Prob(chi2,ndof)<1e-10)) {
             double ymin = trbin.rapbin().low();
             double ymax = trbin.rapbin().high();
             double ptmin = trbin.ptbin().low();
@@ -88,12 +89,12 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
             cout << "p(" << chi2 << "," << ndof << ")=" << TMath::Prob(chi2,ndof) << endl;
             mapvals[trbin].push_back(-999);
          } else {
-            val= poiFromBin(workDirName.Data(),collTag,"N_Jpsi",trbin);
+            val= poiFromBin(workDirName.Data(),collTag,poiname,trbin);
             mapvals[trbin].push_back(val);
          }
          mapchi2[trbin].push_back(chi2);
          mapndof[trbin].push_back(ndof);
-         if (cnt==0) maperr[trbin] = poiErrFromBin(workDirName.Data(),collTag,"N_Jpsi",trbin);
+         if (cnt==0) maperr[trbin] = poiErrFromBin(workDirName.Data(),collTag,poiname,trbin);
       }
       cnt++;
    }
@@ -188,10 +189,22 @@ void printTex(map<anabin, vector<double> > mapvals,
    map<anabin, vector<double> >::const_iterator itm;
    for (itm=mapvals.begin(); itm!=mapvals.end(); itm++) {
       anabin thebin = itm->first;
+
+      // filter
+      if ((mask.rapbin().low()>0 || mask.rapbin().high()>0) && (thebin.rapbin() != mask.rapbin())) continue;
+      if ((mask.rapbin().low()<0 || mask.rapbin().high()<0) && (thebin.rapbin() == binF(-mask.rapbin().low(),-mask.rapbin().high()))) continue;
+      if ((mask.ptbin().low()>0 || mask.ptbin().high()>0) && (thebin.ptbin() != mask.ptbin())) continue;
+      if ((mask.ptbin().low()<0 || mask.ptbin().high()<0) && (thebin.ptbin() == binF(-mask.ptbin().low(),-mask.ptbin().high()))) continue;
+      if ((mask.centbin().low()>0 || mask.centbin().high()>0) && (thebin.centbin() != mask.centbin())) continue;
+      if ((mask.centbin().low()<0 || mask.centbin().high()<0) && (thebin.centbin() == binI(-mask.centbin().low(),-mask.centbin().high()))) continue;
+
       vector<double> vval, vchi2; vector<int> vndof;
       vval = itm->second;
       vchi2 = mapchi2[thebin];
       vndof = mapndof[thebin];
+
+      // skip problematic bins
+      if (vval.size()==0 || vval[0]<=0 || vchi2[0]<=0 || vndof[0]<=0) continue;
 
       if (thebin.rapbin() == oldbin.rapbin()) {
          texfile << " - ";
@@ -214,7 +227,7 @@ void printTex(map<anabin, vector<double> > mapvals,
       texfile.setf(ios::fixed);
 
       // first print the nominal value
-      texfile << " & " << 100.*vval[0] << "\\% (" << 100.*maperr[thebin]/vval[0] << "\\%, " << vchi2[0] << "/" << vndof[0] << ")";
+      texfile << " & " << vval[0] << " (" << 100.*maperr[thebin]/vval[0] << "\\%, " << vchi2[0] << "/" << vndof[0] << ")";
 
       // then the alternative values
       for (unsigned int i=1; i<vval.size(); i++) {
