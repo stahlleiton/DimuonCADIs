@@ -4,6 +4,7 @@
 #include "TString.h"
 #include "TCanvas.h"
 #include "TLegend.h"
+#include "TSystem.h"
 
 #include "../Fitter/Macros/CMS/CMS_lumi.C"
 #include "../Fitter/Macros/CMS/tdrstyle.C"
@@ -392,34 +393,40 @@ void drawingEff::drawHisto(vector<string> outname){
 ////////////////////////////////////
 void plotEffs() {
 
+  string dir = "figs";
+  string subdir = "trg__sta";
+
+  gSystem->mkdir(dir.c_str(),kTRUE);
+  gSystem->mkdir(Form("%s/%s",dir.c_str(),subdir.c_str()),kTRUE);
+
   vector<string> latex;
   latex.push_back("prompt J/#psi (pp)");
-  latex.push_back("jpsi_pp");
-  drawingEff fjpsi_pp("files/histos_jpsi_pp.root",false);
+  latex.push_back(Form("%s/%s/jpsi_pp",dir.c_str(),subdir.c_str()));
+  drawingEff fjpsi_pp(Form("files/%s/histos_jpsi_pp.root",subdir.c_str()),false);
   fjpsi_pp.loadHisto();
   fjpsi_pp.getEfficiency();
   fjpsi_pp.drawHisto(latex);
 
   latex.clear();
   latex.push_back("nonprompt J/#psi (pp)");
-  latex.push_back("npjpsi_pp");
-  drawingEff fnpjpsi_pp("files/histos_npjpsi_pp.root",false);
+  latex.push_back(Form("%s/%s/npjpsi_pp",dir.c_str(),subdir.c_str()));
+  drawingEff fnpjpsi_pp(Form("files/%s/histos_npjpsi_pp.root",subdir.c_str()),false);
   fnpjpsi_pp.loadHisto();
   fnpjpsi_pp.getEfficiency();
   fnpjpsi_pp.drawHisto(latex);
 
   latex.clear();
   latex.push_back("prompt J/#psi (PbPb)");
-  latex.push_back("jpsi_pbpb");
-  drawingEff fjpsi_pbpb("files/histos_jpsi_pbpb.root",true);
+  latex.push_back(Form("%s/%s/jpsi_pbpb",dir.c_str(),subdir.c_str()));
+  drawingEff fjpsi_pbpb(Form("files/%s/histos_jpsi_pbpb.root",subdir.c_str()),true);
   fjpsi_pbpb.loadHisto();
   fjpsi_pbpb.getEfficiency();
   fjpsi_pbpb.drawHisto(latex);
 
   latex.clear();
   latex.push_back("nonprompt J/#psi (PbPb)");
-  latex.push_back("npjpsi_pbpb");
-  drawingEff fnpjpsi_pbpb("files/histos_npjpsi_pbpb.root",true);
+  latex.push_back(Form("%s/%s/npjpsi_pbpb",dir.c_str(),subdir.c_str()));
+  drawingEff fnpjpsi_pbpb(Form("files/%s/histos_npjpsi_pbpb.root",subdir.c_str()),true);
   fnpjpsi_pbpb.loadHisto();
   fnpjpsi_pbpb.getEfficiency();
   fnpjpsi_pbpb.drawHisto(latex);

@@ -22,6 +22,16 @@ class oniaEff {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
+    
+   enum tnpTypes {
+     trg = 0,
+     trg__muid__sta = 1,
+     trg__muid = 2,
+     trg__sta = 3,
+     trg_binned = 10,
+     trg_plus1sigma = 11,
+     trg_minus1sigma = 12
+   };
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
@@ -287,7 +297,7 @@ public :
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
-   virtual void     Loop(const char* fname, bool ispbpb=false, bool isPsip=false);
+   virtual void     Loop(const char* fname, bool ispbpb=false, int tnptype=0);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
    Bool_t isTriggerMatch (Int_t iRecoQQ, Int_t TriggerBit);
@@ -306,7 +316,7 @@ oniaEff::oniaEff(TTree *tree) : fChain(0)
    if (tree == 0) {
       TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("root://xrootd.unl.edu//store/group/phys_heavyions/dileptons/MC2015/PbPb502TeV/TTrees/OniaTree_Pythia8_JpsiMM_ptJpsi_30_Inf_Hydjet_MB_HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v13-v1.root");
       if (!f || !f->IsOpen()) {
-	f = new TFile("root://xrootd.unl.edu//store/group/phys_heavyions/dileptons/MC2015/PbPb502TeV/TTrees/OniaTree_Pythia8_JpsiMM_ptJpsi_30_Inf_Hydjet_MB_HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v13-v1.root");
+        f = new TFile("root://xrootd.unl.edu//store/group/phys_heavyions/dileptons/MC2015/PbPb502TeV/TTrees/OniaTree_Pythia8_JpsiMM_ptJpsi_30_Inf_Hydjet_MB_HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v13-v1.root");
       }
       TDirectory * dir = (TDirectory*)f->Get("root://xrootd.unl.edu//store/group/phys_heavyions/dileptons/MC2015/PbPb502TeV/TTrees/OniaTree_Pythia8_JpsiMM_ptJpsi_30_Inf_Hydjet_MB_HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v13-v1.root:/hionia");
       dir->GetObject("myTree",tree);
