@@ -46,6 +46,7 @@ void plotAll(const char* workDirName, const char* varname, const char* collTag="
 // will plot the dependence of varname as a function to xaxis (=pt, cent or rap) for the file in workDirNames (of the form "dir1,dir2,dir3,...")
 void plotFiles(const char* workDirNames, const char* varname, const char* xaxis, float rapmin, float rapmax, float ptmin, float ptmax, int centmin, int centmax, 
       const char* collTag="PP", bool plotErr=true, const char* DSTag="DATA", bool doSig=false);
+void plotFilesAll(const char* workDirNames, const char* varname, const char* collTag="PP", bool plotErr=true, const char* DSTag="DATA", bool doSig=false);
 
 // will plot the dependence of varname as a function of the analysis bin (scanning all analysis bins)
 // if xaxis=="", all bins are plotted. Otherwise only bins differential in xaxis are shown.
@@ -62,7 +63,7 @@ void plotComparisonVars(const char* workDirName, const char* varname1, const cha
 TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxis, string collTag, bool plotErr=true, bool doSig=false);
 vector<TGraphErrors*> plotVar(TTree *tr, const char* varname, vector<anabin> theBin, string xaxis, string collTag, bool plotErr=true, bool doSig=false);
 TGraphErrors* plotVar(const char* filename, const char* varname, anabin theBin, string xaxis, string collTag, bool plotErr=true, bool doSig=false);
-void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* workDirName, string collTag="", const char* basename="");
+void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* workDirName, string collTag="", const char* basename="", const char* label="");
 bool binok(anabin thebin, const char* xaxis);
 int color(int i);
 int markerstyle(int i);
@@ -209,7 +210,7 @@ void plotCent(const char* workDirName, const char* varname, int iplot, const cha
 void plotRap(const char* workDirName, const char* varname, const char* collTag, bool plotErr, const char* DSTag, bool doSig) {
    string xaxis = "rap";
    vector<anabin> theCats;
-   theCats.push_back(anabin(0,2.4,6.5,30,0,200));
+   theCats.push_back(anabin(0,2.4,6.5,50,0,200));
    addTag = addTagBase;
 
    TFile *f = new TFile(treeFileName(workDirName,DSTag));
@@ -263,6 +264,26 @@ void plotAll(const char* workDirName, const char* varname, const char* collTag, 
    plotRap(workDirName, varname, collTag, plotErr, DSTag, doSig);
 }
 
+void plotFilesAll(const char* workDirNames, const char* varname, const char* collTag, bool plotErr, const char* DSTag, bool doSig) {
+   plotFiles(workDirNames, varname, "rap", 0, 2.4, 6.5, 50, 0, 200, collTag, plotErr, DSTag, doSig);
+   plotFiles(workDirNames, varname, "pt", 0, 2.4, 6.5, 50, 0, 200, collTag, plotErr, DSTag, doSig);
+   plotFiles(workDirNames, varname, "pt", 0, 0.6, 6.5, 50, 0, 200, collTag, plotErr, DSTag, doSig);
+   plotFiles(workDirNames, varname, "pt", 0.6, 1.2, 6.5, 50, 0, 200, collTag, plotErr, DSTag, doSig);
+   plotFiles(workDirNames, varname, "pt", 1.2, 1.8, 6.5, 50, 0, 200, collTag, plotErr, DSTag, doSig);
+   plotFiles(workDirNames, varname, "pt", 1.8, 2.4, 3, 50, 0, 200, collTag, plotErr, DSTag, doSig);
+   if (TString(collTag)=="PbPb") {
+      plotFiles(workDirNames, varname, "pt", 0, 2.4, 6.5, 50, 0, 20, collTag, plotErr, DSTag, doSig);
+      plotFiles(workDirNames, varname, "pt", 0, 2.4, 6.5, 50, 20, 60, collTag, plotErr, DSTag, doSig);
+      plotFiles(workDirNames, varname, "pt", 0, 2.4, 6.5, 50, 60, 200, collTag, plotErr, DSTag, doSig);
+      plotFiles(workDirNames, varname, "cent", 0, 2.4, 6.5, 50, 0, 200, collTag, plotErr, DSTag, doSig);
+      plotFiles(workDirNames, varname, "cent", 0, 0.6, 6.5, 50, 0, 200, collTag, plotErr, DSTag, doSig);
+      plotFiles(workDirNames, varname, "cent", 0.6, 1.2, 6.5, 50, 0, 200, collTag, plotErr, DSTag, doSig);
+      plotFiles(workDirNames, varname, "cent", 1.2, 1.8, 6.5, 50, 0, 200, collTag, plotErr, DSTag, doSig);
+      plotFiles(workDirNames, varname, "cent", 1.8, 2.4, 6.5, 50, 0, 200, collTag, plotErr, DSTag, doSig);
+      plotFiles(workDirNames, varname, "cent", 1.8, 2.4, 3, 6.5, 0, 200, collTag, plotErr, DSTag, doSig);
+   }
+}
+
 void plotFiles(const char* workDirNames, const char* varname, const char* xaxis, float rapmin, float rapmax, float ptmin, float ptmax, int centmin, int centmax, 
                const char* collTag, bool plotErr, const char* DSTag, bool doSig) {
 
@@ -284,10 +305,9 @@ void plotFiles(const char* workDirNames, const char* varname, const char* xaxis,
       }
    }
 
-   ostringstream oss; oss.precision(0); oss.setf(ios::fixed);
-   oss << collTag << "_pt" << ptmin*10. << ptmax*10. << "_rap" << rapmin*10. << rapmax*10. << "_cent" << centmin << centmax;
-
-   if (tg.size()>0) plotGraphs(tg, tags, tags[0].c_str(), collTag, oss.str().c_str());
+   if (tg.size()>0) plotGraphs(tg, tags, tags[0].c_str(), collTag, 
+         Form("%s_pt%i%i_rap%i%i_cent%i%i", collTag,(int)ptmin*10,(int)ptmax*10,(int)rapmin*10,(int)rapmax*10,centmin,centmax),
+         Form("%.1f<|y|<%.1f, %.1f<p_{T}<%.1f, %i-%i%s",rapmin,rapmax,ptmin,ptmax,centmin/2,centmax/2,"%"));
 }
 
 TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxis, string collTag, bool plotErr, bool doSig) {
@@ -355,7 +375,7 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
       ey.push_back(val_err);
 
       // min and max
-      valmax = max(valmax, (float) 1.4*(val+val_err));
+      valmax = max(valmax, (float) 1.6*(val+val_err));
       valmin = min(valmin, (float) (val>0 ? 0 : 1.1*(val-val_err)));
    }
 
@@ -375,7 +395,7 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
 
    TH1F *haxes=NULL;
    if (xaxis=="pt") {
-      haxes = new TH1F(hname,Form(";p_{T} (GeV/c);%s",varname),1,0,30);
+      haxes = new TH1F(hname,Form(";p_{T} (GeV/c);%s",varname),1,0,50);
    } else if (xaxis=="cent") {
       haxes = new TH1F(hname,Form(";Centrality bin;%s",varname),1,0,100);
    } else { // if (xaxis=="rap")
@@ -411,7 +431,7 @@ TGraphErrors* plotVar(const char* filename, const char* varname, anabin theBin, 
    return plotVar(tr, varname, theBin, xaxis, collTag, plotErr, doSig);
 }
 
-void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* workDirName, string collTag, const char* basename) {
+void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* workDirName, string collTag, const char* basename, const char* label) {
    if (graphs.size() != tags.size()) {
       cout << "Different number of graphs and legends" << endl;
       return;
@@ -463,6 +483,10 @@ void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* w
    TString txaxis(haxes->GetXaxis()->GetTitle());
    if (txaxis.Index("Centrality") != kNPOS) xaxis = "cent";
    if (txaxis.Index("p_{T}") != kNPOS) xaxis = "pt";
+
+   TLatex tl;
+   tl.SetTextAlign(32); // right align
+   tl.DrawLatexNDC(0.93,0.17,label);
 
    c1->cd();
    c1->Update();
@@ -913,19 +937,21 @@ bool binok(anabin thebin, const char* xaxis) {
    if (string(xaxis) == "") return true;
 
    if (string(xaxis) == "rap") {
-      if (thebin==anabin(0,1.6,6.5,30,0,200)) return true;
-      if (thebin==anabin(1.6,2.4,3.,30,0,200)) return true;
+      if (thebin.ptbin()==binF(6.5,50)&&thebin.centbin()==binI(0,200)) return true;
       return false;
    }
 
    // if the xaxis is not "" not "rap", discard pt- and centrality-integrated bins
-   if (thebin==anabin(0,1.6,6.5,30,0,200)) return false;
-   if (thebin==anabin(1.6,2.4,3.,30,0,200)) return false;
+   if (thebin.centbin()==binI(0,200) && (thebin.ptbin()==binF(6.5,50) || thebin.ptbin()==binF(3,50))) return false;
 
    if (string(xaxis) == "pt" && thebin.centbin() == binI(0,200)) return true; 
 
-   if (string(xaxis) == "cent" && thebin.rapbin() == binF(0,1.6) && thebin.ptbin() == binF(6.5,30)) return true; 
-   if (string(xaxis) == "cent" && thebin.rapbin() == binF(1.6,2.4) && thebin.ptbin() == binF(3.,30)) return true; 
+   if (string(xaxis) == "cent" && thebin.rapbin() == binF(0,2.4) && thebin.ptbin() == binF(6.5,50)) return true; 
+   if (string(xaxis) == "cent" && thebin.rapbin() == binF(0,0.6) && thebin.ptbin() == binF(6.5,50)) return true; 
+   if (string(xaxis) == "cent" && thebin.rapbin() == binF(0.6,1.2) && thebin.ptbin() == binF(6.5,50)) return true; 
+   if (string(xaxis) == "cent" && thebin.rapbin() == binF(1.2,1.8) && thebin.ptbin() == binF(6.5,50)) return true; 
+   if (string(xaxis) == "cent" && thebin.rapbin() == binF(1.8,2.4) && thebin.ptbin() == binF(6.5,50)) return true; 
+   if (string(xaxis) == "cent" && thebin.rapbin() == binF(1.8,2.4) && thebin.ptbin() == binF(3,6.5)) return true; 
 
    return false;
 }
