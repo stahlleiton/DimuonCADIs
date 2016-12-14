@@ -193,8 +193,6 @@ void results2tree(
             RooRealVar *thevar = poiFromWS(ws, Form("_%s",collSystem), itpoi->name);
             itpoi->val = thevar ? thevar->getVal() : 0;
             itpoi->err = thevar ? thevar->getError() : 0;
-
-           cout << itpoi->name << " = " << itpoi->val << " ; " << thebin.centbin().low() << "-" << thebin.centbin().high() << " ; " << (it)->Data() << endl;
            
             if (TString(itpoi->name).Contains("correl_")) {
                // correlation between two variables
