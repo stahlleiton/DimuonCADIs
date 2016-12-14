@@ -349,7 +349,7 @@ void setMassGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni
         }
     }
   else {
-    myws.var("invMass")->setRange("InclusiveMassRegion", 2.2, cut.dMuon.M.Max);
+    myws.var("invMass")->setRange("InclusiveMassRegion", 2.6, cut.dMuon.M.Max);
     myws.var("invMass")->setRange("FullWindow", cut.dMuon.M.Min, cut.dMuon.M.Max);
     myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, cut.dMuon.M.Max);
     parIni["MassRange_Cut"] = Form("(invMass>%.6f && invMass<%.6f)", cut.dMuon.M.Min, cut.dMuon.M.Max);
@@ -363,7 +363,7 @@ void setMassGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni
     }
     if (incBkg) {
       myws.var("invMass")->setRange("SideBandMID_FULL",  ((cut.dMuon.M.Min<3.3)?3.3:cut.dMuon.M.Min), ((cut.dMuon.M.Max>3.5)?3.5:cut.dMuon.M.Max));
-      myws.var("invMass")->setRange("SideBandMID_JPSI",  ((cut.dMuon.M.Min<3.3)?3.3:cut.dMuon.M.Min), ((cut.dMuon.M.Max>3.4)?3.4:cut.dMuon.M.Max));
+      myws.var("invMass")->setRange("SideBandMID_JPSI",  ((cut.dMuon.M.Min<3.3)?3.3:cut.dMuon.M.Min), ((cut.dMuon.M.Max>3.5)?3.5:cut.dMuon.M.Max));
       myws.var("invMass")->setRange("SideBandMID_PSI2S", ((cut.dMuon.M.Min<3.4)?3.4:cut.dMuon.M.Min), ((cut.dMuon.M.Max>3.5)?3.5:cut.dMuon.M.Max));
       parIni["BkgMassRange_FULL_Label"]  = "SideBandMID_FULL";
       parIni["BkgMassRange_JPSI_Label"]  = "SideBandMID_JPSI";
@@ -382,7 +382,7 @@ void setMassGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni
       }
       parIni["BkgMassRange_FULL_Cut"]  = Form("(%.6f < invMass && invMass < %.6f)",       cut.dMuon.M.Min,       cut.dMuon.M.Max);
       parIni["BkgMassRange_FULL_Cut"]  = parIni["BkgMassRange_FULL_Cut"]  + "&&" + "((2.0 < invMass && invMass < 2.8) || (3.3 < invMass && invMass < 3.5) || (3.9 < invMass && invMass < 5.0))";
-      parIni["BkgMassRange_JPSI_Cut"]  = parIni["BkgMassRange_FULL_Cut"]  + "&&" + "(2.0 < invMass && invMass < 3.4)";
+      parIni["BkgMassRange_JPSI_Cut"]  = parIni["BkgMassRange_FULL_Cut"]  + "&&" + "(2.0 < invMass && invMass < 3.5)";
       parIni["BkgMassRange_PSI2S_Cut"] = parIni["BkgMassRange_FULL_Cut"] + "&&" + "(3.4 < invMass && invMass < 5.0)";
       parIni["BkgMassRange_FULL_Cut"]  = "("+parIni["BkgMassRange_FULL_Cut"]+")";
       parIni["BkgMassRange_JPSI_Cut"]  = "("+parIni["BkgMassRange_JPSI_Cut"]+")";
@@ -410,8 +410,8 @@ void setMassCutParameters(struct KinCuts& cut, bool incJpsi, bool incPsi2S, bool
         cut.dMuon.M.Min = 2.2;
         cut.dMuon.M.Max = 4.0;
       } else {
-        cut.dMuon.M.Min = 2.2;
-        cut.dMuon.M.Max = 3.4;
+        cut.dMuon.M.Min = 2.6;
+        cut.dMuon.M.Max = 3.5;
       }
     }
     else if ( !incJpsi && incPsi2S) {
@@ -428,8 +428,8 @@ void setMassCutParameters(struct KinCuts& cut, bool incJpsi, bool incPsi2S, bool
       cut.dMuon.M.Max = 4.7;
     }
     else {
-      cut.dMuon.M.Min = 2.2;
-      cut.dMuon.M.Max = 3.4;
+      cut.dMuon.M.Min = 2.6;
+      cut.dMuon.M.Max = 3.5;
     }
   }
   cout << "[INFO] Setting mass range to min: " << cut.dMuon.M.Min << " and max " << cut.dMuon.M.Max << endl;
