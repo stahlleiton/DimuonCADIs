@@ -34,6 +34,7 @@ void results2tree(
       const char* workDirName, 
       const char* DSTag, //="DATA", // Data Set tag can be: "DATA","MCPSI2SP", "MCJPSIP" ...
       const char* prependPath, //="",
+      const char* fitType, // "mass", "ctau"...
       const char* thePoiNames, //="N_Jpsi,b_Jpsi,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,
       // lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg,b_Bkg,
       // ctau1_CtauRes,ctau2_CtauRes,f_CtauRes,rSigma21_CtauRes,sigma1_CtauRes,
@@ -44,7 +45,7 @@ void results2tree(
    // workDirName: usual tag where to look for files in Output
    // thePoiNames: comma-separated list of parameters to store ("par1,par2,par3"). Default: all
 
-   TFile *f = new TFile(treeFileName(workDirName,DSTag),"RECREATE");
+   TFile *f = new TFile(treeFileName(workDirName,DSTag,prependPath,fitType),"RECREATE");
    TTree *tr = new TTree("fitresults","fit results");
 
 
@@ -55,7 +56,7 @@ void results2tree(
    // collision system
    Char_t collSystem[8];
    // goodness of fit
-   float nll, chi2, chi2prob, normchi2; int npar, nparbkg, ndof;
+   float nll, chi2, chi2_invMass, chi2_ctau, chi2prob, normchi2; int npar, nparbkg, ndof , ndof_invMass, ndof_ctau;
    // parameters to store: make it a vector
    vector<poi> thePois;
    TString thePoiNamesStr(thePoiNames);
@@ -78,11 +79,15 @@ void results2tree(
    tr->Branch("collSystem",collSystem,"collSystem/C");
    tr->Branch("nll",&nll,"nll/F");
    tr->Branch("chi2",&chi2,"chi2/F");
+   tr->Branch("chi2_invMass",&chi2_invMass,"chi2_invMass/F");
+   tr->Branch("chi2_ctau",&chi2_ctau,"chi2_ctau/F");
    tr->Branch("chi2prob",&chi2prob,"chi2prob/F");
    tr->Branch("normchi2",&normchi2,"normchi2/F");
    tr->Branch("npar",&npar,"npar/I");
    tr->Branch("nparbkg",&nparbkg,"nparbkg/I");
    tr->Branch("ndof",&ndof,"ndof/I");
+   tr->Branch("ndof_invMass",&ndof_invMass,"ndof_invMass/I");
+   tr->Branch("ndof_ctau",&ndof_ctau,"ndof_ctau/I");
 
    for (vector<poi>::iterator it=thePois.begin(); it!=thePois.end(); it++) {
       tr->Branch(Form("%s_val",it->name),&(it->val),Form("%s_val/F",it->name));
@@ -90,7 +95,9 @@ void results2tree(
    }
 
    // list of files
-   vector<TString> theFiles = fileList(workDirName,"",DSTag);
+   vector<TString> theFiles = fileList(workDirName,"",DSTag,"",fitType);
+        
+        cout << theFiles.size() << endl;
 
    int cnt=0;
    for (vector<TString>::const_iterator it=theFiles.begin(); it!=theFiles.end(); it++) {
@@ -131,6 +138,8 @@ void results2tree(
       }
 
       nll=0; chi2=0; npar=0; ndof=0;
+      chi2_invMass=0; ndof_invMass=0;
+      chi2_ctau=0; ndof_ctau=0;
       if (f && ws) {
          // get the model for nll and npar
          RooAbsPdf *model = pdfFromWS(ws, Form("_%s",collSystem), Form("pdf%s_Tot",modelType.Data()));
@@ -147,6 +156,10 @@ void results2tree(
                // compute the chi2 and the ndof
                RooRealVar *chi2var = ws->var("chi2");
                RooRealVar *ndofvar = ws->var("ndof");
+               RooRealVar *chi2var_invMass = ws->var("chi2_invMass");
+               RooRealVar *ndofvar_invMass = ws->var("ndof_invMass");
+               RooRealVar *chi2var_ctau = ws->var("chi2_ctau");
+               RooRealVar *ndofvar_ctau = ws->var("ndof_ctau");
                if (chi2var && ndofvar) {
                   chi2 = chi2var->getVal();
                   ndof = ndofvar->getVal();
@@ -181,6 +194,8 @@ void results2tree(
             itpoi->val = thevar ? thevar->getVal() : 0;
             itpoi->err = thevar ? thevar->getError() : 0;
 
+           cout << itpoi->name << " = " << itpoi->val << " ; " << thebin.centbin().low() << "-" << thebin.centbin().high() << " ; " << (it)->Data() << endl;
+           
             if (TString(itpoi->name).Contains("correl_")) {
                // correlation between two variables
                TString toparse = TString(itpoi->name).ReplaceAll("correl_","");
@@ -191,6 +206,7 @@ void results2tree(
                   if (i==1) var2name = t;
                   i++;
                }
+              
                RooFitResult *fr = (RooFitResult*) ws->obj(Form("fitResult_pdf%s_Tot_%s",modelType.Data(),collSystem));
                RooRealVar *thevar1 = poiFromWS(ws, Form("_%s",collSystem), var1name);
                RooRealVar *thevar2 = poiFromWS(ws, Form("_%s",collSystem), var2name);

@@ -36,7 +36,7 @@ RooRealVar* poiFromFile(const char* filename, const char* token, const char* the
 RooRealVar* poiFromWS(RooWorkspace* ws, const char* token, const char* thepoiname);
 RooAbsPdf* pdfFromWS(RooWorkspace* ws, const char* token, const char* thepdfname);
 RooAbsData* dataFromWS(RooWorkspace* ws, const char* token, const char* thedataname);
-vector<TString> fileList(const char* input, const char* token="", const char* DSTag="DATA", const char* prependPath="");
+vector<TString> fileList(const char* input, const char* token="", const char* DSTag="DATA", const char* prependPath="", const char* fitType="");
 vector<TString> combFileList(const char* input, const char* token="", const char* prependPath="");
 vector<TString> limitsFileList(const char* input, const char* token="", const char* prependPath="");
 RooRealVar* ratioVar(RooRealVar *num, RooRealVar *den, bool usedenerror=true);
@@ -44,7 +44,7 @@ anabin binFromFile(const char* filename);
 bool binok(vector<anabin> thecats, string xaxis, anabin &tocheck, bool override=true);
 bool binok(anabin thecat, string xaxis, anabin &tocheck, bool override=true);
 bool isSameBinPPPbPb(const char* filenamePbPb, const char* filenamePP);
-TString treeFileName(const char* workDirName, const char* DSTag="DATA", const char* prependPath="");
+TString treeFileName(const char* workDirName, const char* DSTag="DATA", const char* prependPath="", const char* fitType = "");
 double poiFromBin(const char* workDirName, const char* collSystem, const char* thepoiname, anabin thebin, const char* DSTag="DATA", const char* prependPath="");
 double poiErrFromBin(const char* workDirName, const char* collSystem, const char* thepoiname, anabin thebin, const char* DSTag="DATA", const char* prependPath="");
 void prune(vector<anabin> &v, bool keepshortest=true);
@@ -63,6 +63,7 @@ void results2tree(
       const char* workDirName, 
       const char* DSTag="DATA", // Data Set tag can be: "DATA","MCPSI2SP", "MCJPSIP" ...
       const char* prependPath="",
+      const char* fitType = "",
       const char* thePoiNames="N_Jpsi,b_Jpsi,f_Jpsi,m_Jpsi,sigma1_Jpsi,alpha_Jpsi,n_Jpsi,sigma2_Jpsi,MassRatio,rSigma21_Jpsi,"
       "lambda1_Bkg,lambda2_Bkg,lambda3_Bkg,lambda4_Bkg,lambda5_Bkg,N_Bkg,b_Bkg,"
       "ctau1_CtauRes,ctau2_CtauRes,f_CtauRes,rSigma21_CtauRes,sigma1_CtauRes,"
@@ -129,10 +130,13 @@ RooAbsData* dataFromWS(RooWorkspace* ws, const char* token, const char* thedatan
    return ans;
 }
 
-vector<TString> fileList(const char* input, const char* token, const char* DSTag, const char* prependPath) {
+vector<TString> fileList(const char* input, const char* token, const char* DSTag, const char* prependPath, const char* fitType) {
    vector<TString> ans;
-
-   TString basedir(Form("Output/%s/result/%s/",input, DSTag));
+  
+   TString basedir("");
+   if (!strcmp(fitType,"")) basedir = Form("Output/%s/result/%s/",input,DSTag);
+   else basedir = Form("Output/%s/%s/%s/result/",input,fitType,DSTag);
+  
    if ( strcmp(prependPath,"") ) basedir.Prepend(Form("%s/",prependPath));
    TSystemDirectory dir(input,basedir);
 
@@ -304,8 +308,10 @@ bool isSameBinPPPbPb(const char* filenamePbPb, const char* filenamePP)
   }
 }
 
-TString treeFileName(const char* workDirName, const char* DSTag, const char* prependPath) {
-   TString outputFileName = Form("Output/%s/result/%s/tree_allvars.root",workDirName,DSTag);
+TString treeFileName(const char* workDirName, const char* DSTag, const char* prependPath, const char* fitType) {
+   TString outputFileName("");
+   if (!strcmp(fitType,"")) outputFileName = Form("Output/%s/result/%s/tree_allvars.root",workDirName,DSTag);
+   else outputFileName = Form("Output/%s/%s/%s/result/tree_allvars.root",workDirName,fitType,DSTag);
    if ( strcmp(prependPath,"") ) outputFileName.Prepend(Form("%s/",prependPath));
    return outputFileName;
 }
