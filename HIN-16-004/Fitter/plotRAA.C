@@ -43,7 +43,7 @@ bool  doprompt      = true;  // prompt Jpsi
 bool  dononprompt   = false;  // nonprompt Jpsi
 string nameTag_base = "_prompt";    // can put here e.g. "_prompt", "_nonprompt", ...
 
-const bool useNcoll = true; // false -> use TAA / NMB, true -> use Ncoll / lumiPbPb
+const bool useNcoll = false; // false -> use TAA / NMB, true -> use Ncoll / lumiPbPb
 
 //////////////////
 // DECLARATIONS //
