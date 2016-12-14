@@ -250,7 +250,7 @@ void drawMassFrom2DPlot(RooWorkspace& myws,   // Local workspace
      frame2->Draw(); 
 
      // *** Print chi2/ndof 
-     printChi2(myws, pad2, frameTMP, "invMass", dsOSName.c_str(), pdfTotName.c_str(), nBinsTMP);
+     printChi2(myws, pad2, frameTMP, "invMass", dsOSName.c_str(), pdfTotName.c_str(), nBinsTMP, false);
 
      pline->Draw("same");
      pad2->Update();

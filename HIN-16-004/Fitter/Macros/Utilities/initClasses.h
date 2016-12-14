@@ -83,7 +83,7 @@ typedef struct EvtPar {
 } EvtPar;
 
 typedef struct DiMuonPar {
-  MinMax ctau, ctauErr, ctauTrue, M, Pt, AbsRap;
+  MinMax ctau, ctauRes, ctauErr, ctauTrue, M, Pt, AbsRap;
   string ctauCut;
 } DiMuonPar;
 
@@ -516,7 +516,7 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut,
 };
 
 
-void printChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, string dataLabel, string pdfLabel, int nBins)
+void printChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, string dataLabel, string pdfLabel, int nBins, bool useDefaultName=true)
 {
   double chi2=0; unsigned int ndof=0;
   Pad->cd();
@@ -535,9 +535,15 @@ void printChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, s
   }
   ndof = nFullBins - nFitPar;
   t->DrawLatex(0.7, 0.85, Form("#chi^{2}/ndof = %.0f / %d ", chi2, ndof));
-  RooRealVar chi2Var((string("chi2_")+varLabel).c_str(),(string("chi2_")+varLabel).c_str(),chi2);
-  RooRealVar ndofVar((string("ndof_")+varLabel).c_str(),(string("ndof_")+varLabel).c_str(),ndof);
-  myws.import(chi2Var); myws.import(ndofVar);
+  if (useDefaultName) {
+    RooRealVar chi2Var("chi2","chi2",chi2);
+    RooRealVar ndofVar("ndof","ndof",ndof);
+    myws.import(chi2Var); myws.import(ndofVar);
+  } else {
+    RooRealVar chi2Var((string("chi2_")+varLabel).c_str(),(string("chi2_")+varLabel).c_str(),chi2);
+    RooRealVar ndofVar((string("ndof_")+varLabel).c_str(),(string("ndof_")+varLabel).c_str(),ndof);
+    myws.import(chi2Var); myws.import(ndofVar);
+  }
   delete hdatact; 
   delete hpull;
 };

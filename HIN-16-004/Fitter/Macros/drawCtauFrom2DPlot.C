@@ -238,7 +238,7 @@ void drawCtauFrom2DPlot(RooWorkspace& myws,   // Local workspace
   frame2->Draw(); 
   
   // *** Print chi2/ndof 
-  printChi2(myws, pad2, frame, "ctau", dsOSName.c_str(), pdfTotName.c_str(), nBins);
+  printChi2(myws, pad2, frame, "ctau", dsOSName.c_str(), pdfTotName.c_str(), nBins, false);
   
   pline->Draw("same");
   pad2->Update();

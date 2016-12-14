@@ -106,6 +106,16 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
                                              Normalization(normJpsi, RooAbsReal::NumEvent),
                                              LineColor(kBlack), Precision(1e-5), NumCPU(32)
                                              );
+        int COLOR[] = { kGreen+5, kRed+2, kBlue+3, kViolet-5};
+        for (int i=1; i<=4; i++) {
+          if (myws.pdf(Form("pdfCTAURES%d_JpsiPR_%s", i,(isPbPb?"PbPb":"PP")))){
+            myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PDF"),Components(RooArgSet(*myws.pdf(Form("pdfCTAURES%d_JpsiPR_%s", i, (isPbPb?"PbPb":"PP"))))),
+                                                 ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(hOSNameJpsi.c_str()), kTRUE),
+                                                 Normalization(normJpsi, RooAbsReal::NumEvent),
+                                                 LineColor(COLOR[i-1]), Precision(1e-5), NumCPU(32)
+                                                 );
+          }
+        }
       }
       if (incPsi2S) {
         myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PDF"),Components(RooArgSet(*myws.pdf(Form("pdfCTAU_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))))),
@@ -113,6 +123,16 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
                                              Normalization(normPsi2S, RooAbsReal::NumEvent),
                                              LineColor(kBlack), Precision(1e-5), NumCPU(32)
                                              );
+        int COLOR[] = { kGreen+5, kRed+2, kBlue+3, kViolet-5};
+        for (int i=1; i<=4; i++) {
+          if (myws.pdf(Form("pdfCTAURES%d_Psi2SPR_%s", i,(isPbPb?"PbPb":"PP")))){
+            myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PDF"),Components(RooArgSet(*myws.pdf(Form("pdfCTAURES%d_Psi2SPR_%s", i, (isPbPb?"PbPb":"PP"))))),
+                                                 ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(hOSNameJpsi.c_str()), kTRUE),
+                                                 Normalization(normJpsi, RooAbsReal::NumEvent),
+                                                 LineColor(COLOR[i-1]), Precision(1e-5), NumCPU(32)
+                                                 );
+          }
+        }
       }
     }
     if (incNonPrompt) {
