@@ -17,7 +17,8 @@ using namespace std;
 
 #ifndef poiname_check
 #define poiname_check
-const char* poiname = "N_Jpsi";
+// const char* poiname = "N_Jpsi";
+const char* poiname = "eff";
 #endif
 
 //////////////////
@@ -75,8 +76,8 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
          double chi2 = poiFromBin(workDirName.Data(),collTag,"chi2",trbin);
          double ndof = poiFromBin(workDirName.Data(),collTag,"ndof",trbin);
 
-         // in the case of a really bad chi2, print a warning
-         if (ndof==-999 || TMath::Prob(chi2,ndof)<1e-10) {
+         // in the case of a really bad chi2, print a warning -- except if we are looking at efficiencies
+         if (TString(poiname).Contains("eff") && (ndof==-999 || TMath::Prob(chi2,ndof)<1e-10)) {
             double ymin = trbin.rapbin().low();
             double ymax = trbin.rapbin().high();
             double ptmin = trbin.ptbin().low();
@@ -88,12 +89,12 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
             cout << "p(" << chi2 << "," << ndof << ")=" << TMath::Prob(chi2,ndof) << endl;
             mapvals[trbin].push_back(-999);
          } else {
-            val= poiFromBin(workDirName.Data(),collTag,"N_Jpsi",trbin);
+            val= poiFromBin(workDirName.Data(),collTag,poiname,trbin);
             mapvals[trbin].push_back(val);
          }
          mapchi2[trbin].push_back(chi2);
          mapndof[trbin].push_back(ndof);
-         if (cnt==0) maperr[trbin] = poiErrFromBin(workDirName.Data(),collTag,"N_Jpsi",trbin);
+         if (cnt==0) maperr[trbin] = poiErrFromBin(workDirName.Data(),collTag,poiname,trbin);
       }
       cnt++;
    }

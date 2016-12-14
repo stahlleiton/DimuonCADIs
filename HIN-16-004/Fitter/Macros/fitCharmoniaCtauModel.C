@@ -55,7 +55,6 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
     isMC = true;
   }
   if (!isMC) { wantPureSMC=false; }
-  bool fitMass = false;
   bool fitSideBand = (incBkg && (!incPsi2S && !incJpsi));
 
   string COLL = (isPbPb ? "PbPb" : "PP" );
@@ -220,7 +219,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
     fitResult->Print("v");
     myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str()));
     // Draw the mass plot
-    drawCtauPlot(myws, outputDir, opt, cut, parIni, plotLabel, DSTAG, isPbPb, fitMass, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, wantPureSMC, setLogScale, incSS, binWidth[fitType.c_str()]);
+    drawCtauPlot(myws, outputDir, opt, cut, parIni, plotLabel, DSTAG, isPbPb, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, wantPureSMC, setLogScale, incSS, binWidth[fitType.c_str()]);
     // Save the results
     string FileName = ""; setCtauFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, fitSideBand);
     myws.saveSnapshot(Form("%s_parFit", pdfName.c_str()),*newpars,kTRUE);
@@ -388,14 +387,15 @@ void setCtauGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni
 {
   Double_t ctauMax; Double_t ctauMin;
   myws.data(Form("dOS_%s", label.c_str()))->getRange(*myws.var("ctau"), ctauMin, ctauMax);
+  ctauMin -= 0.00001;  ctauMax += 0.00001;
   int nBins = min(int( round((ctauMax - ctauMin)/binWidth) ), 1000);
   myws.var("ctau")->setMin(ctauMin); myws.var("ctau")->setMax(ctauMax);
-  TH1D* hTot = (TH1D*)myws.data(Form("dOS_%s", label.c_str()))->createHistogram("TMP", *myws.var("ctau"), Binning(nBins, ctauMin, ctauMax));
-  vector<double> rangeErr; 
-  getCtauErrRange(hTot, (int)(ceil(2)), rangeErr);
-  hTot->Delete();
-  ctauMin = rangeErr[0];
-  ctauMax = rangeErr[1];
+  //TH1D* hTot = (TH1D*)myws.data(Form("dOS_%s", label.c_str()))->createHistogram("TMP", *myws.var("ctau"), Binning(nBins, ctauMin, ctauMax));
+  //vector<double> rangeErr; 
+  //getCtauErrRange(hTot, (int)(ceil(2)), rangeErr);
+  //hTot->Delete();
+  //ctauMin = rangeErr[0];
+  //ctauMax = rangeErr[1];
   if (fitCtauRes) {
     if (abs(ctauMax)>abs(ctauMin)) { ctauMax = abs(ctauMin); } else { ctauMin = -1.0*abs(ctauMax); }
     if (ctauMin<cut.dMuon.ctau.Min) { ctauMin = cut.dMuon.ctau.Min; }
@@ -446,8 +446,8 @@ void setCtauCutParameters(struct KinCuts& cut, bool incNonPrompt)
   if (cut.dMuon.ctau.Min==-100. && cut.dMuon.ctau.Max==100.) { 
     // Default ctau values, means that the user did not specify a ctau range
     if (incNonPrompt) {
-      cut.dMuon.ctau.Min = -4.0;
-      cut.dMuon.ctau.Max = 6.0;
+      cut.dMuon.ctau.Min = -6.0;
+      cut.dMuon.ctau.Max = 10.0;
     } else {
       cut.dMuon.ctau.Min = -2.0;
       cut.dMuon.ctau.Max = 2.0;

@@ -179,6 +179,7 @@ void setCtauTrueGlobalParameterRange(RooWorkspace& myws, map<string, string>& pa
 {
   Double_t ctauTrueMax; Double_t ctauTrueMin;
   myws.data(Form("dOS_%s", label.c_str()))->getRange(*myws.var("ctauTrue"), ctauTrueMin, ctauTrueMax);
+  ctauTrueMin -= 0.00001;  ctauTrueMax += 0.00001;
   if (ctauTrueMin<cut.dMuon.ctauTrue.Min) { ctauTrueMin = cut.dMuon.ctauTrue.Min; }
   if (ctauTrueMax>cut.dMuon.ctauTrue.Max) { ctauTrueMax = cut.dMuon.ctauTrue.Max; }
   cout << "Range from data: ctauTrueMin: " << ctauTrueMin << "  ctauTrueMax: " << ctauTrueMax << endl;
