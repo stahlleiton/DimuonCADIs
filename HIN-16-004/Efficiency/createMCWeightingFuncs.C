@@ -11,6 +11,7 @@
 
 #include "TFile.h"
 #include "TH1.h"
+#include "TGraphErrors.h"
 #include "TString.h"
 #include "TObjArray.h"
 #include "TF1.h"
@@ -35,43 +36,43 @@ void customiseLegend(TLegend& legend)
   legend.SetFillStyle(1001);
 }
 
-Bool_t initialChecks(const char* partNameCheck, const char* collNameCheck, const char* rapNameCheck, Int_t polOrderCheck)
-{
-  if (strcmp(partNameCheck,"JPsi") && strcmp(partNameCheck,"Psi2S"))
-  {
-    cout << "[ERROR]: partName must be Jpsi or Psi2S" << endl;
-    return kFALSE;
-  }
-  
-  if (strcmp(collNameCheck,"PP") && strcmp(collNameCheck,"PbPb"))
-  {
-    cout << "[ERROR]: colName must be PP or PbPb" << endl;
-    return kFALSE;
-  }
-  
-  if (strcmp(rapNameCheck,"Mid") && strcmp(rapNameCheck,"Fwd"))
-  {
-    cout << "[ERROR]: rapName must be Mid or Fwd" << endl;
-    return kFALSE;
-  }
-  
-  if ( (polOrderCheck<1) || (polOrderCheck>2))
-  {
-    cout << "[ERROR]: Only polOrder 1 and 2 are supported" << endl;
-    return kFALSE;
-  }
-  
-  return kTRUE;
-}
+//Bool_t initialChecks(const char* partNameCheck, const char* collNameCheck, const char* rapNameCheck, Int_t polOrderCheck)
+//{
+//  if (strcmp(partNameCheck,"JPsi") && strcmp(partNameCheck,"Psi2S"))
+//  {
+//    cout << "[ERROR]: partName must be Jpsi or Psi2S" << endl;
+//    return kFALSE;
+//  }
+//  
+//  if (strcmp(collNameCheck,"PP") && strcmp(collNameCheck,"PbPb"))
+//  {
+//    cout << "[ERROR]: colName must be PP or PbPb" << endl;
+//    return kFALSE;
+//  }
+//  
+////  if (strcmp(rapNameCheck,"Mid") && strcmp(rapNameCheck,"Fwd"))
+////  {
+////    cout << "[ERROR]: rapName must be Mid or Fwd" << endl;
+////    return kFALSE;
+////  }
+//  
+//  if ( (polOrderCheck<1) || (polOrderCheck>2))
+//  {
+//    cout << "[ERROR]: Only polOrder 1 and 2 are supported" << endl;
+//    return kFALSE;
+//  }
+//  
+//  return kTRUE;
+//}
 
-void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char* partName="JPsi", const char* collName="PP", const char* rapName="Mid", Int_t polOrder = 2, Int_t nRand=100)
+void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char* partName="JPsi", const char* collName="PP", const char* rapName="006", Int_t polOrder = 2, Int_t nRand=10)
 // partName = "JPsi" or "Psi2S", collName = "PP" or "PbPb"
 // rapName = "Mid" or "Fwd"
 // nRand is the number of random data distributions that we want to generate from the original one
 // polOrder is the order of the polinomial to be used to fit the DATA/MC distribution (supported 1 or 2)
 {
   // Input parameters checks
-  if (!initialChecks(partName,collName,rapName,polOrder)) return;
+//  if (!initialChecks(partName,collName,rapName,polOrder)) return;
 
   // Read the input files and extract the corresponding distributions
   TFile* fData = new TFile(fileData,"READ");
@@ -82,23 +83,26 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
     return;
   }
   
-  TString hName(Form("hdistr_%s_%s_%s",partName,collName,rapName));
+  TString hName("");
+  if (!strcmp(collName,"PP")) hName = "PPDistribution";
+  else hName = "PbPbDistribution";
+//  TString hName(Form("hdistr_%s_%s_%s",partName,collName,rapName));
   
-  TH1* histoData = static_cast<TH1*>(fData->FindObjectAny(hName.Data()));
+  TGraphErrors* histoData = static_cast<TGraphErrors*>(fData->FindObjectAny(hName.Data()));
   if (!histoData)
   {
     cout << "Data histo " << hName.Data() << " not found in file " << fileData << endl;
     return;
   }
-  histoData->Sumw2(kTRUE);
+//  histoData->Sumw2(kTRUE);
   
-  TH1* histoMC = static_cast<TH1*>(fMC->FindObjectAny(hName.Data()));
+  TGraphErrors* histoMC = static_cast<TGraphErrors*>(fMC->FindObjectAny(hName.Data()));
   if (!histoMC)
   {
     cout << "MC histo " << hName.Data() << " not found in file " << fileMC << endl;
     return;
   }
-  histoMC->Sumw2(kTRUE);
+//  histoMC->Sumw2(kTRUE);
   
   // Create output objects
   TObjArray* aFunctions = new TObjArray();
@@ -108,8 +112,32 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
   TObjArray* aDataHistos = new TObjArray();
   aDataHistos->SetOwner(kTRUE);
   
+  Double_t* exLow = histoData->GetEXlow();
+  Double_t* exHigh = histoData->GetEXhigh();
+  Double_t* exyLow = histoData->GetEYlow();
+  Double_t* eyHigh = histoData->GetEYhigh();
+  Double_t* x = histoData->GetX();
+  Double_t* y = histoData->GetY();
+
+  Int_t nPoints = histoData->GetN();
+  Double_t xAxis[nPoints+1];
+  for (int i = 0; i<nPoints ; i++)
+  {
+    xAxis[i] = x[i]-exLow[i];
+//    cout << i << " ; " << xAxis[i] << endl;
+  }
+  xAxis[nPoints] = x[nPoints-1]+exHigh[nPoints-1];
+//  cout << nPoints << " ; " << xAxis[nPoints] << endl;
+  
+  TH1D* histoDataClone = new TH1D(Form("hdistrData_%s_%s_nominal",partName,collName),"",nPoints,xAxis);
+  for (int i = 0; i<nPoints ; i++)
+  {
+    histoDataClone->SetBinContent(i+1,y[i]);
+    histoDataClone->SetBinError(i+1,exyLow[i]);
+  }
+
   // Normalise the initial DATA and MC distributions
-  TH1* histoDataClone = static_cast<TH1*>(histoData->Clone(Form("hdistr_%s_%s_nominal",partName,collName)));
+//  TGraphErrors* histoDataClone = static_cast<TGraphErrors*>(histoData->Clone(Form("hdistr_%s_%s_nominal",partName,collName)));
   Double_t norm = 1./histoDataClone->Integral();
   histoDataClone->Scale(norm); // Normalise histo to 1
   histoDataClone->SetLineColor(1);
@@ -119,7 +147,32 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
   histoDataClone->GetYaxis()->SetTitle("dN/dp_{T}");
   aDataHistos->Add(histoDataClone); // First object in the arrays will correspond to the nominal results
   
-  TH1* histoMCClone = static_cast<TH1*>(histoMC->Clone(Form("hdistr_%s_%s_MC",partName,collName)));
+  
+  Double_t* exLowMC = histoMC->GetEXlow();
+  Double_t* exHighMC = histoMC->GetEXhigh();
+  Double_t* exyLowMC = histoMC->GetEYlow();
+  Double_t* eyHighMC = histoMC->GetEYhigh();
+  Double_t* xMC = histoMC->GetX();
+  Double_t* yMC = histoMC->GetY();
+  
+  Int_t nPointsMC = histoMC->GetN();
+  Double_t xAxisMC[nPointsMC+1];
+  for (int i = 0; i<nPointsMC ; i++)
+  {
+    xAxisMC[i] = xMC[i]-exLowMC[i];
+//    cout << xAxisMC[i] << endl;
+  }
+  xAxisMC[nPointsMC] = xMC[nPointsMC-1]+exHighMC[nPointsMC-1];
+//  cout << xAxisMC[nPointsMC] << endl;
+  
+  TH1D* histoMCClone = new TH1D(Form("hdistrMC_%s_%s_nominal",partName,collName),"",nPointsMC,xAxisMC);
+  for (int i = 0; i<nPointsMC ; i++)
+  {
+    histoMCClone->SetBinContent(i+1,yMC[i]);
+    histoMCClone->SetBinError(i+1,exyLowMC[i]);
+  }
+
+//  TGraphErrors* histoMCClone = static_cast<TGraphErrors*>(histoMC->Clone(Form("hdistr_%s_%s_MC",partName,collName)));
   norm = 1./histoMCClone->Integral();
   histoMCClone->Scale(norm); // Normalise histo to 1
   histoMCClone->SetLineColor(4);
@@ -132,8 +185,9 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
   TH1* histoDataClone2(0x0);
   for (Int_t n=0 ; n<nRand ; n++)
   {
-    histoDataClone2 = static_cast<TH1*>(histoDataClone->Clone(Form("hdistr_%s_%s_n%d",partName,collName,n)));
+    histoDataClone2 = static_cast<TH1D*>(histoDataClone->Clone(Form("hdistr_%s_%s_n%d",partName,collName,n)));
     histoDataClone2->Reset();
+    
     Int_t nBins = histoDataClone2->GetNbinsX();
     for (Int_t i=1; i<=nBins ; i++)
     {
@@ -164,9 +218,9 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
   histoDataClone = 0x0;
   histoDataClone2 = 0x0;
   Int_t nh(0);
-  while ( (histoDataClone = static_cast<TH1*>(nextHisto())) )
+  while ( (histoDataClone = static_cast<TH1D*>(nextHisto())) )
   {
-    histoDataClone2 = static_cast<TH1*>(histoDataClone->Clone(nh == 0 ? Form("hratio_%s_%s_nominal",partName,collName) : Form("hratio_%s_%s_n%d",partName,collName,nh-1)));
+    histoDataClone2 = static_cast<TH1D*>(histoDataClone->Clone(nh == 0 ? Form("hratio_%s_%s_nominal",partName,collName) : Form("hratio_%s_%s_n%d",partName,collName,nh-1)));
     histoDataClone2->Divide(histoMCClone);
     histoDataClone2->SetLineColor(nh==0 ? 1 : 2);
     histoDataClone2->SetMarkerColor(nh==0 ? 1 : 2);
@@ -192,7 +246,7 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
   customiseLegend(*lData);
   nextHisto.Reset();
   nh = 0;
-  while ( (histoDataClone = static_cast<TH1*>(nextHisto())) )
+  while ( (histoDataClone = static_cast<TH1D*>(nextHisto())) )
   {
     if (nh == 0)
     {
@@ -204,7 +258,7 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
   }
   lData->Draw("same");
   nextHisto.Reset(); //Following lines are just to plot the nominal histo on top of the others
-  histoDataClone = static_cast<TH1*>(nextHisto());
+  histoDataClone = static_cast<TH1D*>(nextHisto());
   histoDataClone->DrawClone("same");
   histoMCClone->DrawClone("same"); // Draw also the MC distribution
   
@@ -219,7 +273,7 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
     if (nh == 0)
     {
       lFuncs->AddEntry(fDummy,"Nominal","l");
-      TH1* hDummy = static_cast<TH1*>((aRatios->At(0))->Clone()); // Get ratio histo for the axes label
+      TH1D* hDummy = static_cast<TH1D*>((aRatios->At(0))->Clone()); // Get ratio histo for the axes label
       Double_t ymax = hDummy->GetMaximum();
       Double_t ymin = hDummy->GetMinimum();
       hDummy->Reset("ICES");
@@ -239,7 +293,7 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
   customiseLegend(*lRatios);
   TIter nextRatio(aRatios);
   nh = 0;
-  while ( (histoDataClone = static_cast<TH1*>(nextRatio())) )
+  while ( (histoDataClone = static_cast<TH1D*>(nextRatio())) )
   {
     if (nh == 0) lRatios->AddEntry(histoDataClone,"Nominal","l");
     histoDataClone->DrawClone("same");
@@ -247,7 +301,7 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
   }
   lRatios->Draw("same");
   nextRatio.Reset(); //Following lines are just to plot the nominal histo on top of the others
-  histoDataClone = static_cast<TH1*>(nextRatio());
+  histoDataClone = static_cast<TH1D*>(nextRatio());
   histoDataClone->DrawClone("same");
   
   
