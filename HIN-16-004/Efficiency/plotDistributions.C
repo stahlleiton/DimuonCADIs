@@ -83,24 +83,15 @@ void plotPt(string workDirName, int iplot) {
   
   // 3 centrality intervals
   if (iplot==1) {
-    if (isData)
-    {
-      theCats.push_back(anabin(0,2.4,6.5,50,0,20));
-      theCats.push_back(anabin(0,2.4,6.5,50,20,60));
-      theCats.push_back(anabin(0,2.4,6.5,50,60,200));
-    }
-    else
-    {
-      theCats.push_back(anabin(0,2.4,6.5,30,0,20));
-      theCats.push_back(anabin(0,2.4,6.5,30,20,60));
-      theCats.push_back(anabin(0,2.4,6.5,30,60,200));
-    }
+    
+    theCats.push_back(anabin(0,2.4,6.5,50,0,20));
+    theCats.push_back(anabin(0,2.4,6.5,50,20,60));
+    theCats.push_back(anabin(0,2.4,6.5,50,60,200));
   }
   
   // 1 rapidity interval
   if (iplot==2) {
-    if (isData) theCats.push_back(anabin(0,2.4,6.5,50,0,200));
-    else theCats.push_back(anabin(0,2.4,6.5,30,0,200));
+    theCats.push_back(anabin(0,2.4,6.5,50,0,200));
   }
   
   plot(theCats,xaxis,workDirName);
