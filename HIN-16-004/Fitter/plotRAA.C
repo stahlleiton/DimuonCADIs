@@ -37,10 +37,9 @@ const char* poiname       = "N_Jpsi"; // for RAA (will correct automatically for
 #endif
 const char* ylabel        = "R_{AA}";
 
-bool  fiterrors     = true;  // statistical errors are from the fit
-bool  plotsysts     = true;  // display systematics
 bool  doprompt      = true;  // prompt Jpsi
 bool  dononprompt   = false;  // nonprompt Jpsi
+bool  plot14005     = true; // plot results at 2.76 TeV
 string nameTag_base = "_prompt";    // can put here e.g. "_prompt", "_nonprompt", ...
 
 const bool useNcoll = false; // false -> use TAA / NMB, true -> use Ncoll / lumiPbPb
@@ -50,7 +49,7 @@ const bool useNcoll = false; // false -> use TAA / NMB, true -> use Ncoll / lumi
 //////////////////
 
 void printOptions();
-void setOptions(bool afiterrors, bool aplotsysts, bool adoprompt, bool adononprompt, string anameTag_base);
+void setOptions(bool adoprompt, bool adononprompt, bool aplot14005, string anameTag_base);
 void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsymmErrors*> theGraphs_syst, string xaxis, string outputDir, map<anabin, syst> gsyst);
 void plot(vector<anabin> thecats, string xaxis, string workDirName);
 void centrality2npart(TGraphAsymmErrors* tg, bool issyst=false, double xshift=0.);
@@ -388,7 +387,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
             exh = (high-low)/2.;
             exl = (high-low)/2.;
             exsyst = (xaxis=="pt") ? 0.5 : 0.05;
-            eysyst = plotsysts ? y*sqrt(pow(syst_PP[thebin].value,2) + pow(syst_PbPb[thebin].value,2)) : 0; // quadratic sum of PP and PbPb systs
+            eysyst = y*sqrt(pow(syst_PP[thebin].value,2) + pow(syst_PbPb[thebin].value,2)); // quadratic sum of PP and PbPb systs
          }
          if (xaxis=="cent") {
             low= thebin.centbin().low();
@@ -399,14 +398,12 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
             exh = (high-low)/2./2.;
             exl = (high-low)/2./2.;
             exsyst = exl;
-            eysyst = plotsysts ? y*syst_PbPb[thebin].value : 0; // only PbPb syst: the PP one will go to a dedicated box
+            eysyst = y*syst_PbPb[thebin].value; // only PbPb syst: the PP one will go to a dedicated box
          }
          eyl = fabs(theVarsBinned_stat[*it][i]);
          eyh = eyl;
 
          // eysyst = y*eysyst;
-         // add the additive part of the NP contamination syst
-         // if (plotsysts && syst_PbPb_NP_add.find(thebin) != syst_PbPb_NP_add.end()) eysyst = sqrt(pow(syst_PbPb_NP_add[thebin].value,2) + pow(eysyst,2)); 
 
          theGraphs[*it]->SetPoint(i,x,y);
          theGraphs[*it]->SetPointError(i,exl,exh,eyl,eyh);
@@ -479,6 +476,101 @@ void plotGraph(map<anabin, TGraphAsymmErrors*> theGraphs, map<anabin, TGraphAsym
       if (!tg || !tg_syst) continue;
 
       theCats.push_back(thebin);
+
+      // if needed, draw 14-005 first
+      if (plot14005) {
+         TString name14005 = Form("/afs/cern.ch/work/m/miheejo/public/2015JpsiRAA5TeV/276TeVRaa/histRaa/makeRaa_%s.root",xaxis=="rap" ? "y" : xaxis.c_str());
+         TString name14005_syst = Form("/afs/cern.ch/work/m/miheejo/public/2015JpsiRAA5TeV/276TeVRaa/histSyst/raaSystUncert_%s.root",xaxis=="rap" ? "y" : xaxis.c_str());
+         TFile *fraa = new TFile(name14005);
+         TFile *fraa_syst = new TFile(name14005_syst);
+         if (fraa && fraa_syst) {
+            // the main graph
+            name14005 = Form("g%sJpsi",dononprompt ? "NonPr" : "Pr");
+            if (thebin != anabin(0,2.4,6.5,50,0,200) && thebin != anabin(0,2.4,6.5,30,0,200)) {
+               int ptlowi = thebin.ptbin().low()*10;
+               if (ptlowi == ((int) thebin.ptbin().low())*10) ptlowi = thebin.ptbin().low();
+               int pthighi = (thebin.ptbin().high()<30) ? thebin.ptbin().high() : 30;
+               int raplowi = thebin.rapbin().low()*10;
+               int raphighi = thebin.rapbin().high()*10;
+               name14005 += Form("_pt%i%iy%i%i", ptlowi, pthighi, raplowi, raphighi);
+            }
+            TGraphErrors *tg = (TGraphErrors*) fraa->Get(name14005);
+
+            // the syst graph
+            name14005 = Form("g%sJpsiSyst",dononprompt ? "NonPr" : "Pr");
+            if (thebin != anabin(0,2.4,6.5,50,0,200) && thebin != anabin(0,2.4,6.5,30,0,200)) {
+               int ptlowi = thebin.ptbin().low()*10;
+               if (ptlowi == ((int) thebin.ptbin().low())*10) ptlowi = thebin.ptbin().low();
+               int pthighi = (thebin.ptbin().high()<30) ? thebin.ptbin().high() : 30;
+               int raplowi = thebin.rapbin().low()*10;
+               int raphighi = thebin.rapbin().high()*10;
+               name14005 += Form("_pt%i%iy%i%i", ptlowi, pthighi, raplowi, raphighi);
+            }
+            TGraphErrors *tg_syst = (TGraphErrors*) fraa_syst->Get(name14005);
+
+            if (tg && tg_syst) {
+
+               // the syst box
+               name14005 = Form("lumi_%s_y024_pt6530",dononprompt ? "npr" : "pr");
+               if (xaxis == "pt" || xaxis == "rap") name14005 = "lumi";
+               TBox *b14005 = (TBox*) fraa_syst->Get(name14005);
+               double glob_14005;
+               if (!b14005) glob_14005 = 0;
+               else glob_14005 = b14005->GetY2() - 1;
+
+               // now we have all the ingredients! Let's draw them.
+               tg->SetMarkerStyle(markerstyle(cnt+4));
+               tg->SetMarkerColor(13+cnt);
+               tg->SetLineColor(13+cnt);
+               tg_syst->SetLineColor(13+cnt);
+               tg_syst->SetFillColorAlpha(13+cnt, 0.5);
+               tg->SetMarkerSize(1.5);
+               tg->SetLineWidth(tg->GetLineWidth()*2);
+
+               if (xaxis=="cent") {
+                  // do not plot wide centrality bins
+                  prune(tg, tg_syst);
+               }
+               tg_syst->Draw("5");      
+               gStyle->SetEndErrorSize(5);
+               tg->Draw("P");
+               // tg->Draw("[]");
+
+               TString raplabel = Form("%.1f < |y| < %.1f, ",it->first.rapbin().low(),it->first.rapbin().high());
+               if (it->first.rapbin().low()<0.1) raplabel = Form("|y| < %.1f, ",it->first.rapbin().high());
+               TString otherlabel = "";
+               if (xaxis == "pt") otherlabel.Form("%i-%i%s",(int) (it->first.centbin().low()/2.), (int) (it->first.centbin().high()/2.), "%");
+               if (xaxis == "cent" || xaxis == "rap") otherlabel.Form("%g < p_{T} < %g GeV/c",it->first.ptbin().low(), it->first.ptbin().high());
+               tleg->AddEntry(tg, (raplabel + otherlabel + ", #sqrt{s_{NN}}=2.76TeV"), "p");
+
+               // in the case where the centrality dependence is plotted: treat the PP uncertainties as global systematics
+               double x, dx, y, dy;
+               if (xaxis=="cent") {
+                  dx = 10;
+               } else if (xaxis=="pt") {
+                  dx = 1.25;
+               } else if (xaxis=="rap") {
+                  dx = 0.06;
+               }
+               x = 2*dx*cnt + dx;
+               y = 1;
+               dy = glob_14005;
+               TBox *tbox = new TBox(x-dx,y-dy,x+dx,y+dy);
+               tbox->SetFillColorAlpha(13+cnt, 1);
+               tbox->SetLineColor(kBlack);
+               tbox->Draw("l");
+               TBox *tboxl = (TBox*) tbox->Clone("tboxl");
+               tboxl->SetFillStyle(0);
+               tboxl->Draw("l");
+
+               cnt++;
+            } // if (tg && tg_syst) 
+         } // if (fraa && fraa_syst) 
+
+         if (fraa) delete fraa;
+         if (fraa_syst) delete fraa_syst;
+      } // if (plot14005)
+
 
       tg->SetMarkerStyle(markerstyle(cnt));
       tg->SetMarkerColor(color(cnt));
@@ -625,25 +717,25 @@ int markerstyle(int i) {
    else if (i==3) return kFullCross;
    else if (i==4) return kOpenSquare;
    else if (i==5) return kOpenCircle;
-   else return kOpenStar;
+   else if (i==6) return kOpenStar;
+   else return kOpenCross;
 }
 
-void setOptions(bool afiterrors, bool aplotsysts, bool adoprompt, bool adononprompt, string anameTag_base) {
-   fiterrors = afiterrors;
-   plotsysts = aplotsysts;
+void setOptions(bool adoprompt, bool adononprompt, bool aplot14005, string anameTag_base) {
    doprompt = adoprompt;
    dononprompt = adononprompt;
+   plot14005 = aplot14005;
    nameTag_base = anameTag_base;
    if (doprompt) nameTag_base += "_prompt";
    if (dononprompt) nameTag_base += "_nonprompt";
+   if (plot14005) nameTag_base += "_14005";
 }
 
 void printOptions() {
    cout << 
-      "fiterrors = " << fiterrors << ", "
-      "plotsysts = " << plotsysts << ", "
-      "doprompt = " << doprompt << ", "
-      "dononprompt = " << dononprompt << ", "
+      "doprompt = " << doprompt << ", " << 
+      "dononprompt = " << dononprompt << ", " << 
+      "plot14005 = " << plot14005 << ", " << 
       "nameTag_base = \"" << nameTag_base << "\"" << 
       endl;
 }
