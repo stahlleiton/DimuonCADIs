@@ -24,6 +24,7 @@
 
 
 using namespace std;
+void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char* partName="JPsi", const char* collName="PP", const char* rapName="006", const char* partType = "prompt", Int_t polOrder = 2, Int_t nRand=100);
 
 void customiseLegend(TLegend& legend)
 {
@@ -36,43 +37,47 @@ void customiseLegend(TLegend& legend)
   legend.SetFillStyle(1001);
 }
 
-//Bool_t initialChecks(const char* partNameCheck, const char* collNameCheck, const char* rapNameCheck, Int_t polOrderCheck)
-//{
-//  if (strcmp(partNameCheck,"JPsi") && strcmp(partNameCheck,"Psi2S"))
-//  {
-//    cout << "[ERROR]: partName must be Jpsi or Psi2S" << endl;
-//    return kFALSE;
-//  }
+void createAll(){
+  createMCWeightingFuncs("Distributions_data_prompt/cPP_pt_rap0006_cent0100.root", "Distributions_mc_prompt/cPP_pt_rap0006_cent0100.root","JPsi","PP","006","prompt");
+  createMCWeightingFuncs("Distributions_data_prompt/cPbPb_pt_rap0006_cent0100.root", "Distributions_mc_prompt/cPbPb_pt_rap0006_cent0100.root","JPsi","PbPb","006","prompt");
+  
+  createMCWeightingFuncs("Distributions_data_prompt/cPP_pt_rap0612_cent0100.root", "Distributions_mc_prompt/cPP_pt_rap0612_cent0100.root","JPsi","PP","0612","prompt");
+  createMCWeightingFuncs("Distributions_data_prompt/cPbPb_pt_rap0612_cent0100.root", "Distributions_mc_prompt/cPbPb_pt_rap0612_cent0100.root","JPsi","PbPb","0612","prompt");
+  
+  createMCWeightingFuncs("Distributions_data_prompt/cPP_pt_rap1218_cent0100.root", "Distributions_mc_prompt/cPP_pt_rap1218_cent0100.root","JPsi","PP","1218","prompt");
+  createMCWeightingFuncs("Distributions_data_prompt/cPbPb_pt_rap1218_cent0100.root", "Distributions_mc_prompt/cPbPb_pt_rap1218_cent0100.root","JPsi","PbPb","1218","prompt");
+  
+  createMCWeightingFuncs("Distributions_data_prompt/cPP_pt_rap1824_cent0100.root", "Distributions_mc_prompt/cPP_pt_rap1824_cent0100.root","JPsi","PP","1824","prompt");
+  createMCWeightingFuncs("Distributions_data_prompt/cPbPb_pt_rap1824_cent0100.root", "Distributions_mc_prompt/cPbPb_pt_rap1824_cent0100.root","JPsi","PbPb","1824","prompt");
+  
+  createMCWeightingFuncs("Distributions_data_prompt/cPP_pt_rap0024_cent0100.root", "Distributions_mc_prompt/cPP_pt_rap0024_cent0100.root","JPsi","PP","024","prompt");
+  createMCWeightingFuncs("Distributions_data_prompt/cPbPb_pt_rap0024_cent0100.root", "Distributions_mc_prompt/cPbPb_pt_rap0024_cent0100.root","JPsi","PbPb","024","prompt");
+  
+  
+//  createMCWeightingFuncs("Distributions_data_nonprompt/cPP_pt_rap0006_cent0100.root", "Distributions_mc_nonprompt/cPP_pt_rap0006_cent0100.root","JPsi","PP","006","nonprompt");
+//  createMCWeightingFuncs("Distributions_data_nonprompt/cPbPb_pt_rap0006_cent0100.root", "Distributions_mc_nonprompt/cPbPb_pt_rap0006_cent0100.root","JPsi","PbPb","006","nonprompt");
 //  
-//  if (strcmp(collNameCheck,"PP") && strcmp(collNameCheck,"PbPb"))
-//  {
-//    cout << "[ERROR]: colName must be PP or PbPb" << endl;
-//    return kFALSE;
-//  }
+//  createMCWeightingFuncs("Distributions_data_nonprompt/cPP_pt_rap0612_cent0100.root", "Distributions_mc_nonprompt/cPP_pt_rap0612_cent0100.root","JPsi","PP","0612","nonprompt");
+//  createMCWeightingFuncs("Distributions_data_nonprompt/cPbPb_pt_rap0612_cent0100.root", "Distributions_mc_nonprompt/cPbPb_pt_rap0612_cent0100.root","JPsi","PbPb","0612","nonprompt");
 //  
-////  if (strcmp(rapNameCheck,"Mid") && strcmp(rapNameCheck,"Fwd"))
-////  {
-////    cout << "[ERROR]: rapName must be Mid or Fwd" << endl;
-////    return kFALSE;
-////  }
+//  createMCWeightingFuncs("Distributions_data_nonprompt/cPP_pt_rap1218_cent0100.root", "Distributions_mc_nonprompt/cPP_pt_rap1218_cent0100.root","JPsi","PP","1218","nonprompt");
+//  createMCWeightingFuncs("Distributions_data_nonprompt/cPbPb_pt_rap1218_cent0100.root", "Distributions_mc_nonprompt/cPbPb_pt_rap1218_cent0100.root","JPsi","PbPb","1218","nonprompt");
 //  
-//  if ( (polOrderCheck<1) || (polOrderCheck>2))
-//  {
-//    cout << "[ERROR]: Only polOrder 1 and 2 are supported" << endl;
-//    return kFALSE;
-//  }
+//  createMCWeightingFuncs("Distributions_data_nonprompt/cPP_pt_rap1824_cent0100.root", "Distributions_mc_nonprompt/cPP_pt_rap1824_cent0100.root","JPsi","PP","1824","nonprompt");
+//  createMCWeightingFuncs("Distributions_data_nonprompt/cPbPb_pt_rap1824_cent0100.root", "Distributions_mc_nonprompt/cPbPb_pt_rap1824_cent0100.root","JPsi","PbPb","1824","nonprompt");
 //  
-//  return kTRUE;
-//}
+//  createMCWeightingFuncs("Distributions_data_nonprompt/cPP_pt_rap0024_cent0100.root", "Distributions_mc_nonprompt/cPP_pt_rap0024_cent0100.root","JPsi","PP","024","nonprompt");
+//  createMCWeightingFuncs("Distributions_data_nonprompt/cPbPb_pt_rap0024_cent0100.root", "Distributions_mc_nonprompt/cPbPb_pt_rap0024_cent0100.root","JPsi","PbPb","024","nonprompt");
+}
 
-void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char* partName="JPsi", const char* collName="PP", const char* rapName="006", Int_t polOrder = 2, Int_t nRand=10)
+
+void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char* partName, const char* collName, const char* rapName, const char* partType, Int_t polOrder, Int_t nRand)
 // partName = "JPsi" or "Psi2S", collName = "PP" or "PbPb"
 // rapName = "Mid" or "Fwd"
 // nRand is the number of random data distributions that we want to generate from the original one
 // polOrder is the order of the polinomial to be used to fit the DATA/MC distribution (supported 1 or 2)
 {
   // Input parameters checks
-//  if (!initialChecks(partName,collName,rapName,polOrder)) return;
 
   // Read the input files and extract the corresponding distributions
   TFile* fData = new TFile(fileData,"READ");
@@ -94,7 +99,7 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
     cout << "Data histo " << hName.Data() << " not found in file " << fileData << endl;
     return;
   }
-//  histoData->Sumw2(kTRUE);
+
   
   TGraphErrors* histoMC = static_cast<TGraphErrors*>(fMC->FindObjectAny(hName.Data()));
   if (!histoMC)
@@ -102,7 +107,6 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
     cout << "MC histo " << hName.Data() << " not found in file " << fileMC << endl;
     return;
   }
-//  histoMC->Sumw2(kTRUE);
   
   // Create output objects
   TObjArray* aFunctions = new TObjArray();
@@ -130,6 +134,7 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
 //  cout << nPoints << " ; " << xAxis[nPoints] << endl;
   
   TH1D* histoDataClone = new TH1D(Form("hdistrData_%s_%s_nominal",partName,collName),"",nPoints,xAxis);
+  histoDataClone->Sumw2(kTRUE);
   for (int i = 0; i<nPoints ; i++)
   {
     histoDataClone->SetBinContent(i+1,y[i]);
@@ -137,7 +142,6 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
   }
 
   // Normalise the initial DATA and MC distributions
-//  TGraphErrors* histoDataClone = static_cast<TGraphErrors*>(histoData->Clone(Form("hdistr_%s_%s_nominal",partName,collName)));
   Double_t norm = 1./histoDataClone->Integral();
   histoDataClone->Scale(norm); // Normalise histo to 1
   histoDataClone->SetLineColor(1);
@@ -166,13 +170,13 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
 //  cout << xAxisMC[nPointsMC] << endl;
   
   TH1D* histoMCClone = new TH1D(Form("hdistrMC_%s_%s_nominal",partName,collName),"",nPointsMC,xAxisMC);
+  histoMCClone->Sumw2(kTRUE);
   for (int i = 0; i<nPointsMC ; i++)
   {
     histoMCClone->SetBinContent(i+1,yMC[i]);
     histoMCClone->SetBinError(i+1,exyLowMC[i]);
   }
 
-//  TGraphErrors* histoMCClone = static_cast<TGraphErrors*>(histoMC->Clone(Form("hdistr_%s_%s_MC",partName,collName)));
   norm = 1./histoMCClone->Integral();
   histoMCClone->Scale(norm); // Normalise histo to 1
   histoMCClone->SetLineColor(4);
@@ -306,7 +310,7 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
   
   
   // Save arrays with results to file
-  TFile* fSave = new TFile(Form("weights_%s_%s_%s.root",partName,collName,rapName),"RECREATE");
+  TFile* fSave = new TFile(Form("weights_%s_%s_%s_%s.root",partName,collName,rapName,partType),"RECREATE");
   cData->Write("dataDistributions",TObject::kOverwrite | TObject::kSingleKey);
   cFuncs->Write("weightingFuncs",TObject::kOverwrite | TObject::kSingleKey);
   cRatios->Write("ratiosDataMC",TObject::kOverwrite | TObject::kSingleKey);
