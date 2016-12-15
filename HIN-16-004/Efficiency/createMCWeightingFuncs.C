@@ -233,8 +233,8 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
     
     TString fName(nh==0 ? "wFunction_nominal" : Form("wFunction_n%d",nh-1));
     TF1* fWeight(0x0);
-    if (polOrder==1) fWeight= new TF1(fName.Data(),Pol1,0.,30.,2);
-    else if (polOrder==2) fWeight= new TF1(fName.Data(),Pol2,0.,30.,3);
+    if (polOrder==1) fWeight= new TF1(fName.Data(),Pol1,0.,50.,2);
+    else if (polOrder==2) fWeight= new TF1(fName.Data(),Pol2,0.,50.,3);
     fWeight->SetLineColor(nh==0 ? 1 : 2);
     histoDataClone2->Fit(fWeight,"N");
     
