@@ -36,7 +36,7 @@
 #endif
 void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place where the input root files, with the histograms are
                      bool bSavePlots      = true,
-                     bool bDoSameYHighPt  = false
+                     bool bDoSameYHighPt  = true 
                      )
 {
    // set the style
@@ -154,7 +154,7 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
 
   TF1 *f4 = new TF1("f4","1",0,400);
   f4->SetLineWidth(1);
-  f4->GetXaxis()->SetTitle("N_{part}");
+  f4->GetXaxis()->SetTitle("<N_{part}>");
   f4->GetYaxis()->SetTitle("R_{AA}");
   f4->GetYaxis()->SetRangeUser(0.0,1.5);
   f4->GetXaxis()->CenterTitle(kTRUE);
@@ -180,7 +180,7 @@ void raaTheoryOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the pl
   pgCms->Draw("P");
 
   // additional info
-  CMS_lumi(pc,12014000,0);
+  CMS_lumi(pc,12003000,0);
 
   TLegend *leg_cent = new TLegend(0.23,0.81,0.83,0.89,NULL,"brNDC");
   leg_cent->SetMargin(0.12);

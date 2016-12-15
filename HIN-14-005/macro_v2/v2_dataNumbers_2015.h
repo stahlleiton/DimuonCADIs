@@ -62,31 +62,61 @@ double adXaxis_mb[] = {200};
 double adXaxisPt_np[2]   = {7.8,13.1};
 double adXaxisPt_np_l[2] = {1.3,3.1};
 double adXaxisPt_np_h[2] = {2.2,16.9};
-// 1 <pt> bins for high-pt non-prompt
-double adXaxisPt_np1[1]   = {8.9};// location on x-axis
-double adXaxisPt_np1_l[1] = {2.4};// bin width to the left
-double adXaxisPt_np1_h[1] = {21.1}; // bin width to the right
-// 3 <pt> bins for high-pt prompt
-double adXaxisPt_pr[3]    = {7.2, 8.8, 13.1};// location on x-axis  
-double adXaxisPt_pr_l[3]  = {0.7, 0.8,  3.1}; // bin width to the left
-double adXaxisPt_pr_h[3]  = {0.8, 1.2, 16.9};// bin width to the right
+// 1 pt bins for high-pt non-prompt
+double adXaxisPt_np1[1]   = {18.25};// location on x-axis
+double adXaxisPt_np1_l[1] = {11.75};// bin width to the left
+double adXaxisPt_np1_h[1] = {11.75}; // bin width to the right
+// 3 pt bins for high-pt prompt
+double adXaxisPt_pr[3]    = {7.25, 9.0, 20.0};// location on x-axis  
+double adXaxisPt_pr_l[3]  = {0.75, 1.0, 10.0}; // bin width to the left
+double adXaxisPt_pr_h[3]  = {0.75, 1.0, 10.0};// bin width to the right
 
-// 1 <pt> bins for low-pt
-double adXaxis_low[1]         = {4.4}; // bin width to the left
-double adXaxis_low_l[1]       = {1.4}; // bin width to the left
-double adXaxis_low_h[1]       = {2.1};// bin width to the right
+// 1 pt bins for low-pt
+double adXaxis_low[1]         = {4.75}; // bin width to the left
+double adXaxis_low_l[1]       = {1.75}; // bin width to the left
+double adXaxis_low_h[1]       = {1.75};// bin width to the right
 double adWidth_low_systBox[1] = {0.25}; // width of the systm. uncert.
 
 // rapidity axis
-// 2 <|y|> bins for high-pt non-prompt
-double adXaxisY_np[2]   = {0.7,1.7};
-double adXaxisY_np_l[2] = {0.7,0.5};
-double adXaxisY_np_h[2] = {0.6,0.7};
+// 2 |y| bins for high-pt non-prompt
+double adXaxisY_np[2]   = {0.6,1.6};
+double adXaxisY_np_l[2] = {0.6,0.6};
+double adXaxisY_np_h[2] = {0.6,0.6};
+// 3 |y| bins for high-pt prompt
+double adXaxisY_pr[3]    = {0.6, 1.4, 2.0};// location on x-axis  
+double adXaxisY_pr_l[3]  = {0.6, 0.2, 0.4}; // bin width to the left
+double adXaxisY_pr_h[3]  = {0.6, 0.2, 0.4};// bin width to the right
 
-// 3 <|y|> bins for high-pt prompt
-double adXaxisY_pr[3]    = {0.7, 1.4, 1.9};// location on x-axis  
-double adXaxisY_pr_l[3]  = {0.7, 0.2, 0.3}; // bin width to the left
-double adXaxisY_pr_h[3]  = {0.5, 0.2, 0.5};// bin width to the right
+//// pt axis
+//// 2 <pt> bins for high-pt non-prompt
+//double adXaxisPt_np[2]   = {7.8,13.1};
+//double adXaxisPt_np_l[2] = {1.3,3.1};
+//double adXaxisPt_np_h[2] = {2.2,16.9};
+//// 1 <pt> bins for high-pt non-prompt
+//double adXaxisPt_np1[1]   = {8.9};// location on x-axis
+//double adXaxisPt_np1_l[1] = {2.4};// bin width to the left
+//double adXaxisPt_np1_h[1] = {21.1}; // bin width to the right
+//// 3 <pt> bins for high-pt prompt
+//double adXaxisPt_pr[3]    = {7.2, 8.8, 13.1};// location on x-axis  
+//double adXaxisPt_pr_l[3]  = {0.7, 0.8,  3.1}; // bin width to the left
+//double adXaxisPt_pr_h[3]  = {0.8, 1.2, 16.9};// bin width to the right
+//
+//// 1 <pt> bins for low-pt
+//double adXaxis_low[1]         = {4.4}; // bin width to the left
+//double adXaxis_low_l[1]       = {1.4}; // bin width to the left
+//double adXaxis_low_h[1]       = {2.1};// bin width to the right
+//double adWidth_low_systBox[1] = {0.25}; // width of the systm. uncert.
+//
+//// rapidity axis
+//// 2 <|y|> bins for high-pt non-prompt
+//double adXaxisY_np[2]   = {0.7,1.7};
+//double adXaxisY_np_l[2] = {0.7,0.5};
+//double adXaxisY_np_h[2] = {0.6,0.7};
+//// 3 <|y|> bins for high-pt prompt
+//double adXaxisY_pr[3]    = {0.7, 1.4, 1.9};// location on x-axis  
+//double adXaxisY_pr_l[3]  = {0.7, 0.2, 0.3}; // bin width to the left
+//double adXaxisY_pr_h[3]  = {0.5, 0.2, 0.5};// bin width to the right
+
 
 // cent axis
 double adXaxisCent_pr[4]   = {90,187,261,355}; // Npart (60-30, 30-20, 20-10, 10-0)

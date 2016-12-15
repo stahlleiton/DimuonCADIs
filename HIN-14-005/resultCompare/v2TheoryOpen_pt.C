@@ -43,7 +43,7 @@
 
 void v2TheoryOpen_pt(bool bSavePlots = true, 
                   float rangeYAxis    = 0.27,
-                  float rangeXAxis    = 17,
+                  float rangeXAxis    = 30,
                   const char* inputDir= "../macro_v2/outRoot", // the place where the input root files, with the histograms are
                   const char* figNamePrefix="v2TheoryOpen_pt")
 {
@@ -117,7 +117,7 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
  
   TCanvas *pcCombi = new TCanvas("pcCombi","pcCombi");
   phAxis_v2->Draw();
-  CMS_lumi(pcCombi,12014000,0);
+  CMS_lumi(pcCombi,12001000,0);
  
   gNPJpsi_K08->Draw("l");
 //  gD_K08->Draw("l");

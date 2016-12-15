@@ -52,6 +52,7 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
   TGraphErrors *pgCmsSyst = (TGraphErrors *)pfRaaCms_pt->Get("gPrJpsiSyst");
   pgCms->SetFillColorAlpha(kRed-9,0.5);
   pgCms->SetName("gPrJpsi");
+  pgCmsSyst->SetFillColorAlpha(kRed-9,0.5);
   
   TBox *lumi = (TBox*)pfRaaCms_pt->Get("lumi");
   lumi->SetFillColor(kRed-9);
@@ -68,6 +69,7 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
   TGraphErrors *pgCmsSyst_lowpt = (TGraphErrors *)pfRaaCms_pt->Get("gPrJpsiSyst_pt365y1624");
   pgCms_lowpt->SetFillColorAlpha(kViolet-9,0.5);
   pgCms_lowpt->SetName("gPrJpsi_pt365y1624");
+  pgCmsSyst_lowpt->SetFillColorAlpha(kViolet-9,0.5);
 
   //-------------------------------------------------------------------- 
   // *********** alice points:
@@ -126,7 +128,7 @@ void raaExpClose_pt(const char* inputDir = "../macro_raa/outRoot", // the place 
   pgRaaAliceStat_cent090->Draw("P");
 
   // additional info
-  CMS_lumi(pc,12014000,0);
+  CMS_lumi(pc,12003000,0);
 
   TLegend *leg_pt = new TLegend(0.2,0.77,0.7,0.88,NULL,"brNDC");
   leg_pt->SetBorderSize(0);

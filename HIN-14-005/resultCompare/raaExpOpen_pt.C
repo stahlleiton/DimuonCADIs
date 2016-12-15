@@ -151,7 +151,7 @@ void raaExpOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the place w
   pgCms_lowpt->Draw("P");
 
   // additional info
-  CMS_lumi(pc,12014000,0);
+  CMS_lumi(pc,12003000,0);
 
   TLegend *leg_cent = new TLegend(0.28,0.77,0.86,0.89,NULL,"brNDC"); // at top center
   leg_cent->SetMargin(0.12);

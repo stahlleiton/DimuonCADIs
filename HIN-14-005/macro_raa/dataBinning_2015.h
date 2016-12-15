@@ -53,26 +53,35 @@ double adTaaMB[nBinsMB]       = {5.67};
 double adTaaMBErr[nBinsMB]    = {0.32};
 double adDeltaCentMB[nBinsMB] = {1};
 
-// pt: <pT> values are written here
+// pt:
 const unsigned int nBinsPt    = 6;
 const unsigned int nBinsPt3   = 3;
-double binsPt[nBinsPt]        = {7.34, 8.96, 10.16, 11.88, 14.23, 19.74}; // pt>6.5 first bin, 0--2.4
-double binsPt3[nBinsPt3]      = {3.73, 4.96, 5.95}; // pt 3-6.5 in fwd region
+// <pT> values are written here
+//double binsPt[nBinsPt]        = {7.34, 8.96, 10.16, 11.88, 14.23, 19.74}; // pt>6.5 first bin, 0--2.4
+//double binsPt3[nBinsPt3]      = {3.73, 4.96, 5.95}; // pt 3-6.5 in fwd region
+//double binsPt3_mb[nBinsPt3]   = {4.5, 10.0, 15}; // mb in the fwd region
+// middle pT of each given bin are written here
+double binsPt[nBinsPt]        = {7.5, 9.0, 10.25, 12.0, 14.5, 23.0}; // pt>6.5 first bin, 0--2.4
+double binsPt3[nBinsPt3]      = {3.75, 5.0, 6.0}; // pt 3-6.5 in fwd region
 double binsPt3_mb[nBinsPt3]   = {4.5, 10.0, 15}; // mb in the fwd region
-double binsPtErr[nBinsPt]     = {0,0,0,0,0,0,};
-double binsPt3Err[nBinsPt3]   = {0,0,0}; 
+double binsPtErr[nBinsPt]     = {1.0, 0.5, 0.75, 1.0, 1.5, 7};
+double binsPt3Err[nBinsPt3]   = {0.75, 0.5, 0.5}; 
 double binsPt3Err_mb[nBinsPt3]= {0,0,0};
 double binsPtX[nBinsPt]     = {0.5,0.5,0.5,0.5,0.5,0.5};
 double binsPt3X[nBinsPt3]   = {0.4,0.4,0.4}; 
 double binsPt3X_mb[nBinsPt3]= {0.4,0.4,0.4};
 
-// rapidity: <|y|> values are written here
+// rapidity:
 const unsigned int nBinsY       = 6;
 const unsigned int nBinsY3      = 3;
-double binsY[nBinsY]   = {0.20, 0.61, 1.02, 1.41, 1.78, 2.13}; //  6.5--30
-double binsY3[nBinsY3] = {0.71, 1.41, 1.86}; //  6.5--30
-double binsYErr[nBinsY]   = {0,0,0,0,0,0}; //  6.5--30
-double binsY3Err[nBinsY3] = {0,0,0}; //  6.5--30
+// <|y|> values are written here
+//double binsY[nBinsY]   = {0.20, 0.61, 1.02, 1.41, 1.78, 2.13}; //  6.5--30
+//double binsY3[nBinsY3] = {0.71, 1.41, 1.86}; //  6.5--30
+// middle |y| of each given bin are written here
+double binsY[nBinsY]   = {0.2, 0.6, 1.0, 1.4, 1.8, 2.2}; //  6.5--30
+double binsY3[nBinsY3] = {0.6, 1.4, 2.0}; //  6.5--30
+double binsYErr[nBinsY]   = {0.2,0.2,0.2,0.2,0.2,0.2}; //  6.5--30
+double binsY3Err[nBinsY3] = {0.6,0.2,0.4}; //  6.5--30
 double binsYX[nBinsY]   = {0.05, 0.05, 0.05, 0.05, 0.05, 0.05}; //  6.5--30
 double binsY3X[nBinsY3] = {0.05, 0.05, 0.05}; //  6.5--30
 

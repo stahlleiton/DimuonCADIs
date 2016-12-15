@@ -174,7 +174,7 @@ void raaTheoryOpen_pt(const char* inputDir = "../macro_raa/outRoot", // the plac
   pgCms_lowpt->Draw("P");
 
   // additional info
-  CMS_lumi(pc,12014000,0);
+  CMS_lumi(pc,12003000,0);
 
   TLegend *leg_cent = new TLegend(0.59,0.50,0.89,0.64,NULL,"brNDC");
 //  TLegend *leg_cent = new TLegend(0.29,0.81,0.83,0.89,NULL,"brNDC"); // at top center

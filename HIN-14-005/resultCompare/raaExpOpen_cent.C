@@ -36,7 +36,6 @@
 #endif
 void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place where the input root files, with the histograms are
                      bool bSavePlots      = true,
-		     bool bDrawPi         = true,
                      bool bDoSameYHighPt  = true
                      )
 {
@@ -74,7 +73,6 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
   //-------------------------------------------------------------------- 
   // *********** alice points
   //  TGraphAsymmErrors(n,x,y,exl,exh,eyl,eyh);
-  // D meson
   TGraphAsymmErrors *pgAlice_dpt816         = new TGraphAsymmErrors(nNpartBins_alice,
                                                                     npartBins_alice, raaAlice_cent_dpt816,
                                                                     npartBinsErr_alice, npartBinsErr_alice, 
@@ -100,31 +98,9 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
   // correlated, filled
   pgAliceSystCorr_dpt816->SetLineColor(1);
   pgAliceSystCorr_dpt816->SetFillColor(kGray);
- 
-  // Pions
-  TGraphErrors *pgAlice_pipt816         = new TGraphErrors(nNpartBins_alice,
-							   npartBins_alice,    raaAlice_cent_pipt816,
-							   npartBinsErr_alice, raaAliceStat_cent_pipt816);
-  TGraphErrors *pgAliceSyst_pipt816     = new TGraphErrors(nNpartBins_alice,
-							   npartBins_alice,  raaAlice_cent_pipt816, 
-							   npartSystX_alice, raaAliceSyst_cent_pipt816);
-  TGraphErrors *pgAliceSystCorr_pipt816 = new TGraphErrors(nNpartBins_alice,
-							   npartBins_alice,  raaAlice_cent_pipt816,
-							   npartSystX_alice, raaAliceSystCorr_cent_pipt816);
-  pgAlice_pipt816->SetName("pgAlice_pipt816");
-  
-  pgAlice_pipt816->SetMarkerStyle(24);
-  pgAlice_pipt816->SetMarkerSize(1.3);
-  pgAlice_pipt816->SetMarkerColor(kTeal+3);
+  // pgAliceSystCorr_dpt816->SetFillStyle(0);
 
-  // uncorrelated: opened
-  pgAliceSyst_pipt816->SetLineColor(kTeal+4);
-  pgAliceSyst_pipt816->SetFillStyle(0);
-    
-  // global, filled
-  pgAliceSystCorr_pipt816->SetFillColorAlpha(kTeal-1,0.5);
-
-  //---------------------------------------------------------
+   //---------------------------------------------------------
   TLine *line = new TLine(0.,1,400,1);
   line->SetLineStyle(1);
   line->SetLineWidth(1);
@@ -133,7 +109,7 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
 
   TF1 *f4 = new TF1("f4","1",0,400);
   f4->SetLineWidth(1);
-  f4->GetXaxis()->SetTitle("N_{part}");
+  f4->GetXaxis()->SetTitle("<N_{part}>");
   f4->GetYaxis()->SetTitle("R_{AA}");
   f4->GetYaxis()->SetRangeUser(0.0,1.5);
   f4->GetXaxis()->CenterTitle(kTRUE);
@@ -145,20 +121,14 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
   pgAliceSystCorr_dpt816->Draw("2");
   pgCmsSyst->Draw("2");
   pgAliceSyst_dpt816->Draw("2");
-
-  if(bDrawPi)
-    {
-      pgAliceSyst_pipt816->Draw("2");
-      pgAliceSystCorr_pipt816->Draw("2");
-      pgAlice_pipt816->Draw("P");
-    }
+  
   pgCmsP->Draw("P");
   pgCms->Draw("P");
   
   pgAlice_dpt816->Draw("P");
 
   // additional info
-  CMS_lumi(pc,12014000,0);
+  CMS_lumi(pc,12003000,0);
 
   TLegend *leg_cent = new TLegend(0.2,0.78,0.7,0.88,NULL,"brNDC");
   leg_cent->SetBorderSize(0);
@@ -200,46 +170,15 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
   entry_alice_cent->SetTextFont(42);
   entry_alice_cent->SetTextSize(entrySize);
 
-  TLegend *leg_alicePi_cent = new TLegend(0.4,0.55,0.8,0.65,NULL,"brNDC");
-  leg_alicePi_cent->SetBorderSize(0);
-  leg_alicePi_cent->SetTextFont(132);
-  leg_alicePi_cent->SetTextSize(0.03);
-  leg_alicePi_cent->SetLineColor(1);
-  leg_alicePi_cent->SetLineStyle(1);
-  leg_alicePi_cent->SetLineWidth(1);
-  leg_alicePi_cent->SetFillColor(19);
-  leg_alicePi_cent->SetFillStyle(0);
-  
-  TLegendEntry *entry_alicePi_cent=leg_alicePi_cent->AddEntry("pgAlice_pipt816","Light hadrons: #pi^{#pm} (ALICE)","");
-  entry_alicePi_cent->SetTextFont(132);
-  entry_alicePi_cent->SetTextSize(ltxSetTextSize3);
-  entry_alicePi_cent=leg_alicePi_cent->AddEntry("pgAlice_pipt816","8 < p_{T} < 16 GeV/c, |y| < 0.5","p");
-  entry_alicePi_cent->SetTextFont(42);
-  entry_alicePi_cent->SetTextSize(entrySize);
-  
-
   leg_cent->Draw();
   leg_alice_cent->Draw();
-  if(bDrawPi)leg_alicePi_cent->Draw();
-  
   line->Draw();
   gPad->RedrawAxis();
-  pc->Update();
-  
   if(bSavePlots)
   {
-    if(bDrawPi)
-      {
-	pc->SaveAs(Form("figs/pdf/raaExpOpen_cent_sameY%d_pi%d.pdf",bDoSameYHighPt,bDrawPi));
-	pc->SaveAs(Form("figs/png/raaExpOpen_cent_sameY%d_pi%d.png",bDoSameYHighPt,bDrawPi));
-      }
-  else
-    {
-      pc->SaveAs(Form("figs/pdf/raaExpOpen_cent_sameY%d.pdf",bDoSameYHighPt));
-      pc->SaveAs(Form("figs/png/raaExpOpen_cent_sameY%d.png",bDoSameYHighPt));
-    } 
+    pc->SaveAs(Form("figs/pdf/raaExpOpen_cent_sameY%d.pdf",bDoSameYHighPt));
+    pc->SaveAs(Form("figs/png/raaExpOpen_cent_sameY%d.png",bDoSameYHighPt));
   }
-  
 }
 
 

@@ -177,7 +177,9 @@ void makeRaa_cent( bool bSavePlots           = 1,
       if(ih==0)
       {
         scale_cent = 1/(adTaa12[ibin-1]*adDeltaCent12[ibin-1]);
-        scale_cent_np = 1/(adTaa6[ibin-1]*adDeltaCent6[ibin-1]);
+        if (ibin <= 6) {
+          scale_cent_np = 1/(adTaa6[ibin-1]*adDeltaCent6[ibin-1]);
+        }
       }
       if(ih==4)          scale_cent = 1/(adTaa6[ibin-1]*adDeltaCent6[ibin-1]);
       if(ih!=0 && ih!=4) scale_cent = 1/(adTaa6[ibin-1]*adDeltaCent6[ibin-1]);
@@ -191,13 +193,19 @@ void makeRaa_cent( bool bSavePlots           = 1,
 
       //non-prompt
       // get the rel uncert from the raw sample
-      double dRelErrRaw_npr_pp  = phRaw_npr_pp->GetBinError(ibin)/phRaw_npr_pp->GetBinContent(ibin);
-      double dRelErrRaw_npr_aa  = phRaw_npr_aa->GetBinError(ibin)/phRaw_npr_aa->GetBinContent(ibin);
-      double yieldRatio_npr     = phCorr_npr_aa->GetBinContent(ibin)/phCorr_npr_pp->GetBinContent(ibin);
-    
-      if(ih==0)raa_npr= yieldRatio_npr * scaleFactor * scale_cent_np;// the 1D nonPr has 6 bins only
-      else raa_npr    = yieldRatio_npr * scaleFactor * scale_cent;
-      raaErr_npr = TMath::Sqrt(TMath::Power(dRelErrRaw_npr_pp,2)+TMath::Power(dRelErrRaw_npr_aa,2))*raa_npr;
+      
+      double dRelErrRaw_npr_pp  = 0;
+      double dRelErrRaw_npr_aa  = 0;
+      double yieldRatio_npr     = 0;
+      if (ibin <= 6) {
+        double dRelErrRaw_npr_pp  = phRaw_npr_pp->GetBinError(ibin)/phRaw_npr_pp->GetBinContent(ibin);
+        double dRelErrRaw_npr_aa  = phRaw_npr_aa->GetBinError(ibin)/phRaw_npr_aa->GetBinContent(ibin);
+        double yieldRatio_npr     = phCorr_npr_aa->GetBinContent(ibin)/phCorr_npr_pp->GetBinContent(ibin);
+      
+        if(ih==0)raa_npr= yieldRatio_npr * scaleFactor * scale_cent_np;// the 1D nonPr has 6 bins only
+        else raa_npr    = yieldRatio_npr * scaleFactor * scale_cent;
+        raaErr_npr = TMath::Sqrt(TMath::Power(dRelErrRaw_npr_pp,2)+TMath::Power(dRelErrRaw_npr_aa,2))*raa_npr;
+      }
 
       // Check bin content
       if (ibin <= 6) {
@@ -207,11 +215,23 @@ void makeRaa_cent( bool bSavePlots           = 1,
         cout << "scale_cent_np\tscale_cent\tscaleFactor\tyieldRatio_pr\traa_pr\n"
           << scale_cent_np << "\t" << scale_cent << "\t" 
           << scaleFactor << "\t" << yieldRatio_pr << "\t" << raa_pr << endl;
+        cout << "Yield prompt PbPb : PbPberr : pp : pperr \n";
+        printf("%.2f$\\pm$%.2f  &  ",phCorr_pr_aa->GetBinContent(ibin),dRelErrRaw_pr_aa);
+        printf("%.2f$\\pm$%.2f",phCorr_pr_pp->GetBinContent(ibin),phRaw_pr_pp->GetBinError(ibin));
+        cout << endl;
+        cout << "Yield non-prompt PbPb : PbPberr : pp : pperr \n";
+        printf("%.2f$\\pm$%.2f  &  ",phCorr_npr_aa->GetBinContent(ibin),dRelErrRaw_npr_aa);
+        printf("%.2f$\\pm$%.2f",phCorr_npr_pp->GetBinContent(ibin),phRaw_npr_pp->GetBinError(ibin));
+        cout << endl;
       } else {
         cout << "adTaa12\tadDeltaCent12\n"
           << adTaa12[ibin-1] << "\t" << adDeltaCent12[ibin-1] << endl;
         cout << "scale_cent\tscaleFactor\tyieldRatio_pr\traa_pr\n"
           << scale_cent << "\t" << scaleFactor << "\t" << yieldRatio_pr << "\t" << raa_pr << endl;
+        cout << "Yield prompt PbPb : PbPberr : pp : pperr \n";
+        printf("%.2f$\\pm$%.2f  &  ",phCorr_pr_aa->GetBinContent(ibin),dRelErrRaw_pr_aa);
+        printf("%.2f$\\pm$%.2f",phCorr_pr_pp->GetBinContent(ibin),phRaw_pr_pp->GetBinError(ibin));
+        cout << endl;
       }
 
      
@@ -232,40 +252,50 @@ void makeRaa_cent( bool bSavePlots           = 1,
           // cout<<"Scale_Cent= "<<scale_cent<<endl;
         }
 
-        nonPrJpsi_cent[ibin-1]    = raa_npr;
-        nonPrJpsiErr_cent[ibin-1] = raaErr_npr;
+        if (ibin <= 6) {
+          nonPrJpsi_cent[ibin-1]    = raa_npr;
+          nonPrJpsiErr_cent[ibin-1] = raaErr_npr;
+        }
         break;
         
       case 1:
         prJpsi_pt6530y012_cent[ibin-1]        = raa_pr;
         prJpsiErr_pt6530y012_cent[ibin-1]     = raaErr_pr;
 
-        nonPrJpsi_pt6530y012_cent[ibin-1]     = raa_npr;
-        nonPrJpsiErr_pt6530y012_cent[ibin-1]  = raaErr_npr;
+        if (ibin <= 6) {
+          nonPrJpsi_pt6530y012_cent[ibin-1]     = raa_npr;
+          nonPrJpsiErr_pt6530y012_cent[ibin-1]  = raaErr_npr;
+        }
         break;
         
       case 2:
         prJpsi_pt6530y1216_cent[ibin-1]       = raa_pr;
         prJpsiErr_pt6530y1216_cent[ibin-1]    = raaErr_pr;
 
-        nonPrJpsi_pt6530y1216_cent[ibin-1]    = raa_npr;
-        nonPrJpsiErr_pt6530y1216_cent[ibin-1] = raaErr_npr;
+        if (ibin <= 6) {
+          nonPrJpsi_pt6530y1216_cent[ibin-1]    = raa_npr;
+          nonPrJpsiErr_pt6530y1216_cent[ibin-1] = raaErr_npr;
+        }
         break;
         
       case 3:
         prJpsi_pt6530y1624_cent[ibin-1]       = raa_pr;
         prJpsiErr_pt6530y1624_cent[ibin-1]    = raaErr_pr;
 
-        nonPrJpsi_pt6530y1624_cent[ibin-1]    = raa_npr;
-        nonPrJpsiErr_pt6530y1624_cent[ibin-1] = raaErr_npr;
+        if (ibin <= 6) {
+          nonPrJpsi_pt6530y1624_cent[ibin-1]    = raa_npr;
+          nonPrJpsiErr_pt6530y1624_cent[ibin-1] = raaErr_npr;
+        }
         break;
        
       case 4:
         prJpsi_pt365y1624_cent[ibin-1]        = raa_pr;
         prJpsiErr_pt365y1624_cent[ibin-1]     = raaErr_pr;
 
-        nonPrJpsi_pt365y1624_cent[ibin-1]     = raa_npr;
-        nonPrJpsiErr_pt365y1624_cent[ibin-1]  = raaErr_npr;
+        if (ibin <= 6) {
+          nonPrJpsi_pt365y1624_cent[ibin-1]     = raa_npr;
+          nonPrJpsiErr_pt365y1624_cent[ibin-1]  = raaErr_npr;
+        }
         break;
       }
     }//loop end: for(int ibin=1; ibin<=numBins; ibin++)
@@ -429,7 +459,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
   f4->SetLineWidth(1);
   f4->SetLineStyle(1);
   f4->SetLineColor(1);
-  f4->GetXaxis()->SetTitle("N_{part}");
+  f4->GetXaxis()->SetTitle("<N_{part}>");
   f4->GetYaxis()->SetTitle("R_{AA}");
   f4->GetYaxis()->SetRangeUser(0.0,1.5);
   f4->GetXaxis()->CenterTitle(kTRUE);
@@ -493,7 +523,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
   lat->SetTextSize(ltxSetTextSize2);
   lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{6.5 < p_{T} < 30 GeV/c}{|y| < 2.4}");
 
-  CMS_lumi(c1,12014000,0);
+  CMS_lumi(c1,12003000,0);
 
   gPrJpsiSyst->Draw("2");
   gPrJpsi->Draw("P");
@@ -544,7 +574,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
     }
     f4->Draw("same");
   }
-  CMS_lumi(c11a,12014000,0);
+  CMS_lumi(c11a,12003000,0);
   
   lat->SetTextSize(ltxSetTextSize1);
   lat->SetTextFont(132);
@@ -616,7 +646,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
     }
     f4->Draw("same");
   }
-  CMS_lumi(c11b,12014000,0);
+  CMS_lumi(c11b,12003000,0);
 
   lat->SetTextSize(ltxSetTextSize1);
   lat->SetTextFont(132);
@@ -697,7 +727,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
   lat->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{6.5 < p_{T} < 30 GeV/c}{|y| < 2.4}");
-  CMS_lumi(c2,12014000,0);
+  CMS_lumi(c2,12003000,0);
 
   gNonPrJpsiSyst->Draw("2");
   gNonPrJpsi->Draw("P");
@@ -750,7 +780,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
   lat->SetTextFont(42);
   lat->SetTextSize(ltxSetTextSize2);
   lat->DrawLatex(ltxText_xDown,ltxText_yDown,"6.5 < p_{T} < 30 GeV/c");
-  CMS_lumi(c21a,12014000,0);
+  CMS_lumi(c21a,12003000,0);
 
   gNonPrJpsiSyst_pt6530y012->Draw("2");
   gNonPrJpsiSyst_pt6530y1216->Draw("2");
@@ -818,7 +848,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
     }
     f4->Draw("same");
   }
-  CMS_lumi(c21b,12014000,0);
+  CMS_lumi(c21b,12003000,0);
   lat->SetTextSize(ltxSetTextSize1);
   lat->SetTextFont(132);
   lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Nonprompt J/#psi");

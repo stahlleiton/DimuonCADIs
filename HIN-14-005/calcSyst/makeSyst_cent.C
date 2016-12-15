@@ -64,6 +64,9 @@ void makeSyst_cent( bool bSavePlots     = 1,
   TFile *fYesWeighFile_aa   = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_1[0]));
   TFile *fYesWeighFile_pp   = new TFile(Form("%s/%s",inputDir,yieldHistFile_yesWeight_1[1]));
   
+  TFile *fNoWeighFile_aa = new TFile(Form("%s/%s",inputDir,yieldHistFile_noWeight_1[0]));
+  TFile *fNoWeighFile_pp = new TFile(Form("%s/%s",inputDir,yieldHistFile_noWeight_1[1]));
+  
   if (!fYesWeighFile_aa->IsOpen() || !fYesWeighFile_pp->IsOpen()) {
     cout << "One or more input files are missing" << endl;
     return ;
@@ -71,15 +74,90 @@ void makeSyst_cent( bool bSavePlots     = 1,
 
   TH1F *phCorr_pr_pp;
   TH1F *phCorr_pr_aa;
+  TH1F *phRaw_pr_pp;
+  TH1F *phRaw_pr_aa;
 
   TH1F *phCorr_npr_pp;
   TH1F *phCorr_npr_aa;
+  TH1F *phRaw_npr_pp;
+  TH1F *phRaw_npr_aa;
 
   TH1F *phCorrVar_pr_pp;
   TH1F *phCorrVar_pr_aa;
 
   TH1F *phCorrVar_npr_pp;
   TH1F *phCorrVar_npr_aa;
+ 
+  // For printing out numbers
+  TH1F *phRaw_pr_pp_y024_pt6530_copy;
+  TH1F *phRaw_pr_pp_y012_pt6530_copy;
+  TH1F *phRaw_pr_pp_y1216_pt6530_copy;
+  TH1F *phRaw_pr_pp_y1624_pt6530_copy;
+  TH1F *phRaw_pr_pp_y1624_pt6530_pty_copy;
+  TH1F *phRaw_pr_pp_y1624_pt365_copy;
+  TH1F *phRaw_pr_aa_y024_pt6530_copy;
+  TH1F *phRaw_pr_aa_y012_pt6530_copy;
+  TH1F *phRaw_pr_aa_y1216_pt6530_copy;
+  TH1F *phRaw_pr_aa_y1624_pt6530_copy;
+  TH1F *phRaw_pr_aa_y1624_pt365_copy;
+
+  TH1F *phRaw_npr_pp_y024_pt6530_copy;
+  TH1F *phRaw_npr_pp_y012_pt6530_copy;
+  TH1F *phRaw_npr_pp_y1216_pt6530_copy;
+  TH1F *phRaw_npr_pp_y1624_pt6530_copy;
+  TH1F *phRaw_npr_pp_y1624_pt365_copy;
+  TH1F *phRaw_npr_aa_y024_pt6530_copy;
+  TH1F *phRaw_npr_aa_y012_pt6530_copy;
+  TH1F *phRaw_npr_aa_y1216_pt6530_copy;
+  TH1F *phRaw_npr_aa_y1624_pt6530_copy;
+  TH1F *phRaw_npr_aa_y1624_pt365_copy;
+
+  TH1F *phCorr_pr_pp_y024_pt6530_copy;
+  TH1F *phCorr_pr_pp_y012_pt6530_copy;
+  TH1F *phCorr_pr_pp_y1216_pt6530_copy;
+  TH1F *phCorr_pr_pp_y1624_pt6530_copy;
+  TH1F *phCorr_pr_pp_y1624_pt365_copy;
+  TH1F *phCorr_pr_aa_y024_pt6530_copy;
+  TH1F *phCorr_pr_aa_y012_pt6530_copy;
+  TH1F *phCorr_pr_aa_y1216_pt6530_copy;
+  TH1F *phCorr_pr_aa_y1624_pt6530_copy;
+  TH1F *phCorr_pr_aa_y1624_pt365_copy;
+
+  TH1F *phCorr_npr_pp_y024_pt6530_copy;
+  TH1F *phCorr_npr_pp_y012_pt6530_copy;
+  TH1F *phCorr_npr_pp_y1216_pt6530_copy;
+  TH1F *phCorr_npr_pp_y1624_pt6530_copy;
+  TH1F *phCorr_npr_pp_y1624_pt365_copy;
+  TH1F *phCorr_npr_aa_y024_pt6530_copy;
+  TH1F *phCorr_npr_aa_y012_pt6530_copy;
+  TH1F *phCorr_npr_aa_y1216_pt6530_copy;
+  TH1F *phCorr_npr_aa_y1624_pt6530_copy;
+  TH1F *phCorr_npr_aa_y1624_pt365_copy;
+  
+  // total uncertainty separately for pp and pbpb
+  double systErrTotal_pr_pp_y024_pt6530_copy[20]={0};
+  double systErrTotal_pr_pp_y012_pt6530_copy[20]={0};
+  double systErrTotal_pr_pp_y1216_pt6530_copy[20]={0};
+  double systErrTotal_pr_pp_y1624_pt6530_copy[20]={0};
+  double systErrTotal_pr_pp_y1624_pt365_copy[20]={0};
+  double systErrTotal_pr_aa_y024_pt6530_copy[20]={0};
+  double systErrTotal_pr_aa_y012_pt6530_copy[20]={0};
+  double systErrTotal_pr_aa_y1216_pt6530_copy[20]={0};
+  double systErrTotal_pr_aa_y1624_pt6530_copy[20]={0};
+  double systErrTotal_pr_aa_y1624_pt365_copy[20]={0};
+
+  double systErrTotal_npr_pp_y024_pt6530_copy[20]={0};
+  double systErrTotal_npr_pp_y012_pt6530_copy[20]={0};
+  double systErrTotal_npr_pp_y1216_pt6530_copy[20]={0};
+  double systErrTotal_npr_pp_y1624_pt6530_copy[20]={0};
+  double systErrTotal_npr_pp_y1624_pt365_copy[20]={0};
+  double systErrTotal_npr_aa_y024_pt6530_copy[20]={0};
+  double systErrTotal_npr_aa_y012_pt6530_copy[20]={0};
+  double systErrTotal_npr_aa_y1216_pt6530_copy[20]={0};
+  double systErrTotal_npr_aa_y1624_pt6530_copy[20]={0};
+  double systErrTotal_npr_aa_y1624_pt365_copy[20]={0};
+  
+
 
   // If systBoxType==2, TBox lumi_* will have all global systematics. TBox globalpp_ will have nothing.
   // If systBoxType==0 or 1, TBox lumi_* will have lumi, evt sel, tracking systematics. TBox globalpp_ will have pp uncertainties.
@@ -143,11 +221,68 @@ void makeSyst_cent( bool bSavePlots     = 1,
     // prompt histos
     phCorr_pr_pp = (TH1F*)fYesWeighFile_pp->Get(hist_pr);
     phCorr_pr_aa = (TH1F*)fYesWeighFile_aa->Get(hist_pr);
+    phRaw_pr_pp  = (TH1F*)fNoWeighFile_pp->Get(hist_pr);
+    phRaw_pr_aa  = (TH1F*)fNoWeighFile_aa->Get(hist_pr);
     
     // non-prompt histos
     phCorr_npr_pp = (TH1F*)fYesWeighFile_pp->Get(hist_npr);
     phCorr_npr_aa = (TH1F*)fYesWeighFile_aa->Get(hist_npr);
+    phRaw_npr_pp  = (TH1F*)fNoWeighFile_pp->Get(hist_npr);
+    phRaw_npr_aa  = (TH1F*)fNoWeighFile_aa->Get(hist_npr);
     
+    switch(ih) {
+      case 0: // high-pt, |y|<2.4
+        phRaw_pr_pp_y024_pt6530_copy  = (TH1F*)phRaw_pr_pp->Clone();
+        phRaw_pr_aa_y024_pt6530_copy  = (TH1F*)phRaw_pr_aa->Clone();
+        phRaw_npr_pp_y024_pt6530_copy = (TH1F*)phRaw_npr_pp->Clone();
+        phRaw_npr_aa_y024_pt6530_copy = (TH1F*)phRaw_npr_aa->Clone();
+        phCorr_pr_pp_y024_pt6530_copy = (TH1F*)phCorr_pr_pp->Clone();
+        phCorr_pr_aa_y024_pt6530_copy = (TH1F*)phCorr_pr_aa->Clone();
+        phCorr_npr_pp_y024_pt6530_copy = (TH1F*)phCorr_npr_pp->Clone();
+        phCorr_npr_aa_y024_pt6530_copy = (TH1F*)phCorr_npr_aa->Clone();
+        break;
+      case 1:// low-pt: 1.6<|y|<2.4
+        phRaw_pr_pp_y1624_pt365_copy  = (TH1F*)phRaw_pr_pp->Clone();
+        phRaw_pr_aa_y1624_pt365_copy  = (TH1F*)phRaw_pr_aa->Clone();
+        phRaw_npr_pp_y1624_pt365_copy = (TH1F*)phRaw_npr_pp->Clone();
+        phRaw_npr_aa_y1624_pt365_copy = (TH1F*)phRaw_npr_aa->Clone();
+        phCorr_pr_pp_y1624_pt365_copy = (TH1F*)phCorr_pr_pp->Clone();
+        phCorr_pr_aa_y1624_pt365_copy = (TH1F*)phCorr_pr_aa->Clone();
+        phCorr_npr_pp_y1624_pt365_copy = (TH1F*)phCorr_npr_pp->Clone();
+        phCorr_npr_aa_y1624_pt365_copy = (TH1F*)phCorr_npr_aa->Clone();
+        break;
+      case 2:// high-pt: |y|<1.2
+        phRaw_pr_pp_y012_pt6530_copy  = (TH1F*)phRaw_pr_pp->Clone();
+        phRaw_pr_aa_y012_pt6530_copy  = (TH1F*)phRaw_pr_aa->Clone();
+        phRaw_npr_pp_y012_pt6530_copy = (TH1F*)phRaw_npr_pp->Clone();
+        phRaw_npr_aa_y012_pt6530_copy = (TH1F*)phRaw_npr_aa->Clone();
+        phCorr_pr_pp_y012_pt6530_copy = (TH1F*)phCorr_pr_pp->Clone();
+        phCorr_pr_aa_y012_pt6530_copy = (TH1F*)phCorr_pr_aa->Clone();
+        phCorr_npr_pp_y012_pt6530_copy = (TH1F*)phCorr_npr_pp->Clone();
+        phCorr_npr_aa_y012_pt6530_copy = (TH1F*)phCorr_npr_aa->Clone();
+        break;
+      case 3:// high-pt: 1.2<|y|<1.6
+        phRaw_pr_pp_y1216_pt6530_copy  = (TH1F*)phRaw_pr_pp->Clone();
+        phRaw_pr_aa_y1216_pt6530_copy  = (TH1F*)phRaw_pr_aa->Clone();
+        phRaw_npr_pp_y1216_pt6530_copy = (TH1F*)phRaw_npr_pp->Clone();
+        phRaw_npr_aa_y1216_pt6530_copy = (TH1F*)phRaw_npr_aa->Clone();
+        phCorr_pr_pp_y1216_pt6530_copy = (TH1F*)phCorr_pr_pp->Clone();
+        phCorr_pr_aa_y1216_pt6530_copy = (TH1F*)phCorr_pr_aa->Clone();
+        phCorr_npr_pp_y1216_pt6530_copy = (TH1F*)phCorr_npr_pp->Clone();
+        phCorr_npr_aa_y1216_pt6530_copy = (TH1F*)phCorr_npr_aa->Clone();
+        break;
+      case 4:// high-pt: 1.6<|y|<2.4
+        phRaw_pr_pp_y1624_pt6530_copy  = (TH1F*)phRaw_pr_pp->Clone();
+        phRaw_pr_aa_y1624_pt6530_copy  = (TH1F*)phRaw_pr_aa->Clone();
+        phRaw_npr_pp_y1624_pt6530_copy = (TH1F*)phRaw_npr_pp->Clone();
+        phRaw_npr_aa_y1624_pt6530_copy = (TH1F*)phRaw_npr_aa->Clone();
+        phCorr_pr_pp_y1624_pt6530_copy = (TH1F*)phCorr_pr_pp->Clone();
+        phCorr_pr_aa_y1624_pt6530_copy = (TH1F*)phCorr_pr_aa->Clone();
+        phCorr_npr_pp_y1624_pt6530_copy = (TH1F*)phCorr_npr_pp->Clone();
+        phCorr_npr_aa_y1624_pt6530_copy = (TH1F*)phCorr_npr_aa->Clone();
+        break;
+    }
+
     unsigned int numBins = 0;
     if(ih==0) numBins = nBinsNpart12;
     if(ih!=0) numBins = nBinsNpart6;
@@ -354,7 +489,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
       // taa relative uncertainty
       double taa6_relerr   = TMath::Power(adTaa6Err[ibin-1] / adTaa6[ibin-1],2);
       const double taa12_relerr  = TMath::Power(adTaa12Err[ibin-1] / adTaa12[ibin-1],2); 
-      if (ibin>=nBinsNpart6) taa6_relerr = 0;
+      if (ibin>nBinsNpart6) taa6_relerr = 0;
 
       if(bDoDebug) cout << "###### Taa uncert: bin6= " << taa6_relerr << "\tbin12= " << taa12_relerr << endl;
 
@@ -449,10 +584,14 @@ void makeSyst_cent( bool bSavePlots     = 1,
               nonPrJpsi_cent[ibin-1] = yieldRatio_npr;
               syst_fit_npr_aa[ibin-1][ivar] = TMath::Power( relVar_aa_npr, 2 ) ;
               syst_fit_npr_pp[ibin-1][ivar] = TMath::Power( relVar_pp_npr, 2 ) ;
+              if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                                << syst_fit_pr_aa[ibin-1][ivar] << "\t& " << syst_fit_npr_aa[ibin-1][ivar] << "\t; "
+                                << syst_fit_pr_pp[ibin-1][ivar] << "\t& " << syst_fit_npr_pp[ibin-1][ivar] << endl;
+            } else {
+              if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                                << syst_fit_pr_aa[ibin-1][ivar] << "\t& " << "\t; "
+                                << syst_fit_pr_pp[ibin-1][ivar] << "\t& " << endl;
             }
-            if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
-                              << syst_fit_pr_aa[ibin-1][ivar] << "\t& " << syst_fit_npr_aa[ibin-1][ivar] << "\t; "
-                              << syst_fit_pr_pp[ibin-1][ivar] << "\t& " << syst_fit_npr_pp[ibin-1][ivar] << endl;
             if(method==1)//maximum
             {
               if( syst_fit_pr_aa[ibin-1][ivar] > fitContribution_pr_aa ) fitContribution_pr_aa = syst_fit_pr_aa[ibin-1][ivar];
@@ -474,9 +613,16 @@ void makeSyst_cent( bool bSavePlots     = 1,
                 fitContribution_npr_pp += syst_fit_npr_pp[ibin-1][ivar];
               }
             }
-            if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
-                              << fitContribution_pr_aa << "\t& " << fitContribution_npr_aa << "\t; "
-                              << fitContribution_pr_pp << "\t& " << fitContribution_npr_pp << endl;
+ 
+            if (ibin<=nBinsNpart6) {
+              if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
+                                << fitContribution_pr_aa << "\t& " << fitContribution_npr_aa << "\t; "
+                                << fitContribution_pr_pp << "\t& " << fitContribution_npr_pp << endl;
+            } else {
+              if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
+                                << fitContribution_pr_aa << "\t& " << "\t; "
+                                << fitContribution_pr_pp << "\t& " << endl;
+            }
           }
           // 4d eff
           if(ivar>=nFitVariations && ivar<(nFitVariations+nEff4DVariations) )
@@ -489,10 +635,14 @@ void makeSyst_cent( bool bSavePlots     = 1,
             {
               syst_eff4d_npr_aa[ibin-1][ifile]  = TMath::Power( relVar_aa_npr,2 ) ;
               syst_eff4d_npr_pp[ibin-1][ifile]  = TMath::Power( relVar_pp_npr,2 ) ;
+              if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                                << syst_eff4d_pr_aa[ibin-1][ifile] << "\t& " << syst_eff4d_npr_aa[ibin-1][ifile] << "\t; "
+                                << syst_eff4d_pr_pp[ibin-1][ifile] << "\t& " << syst_eff4d_npr_pp[ibin-1][ifile] << endl;
+            } else {
+              if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                                << syst_eff4d_pr_aa[ibin-1][ifile] << "\t& " << "\t; "
+                                << syst_eff4d_pr_pp[ibin-1][ifile] << "\t& " << endl;
             }
-            if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
-                              << syst_eff4d_pr_aa[ibin-1][ifile] << "\t& " << syst_eff4d_npr_aa[ibin-1][ifile] << "\t; "
-                              << syst_eff4d_pr_pp[ibin-1][ifile] << "\t& " << syst_eff4d_npr_pp[ibin-1][ifile] << endl;
 
             if(method==1)//maximum
             {
@@ -516,9 +666,15 @@ void makeSyst_cent( bool bSavePlots     = 1,
                 eff4dContribution_npr_pp += syst_eff4d_npr_pp[ibin-1][ifile];
               }
             }
-            if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ 4DEff Contribution to systm: "
-                              << eff4dContribution_pr_aa << "\t& " << eff4dContribution_npr_aa << "\t; "
-                              << eff4dContribution_pr_pp << "\t& " << eff4dContribution_npr_pp << endl;
+            if (ibin<=nBinsNpart6) {
+              if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ 4DEff Contribution to systm: "
+                                << eff4dContribution_pr_aa << "\t& " << eff4dContribution_npr_aa << "\t; "
+                                << eff4dContribution_pr_pp << "\t& " << eff4dContribution_npr_pp << endl;
+            } else {
+              if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ 4DEff Contribution to systm: "
+                                << eff4dContribution_pr_aa << "\t& " << "\t; "
+                                << eff4dContribution_pr_pp << "\t& " << endl;
+            }
           }
 
           // TnP and 3d eff
@@ -533,9 +689,15 @@ void makeSyst_cent( bool bSavePlots     = 1,
               syst_effTnP_npr_aa[ibin-1][ifile]  = TMath::Power( yieldVar_aa_npr,2 ) ;
               syst_effTnP_npr_pp[ibin-1][ifile]  = TMath::Power( yieldVar_pp_npr,2 ) ;
             }
-            if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
-                              << syst_effTnP_pr_aa[ibin-1][ifile] << "\t& " << syst_effTnP_npr_aa[ibin-1][ifile] << "\t; "
-                              << syst_effTnP_pr_pp[ibin-1][ifile] << "\t& " << syst_effTnP_npr_pp[ibin-1][ifile] << endl;
+            if (ibin<=nBinsNpart6) {
+              if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                                << syst_effTnP_pr_aa[ibin-1][ifile] << "\t& " << syst_effTnP_npr_aa[ibin-1][ifile] << "\t; "
+                                << syst_effTnP_pr_pp[ibin-1][ifile] << "\t& " << syst_effTnP_npr_pp[ibin-1][ifile] << endl;
+            } else {
+              if(bDoDebug) cout << "++++++++++++++++++++++ Delta yields: "
+                                << syst_effTnP_pr_aa[ibin-1][ifile] << "\t& " << "\t; "
+                                << syst_effTnP_pr_pp[ibin-1][ifile] << "\t& " << endl;
+            }
 
             if(method==1)//maximum
             {
@@ -559,12 +721,18 @@ void makeSyst_cent( bool bSavePlots     = 1,
                 efftnpContribution_npr_pp += syst_effTnP_npr_pp[ibin-1][ifile];
               }
             }
-            if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Contribution to systm: " << efftnpContribution_pr_aa << "\t& " << efftnpContribution_npr_aa << "\t; "
-                              << efftnpContribution_pr_pp << "\t& " << efftnpContribution_npr_pp << endl;
+            if (ibin<=nBinsNpart6) {
+              if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Contribution to systm: " << efftnpContribution_pr_aa << "\t& " << efftnpContribution_npr_aa << "\t; "
+                                << efftnpContribution_pr_pp << "\t& " << efftnpContribution_npr_pp << endl;
+            } else {
+              if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Contribution to systm: " << efftnpContribution_pr_aa << "\t& " << "\t; "
+                                << efftnpContribution_pr_pp << "\t& " << endl;
+            }
           }
           break;
           
         case 1:// low-pt: 1.6<|y|<2.4
+          if (ibin > nBinsNpart6) break;
           prJpsi_pt365y1624_cent[ibin-1]    = yieldRatio_pr;
           nonPrJpsi_pt365y1624_cent[ibin-1] = yieldRatio_npr;
           
@@ -665,6 +833,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
           break;
           
          case 2:// high-pt: |y|<1.2
+          if (ibin > nBinsNpart6) break;
           prJpsi_pt6530y012_cent[ibin-1]    = yieldRatio_pr;
           nonPrJpsi_pt6530y012_cent[ibin-1] = yieldRatio_npr;
           
@@ -766,6 +935,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
           break;
 
           case 3:// high-pt: 1.2<|y|<1.6
+          if (ibin > nBinsNpart6) break;
           prJpsi_pt6530y1216_cent[ibin-1]    = yieldRatio_pr;
           nonPrJpsi_pt6530y1216_cent[ibin-1] = yieldRatio_npr;
           
@@ -867,6 +1037,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
           break;
 
         case 4:// high-pt: 1.6<|y|<2.4
+          if (ibin > nBinsNpart6) break;
           prJpsi_pt6530y1624_cent[ibin-1]    = yieldRatio_pr;
           nonPrJpsi_pt6530y1624_cent[ibin-1] = yieldRatio_npr;
           
@@ -1001,9 +1172,25 @@ void makeSyst_cent( bool bSavePlots     = 1,
           yieldSyst_pr_pp  = (fitContribution_pr_pp/rms_fitContribNorm  + eff4dContribution_pr_pp  + efftnpContribution_pr_pp);
           yieldSyst_npr_pp = (fitContribution_npr_pp/rms_fitContribNorm + eff4dContribution_npr_pp + efftnpContribution_npr_pp);
 
+          systErrTotal_pr_aa_y024_pt6530_copy[ibin-1] = phCorr_pr_aa->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_pr_aa );
+          systErrTotal_pr_pp_y024_pt6530_copy[ibin-1] = phCorr_pr_pp->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_pr_pp );
+          if(ibin <= nBinsNpart6) { // out-of-range bins will be discarded for np
+            systErrTotal_npr_aa_y024_pt6530_copy[ibin-1] = phCorr_npr_aa->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_aa );
+            systErrTotal_npr_pp_y024_pt6530_copy[ibin-1] = phCorr_npr_pp->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_pp );
+          }
+
           prJpsiErrSyst_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa  + taa12_relerr);
           if(ibin <= nBinsNpart6) { // out-of-range bins will be discarded for np
             nonPrJpsiErrSyst_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa + taa6_relerr); 
+
+            cout << "\t##### check #####\n";
+            cout << yieldSyst_npr_aa << " " << yieldSyst_npr_pp << endl;
+            cout << phCorr_npr_aa->GetBinContent(ibin) << " " << phCorr_npr_pp->GetBinContent(ibin) << endl;
+            cout << systErrTotal_npr_aa_y024_pt6530_copy[ibin-1] << " " << systErrTotal_npr_pp_y024_pt6530_copy[ibin-1] << endl;
+            cout << taa6_relerr << " " << TMath::Sqrt(yieldSyst_npr_aa + taa6_relerr) <<  " " << yieldRatio_npr << endl;
+            cout << nonPrJpsiErrSyst_cent[ibin-1] <<endl;
+            cout << endl;
+
           }
         
           if(ibin == 1) { // global syst is same for all bins, don't need to repeat
@@ -1074,11 +1261,17 @@ void makeSyst_cent( bool bSavePlots     = 1,
           break;
         
         case 1:// low=pt, 1.6<|y|<2.4
+          if (ibin > nBinsNpart6) break;
           yieldSyst_pr_aa  = (fitContribution_pt365y1624_pr_aa/rms_fitContribNorm+eff4dContribution_pt365y1624_pr_aa+efftnpContribution_pt365y1624_pr_aa);
           yieldSyst_npr_aa = (fitContribution_pt365y1624_npr_aa/rms_fitContribNorm+eff4dContribution_pt365y1624_npr_aa+efftnpContribution_pt365y1624_npr_aa);
 
           yieldSyst_pr_pp  = (fitContribution_pt365y1624_pr_pp/rms_fitContribNorm+eff4dContribution_pt365y1624_pr_pp+efftnpContribution_pt365y1624_pr_pp);
           yieldSyst_npr_pp = (fitContribution_pt365y1624_npr_pp/rms_fitContribNorm+eff4dContribution_pt365y1624_npr_pp+efftnpContribution_pt365y1624_npr_pp);
+
+          systErrTotal_pr_aa_y1624_pt365_copy[ibin-1] = phCorr_pr_aa->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_pr_aa );
+          systErrTotal_pr_pp_y1624_pt365_copy[ibin-1] = phCorr_pr_pp->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_pr_pp );
+          systErrTotal_npr_aa_y1624_pt365_copy[ibin-1] = phCorr_npr_aa->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_aa );
+          systErrTotal_npr_pp_y1624_pt365_copy[ibin-1] = phCorr_npr_pp->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_pp );
 
           prJpsiErrSyst_pt365y1624_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa  + taa6_relerr);
           nonPrJpsiErrSyst_pt365y1624_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa + taa6_relerr); 
@@ -1153,11 +1346,17 @@ void makeSyst_cent( bool bSavePlots     = 1,
           break;
         
         case 2:// high=pt, |y|<1.2
+          if (ibin > nBinsNpart6) break;
           yieldSyst_pr_aa  = (fitContribution_pt6530y012_pr_aa/rms_fitContribNorm+eff4dContribution_pt6530y012_pr_aa+efftnpContribution_pt6530y012_pr_aa);
           yieldSyst_npr_aa = (fitContribution_pt6530y012_npr_aa/rms_fitContribNorm+eff4dContribution_pt6530y012_npr_aa+efftnpContribution_pt6530y012_npr_aa);
 
           yieldSyst_pr_pp  = (fitContribution_pt6530y012_pr_pp/rms_fitContribNorm+eff4dContribution_pt6530y012_pr_pp+efftnpContribution_pt6530y012_pr_pp);
           yieldSyst_npr_pp = (fitContribution_pt6530y012_npr_pp/rms_fitContribNorm+eff4dContribution_pt6530y012_npr_pp+efftnpContribution_pt6530y012_npr_pp);
+
+          systErrTotal_pr_aa_y012_pt6530_copy[ibin-1] = phCorr_pr_aa->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_pr_aa );
+          systErrTotal_pr_pp_y012_pt6530_copy[ibin-1] = phCorr_pr_pp->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_pr_pp );
+          systErrTotal_npr_aa_y012_pt6530_copy[ibin-1] = phCorr_npr_aa->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_aa );
+          systErrTotal_npr_pp_y012_pt6530_copy[ibin-1] = phCorr_npr_pp->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_pp );
 
           prJpsiErrSyst_pt6530y012_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa  + taa6_relerr);
           nonPrJpsiErrSyst_pt6530y012_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa + taa6_relerr); 
@@ -1228,11 +1427,17 @@ void makeSyst_cent( bool bSavePlots     = 1,
           break;
 
         case 3:// high=pt, 1.2<|y|<1.6
+          if (ibin > nBinsNpart6) break;
           yieldSyst_pr_aa  = (fitContribution_pt6530y1216_pr_aa/rms_fitContribNorm+eff4dContribution_pt6530y1216_pr_aa+efftnpContribution_pt6530y1216_pr_aa);
           yieldSyst_npr_aa = (fitContribution_pt6530y1216_npr_aa/rms_fitContribNorm+eff4dContribution_pt6530y1216_npr_aa+efftnpContribution_pt6530y1216_npr_aa);
 
           yieldSyst_pr_pp  = (fitContribution_pt6530y1216_pr_pp/rms_fitContribNorm+eff4dContribution_pt6530y1216_pr_pp+efftnpContribution_pt6530y1216_pr_pp);
           yieldSyst_npr_pp = (fitContribution_pt6530y1216_npr_pp/rms_fitContribNorm+eff4dContribution_pt6530y1216_npr_pp+efftnpContribution_pt6530y1216_npr_pp);
+
+          systErrTotal_pr_aa_y1216_pt6530_copy[ibin-1] = phCorr_pr_aa->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_pr_aa );
+          systErrTotal_pr_pp_y1216_pt6530_copy[ibin-1] = phCorr_pr_pp->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_pr_pp );
+          systErrTotal_npr_aa_y1216_pt6530_copy[ibin-1] = phCorr_npr_aa->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_aa );
+          systErrTotal_npr_pp_y1216_pt6530_copy[ibin-1] = phCorr_npr_pp->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_pp );
 
           prJpsiErrSyst_pt6530y1216_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa  + taa6_relerr);
           nonPrJpsiErrSyst_pt6530y1216_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa + taa6_relerr); 
@@ -1303,11 +1508,17 @@ void makeSyst_cent( bool bSavePlots     = 1,
           break;
 
         case 4:// high=pt, 1.6<|y|<2.4
+          if (ibin > nBinsNpart6) break;
           yieldSyst_pr_aa  = (fitContribution_pt6530y1624_pr_aa/rms_fitContribNorm+eff4dContribution_pt6530y1624_pr_aa+efftnpContribution_pt6530y1624_pr_aa);
           yieldSyst_npr_aa = (fitContribution_pt6530y1624_npr_aa/rms_fitContribNorm+eff4dContribution_pt6530y1624_npr_aa+efftnpContribution_pt6530y1624_npr_aa);
 
           yieldSyst_pr_pp  = (fitContribution_pt6530y1624_pr_pp/rms_fitContribNorm+eff4dContribution_pt6530y1624_pr_pp+efftnpContribution_pt6530y1624_pr_pp);
           yieldSyst_npr_pp = (fitContribution_pt6530y1624_npr_pp/rms_fitContribNorm+eff4dContribution_pt6530y1624_npr_pp+efftnpContribution_pt6530y1624_npr_pp);
+
+          systErrTotal_pr_aa_y1624_pt6530_copy[ibin-1] = phCorr_pr_aa->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_pr_aa );
+          systErrTotal_pr_pp_y1624_pt6530_copy[ibin-1] = phCorr_pr_pp->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_pr_pp );
+          systErrTotal_npr_aa_y1624_pt6530_copy[ibin-1] = phCorr_npr_aa->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_aa );
+          systErrTotal_npr_pp_y1624_pt6530_copy[ibin-1] = phCorr_npr_pp->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_pp );
 
           prJpsiErrSyst_pt6530y1624_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa+taa6_relerr);
           nonPrJpsiErrSyst_pt6530y1624_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa+taa6_relerr); 
@@ -1394,6 +1605,262 @@ void makeSyst_cent( bool bSavePlots     = 1,
   outputData_pr.close();
   outputData_npr.close();
   
+
+  cout << endl;
+  cout << phCorr_pr_aa_y024_pt6530_copy->GetName() << endl;
+  cout << "Yield prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_pr_aa_y024_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_pr_pp  = phRaw_pr_pp_y024_pt6530_copy->GetBinError(ibin)/phRaw_pr_pp_y024_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_pr_aa  = phRaw_pr_aa_y024_pt6530_copy->GetBinError(ibin)/phRaw_pr_aa_y024_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_pp *= phCorr_pr_pp_y024_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_aa *= phCorr_pr_aa_y024_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  &  ",phCorr_pr_aa_y024_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_aa,systErrTotal_pr_aa_y024_pt6530_copy[ibin-1]);
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  \\\\",phCorr_pr_pp_y024_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_pp,systErrTotal_pr_pp_y024_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_pr_aa_y012_pt6530_copy->GetName() << endl;
+  cout << "Yield prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_pr_aa_y012_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_pr_pp  = phRaw_pr_pp_y012_pt6530_copy->GetBinError(ibin)/phRaw_pr_pp_y012_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_pr_aa  = phRaw_pr_aa_y012_pt6530_copy->GetBinError(ibin)/phRaw_pr_aa_y012_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_pp *= phCorr_pr_pp_y012_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_aa *= phCorr_pr_aa_y012_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  &  ",phCorr_pr_aa_y012_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_aa,systErrTotal_pr_aa_y012_pt6530_copy[ibin-1]);
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  \\\\",phCorr_pr_pp_y012_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_pp,systErrTotal_pr_pp_y012_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_pr_aa_y1216_pt6530_copy->GetName() << endl;
+  cout << "Yield prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_pr_aa_y1216_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_pr_pp  = phRaw_pr_pp_y1216_pt6530_copy->GetBinError(ibin)/phRaw_pr_pp_y1216_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_pr_aa  = phRaw_pr_aa_y1216_pt6530_copy->GetBinError(ibin)/phRaw_pr_aa_y1216_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_pp *= phCorr_pr_pp_y1216_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_aa *= phCorr_pr_aa_y1216_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  &  ",phCorr_pr_aa_y1216_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_aa,systErrTotal_pr_aa_y1216_pt6530_copy[ibin-1]);
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  \\\\",phCorr_pr_pp_y1216_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_pp,systErrTotal_pr_pp_y1216_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_pr_aa_y1624_pt6530_copy->GetName() << endl;
+  cout << "Yield prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_pr_aa_y1624_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_pr_pp  = phRaw_pr_pp_y1624_pt6530_copy->GetBinError(ibin)/phRaw_pr_pp_y1624_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_pr_aa  = phRaw_pr_aa_y1624_pt6530_copy->GetBinError(ibin)/phRaw_pr_aa_y1624_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_pp *= phCorr_pr_pp_y1624_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_aa *= phCorr_pr_aa_y1624_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  &  ",phCorr_pr_aa_y1624_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_aa,systErrTotal_pr_aa_y1624_pt6530_copy[ibin-1]);
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  \\\\",phCorr_pr_pp_y1624_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_pp,systErrTotal_pr_pp_y1624_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_pr_aa_y1624_pt365_copy->GetName() << endl;
+  cout << "Yield prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_pr_aa_y1624_pt365_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_pr_pp  = phRaw_pr_pp_y1624_pt365_copy->GetBinError(ibin)/phRaw_pr_pp_y1624_pt365_copy->GetBinContent(ibin);
+    double dRelErrRaw_pr_aa  = phRaw_pr_aa_y1624_pt365_copy->GetBinError(ibin)/phRaw_pr_aa_y1624_pt365_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_pp *= phCorr_pr_pp_y1624_pt365_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_aa *= phCorr_pr_aa_y1624_pt365_copy->GetBinContent(ibin);
+
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  &  ",phCorr_pr_aa_y1624_pt365_copy->GetBinContent(ibin),dRelErrRaw_pr_aa,systErrTotal_pr_aa_y1624_pt365_copy[ibin-1]);
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  \\\\",phCorr_pr_pp_y1624_pt365_copy->GetBinContent(ibin),dRelErrRaw_pr_pp,systErrTotal_pr_pp_y1624_pt365_copy[ibin-1]);
+    cout << endl;
+  }
+
+
+  cout << endl;
+  cout << phCorr_npr_aa_y024_pt6530_copy->GetName() << endl;
+  cout << "Yield non-prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_npr_aa_y024_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_np_pp  = phRaw_npr_pp_y024_pt6530_copy->GetBinError(ibin)/phRaw_npr_pp_y024_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_np_aa  = phRaw_npr_aa_y024_pt6530_copy->GetBinError(ibin)/phRaw_npr_aa_y024_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_pp *= phCorr_npr_pp_y024_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_aa *= phCorr_npr_aa_y024_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  &  ",phCorr_npr_aa_y024_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_aa,systErrTotal_npr_aa_y024_pt6530_copy[ibin-1]);
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  \\\\",phCorr_npr_pp_y024_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_pp,systErrTotal_npr_pp_y024_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_npr_aa_y012_pt6530_copy->GetName() << endl;
+  cout << "Yield non-prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_npr_aa_y012_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_np_pp  = phRaw_npr_pp_y012_pt6530_copy->GetBinError(ibin)/phRaw_npr_pp_y012_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_np_aa  = phRaw_npr_aa_y012_pt6530_copy->GetBinError(ibin)/phRaw_npr_aa_y012_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_pp *= phCorr_npr_pp_y012_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_aa *= phCorr_npr_aa_y012_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  &  ",phCorr_npr_aa_y012_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_aa,systErrTotal_npr_aa_y012_pt6530_copy[ibin-1]);
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  \\\\",phCorr_npr_pp_y012_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_pp,systErrTotal_npr_pp_y012_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_npr_aa_y1216_pt6530_copy->GetName() << endl;
+  cout << "Yield non-prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_npr_aa_y1216_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_np_pp  = phRaw_npr_pp_y1216_pt6530_copy->GetBinError(ibin)/phRaw_npr_pp_y1216_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_np_aa  = phRaw_npr_aa_y1216_pt6530_copy->GetBinError(ibin)/phRaw_npr_aa_y1216_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_pp *= phCorr_npr_pp_y1216_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_aa *= phCorr_npr_aa_y1216_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  &  ",phCorr_npr_aa_y1216_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_aa,systErrTotal_npr_aa_y1216_pt6530_copy[ibin-1]);
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  \\\\",phCorr_npr_pp_y1216_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_pp,systErrTotal_npr_pp_y1216_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_npr_aa_y1624_pt6530_copy->GetName() << endl;
+  cout << "Yield non-prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_npr_aa_y1624_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_np_pp  = phRaw_npr_pp_y1624_pt6530_copy->GetBinError(ibin)/phRaw_npr_pp_y1624_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_np_aa  = phRaw_npr_aa_y1624_pt6530_copy->GetBinError(ibin)/phRaw_npr_aa_y1624_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_pp *= phCorr_npr_pp_y1624_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_aa *= phCorr_npr_aa_y1624_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  &  ",phCorr_npr_aa_y1624_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_aa,systErrTotal_npr_aa_y1624_pt6530_copy[ibin-1]);
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  \\\\",phCorr_npr_pp_y1624_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_pp,systErrTotal_npr_pp_y1624_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_npr_aa_y1624_pt365_copy->GetName() << endl;
+  cout << "Yield non-prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_npr_aa_y1624_pt365_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_np_pp  = phRaw_npr_pp_y1624_pt365_copy->GetBinError(ibin)/phRaw_npr_pp_y1624_pt365_copy->GetBinContent(ibin);
+    double dRelErrRaw_np_aa  = phRaw_npr_aa_y1624_pt365_copy->GetBinError(ibin)/phRaw_npr_aa_y1624_pt365_copy->GetBinContent(ibin);
+    dRelErrRaw_np_pp *= phCorr_npr_pp_y1624_pt365_copy->GetBinContent(ibin);
+    dRelErrRaw_np_aa *= phCorr_npr_aa_y1624_pt365_copy->GetBinContent(ibin);
+
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  &  ",phCorr_npr_aa_y1624_pt365_copy->GetBinContent(ibin),dRelErrRaw_np_aa,systErrTotal_npr_aa_y1624_pt365_copy[ibin-1]);
+    printf("%.2f$\\pm$%.2f$\\pm$%.2f  \\\\",phCorr_npr_pp_y1624_pt365_copy->GetBinContent(ibin),dRelErrRaw_np_pp,systErrTotal_npr_pp_y1624_pt365_copy[ibin-1]);
+    cout << endl;
+  }
+
+
+  cout << endl;
+  cout << phCorr_pr_aa_y024_pt6530_copy->GetName() << endl;
+  cout << "Yield prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_pr_aa_y024_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_pr_pp  = phRaw_pr_pp_y024_pt6530_copy->GetBinError(ibin)/phRaw_pr_pp_y024_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_pr_aa  = phRaw_pr_aa_y024_pt6530_copy->GetBinError(ibin)/phRaw_pr_aa_y024_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_pp *= phCorr_pr_pp_y024_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_aa *= phCorr_pr_aa_y024_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_pr_aa_y024_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_aa,systErrTotal_pr_aa_y024_pt6530_copy[ibin-1]);
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_pr_pp_y024_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_pp,systErrTotal_pr_pp_y024_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_pr_aa_y012_pt6530_copy->GetName() << endl;
+  cout << "Yield prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_pr_aa_y012_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_pr_pp  = phRaw_pr_pp_y012_pt6530_copy->GetBinError(ibin)/phRaw_pr_pp_y012_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_pr_aa  = phRaw_pr_aa_y012_pt6530_copy->GetBinError(ibin)/phRaw_pr_aa_y012_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_pp *= phCorr_pr_pp_y012_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_aa *= phCorr_pr_aa_y012_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_pr_aa_y012_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_aa,systErrTotal_pr_aa_y012_pt6530_copy[ibin-1]);
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_pr_pp_y012_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_pp,systErrTotal_pr_pp_y012_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_pr_aa_y1216_pt6530_copy->GetName() << endl;
+  cout << "Yield prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_pr_aa_y1216_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_pr_pp  = phRaw_pr_pp_y1216_pt6530_copy->GetBinError(ibin)/phRaw_pr_pp_y1216_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_pr_aa  = phRaw_pr_aa_y1216_pt6530_copy->GetBinError(ibin)/phRaw_pr_aa_y1216_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_pp *= phCorr_pr_pp_y1216_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_aa *= phCorr_pr_aa_y1216_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_pr_aa_y1216_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_aa,systErrTotal_pr_aa_y1216_pt6530_copy[ibin-1]);
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_pr_pp_y1216_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_pp,systErrTotal_pr_pp_y1216_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_pr_aa_y1624_pt6530_copy->GetName() << endl;
+  cout << "Yield prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_pr_aa_y1624_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_pr_pp  = phRaw_pr_pp_y1624_pt6530_copy->GetBinError(ibin)/phRaw_pr_pp_y1624_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_pr_aa  = phRaw_pr_aa_y1624_pt6530_copy->GetBinError(ibin)/phRaw_pr_aa_y1624_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_pp *= phCorr_pr_pp_y1624_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_aa *= phCorr_pr_aa_y1624_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_pr_aa_y1624_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_aa,systErrTotal_pr_aa_y1624_pt6530_copy[ibin-1]);
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_pr_pp_y1624_pt6530_copy->GetBinContent(ibin),dRelErrRaw_pr_pp,systErrTotal_pr_pp_y1624_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_pr_aa_y1624_pt365_copy->GetName() << endl;
+  cout << "Yield prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_pr_aa_y1624_pt365_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_pr_pp  = phRaw_pr_pp_y1624_pt365_copy->GetBinError(ibin)/phRaw_pr_pp_y1624_pt365_copy->GetBinContent(ibin);
+    double dRelErrRaw_pr_aa  = phRaw_pr_aa_y1624_pt365_copy->GetBinError(ibin)/phRaw_pr_aa_y1624_pt365_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_pp *= phCorr_pr_pp_y1624_pt365_copy->GetBinContent(ibin);
+    dRelErrRaw_pr_aa *= phCorr_pr_aa_y1624_pt365_copy->GetBinContent(ibin);
+
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_pr_aa_y1624_pt365_copy->GetBinContent(ibin),dRelErrRaw_pr_aa,systErrTotal_pr_aa_y1624_pt365_copy[ibin-1]);
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_pr_pp_y1624_pt365_copy->GetBinContent(ibin),dRelErrRaw_pr_pp,systErrTotal_pr_pp_y1624_pt365_copy[ibin-1]);
+    cout << endl;
+  }
+
+
+  cout << endl;
+  cout << phCorr_npr_aa_y024_pt6530_copy->GetName() << endl;
+  cout << "Yield non-prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_npr_aa_y024_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_np_pp  = phRaw_npr_pp_y024_pt6530_copy->GetBinError(ibin)/phRaw_npr_pp_y024_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_np_aa  = phRaw_npr_aa_y024_pt6530_copy->GetBinError(ibin)/phRaw_npr_aa_y024_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_pp *= phCorr_npr_pp_y024_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_aa *= phCorr_npr_aa_y024_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_npr_aa_y024_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_aa,systErrTotal_npr_aa_y024_pt6530_copy[ibin-1]);
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_npr_pp_y024_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_pp,systErrTotal_npr_pp_y024_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_npr_aa_y012_pt6530_copy->GetName() << endl;
+  cout << "Yield non-prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_npr_aa_y012_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_np_pp  = phRaw_npr_pp_y012_pt6530_copy->GetBinError(ibin)/phRaw_npr_pp_y012_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_np_aa  = phRaw_npr_aa_y012_pt6530_copy->GetBinError(ibin)/phRaw_npr_aa_y012_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_pp *= phCorr_npr_pp_y012_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_aa *= phCorr_npr_aa_y012_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_npr_aa_y012_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_aa,systErrTotal_npr_aa_y012_pt6530_copy[ibin-1]);
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_npr_pp_y012_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_pp,systErrTotal_npr_pp_y012_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_npr_aa_y1216_pt6530_copy->GetName() << endl;
+  cout << "Yield non-prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_npr_aa_y1216_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_np_pp  = phRaw_npr_pp_y1216_pt6530_copy->GetBinError(ibin)/phRaw_npr_pp_y1216_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_np_aa  = phRaw_npr_aa_y1216_pt6530_copy->GetBinError(ibin)/phRaw_npr_aa_y1216_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_pp *= phCorr_npr_pp_y1216_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_aa *= phCorr_npr_aa_y1216_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_npr_aa_y1216_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_aa,systErrTotal_npr_aa_y1216_pt6530_copy[ibin-1]);
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_npr_pp_y1216_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_pp,systErrTotal_npr_pp_y1216_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_npr_aa_y1624_pt6530_copy->GetName() << endl;
+  cout << "Yield non-prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_npr_aa_y1624_pt6530_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_np_pp  = phRaw_npr_pp_y1624_pt6530_copy->GetBinError(ibin)/phRaw_npr_pp_y1624_pt6530_copy->GetBinContent(ibin);
+    double dRelErrRaw_np_aa  = phRaw_npr_aa_y1624_pt6530_copy->GetBinError(ibin)/phRaw_npr_aa_y1624_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_pp *= phCorr_npr_pp_y1624_pt6530_copy->GetBinContent(ibin);
+    dRelErrRaw_np_aa *= phCorr_npr_aa_y1624_pt6530_copy->GetBinContent(ibin);
+
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_npr_aa_y1624_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_aa,systErrTotal_npr_aa_y1624_pt6530_copy[ibin-1]);
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_npr_pp_y1624_pt6530_copy->GetBinContent(ibin),dRelErrRaw_np_pp,systErrTotal_npr_pp_y1624_pt6530_copy[ibin-1]);
+    cout << endl;
+  }
+  cout << phCorr_npr_aa_y1624_pt365_copy->GetName() << endl;
+  cout << "Yield non-prompt PbPb : PbPberr : pp : pperr \n";
+  for (int ibin=1; ibin<=phCorr_npr_aa_y1624_pt365_copy->GetNbinsX(); ibin++) {
+    double dRelErrRaw_np_pp  = phRaw_npr_pp_y1624_pt365_copy->GetBinError(ibin)/phRaw_npr_pp_y1624_pt365_copy->GetBinContent(ibin);
+    double dRelErrRaw_np_aa  = phRaw_npr_aa_y1624_pt365_copy->GetBinError(ibin)/phRaw_npr_aa_y1624_pt365_copy->GetBinContent(ibin);
+    dRelErrRaw_np_pp *= phCorr_npr_pp_y1624_pt365_copy->GetBinContent(ibin);
+    dRelErrRaw_np_aa *= phCorr_npr_aa_y1624_pt365_copy->GetBinContent(ibin);
+
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_npr_aa_y1624_pt365_copy->GetBinContent(ibin),dRelErrRaw_np_aa,systErrTotal_npr_aa_y1624_pt365_copy[ibin-1]);
+    printf("%.2f\t%.2f\t%.2f\t",phCorr_npr_pp_y1624_pt365_copy->GetBinContent(ibin),dRelErrRaw_np_pp,systErrTotal_npr_pp_y1624_pt365_copy[ibin-1]);
+    cout << endl;
+  }
+
+
+
+
+
   // ***** //Drawing
   // pr
   cout << " nBinsNpart12 : " << nBinsNpart12 << " prJpsiErrSyst_cent[0] "<< prJpsiErrSyst_cent[0]<< endl;

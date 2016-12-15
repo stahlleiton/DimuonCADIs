@@ -55,6 +55,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   lumi->SetFillColor(kRed-9);
   lumi->SetFillStyle(1001);
   pgCms->SetFillColorAlpha(kRed-9,0.5);
+  pgCmsSyst->SetFillColorAlpha(kRed-9,0.5);
 
   if(bDoSameYHighPt)
   {
@@ -65,6 +66,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
     lumi->SetFillColor(kAzure-9);
     lumi->SetFillStyle(1001);
     pgCms->SetFillColorAlpha(kAzure-9,0.5);
+    pgCmsSyst->SetFillColorAlpha(kAzure-9,0.5);
   }
   pgCms->SetName("pgCms");
   lumi->SetX1(375); lumi->SetX2(400);
@@ -107,7 +109,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
 
   TF1 *f4 = new TF1("f4","-1",0,400);
   //  f4->SetLineWidth(1);
-  f4->GetXaxis()->SetTitle("N_{part}");
+  f4->GetXaxis()->SetTitle("<N_{part}>");
   f4->GetYaxis()->SetTitle("R_{AA}");
   f4->GetYaxis()->SetRangeUser(0.0,1.5);
   f4->GetXaxis()->CenterTitle(kTRUE);
@@ -127,7 +129,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
   pgAlice_dpt612->Draw("P");
 
   // additional info
-  CMS_lumi(pc,12014000,0);
+  CMS_lumi(pc,12003000,0);
 
   TLegend *leg_cent = new TLegend(0.2,0.78,0.7,0.88,NULL,"brNDC");
   leg_cent->SetBorderSize(0);
@@ -261,7 +263,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
 
   // additional info
   // additional info
-  CMS_lumi(pc_low,12014000,0);
+  CMS_lumi(pc_low,12003000,0);
 
   TLegend *leg2_cent = new TLegend(0.2,0.78,0.7,0.88,NULL,"brNDC");
   leg2_cent->SetBorderSize(0);

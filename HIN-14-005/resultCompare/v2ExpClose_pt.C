@@ -35,7 +35,7 @@
 
 void v2ExpClose_pt(bool bSavePlots     = true, 
 	      float rangeYAxis    = 0.6,
-	      float rangeXAxis    = 20,
+	      float rangeXAxis    = 30,
               bool  bDrawCh       = true,
 	      const char* inputDir      = "../macro_v2/outRoot", // the place where the input root files, with the histograms are
 	      const char* figNamePrefix="v2ExpClose_pt")
@@ -109,7 +109,7 @@ void v2ExpClose_pt(bool bSavePlots     = true,
  
   TCanvas *pcCombi = new TCanvas("pcCombi","pcCombi");
   phAxis_v2->Draw();
-  CMS_lumi(pcCombi,12014000,0);
+  CMS_lumi(pcCombi,12001000,0);
  
   pgAliceSysB->Draw("2");
   pgAliceSys->Draw("2");
