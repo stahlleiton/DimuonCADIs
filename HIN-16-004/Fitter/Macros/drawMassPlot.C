@@ -194,18 +194,19 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
   RooPlot* frameTMP = (RooPlot*)frame->Clone("TMP");
   int nBinsTMP = nBins;
   if (plotPureSMC) {
-    double max = cut.dMuon.M.Max;
+    double max = cut.dMuon.M.Max, min = cut.dMuon.M.Min;
     if (incJpsi && !incPsi2S) {
       if ( (cut.dMuon.AbsRap.Min >= 1.6) || (cut.dMuon.AbsRap.Max > 1.6) ) max = 3.32;
       else  max = 3.26;
+      min = 2.6;
     }
     if (!incJpsi && incPsi2S) {
       if (cut.dMuon.AbsRap.Min >= 1.6)  max = 3.95;
       else  max = 3.85;
     }
-    nBinsTMP = (int)(floor( ((max-cut.dMuon.M.Min)/(cut.dMuon.M.Max-cut.dMuon.M.Min))*nBins ));
+    nBinsTMP = (int)(floor( ((max-min)/(cut.dMuon.M.Max-cut.dMuon.M.Min))*nBins ));
     max = cut.dMuon.M.Min + ((cut.dMuon.M.Max-cut.dMuon.M.Min)/((double)nBins))*((double)nBinsTMP);
-    frameTMP = myws.var("invMass")->frame(Bins(nBinsTMP), Range(cut.dMuon.M.Min, max));
+    frameTMP = myws.var("invMass")->frame(Bins(nBinsTMP), Range(min, max));
     myws.data(dsOSName.c_str())->plotOn(frameTMP, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
     myws.pdf(pdfName.c_str())->plotOn(frameTMP,Name("PDF"),  Normalization(norm, RooAbsReal::NumEvent), 
                                       LineColor(kBlack), LineStyle(1), Precision(1e-4), Range(cut.dMuon.M.Min, cut.dMuon.M.Max), NormRange("MassWindow"));
@@ -492,14 +493,21 @@ void setMassRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLog
   {
     if (dsName.find("JPSI")!=std::string::npos)
     {
-      TLine* line(0x0);
-      if ( (dMuonYmin >= 1.6) || (dMuonYmax > 1.6) ) line = new TLine(3.32,Ydown,3.32,Yup);
-      else line = new TLine(3.26,Ydown,3.26,Yup);
-      line->SetLineStyle(2);
-      line->SetLineColor(1);
-      line->SetLineWidth(3);
+      TLine* lineHigh(0x0);
+      if ( (dMuonYmin >= 1.6) || (dMuonYmax > 1.6) ) lineHigh = new TLine(3.32,Ydown,3.32,Yup);
+      else lineHigh = new TLine(3.26,Ydown,3.26,Yup);
+      lineHigh->SetLineStyle(2);
+      lineHigh->SetLineColor(1);
+      lineHigh->SetLineWidth(3);
       
-      frame->addObject(line);
+      TLine* lineLow(0x0);
+      lineLow = new TLine(2.6,Ydown,2.6,Yup);
+      lineLow->SetLineStyle(2);
+      lineLow->SetLineColor(1);
+      lineLow->SetLineWidth(3);
+      
+      frame->addObject(lineHigh);
+      frame->addObject(lineLow);
     }
     else if (dsName.find("PSI2S")!=std::string::npos)
     {
