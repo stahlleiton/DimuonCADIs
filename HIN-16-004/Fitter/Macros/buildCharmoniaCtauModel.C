@@ -895,13 +895,13 @@ void setCtauDefaultParameters(map<string, string> &parIni, bool isPbPb, double n
     parIni[Form("sigmaMC_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("sigmaMC_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")), 0.000001, 0.0000001, 1.0);
   }
   if (parIni.count(Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.8, 0.2, 1.0);
+    parIni[Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.8, 0.0, 1.0);
   }
   if (parIni.count(Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.8, 0.2, 1.0);
+    parIni[Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.8, 0.0, 1.0);
   }
   if (parIni.count(Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.8, 0.2, 1.0);
+    parIni[Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.8, 0.0, 1.0);
   }
 
   // Signal Ctau Model
