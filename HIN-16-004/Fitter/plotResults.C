@@ -924,7 +924,7 @@ void plotLimits(map<anabin, TGraphAsymmErrors*> theGraphs, string xaxis, const c
          double low= thebin.ptbin().low();
          double high = thebin.ptbin().high();
          x = (low+high)/2.;
-         dx = 0.5;
+         dx = (high-low)/2.;
       } else if (xaxis=="cent") {
          double low= thebin.centbin().low();
          double high = thebin.centbin().high();
