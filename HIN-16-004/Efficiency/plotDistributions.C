@@ -37,7 +37,7 @@ const char* poiname       = "N_Jpsi";
 bool  fiterrors     = true;  // statistical errors are from the fit
 bool  doprompt      = true;  // prompt Jpsi
 bool  dononprompt   = false;  // nonprompt Jpsi
-string nameTag_base = "_data";    // can put here e.g. "_prompt", "_nonprompt", ...
+string nameTag_base = "_data";    // can put here e.g. "_data", "_mc", ...
 
 //////////////////
 // DECLARATIONS //
@@ -50,6 +50,7 @@ void plot(vector<anabin> thecats, string xaxis, string workDirName);
 int color(int i);
 int markerstyle(int i);
 string nameTag;
+bool isData = nameTag_base.find("_data")!=std::string::npos;
 
 class distr_input {
 public:
@@ -82,14 +83,24 @@ void plotPt(string workDirName, int iplot) {
   
   // 3 centrality intervals
   if (iplot==1) {
-    theCats.push_back(anabin(0,2.4,6.5,50,0,20));
-    theCats.push_back(anabin(0,2.4,6.5,50,20,60));
-    theCats.push_back(anabin(0,2.4,6.5,50,60,200));
+    if (isData)
+    {
+      theCats.push_back(anabin(0,2.4,6.5,50,0,20));
+      theCats.push_back(anabin(0,2.4,6.5,50,20,60));
+      theCats.push_back(anabin(0,2.4,6.5,50,60,200));
+    }
+    else
+    {
+      theCats.push_back(anabin(0,2.4,6.5,30,0,20));
+      theCats.push_back(anabin(0,2.4,6.5,30,20,60));
+      theCats.push_back(anabin(0,2.4,6.5,30,60,200));
+    }
   }
   
   // 1 rapidity interval
   if (iplot==2) {
-    theCats.push_back(anabin(0,2.4,6.5,50,0,200));
+    if (isData) theCats.push_back(anabin(0,2.4,6.5,50,0,200));
+    else theCats.push_back(anabin(0,2.4,6.5,30,0,200));
   }
   
   plot(theCats,xaxis,workDirName);
@@ -113,7 +124,7 @@ void plotAll(string workDirName) {
   plotPt(workDirName,0);
   plotPt(workDirName,1);
   plotPt(workDirName,2);
-  plotRap(workDirName);
+  if (isData) plotRap(workDirName);
 };
 
 /////////////////////
@@ -129,12 +140,11 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
     return;
   }
   
-  bool isData = nameTag_base.find("_data")!=std::string::npos;
   TString sampleName(isData ? "DATA" : (doprompt? "MCJPSIPR" : "MCJPSINOPR"));
-  TFile *f = new TFile(treeFileName(outputDir.c_str(),sampleName.Data(),"../Fitter/"));
+  TFile *f = new TFile(treeFileName(outputDir.c_str(),sampleName.Data(),"../Fitter"));
   if (!f || !f->IsOpen()) {
-    results2tree(outputDir.c_str(),sampleName.Data(),"../Fitter/");
-    f = new TFile(treeFileName(outputDir.c_str(),sampleName.Data(),"../Fitter/"));
+    results2tree(outputDir.c_str(),sampleName.Data(),"../Fitter");
+    f = new TFile(treeFileName(outputDir.c_str(),sampleName.Data(),"../Fitter"));
     if (!f) return;
   }
   TTree *tr = (TTree*) f->Get("fitresults");
@@ -205,7 +215,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
     distr_input spp = theVars_inputs[thebinPP];
     
     if (s.naa <= 0 || spp.npp <= 0) continue;
-    if ((doprompt || dononprompt) && (spp.bfracpp<=0 || s.bfracaa<=0)) continue;
+    if ((doprompt || dononprompt) && isData && (spp.bfracpp<=0 || s.bfracaa<=0)) continue;
     
     theBins[thebin].push_back(it->first);
     
@@ -214,7 +224,7 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
     double dnaa = s.dnaa_stat;
     double dnpp = spp.dnpp_stat;
     
-    if (nameTag_base.find("_data")!=std::string::npos)
+    if (isData)
     {
       if (doprompt) {
         naa = s.naa*(1.-s.bfracaa);
