@@ -1,3 +1,6 @@
+#ifndef plotVars_C
+#define plotVars_C
+
 #include "Macros/Utilities/resultUtils.h"
 #include "Macros/Utilities/texUtils.h"
 #include "Macros/Utilities/bin.h"
@@ -448,24 +451,33 @@ void plotGraphs(vector<TGraphErrors*> graphs, vector<string> tags, const char* w
    TH1 *haxes = NULL;
    double ymin=0, ymax=0;
 
+   bool issysts = string(workDirName)=="systematics";
+
    for (unsigned int i=0; i<graphs.size(); i++) {
-      graphs[i]->SetLineColor(color(i));
-      graphs[i]->SetMarkerColor(color(i));
+      int thecolor = (issysts && tags[i] == "Total") ? kBlack : color(i);
+      graphs[i]->SetLineColor(thecolor);
+      graphs[i]->SetMarkerColor(thecolor);
       graphs[i]->SetMarkerStyle(markerstyle(i));
-      graphs[i]->SetMarkerSize(1.5);
+      graphs[i]->SetMarkerSize(issysts ? 0 : 1.5);
+      if (issysts) {
+         graphs[i]->SetLineWidth(2);
+         graphs[i]->SetFillStyle(0);
+      }
       if (i==0) {
-         graphs[i]->Draw("AP");
+         graphs[i]->Draw(!issysts ? "AP" : "A2");
          haxes = graphs[i]->GetHistogram();
          ymin = haxes->GetYaxis()->GetXmin();
          ymax = haxes->GetYaxis()->GetXmax();
       }
       else {
-         graphs[i]->Draw("P");
+         graphs[i]->Draw(!issysts ? "P" : "2");
          ymin = min(ymin, graphs[i]->GetYaxis()->GetXmin());
          ymax = max(ymax, graphs[i]->GetYaxis()->GetXmax());
       }
       tleg->AddEntry(graphs[i],tags[i].c_str(),"LP");
    }
+
+   if (issysts) graphs[0]->Draw("2"); // in the case of systs, re-draw the total on top
 
    if (haxes) haxes->GetYaxis()->SetRangeUser(ymin, ymax);
    // c1->Update();
@@ -986,3 +998,5 @@ int markerstyle(int i) {
    else if (i==10) return kOpenTriangleDown;
    else return markerstyle(i%11);
 }
+
+#endif // #define plotvars_C
