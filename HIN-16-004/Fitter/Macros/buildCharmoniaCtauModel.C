@@ -567,15 +567,15 @@ bool defineCtauResolModel(RooWorkspace& ws, string object, CtauModel model, map<
  		      ));
 
       // combine the two PDFs
-      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("pdfCTAURES12_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),  
- 		      Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))
- 		      ));
-      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("pdfCTAURES_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES12_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
+      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("pdfCTAURES23_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("pdfCTAURES2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
  		      Form("pdfCTAURES3_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),  
  		      Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP"))
+ 		      ));
+      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("pdfCTAURES_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("pdfCTAURES1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("pdfCTAURES23_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),  
+ 		      Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))
  		      ));
 
       cout << Form("[INFO] %s Triple Gaussian Ctau Resolution PDF in %s included", object.c_str(), (isPbPb?"PbPb":"PP")) << endl; break;
@@ -635,20 +635,20 @@ bool defineCtauResolModel(RooWorkspace& ws, string object, CtauModel model, map<
  		      ));
 
       // combine the two PDFs
-      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("pdfCTAURES12_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),  
- 		      Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))
+      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("pdfCTAURES34_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("pdfCTAURES3_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("pdfCTAURES4_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),  
+ 		      Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP"))
  		      ));
-      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("pdfCTAURES123_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES12_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES3_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),  
+      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("pdfCTAURES234_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("pdfCTAURES2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("pdfCTAURES34_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),  
  		      Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP"))
  		      ));
       ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("pdfCTAURES_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES123_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES4_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),  
- 		      Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP"))
+ 		      Form("pdfCTAURES1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("pdfCTAURES234_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),  
+ 		      Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))
  		      ));
 
       cout << Form("[INFO] %s Quadruple Gaussian Ctau Resolution PDF in %s included", object.c_str(), (isPbPb?"PbPb":"PP")) << endl; break;
@@ -862,13 +862,13 @@ void setCtauDefaultParameters(map<string, string> &parIni, bool isPbPb, double n
     parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.0, 0.01, 2.0);
   }
   if (parIni.count(Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
-      parIni[Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.1, 1.0, 2.0);
+      parIni[Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 1.0, 3.0);
   }
   if (parIni.count(Form("rSigma32_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("rSigma32_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
-      parIni[Form("rSigma32_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rSigma32_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.1, 1.0, 2.0);
+      parIni[Form("rSigma32_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rSigma32_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 1.0, 3.0);
   }
   if (parIni.count(Form("rSigma43_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("rSigma43_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
-      parIni[Form("rSigma43_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rSigma43_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.1, 1.0, 2.0);
+      parIni[Form("rSigma43_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rSigma43_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 1.0, 3.0);
   }
   if (parIni.count(Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0) {
     parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{%s,%s})", Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")),
@@ -895,13 +895,13 @@ void setCtauDefaultParameters(map<string, string> &parIni, bool isPbPb, double n
     parIni[Form("sigmaMC_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("sigmaMC_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")), 0.000001, 0.0000001, 1.0);
   }
   if (parIni.count(Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.8, 0.2, 1.0);
+    parIni[Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.8, 0.4, 1.0);
   }
   if (parIni.count(Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.8, 0.2, 1.0);
+    parIni[Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.8, 0.4, 1.0);
   }
   if (parIni.count(Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.8, 0.2, 1.0);
+    parIni[Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.8, 0.4, 1.0);
   }
 
   // Signal Ctau Model
