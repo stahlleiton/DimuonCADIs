@@ -8,6 +8,7 @@
 #include "fitCharmoniaCtauTrueModel.C"
 #include "drawMassFrom2DPlot.C"
 #include "drawCtauFrom2DPlot.C"
+#include "drawCtauMass2DPlot.C"
 
 void setCtauMassFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut, bool isPbPb);
 
@@ -258,7 +259,8 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
   myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str()));
   // Draw the mass plot
   drawCtauFrom2DPlot(myws, outputDir, opt, cut, parIni, plotLabel, DSTAG, isPbPb, incJpsi, incPsi2S, incBkg, setLogScale, incSS, binWidth["CTAU"]);
-  drawMassFrom2DPlot(myws, outputDir, opt, cut, parIni, plotLabel, DSTAG, isPbPb, incJpsi, incPsi2S, incBkg, setLogScale, incSS, binWidth["MASS"]); 
+  drawMassFrom2DPlot(myws, outputDir, opt, cut, parIni, plotLabel, DSTAG, isPbPb, incJpsi, incPsi2S, incBkg, setLogScale, incSS, binWidth["MASS"]);
+  drawCtauMass2DPlot(myws, outputDir, cut, plotLabel, DSTAG, isPbPb, binWidth);
   // Save the results
   myws.saveSnapshot(Form("%s_parFit", pdfName.c_str()),*newpars,kTRUE);
   saveWorkSpace(myws, Form("%sctauMass/%s/result", outputDir.c_str(), DSTAG.c_str()), FileName);
