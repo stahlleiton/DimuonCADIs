@@ -202,11 +202,13 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
     anabin thebin = it->first;
     distr_input s = it->second;
     if (!binok(thecats,xaxis,thebin)) continue;
+    
     anabin thebinPP = it->first; thebinPP.setcentbin(binI(0,200));
     distr_input spp = theVars_inputs[thebinPP];
     
     if (s.naa <= 0 || spp.npp <= 0) continue;
     if ((doprompt || dononprompt) && isData && (spp.bfracpp<=0 || s.bfracaa<=0)) continue;
+    if (!isData && s.naa <= 0) continue;
     
     theBins[thebin].push_back(it->first);
     
