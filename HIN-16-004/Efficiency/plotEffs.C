@@ -31,8 +31,6 @@ TH1F* integrateHist(TH1F *hist) {
 }
 
 
-
-
 class drawingEff {
 public:
 
@@ -67,7 +65,7 @@ public:
   ~drawingEff();
   void loadHisto();
   void getEfficiency();
-  void drawHisto(vector<string> outname);
+  void drawHisto(vector<string> *outname);
   void fixCentPp(TH1F*);
   void checkUnderFlow(TH1 *hnum, TH1 *hden);
 };
@@ -106,7 +104,7 @@ drawingEff::~drawingEff(){
   delete hden_rap;
   delete heff_rap;
 
-  finput->Close();
+  delete finput;
 }
 
 drawingEff::drawingEff(string fname, bool ispbpb_){
@@ -133,12 +131,12 @@ void drawingEff::checkUnderFlow(TH1 *hnum, TH1 *hden){
     double den0 = hden->GetBinContent(j);
     
     // prints bincontent for cross-check!
-    if (num0>den0) {
-      cout << "Bin " << j << ": "
-           << hnum->GetBinContent(j) << " " << hden->GetBinContent(j) << " " 
-           << hnum->GetBinContent(j) / hden->GetBinContent(j)
-           << endl;
-    }
+//    if (num0>den0) {
+//      cout << "Bin " << j << ": "
+//           << hnum->GetBinContent(j) << " " << hden->GetBinContent(j) << " " 
+//           << hnum->GetBinContent(j) / hden->GetBinContent(j)
+//           << endl;
+//    }
 
     // If underflow bin has more entries in numerator than denominator, set it to 0
     if ((j==0 && num0>den0) || (j==hnum->GetNbinsX()+1 && num0>den0)) {
@@ -148,12 +146,12 @@ void drawingEff::checkUnderFlow(TH1 *hnum, TH1 *hden){
       hden->SetBinError(j,0);
     }
     
-    if (num0>den0) {
-      cout << "Bin " << j << ": "
-           << hnum->GetBinContent(j) << " " << hden->GetBinContent(j) << " " 
-           << hnum->GetBinContent(j) / hden->GetBinContent(j)
-           << endl;
-    }
+//    if (num0>den0) {
+//      cout << "Bin " << j << ": "
+//           << hnum->GetBinContent(j) << " " << hden->GetBinContent(j) << " " 
+//           << hnum->GetBinContent(j) / hden->GetBinContent(j)
+//           << endl;
+//    }
 
   }
 
@@ -289,7 +287,7 @@ void drawingEff::getEfficiency(){
   SetHistStyle(heff_rap,0,0,0,1.3);
 }
 
-void drawingEff::drawHisto(vector<string> outname){
+void drawingEff::drawHisto(vector<string> *outname){
 
   gStyle->SetEndErrorSize(3);
 
@@ -308,10 +306,10 @@ void drawingEff::drawHisto(vector<string> outname){
   heff_cent_rap[nbins_4rap+1]->Draw("p");
   leg->AddEntry(heff_cent_rap[nbins_4rap+1],Form("|y|: %.1f-%.1f, 3-6.5 GeV/c",bins_4rap[nbins_4rap-1],bins_4rap[nbins_4rap]),"p");
   leg->Draw();
-  lat->DrawLatex(0.2,0.85,outname[0].c_str());
-  can->SaveAs(Form("%s_cent_rap.png",outname[1].c_str()));
-  can->SaveAs(Form("%s_cent_rap.pdf",outname[1].c_str()));
-  can->SaveAs(Form("%s_cent_rap.root",outname[1].c_str()));
+  lat->DrawLatex(0.2,0.85,outname->at(0).c_str());
+  can->SaveAs(Form("%s_cent_rap.png",outname->at(1).c_str()));
+  can->SaveAs(Form("%s_cent_rap.pdf",outname->at(1).c_str()));
+  can->SaveAs(Form("%s_cent_rap.root",outname->at(1).c_str()));
 
   delete can;
   delete leg;
@@ -331,10 +329,10 @@ void drawingEff::drawHisto(vector<string> outname){
     else leg->AddEntry(heff_pt_rap[i+1],Form("|y|: %.1f-%.1f",bins_4rap[i],bins_4rap[i+1]),"p");
   }
   leg->Draw();
-  lat->DrawLatex(0.2,0.85,outname[0].c_str());
-  can->SaveAs(Form("%s_pt_rap.png",outname[1].c_str()));
-  can->SaveAs(Form("%s_pt_rap.pdf",outname[1].c_str()));
-  can->SaveAs(Form("%s_pt_rap.root",outname[1].c_str()));
+  lat->DrawLatex(0.2,0.85,outname->at(0).c_str());
+  can->SaveAs(Form("%s_pt_rap.png",outname->at(1).c_str()));
+  can->SaveAs(Form("%s_pt_rap.pdf",outname->at(1).c_str()));
+  can->SaveAs(Form("%s_pt_rap.root",outname->at(1).c_str()));
 
   delete can;
   delete leg;
@@ -354,11 +352,11 @@ void drawingEff::drawHisto(vector<string> outname){
     }
     leg->Draw();
   }
-  lat->DrawLatex(0.2,0.85,outname[0].c_str());
+  lat->DrawLatex(0.2,0.85,outname->at(0).c_str());
   lat->DrawLatex(0.2,0.80,"|y| < 2.4");
-  can->SaveAs(Form("%s_pt_cent.png",outname[1].c_str()));
-  can->SaveAs(Form("%s_pt_cent.pdf",outname[1].c_str()));
-  can->SaveAs(Form("%s_pt_cent.root",outname[1].c_str()));
+  can->SaveAs(Form("%s_pt_cent.png",outname->at(1).c_str()));
+  can->SaveAs(Form("%s_pt_cent.pdf",outname->at(1).c_str()));
+  can->SaveAs(Form("%s_pt_cent.root",outname->at(1).c_str()));
 
   delete can;
   delete leg;
@@ -368,14 +366,15 @@ void drawingEff::drawHisto(vector<string> outname){
   can = new TCanvas("can","can",600,600);
 
   heff_rap->Draw("ap");
-  lat->DrawLatex(0.2,0.85,outname[0].c_str());
+  lat->DrawLatex(0.2,0.85,outname->at(0).c_str());
   lat->DrawLatex(0.2,0.80,"6.5-50 GeV/c");
   if (ispbpb) lat->DrawLatex(0.2,0.75,"0-100%");
-  can->SaveAs(Form("%s_rap.png",outname[1].c_str()));
-  can->SaveAs(Form("%s_rap.pdf",outname[1].c_str()));
-  can->SaveAs(Form("%s_rap.root",outname[1].c_str()));
+  can->SaveAs(Form("%s_rap.png",outname->at(1).c_str()));
+  can->SaveAs(Form("%s_rap.pdf",outname->at(1).c_str()));
+  can->SaveAs(Form("%s_rap.root",outname->at(1).c_str()));
 
   delete can;
+  delete lat;
   
 }
 
@@ -388,9 +387,9 @@ void drawingEff::drawHisto(vector<string> outname){
 
 
 
-////////////////////////////////////
-//////////***** MAIN *****//////////
-////////////////////////////////////
+////////////////////////////////////////////////////////////////
+////// Draw eff plots in different kinematic regions
+////////////////////////////////////////////////////////////////
 void plotEffs() {
 
   string dir = "figs";
@@ -405,7 +404,7 @@ void plotEffs() {
   drawingEff fjpsi_pp(Form("files/%s/histos_jpsi_pp.root",subdir.c_str()),false);
   fjpsi_pp.loadHisto();
   fjpsi_pp.getEfficiency();
-  fjpsi_pp.drawHisto(latex);
+  fjpsi_pp.drawHisto(&latex);
 
   latex.clear();
   latex.push_back("nonprompt J/#psi (pp)");
@@ -413,7 +412,7 @@ void plotEffs() {
   drawingEff fnpjpsi_pp(Form("files/%s/histos_npjpsi_pp.root",subdir.c_str()),false);
   fnpjpsi_pp.loadHisto();
   fnpjpsi_pp.getEfficiency();
-  fnpjpsi_pp.drawHisto(latex);
+  fnpjpsi_pp.drawHisto(&latex);
 
   latex.clear();
   latex.push_back("prompt J/#psi (PbPb)");
@@ -421,7 +420,7 @@ void plotEffs() {
   drawingEff fjpsi_pbpb(Form("files/%s/histos_jpsi_pbpb.root",subdir.c_str()),true);
   fjpsi_pbpb.loadHisto();
   fjpsi_pbpb.getEfficiency();
-  fjpsi_pbpb.drawHisto(latex);
+  fjpsi_pbpb.drawHisto(&latex);
 
   latex.clear();
   latex.push_back("nonprompt J/#psi (PbPb)");
@@ -429,9 +428,226 @@ void plotEffs() {
   drawingEff fnpjpsi_pbpb(Form("files/%s/histos_npjpsi_pbpb.root",subdir.c_str()),true);
   fnpjpsi_pbpb.loadHisto();
   fnpjpsi_pbpb.getEfficiency();
-  fnpjpsi_pbpb.drawHisto(latex);
+  fnpjpsi_pbpb.drawHisto(&latex);
+}
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////
+// For 1 kinematic region, draw different SFs on a same canvas
+// -> Call "drawMultiples()" function to execute this macro
+//////////////////////////////////////////////////////////////////
+void plotMultipleSamples(vector<TGraphAsymmErrors*> heff, vector<string> *histname, string *outname, int xVar, string rap, string pt, string cent, bool ispbpb) {
+
+  setTDRStyle();
+  gStyle->SetEndErrorSize(3);
+
+  const int NGraph = heff.size();
+
+  TCanvas *can = new TCanvas("can","can",600,600);
+  TLatex *lat = new TLatex(); lat->SetNDC(); lat->SetTextSize(0.035);
+  TLegend *leg = new TLegend(0.55,0.70,0.94,0.88);
+  SetLegendStyle(leg);
+
+  for (int i=0; i<NGraph; i++) {
+    SetHistStyle(heff[i],i,i,0,1.3);
+    
+    leg->AddEntry(heff[i],histname->at(i).c_str(),"p");
+    
+    if (i==0) heff[i]->Draw("ap");
+    else heff[i]->Draw("p");
+  }
+  leg->Draw();
+
+  gSystem->mkdir(Form("%s",outname->c_str()),kTRUE);
+
+  if (xVar == 0) { // vs. Cent
+    lat->DrawLatex(0.2,0.85,Form("|y|: %s, %s GeV/c",rap.c_str(),pt.c_str()));
+    
+    can->SaveAs(Form("%s/cent_rap%s_pt%s.png",outname->c_str(),rap.c_str(),pt.c_str()));
+    can->SaveAs(Form("%s/cent_rap%s_pt%s.pdf",outname->c_str(),rap.c_str(),pt.c_str()));
+
+  } else if (xVar == 1) { // vs. pt in 4+1 |y| regions
+    if (ispbpb) lat->DrawLatex(0.2,0.85,Form("|y|: %s, 0-100%%",rap.c_str()));
+    else lat->DrawLatex(0.2,0.85,Form("|y|: %s",rap.c_str()));
+    
+    can->SaveAs(Form("%s/pt_rap%s.png",outname->c_str(),rap.c_str()));
+    can->SaveAs(Form("%s/pt_rap%s.pdf",outname->c_str(),rap.c_str()));
+  
+  } else if (xVar == 2) { // vs. pt in 3 cent regions
+    if (ispbpb) lat->DrawLatex(0.2,0.85,Form("%s%%",cent.c_str()));
+
+    can->SaveAs(Form("%s/pt_cent%s.png",outname->c_str(),cent.c_str()));
+    can->SaveAs(Form("%s/pt_cent%s.pdf",outname->c_str(),cent.c_str()));
+
+  } else if (xVar == 3) { // vs. rap integrated over all regions
+    lat->DrawLatex(0.2,0.80,"6.5-50 GeV/c");
+    if (ispbpb) lat->DrawLatex(0.2,0.75,"0-100%");
+
+    can->SaveAs(Form("%s/rap.png",outname->c_str()));
+    can->SaveAs(Form("%s/rap.pdf",outname->c_str()));
+  }
+  
+  delete can;
+  delete leg;
+  delete lat;
+  
+}
+
+
+void callMultiples(vector<string> *inputfile, bool ispbpb, string *outname, vector<string> *histname) {
+  
+  const unsigned int isize = inputfile->size();
+  vector<drawingEff *> fsource;
+  for (unsigned int i=0; i<isize; i++) {
+    cout << "creating drawingEff: " << inputfile->at(i) << endl;
+    fsource.push_back(new drawingEff(inputfile->at(i).c_str(),ispbpb));
+    fsource[i]->loadHisto();
+    fsource[i]->getEfficiency();
+  }
+
+  string raparr[] = {"0-2.4","0-0.6","0.6-1.2","1.2-1.8","1.8-2.4","1.8-2.4"};
+  string ptarr[] = {"6.5-30","3-6.5"};
+  string centarr[] = {"0-10","10-30","30-100"};
+
+  vector<TGraphAsymmErrors*> heff_cent_rap;
+  vector<TGraphAsymmErrors*> heff_pt_rap;
+  vector<TGraphAsymmErrors*> heff_pt_cent;
+  vector<TGraphAsymmErrors*> heff_rap;
+
+  //xVar == 0 : vs. Cent
+  //xVar == 1 : vs. pt in 4+1 |y| regions
+  //xVar == 2 : vs. pt in 3 cent regions
+  //xVar == 3 : vs. rap integrated over all regions
+  // Eff vs centrality in 4+1 |y| regions (6.5-50 GeV/c), forward & low pT region
+  unsigned int heff_size = fsource[0]->heff_cent_rap.size();
+  cout << "heff_size: " << heff_size << endl;
+  for (unsigned int i=0; i<heff_size; i++) {
+    int xVar = 0;
+    for (unsigned int fidx=0; fidx<isize; fidx++) {
+      heff_cent_rap.push_back(fsource[fidx]->heff_cent_rap[i]);
+    }
+    string rap = raparr[i];
+    string pt = "6.5-30";
+    string cent = "";
+    cout << rap << " " << pt << " " << cent << endl;
+    if (i+1 == heff_size) {
+      rap = "1.8-2.4";
+      pt = "3-6.5";
+      plotMultipleSamples(heff_cent_rap, histname, outname, xVar, rap, pt, cent, ispbpb);
+    } else {
+      plotMultipleSamples(heff_cent_rap, histname, outname, xVar, rap, pt, cent, ispbpb);
+    }
+
+    heff_cent_rap.clear();
+  }
+  // Eff vs pT in 4+1 |y| regions
+  heff_size = fsource[0]->heff_pt_rap.size();
+  for (unsigned int i=0; i<heff_size; i++) {
+    int xVar = 1;
+    for (unsigned int fidx=0; fidx<isize; fidx++) {
+      heff_pt_rap.push_back(fsource[fidx]->heff_pt_rap[i]);
+    }
+    string rap = raparr[i];
+    string pt = "";
+    string cent = "0-100";
+    cout << rap << " " << pt << " " << cent << endl;
+    plotMultipleSamples(heff_pt_rap, histname, outname, xVar, rap, pt, cent, ispbpb);
+
+    heff_pt_rap.clear();
+  }
+  // Eff vs pT in 3 centrality regions
+  heff_size = fsource[0]->heff_pt_cent.size();
+  for (unsigned int i=0; i<heff_size; i++) {
+    int xVar = 2;
+    for (unsigned int fidx=0; fidx<isize; fidx++) {
+      heff_pt_cent.push_back(fsource[fidx]->heff_pt_cent[i]);
+    }
+    string rap = "0-2.4";
+    string pt = "";
+    string cent = centarr[i];
+    cout << rap << " " << pt << " " << cent << endl;
+    plotMultipleSamples(heff_pt_cent, histname, outname, xVar, rap, pt, cent, ispbpb);
+
+    heff_pt_cent.clear();
+  }
+  // Eff vs rap integrated
+  int xVar = 3;
+  for (unsigned int fidx=0; fidx<isize; fidx++) {
+    heff_rap.push_back(fsource[fidx]->heff_rap);
+  }
+  string rap = "";
+  string pt = "6.5-30";
+  string cent = "0-100";
+  cout << rap << " " << pt << " " << cent << endl;
+  plotMultipleSamples(heff_rap, histname, outname, xVar, rap, pt, cent, ispbpb);
+
+  for (unsigned int i=0; i<isize; i++) {
+    delete fsource[i];
+  }
+}
+
+void drawMultiples() {
+  string dir = "figs";
+  string subdir = "ScaleFators_comparison";
+
+  gSystem->mkdir(dir.c_str(),kTRUE);
+  gSystem->mkdir(Form("%s/%s",dir.c_str(),subdir.c_str()),kTRUE);
+
+  vector<string> sourcedir;
+  sourcedir.push_back("noSF");
+  sourcedir.push_back("nominal");
+  sourcedir.push_back("trg__muid");
+  sourcedir.push_back("trg__sta");
+
+  vector<string> histname;
+  histname.push_back("No TnP SF");
+  histname.push_back("Nominal (Trg)");
+  histname.push_back("Trg + MuID");
+  histname.push_back("Trg + STA");
+
+  vector<string> inputfile;
+  string outname;
+  bool ispbpb;
+  
+  for (size_t i=0; i<sourcedir.size(); i++) {
+    inputfile.push_back(Form("files/%s/histos_jpsi_pp.root",sourcedir[i].c_str()));
+    outname = dir + "/" + subdir + "/jpsi_pp";
+    ispbpb = false;
+  }
+  callMultiples(&inputfile, ispbpb, &outname, &histname);
+  inputfile.clear();
+
+  for (size_t i=0; i<sourcedir.size(); i++) {
+    inputfile.push_back(Form("files/%s/histos_npjpsi_pp.root",sourcedir[i].c_str()));
+    outname = dir + "/" + subdir + "/npjpsi_pp";
+    ispbpb = false;
+  }
+  callMultiples(&inputfile, ispbpb, &outname, &histname);
+  inputfile.clear();
+
+  for (size_t i=0; i<sourcedir.size(); i++) {
+    inputfile.push_back(Form("files/%s/histos_jpsi_pbpb.root",sourcedir[i].c_str()));
+    outname = dir + "/" + subdir + "/jpsi_pbpb";
+    ispbpb = true;
+  }
+  callMultiples(&inputfile, ispbpb, &outname, &histname);
+  inputfile.clear();
+
+  for (size_t i=0; i<sourcedir.size(); i++) {
+    inputfile.push_back(Form("files/%s/histos_npjpsi_pbpb.root",sourcedir[i].c_str()));
+    outname = dir + "/" + subdir + "/npjpsi_pbpb";
+    ispbpb = true;
+  }
+  callMultiples(&inputfile, ispbpb, &outname, &histname);
+  inputfile.clear();
 
 
 }
-
 
