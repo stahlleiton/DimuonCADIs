@@ -439,9 +439,10 @@ void plotEffs() {
 
 
 
-////////////////////////////////////////////////////
-// Overlay different samples on a same canvas
-////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+// For 1 kinematic region, draw different SFs on a same canvas
+// -> Call "drawMultiples()" function to execute this macro
+//////////////////////////////////////////////////////////////////
 void plotMultipleSamples(vector<TGraphAsymmErrors*> heff, vector<string> *histname, string *outname, int xVar, string rap, string pt, string cent, bool ispbpb) {
 
   setTDRStyle();
