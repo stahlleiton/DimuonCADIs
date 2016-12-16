@@ -21,20 +21,20 @@ void fitter(
             bool useExtFiles  = false, // Use external fit files as input
             bool usePeriPD    = false, // If yes, use the PERIPHERAL PD provided by the user
             // Select the type of datasets to fit
-            bool fitData      = true,        // Fits Data datasets
-            bool fitMC        = false,         // Fits MC datasets
+            bool fitData      = false,        // Fits Data datasets
+            bool fitMC        = true,         // Fits MC datasets
             bool fitPbPb      = true,         // Fits PbPb datasets
             bool fitPP        = true,        // Fits PP datasets
             bool fitMass      = false,       // Fits invariant mass distribution
-            bool fitCtau      = false,       // Fits ctau distribution
+            bool fitCtau      = true,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
-            bool doCtauErrPDF = true,         // If yes, it builds the Ctau Error PDFs from data
+            bool doCtauErrPDF = false,         // If yes, it builds the Ctau Error PDFs from data
             // Select the type of object to fit
             bool incJpsi      = true,          // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
-            bool incBkg       = true,         // Includes Background model
+            bool incBkg       = false,         // Includes Background model
             bool incPrompt    = true,         // Includes Prompt ctau model
-            bool incNonPrompt = true,          // Includes Non Prompt ctau model 
+            bool incNonPrompt = false,          // Includes Non Prompt ctau model 
             // Select the fitting options
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
@@ -84,6 +84,7 @@ void fitter(
   inputDataSet["PERIPHERAL"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSetPeri/";
   inputDataSet["MONTECARLO"] = "";
 
+  if (workDirName.find("Peri")!=std::string::npos) { usePeriPD = true; }
 
   for (map<string, string>::iterator iMap=inputFitDir.begin();  iMap!=inputFitDir.end(); iMap++) {
     if (iMap->second!="") { 
@@ -164,11 +165,12 @@ void fitter(
       if (usePeriPD==false && inputDataSet["DOUBLEMUON"]!="" && (existDir(inputDataSet["DOUBLEMUON"])==true)) { dir = inputDataSet["DOUBLEMUON"]; }
       if(strcmp(applyCorr,"")){
         OutputFileName = dir + "DATASET_" + FILETAG + "_" + string(applyCorr) + ".root";
-        if(!gSystem->AccessPathName(OutputFileName.c_str())) { OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + "_" + string(applyCorr) + ".root"; }
+        if(gSystem->AccessPathName(OutputFileName.c_str())) { OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + "_" + string(applyCorr) + ".root"; }
         if(!tree2DataSet(Workspace[Form("%s_%s",DSTAG.c_str(),applyCorr)], InputFileNames, FILETAG, OutputFileName)){ return; }
       }
       else {
         OutputFileName = dir + "DATASET_" + FILETAG + ".root";
+        if(gSystem->AccessPathName(OutputFileName.c_str())) { OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + ".root"; }
         string NAMETAG = DSTAG;
         if (checkData) { NAMETAG = string("MC")+(incJpsi?"JPSI":"PSI2S")+(incNonPrompt?"NOPR":"PR")+"_"+(fitPP?"PP":"PbPb"); }
         if(!tree2DataSet(Workspace[NAMETAG], InputFileNames, FILETAG, OutputFileName)){ return; }
@@ -187,7 +189,7 @@ void fitter(
       string dir = DIR["dataset"][0];
       if (inputDataSet["MONTECARLO"]!="" && (existDir(inputDataSet["MONTECARLO"])==true)) { dir = inputDataSet["MONTECARLO"]; }
       OutputFileName = dir + "DATASET_" + FILETAG + ".root";
-      if(!gSystem->AccessPathName(OutputFileName.c_str())) { OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + "_" + string(applyCorr) + ".root"; }
+      if(gSystem->AccessPathName(OutputFileName.c_str())) { OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + ".root"; }
       if(!tree2DataSet(Workspace[DSTAG], InputFileNames, FILETAG, OutputFileName)){ return; }
       if (fitMC && !aDSTAG->FindObject(DSTAG.c_str())) aDSTAG->Add(new TObjString(DSTAG.c_str()));
       if (wantPureSMC)
@@ -252,11 +254,11 @@ void fitter(
           for(it_type COL = COLMAP.begin(); COL != COLMAP.end(); COL++) {
             if(COL->second) {
               string dir = DIR["input"][j];
-              if (PAR->first=="MASS" && inputInitialFilesDirs[j]["MASS"]!="") { dir = inputInitialFilesDirs[j]["MASS"]; }
-              if (PAR->first=="CTAU" && COL->first=="TRUE" && inputInitialFilesDirs[j]["CTAUTRUE"]!="") { dir = inputInitialFilesDirs[j]["CTAUTRUE"]; }
-              if (PAR->first=="CTAU" && COL->first=="RES"  && inputInitialFilesDirs[j]["CTAURES"]!="" ) { dir = inputInitialFilesDirs[j]["CTAURES"];  }
-              if (PAR->first=="CTAU" && COL->first=="BKG"  && inputInitialFilesDirs[j]["CTAUSB"]!=""  ) { dir = inputInitialFilesDirs[j]["CTAUSB"];   }
-              if (PAR->first=="CTAU" && COL->first=="JPSI" && inputInitialFilesDirs[j]["CTAU"]!=""    ) { dir = inputInitialFilesDirs[j]["CTAU"];     }
+              if (VAR->first=="MASS" && inputInitialFilesDirs[j]["MASS"]!="") { dir = inputInitialFilesDirs[j]["MASS"]; }
+              if (VAR->first=="CTAU" && PAR->first=="TRUE" && inputInitialFilesDirs[j]["CTAUTRUE"]!="") { dir = inputInitialFilesDirs[j]["CTAUTRUE"]; }
+              if (VAR->first=="CTAU" && PAR->first=="RES"  && inputInitialFilesDirs[j]["CTAURES"]!="" ) { dir = inputInitialFilesDirs[j]["CTAURES"];  }
+              if (VAR->first=="CTAU" && PAR->first=="BKG"  && inputInitialFilesDirs[j]["CTAUSB"]!=""  ) { dir = inputInitialFilesDirs[j]["CTAUSB"];   }
+              if (VAR->first=="CTAU" && PAR->first=="JPSI" && inputInitialFilesDirs[j]["CTAU"]!=""    ) { dir = inputInitialFilesDirs[j]["CTAU"];     }
               string name3 = name2 + COL->first + ".csv";
               InputFile = (dir + name3);
               if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
