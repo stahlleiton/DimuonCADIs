@@ -103,14 +103,14 @@ bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspac
   else if (doCtauErrPdf && !(myws.data(dsName.c_str()))) { cout << "[ERROR] No local dataset was found to make the ctau Error Pdf!" << endl; return false; }
 
   // Set global parameters
-  setCtauErrGlobalParameterRange(myws, parIni, cut, label, binWidth["CTAUERR"]);
+  setCtauErrGlobalParameterRange(myws, parIni, cut, label, binWidth["CTAUERRFORCUT"]);
 
   if (!isMC && (incJpsi || incPsi2S)) { 
     // Setting extra input information needed by each fitter
     string iMassFitDir = inputFitDir["MASS"];
     double ibWidth = binWidth["MASS"];
     bool loadMassFitResult = true;
-    bool doMassFit = true;
+    bool doMassFit = false;
     bool importDS = false;
     bool getMeanPT = false;
     bool zoomPsi = false;
@@ -149,7 +149,7 @@ bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspac
     string FileName = ""; setCtauErrFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, cutSideBand);
     RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(*(myws.var("ctauErr")));
     myws.saveSnapshot(Form("%s_parFit", pdfName.c_str()),*newpars,kTRUE);
-    saveWorkSpace(myws, Form("%sctauErr%s/%s/result", outputDir.c_str(), (cutSideBand?"SB":""), DSTAG.c_str()), FileName);
+    if (!saveWorkSpace(myws, Form("%sctauErr%s/%s/result", outputDir.c_str(), (cutSideBand?"SB":""), DSTAG.c_str()), FileName)) { return false; };
   }
   
   return true;
@@ -161,11 +161,10 @@ void setCtauErrGlobalParameterRange(RooWorkspace& myws, map<string, string>& par
   if (!useForCtauFits) {
     Double_t ctauErrMax; Double_t ctauErrMin;
     myws.data(Form("dOS_%s", label.c_str()))->getRange(*myws.var("ctauErr"), ctauErrMin, ctauErrMax);
-    ctauErrMin -= 0.00001;  ctauErrMax += 0.00001;
+    ctauErrMin -= 0.0001;  ctauErrMax += 0.0001;
     int nBins = min(int( round((ctauErrMax - ctauErrMin)/binWidth) ), 1000);
-    myws.var("ctauErr")->setMin(ctauErrMin); myws.var("ctauErr")->setMax(ctauErrMax);
     TH1D* hTot = (TH1D*)myws.data(Form("dOS_%s", label.c_str()))->createHistogram("TMP", *myws.var("ctauErr"), Binning(nBins, ctauErrMin, ctauErrMax));
-    vector<double> rangeErr; getCtauErrRange(hTot, (int)(ceil(3)), rangeErr);
+    vector<double> rangeErr; getCtauErrRange(hTot, (int)(ceil(2)), rangeErr); // KEEP THIS NUMBER WITH 2, JUST KEEP IT LIKE THAT :D
     hTot->Delete();
     ctauErrMin = rangeErr[0];
     ctauErrMax = rangeErr[1];
@@ -261,9 +260,9 @@ void reNormMassVar( RooWorkspace& myws, string obj, bool isPbPb)
   string varName = Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"));
   if (obj=="Bkg") { ((RooChebychev*)myws.pdf(pdfName.c_str()))->selectNormalizationRange("InclusiveMassRange", kTRUE); }
   double NormFactor = 1.0/(myws.pdf(pdfName.c_str())->createIntegral(*myws.var("invMass"), NormSet(*myws.var("invMass")), Range("InclusiveMassRange"))->getValV());
-  myws.var(varName.c_str())->setVal(myws.var(varName.c_str())->getValV()*NormFactor);
+  myws.var(varName.c_str())->setVal(myws.var(varName.c_str())->getValV());
   if (myws.var(varName.c_str())) { myws.var(varName.c_str())->setConstant(kFALSE); }
-  cout << "[INFO] NORM FACTOR FOR " << obj << " : " << NormFactor << endl;
+  //cout << "[INFO] NORM FACTOR FOR " << obj << " : " << NormFactor << endl;
   return;
 };
 

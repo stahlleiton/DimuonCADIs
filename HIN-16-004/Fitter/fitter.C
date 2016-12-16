@@ -19,15 +19,16 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 void fitter(
             const string workDirName="Test", // Working directoryi
             bool useExtFiles  = false, // Use external fit files as input
+            bool usePeriPD    = false, // If yes, use the PERIPHERAL PD provided by the user
             // Select the type of datasets to fit
             bool fitData      = true,        // Fits Data datasets
             bool fitMC        = false,         // Fits MC datasets
             bool fitPbPb      = true,         // Fits PbPb datasets
             bool fitPP        = true,        // Fits PP datasets
-            bool fitMass      = true,        // Fits invariant mass distribution
-            bool fitCtau      = true,       // Fits ctau distribution
+            bool fitMass      = false,       // Fits invariant mass distribution
+            bool fitCtau      = false,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
-            bool doCtauErrPDF = false,       // If yes, it builds the Ctau Error PDFs from data
+            bool doCtauErrPDF = true,         // If yes, it builds the Ctau Error PDFs from data
             // Select the type of object to fit
             bool incJpsi      = true,          // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
@@ -39,7 +40,7 @@ void fitter(
             bool doSimulFit   = false,        // Do simultaneous fit
             bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
             const char* applyCorr  = "",     // Apply weight to data for correction (Acceptance & Ef , l_J/psi eff...). No correction if empty variable.
-            int  numCores     = 16,            // Number of cores used for fitting
+            int  numCores     = 32,            // Number of cores used for fitting
             // Select the drawing options
             bool  setLogScale  = true,         // Draw plot with log scale
             bool  incSS        = false,        // Include Same Sign data
@@ -66,17 +67,23 @@ void fitter(
 
   map<string, string> inputFitDir;
   inputFitDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/"; 
-  inputFitDir["CTAUERR"]  = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/";
+  inputFitDir["CTAUERR"]  = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/NOMINAL/";
   inputFitDir["CTAUTRUE"] = "/afs/cern.ch/user/v/vabdulla/public/";
   inputFitDir["CTAURES"]  = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
   inputFitDir["CTAUSB"]   = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
 
   map<string, string> inputInitialFilesDir;
-  inputInitialFilesDir["MASS"]     = "";
+  inputInitialFilesDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/";
   inputInitialFilesDir["CTAUTRUE"] = "";
   inputInitialFilesDir["CTAURES"]  = "";
   inputInitialFilesDir["CTAUSB"]   = "";
   inputInitialFilesDir["CTAU"]     = "";
+
+  map<string, string> inputDataSet;
+  inputDataSet["DOUBLEMUON"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSetCent/";
+  inputDataSet["PERIPHERAL"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSetPeri/";
+  inputDataSet["MONTECARLO"] = "";
+
 
   for (map<string, string>::iterator iMap=inputFitDir.begin();  iMap!=inputFitDir.end(); iMap++) {
     if (iMap->second!="") { 
@@ -152,12 +159,16 @@ void fitter(
     if ( (FILETAG.find("DATA")!=std::string::npos) && (fitData==true || checkData==true) ) {
       if ( (FILETAG.find("PP")!=std::string::npos)   && !fitPP   ) continue; // If we find PP, check if the user wants PP
       if ( (FILETAG.find("PbPb")!=std::string::npos) && !fitPbPb ) continue; // If we find PbPb, check if the user wants PbPb
+      string dir = DIR["dataset"][0];
+      if (usePeriPD==true  && inputDataSet["PERIPHERAL"]!="" && (existDir(inputDataSet["PERIPHERAL"])==true)) { dir = inputDataSet["PERIPHERAL"]; }
+      if (usePeriPD==false && inputDataSet["DOUBLEMUON"]!="" && (existDir(inputDataSet["DOUBLEMUON"])==true)) { dir = inputDataSet["DOUBLEMUON"]; }
       if(strcmp(applyCorr,"")){
-        OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + "_" + string(applyCorr) + ".root";
+        OutputFileName = dir + "DATASET_" + FILETAG + "_" + string(applyCorr) + ".root";
+        if(!gSystem->AccessPathName(OutputFileName.c_str())) { OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + "_" + string(applyCorr) + ".root"; }
         if(!tree2DataSet(Workspace[Form("%s_%s",DSTAG.c_str(),applyCorr)], InputFileNames, FILETAG, OutputFileName)){ return; }
       }
       else {
-        OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + ".root";
+        OutputFileName = dir + "DATASET_" + FILETAG + ".root";
         string NAMETAG = DSTAG;
         if (checkData) { NAMETAG = string("MC")+(incJpsi?"JPSI":"PSI2S")+(incNonPrompt?"NOPR":"PR")+"_"+(fitPP?"PP":"PbPb"); }
         if(!tree2DataSet(Workspace[NAMETAG], InputFileNames, FILETAG, OutputFileName)){ return; }
@@ -173,12 +184,15 @@ void fitter(
       if ( (FILETAG.find("PSI2S")!=std::string::npos) && !incPsi2S  ) continue; // If we find Psi2S MC, check if the user wants to include Psi2S
       if ( (FILETAG.find("NOPR")!=std::string::npos) ) { if (!incNonPrompt) continue; } // If we find Non-Prompt MC, check if the user wants to include Non-Prompt
       else if ( (FILETAG.find("PR")!=std::string::npos) && !incPrompt ) continue; // If we find Prompt MC, check if the user wants to include Prompt
-      OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + ".root";
+      string dir = DIR["dataset"][0];
+      if (inputDataSet["MONTECARLO"]!="" && (existDir(inputDataSet["MONTECARLO"])==true)) { dir = inputDataSet["MONTECARLO"]; }
+      OutputFileName = dir + "DATASET_" + FILETAG + ".root";
+      if(!gSystem->AccessPathName(OutputFileName.c_str())) { OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + "_" + string(applyCorr) + ".root"; }
       if(!tree2DataSet(Workspace[DSTAG], InputFileNames, FILETAG, OutputFileName)){ return; }
       if (fitMC && !aDSTAG->FindObject(DSTAG.c_str())) aDSTAG->Add(new TObjString(DSTAG.c_str()));
       if (wantPureSMC)
 	{
-	  OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + "_PureS" + ".root";
+	  OutputFileName = dir + "DATASET_" + FILETAG + "_PureS" + ".root";
 	  if(!tree2DataSet(Workspace[Form("%s_PureS",DSTAG.c_str())], InputFileNames, FILETAG, OutputFileName)){ return; }
 	}
     }
@@ -206,9 +220,9 @@ void fitter(
   map<string, map<string, bool>> VARMAP = {
     {"MASS", 
      {
-       {"BKG",   ((!existMassFits && (fitMass  && incBkg)) || (!existCtauErr && (fitCtau || doCtauErrPDF)))}, 
-       {"JPSI",  ((!existMassFits && fitMass) || (!existCtauErr && (fitCtau || doCtauErrPDF))) && incJpsi}, 
-       {"PSI2S", ((!existMassFits && fitMass) || (!existCtauErr && (fitCtau || doCtauErrPDF))) && incPsi2S}
+       {"BKG",   (((fitMass  && incBkg)) || (!existCtauErr && (fitCtau || doCtauErrPDF)))}, 
+       {"JPSI",  ((fitMass && incJpsi) || (!existCtauErr && (fitCtau || doCtauErrPDF))) && incJpsi}, 
+       {"PSI2S", ((fitMass && incPsi2S) || (!existCtauErr && (fitCtau || doCtauErrPDF))) && incPsi2S}
      }
     },
     {"CTAU", 
@@ -402,6 +416,8 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
   cut.sMuon.Eta.Max = 2.4;
   cut.dMuon.ctauErr.Min = -100.0;
   cut.dMuon.ctauErr.Max = 100.0;
+  cut.dMuon.ctauRes.Min = -100.0;
+  cut.dMuon.ctauRes.Max = 100.0;
   cut.dMuon.ctauTrue.Min = -50.0; 
   cut.dMuon.ctauTrue.Max = 50.0;
   cut.dMuon.ctau.Min = -100.0; 
@@ -653,7 +669,7 @@ bool iniWorkEnv( map< string, vector<string> >& DIR, const string workDirName)
   if (existDir(DIR["macros"][0].c_str())==false){ 
     cout << "[ERROR] Input directory: " << DIR["macros"][0] << " does not exist!" << endl; 
     return false; 
-  }     
+  }
   DIR["input"].push_back(DIR["main"][0] + "/Input/" + workDirName + "/");
   if (existDir(DIR["input"][0])==false){ 
     cout << "[ERROR] Input directory: " << DIR["input"][0] << " does not exist!" << endl; 

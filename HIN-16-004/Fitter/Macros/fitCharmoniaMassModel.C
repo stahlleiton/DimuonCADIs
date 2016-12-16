@@ -370,7 +370,7 @@ void setMassGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni
       parIni["BkgMassRange_PSI2S_Label"] = "SideBandMID_PSI2S";
       if (cut.dMuon.M.Min < 2.8) {
         myws.var("invMass")->setRange("SideBandBOT_FULL", cut.dMuon.M.Min, 2.8);
-        myws.var("invMass")->setRange("SideBandBOT_JPSI", cut.dMuon.M.Min, 2.8);
+        myws.var("invMass")->setRange("SideBandBOT_JPSI", ((cut.dMuon.M.Min<2.0)?2.0:cut.dMuon.M.Min), 2.8);
         parIni["BkgMassRange_FULL_Label"] = parIni["BkgMassRange_FULL_Label"] + "," + "SideBandBOT_FULL";
         parIni["BkgMassRange_JPSI_Label"] = parIni["BkgMassRange_JPSI_Label"] + "," + "SideBandBOT_JPSI";
       }

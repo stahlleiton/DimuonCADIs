@@ -47,34 +47,34 @@ void drawCtauErrorPlot(RooWorkspace& myws,   // Local workspace
   vector<double> rangeErr; rangeErr.push_back(cut.dMuon.ctauErr.Min); rangeErr.push_back(cut.dMuon.ctauErr.Max);
 
   // Create the main plot of the fitq
-  double minRange = (double)(floor(rangeErr[0]*10.)/10.);
-  double maxRange = (double)(ceil(rangeErr[1]*10.)/10.);
+  double minRange = (double)(floor(rangeErr[0]*100.)/100.);
+  double maxRange = (double)(ceil(rangeErr[1]*100.)/100.);
   int nBins = min(int( round((cut.dMuon.ctauErr.Max - cut.dMuon.ctauErr.Min)/binWidth) ), 1000);
   RooPlot* frame     = myws.var("ctauErr")->frame(Range(minRange, maxRange));
   RooBinning bins(nBins, cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max);
   Double_t norm = myws.data(hOSName.c_str())->sumEntries();
   Double_t outTot = myws.data(dsOSName.c_str())->sumEntries();
-  Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctauErr>%.6f || ctauErr<%.6f)", rangeErr[1], rangeErr[0]))->sumEntries();
+  Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctauErr>=%.6f || ctauErr<=%.6f)", rangeErr[1], rangeErr[0]))->sumEntries();
  
   myws.data(hOSName.c_str())->plotOn(frame, Name("dOS"), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2), DataError(RooAbsData::SumW2), Binning(bins));
-  if (incJpsi&&incBkg) { myws.pdf(Form("pdfCTAUERRTot_Tot_%s", (isPbPb?"PbPb":"PP")))->plotOn(frame,Name("PDF"), LineStyle(1), LineColor(kGreen+1), Precision(1e-6) ); }
+  if (incJpsi&&incBkg) { myws.pdf(Form("pdfCTAUERRTot_Tot_%s", (isPbPb?"PbPb":"PP")))->plotOn(frame,Name("PDF"), LineStyle(1), LineColor(kGreen+1), Precision(1e-6), Range("CtauErrFullWindow") ); }
   if (incBkg) {
     string pdfName = Form("pdfCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"));
     string dataName = Form("dhCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"));
     myws.data(dataName.c_str())->plotOn(frame, Name("BKGDATA"), DataError(RooAbsData::SumW2), MarkerColor(kBlue-4), MarkerSize(0.8), Binning(bins));
-    myws.pdf(pdfName.c_str())->plotOn(frame,Name("BKG"), LineStyle(1), LineColor(kBlue+1), Precision(1e-6) );
+    myws.pdf(pdfName.c_str())->plotOn(frame,Name("BKG"), LineStyle(1), LineColor(kBlue+1), Precision(1e-6), Range("CtauErrFullWindow") );
   }
   if (incPsi2S) {
     string pdfName = Form("pdfCTAUERR_Psi2S_%s", (isPbPb?"PbPb":"PP")); 
     string dataName = Form("dhCTAUERR_Psi2S_%s", (isPbPb?"PbPb":"PP"));
     myws.data(dataName.c_str())->plotOn(frame, Name("PSI2SDATA"), DataError(RooAbsData::SumW2), MarkerColor(kViolet-2), MarkerSize(0.8), Binning(bins));
-    myws.pdf(pdfName.c_str())->plotOn(frame,Name("PSI2S"), LineStyle(1), LineColor(kViolet+2), Precision(1e-6) );
+    myws.pdf(pdfName.c_str())->plotOn(frame,Name("PSI2S"), LineStyle(1), LineColor(kViolet+2), Precision(1e-6), Range("CtauErrFullWindow") );
   }
   if (incJpsi) {
     string pdfName = Form("pdfCTAUERR_Jpsi_%s", (isPbPb?"PbPb":"PP")); 
     string dataName = Form("dhCTAUERR_Jpsi_%s", (isPbPb?"PbPb":"PP"));
     myws.data(dataName.c_str())->plotOn(frame, Name("JPSIDATA"), DataError(RooAbsData::SumW2), MarkerColor(kRed-4), MarkerSize(0.8), Binning(bins));
-    myws.pdf(pdfName.c_str())->plotOn(frame,Name("JPSI"), LineStyle(1), LineColor(kRed+3), Precision(1e-6) );
+    myws.pdf(pdfName.c_str())->plotOn(frame,Name("JPSI"), LineStyle(1), LineColor(kRed+3), Precision(1e-6), Range("CtauErrFullWindow") );
   }
  
   if (incSS) { 
