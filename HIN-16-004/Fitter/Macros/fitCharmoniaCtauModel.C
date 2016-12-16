@@ -389,14 +389,13 @@ void setCtauGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni
   myws.data(Form("dOS_%s", label.c_str()))->getRange(*myws.var("ctau"), ctauMin, ctauMax);
   ctauMin -= 0.00001;  ctauMax += 0.00001;
   int nBins = min(int( round((ctauMax - ctauMin)/binWidth) ), 1000);
-  myws.var("ctau")->setMin(ctauMin); myws.var("ctau")->setMax(ctauMax);
-  //TH1D* hTot = (TH1D*)myws.data(Form("dOS_%s", label.c_str()))->createHistogram("TMP", *myws.var("ctau"), Binning(nBins, ctauMin, ctauMax));
-  //vector<double> rangeErr; 
-  //getCtauErrRange(hTot, (int)(ceil(2)), rangeErr);
-  //hTot->Delete();
-  //ctauMin = rangeErr[0];
-  //ctauMax = rangeErr[1];
   if (fitCtauRes) {
+    TH1D* hTot = (TH1D*)myws.data(Form("dOS_%s", label.c_str()))->createHistogram("TMP", *myws.var("ctau"), Binning(nBins, ctauMin, ctauMax));
+    vector<double> rangeCtau; 
+    getCtauErrRange(hTot, (int)(ceil(2)), rangeCtau);
+    hTot->Delete();
+    ctauMin = rangeCtau[0];
+    ctauMax = rangeCtau[1];
     if (abs(ctauMax)>abs(ctauMin)) { ctauMax = abs(ctauMin); } else { ctauMin = -1.0*abs(ctauMax); }
     if (ctauMin<cut.dMuon.ctau.Min) { ctauMin = cut.dMuon.ctau.Min; }
     if (ctauMax>cut.dMuon.ctau.Max) { ctauMax = cut.dMuon.ctau.Max; }

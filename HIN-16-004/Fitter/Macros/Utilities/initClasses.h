@@ -265,7 +265,8 @@ bool saveWorkSpace(RooWorkspace& myws, string outputDir, string FileName)
   gSystem->mkdir(outputDir.c_str(), kTRUE);
   cout << FileName << endl;
   TFile *file =  new TFile(FileName.c_str(), "RECREATE");
-  if (!file) { 
+  if (!file) {
+    file->Close(); delete file;
     cout << "[ERROR] Output root file with fit results could not be created!" << endl; return false; 
   } else {
     file->cd();    

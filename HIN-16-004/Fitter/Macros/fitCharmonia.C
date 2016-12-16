@@ -70,6 +70,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
   if (binWidth.count("CTAUSB")==0)   { binWidth["CTAUSB"]   = 0.05; }
   if (binWidth.count("CTAURES")==0)  { binWidth["CTAURES"]  = 0.05; }
   if (binWidth.count("CTAU")==0)     { binWidth["CTAU"]     = 0.05; }
+  binWidth["CTAUERRFORCUT"]  = 0.0025;
 
   if (isPbPb==false) {
     cut.Centrality.Start = 0;

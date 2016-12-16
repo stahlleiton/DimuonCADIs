@@ -24,10 +24,11 @@ public :
    Int_t           fCurrent; //!current Tree number in a TChain
     
    enum tnpTypes {
-     trg = 0,
-     trg__muid__sta = 1,
-     trg__muid = 2,
-     trg__sta = 3,
+     noTnPSFs = 0,
+     trg = 1,
+     trg__muid__sta = 2,
+     trg__muid = 3,
+     trg__sta = 4,
      trg_binned = 10,
      trg_plus1sigma = 11,
      trg_minus1sigma = 12

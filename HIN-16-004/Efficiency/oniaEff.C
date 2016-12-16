@@ -345,7 +345,12 @@ void oniaEff::Loop(const char* fname, bool ispbpb, const int tnptype)
                        tnp_weight_sta_pp(recMuPlpt, recMuPlEta) * tnp_weight_sta_pp(recMuMipt, recMuMiEta);
         }
       }
-      weight = weight*tnp_weight;
+
+      
+      if (tnptype != tnpTypes::noTnPSFs) {
+        // tnp scale factors applied only when it's requested
+        weight = weight*tnp_weight;
+      }
       
       // fill the numerators
       // Eff vs rap integrated
