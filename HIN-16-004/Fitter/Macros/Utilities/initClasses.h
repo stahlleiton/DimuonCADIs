@@ -83,7 +83,7 @@ typedef struct EvtPar {
 } EvtPar;
 
 typedef struct DiMuonPar {
-  MinMax ctau, ctauRes, ctauErr, ctauTrue, M, Pt, AbsRap;
+  MinMax ctau, ctauNRes, ctauRes, ctauErr, ctauTrue, M, Pt, AbsRap;
   string ctauCut;
 } DiMuonPar;
 
@@ -121,6 +121,8 @@ bool isEqualKinCuts(struct KinCuts cutA, struct KinCuts cutB, bool isPbPb)
   cond = cond && (cutA.dMuon.ctauErr.Max   == cutB.dMuon.ctauErr.Max);
   cond = cond && (cutA.dMuon.ctauTrue.Min  == cutB.dMuon.ctauTrue.Min);
   cond = cond && (cutA.dMuon.ctauTrue.Max  == cutB.dMuon.ctauTrue.Max);
+  cond = cond && (cutA.dMuon.ctauNRes.Min  == cutB.dMuon.ctauNRes.Min);
+  cond = cond && (cutA.dMuon.ctauRes.Min   == cutB.dMuon.ctauRes.Min);
   cond = cond && (cutA.dMuon.ctauCut       == cutB.dMuon.ctauCut);
   cond = cond && (cutA.dMuon.M.Min         == cutB.dMuon.M.Min);
   cond = cond && (cutA.dMuon.M.Max         == cutB.dMuon.M.Max);
@@ -237,7 +239,7 @@ void setFixedVarsToContantVars(RooWorkspace& ws)
   RooArgSet listVar = ws.allVars();
   TIterator* parIt = listVar.createIterator();
   for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
-    if ( it->getMin()==it->getMax() ) {
+    if ( it->getMin()==it->getMax() && !it->isConstant() ) {
       cout << "[INFO] Setting " << it->GetName() << " constant!" << endl;
       it->setConstant(kTRUE);
     }
@@ -249,7 +251,7 @@ bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2) {
   TIterator* parIt = pars1->createIterator(); 
   for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
     double val = pars2->getRealValue(it->GetName(),-1e99);
-    if ( strcmp(it->GetName(),"ctauErr")==0 || strcmp(it->GetName(),"ctau")==0 || strcmp(it->GetName(),"ctauTrue")==0 ) continue;
+    if ( strcmp(it->GetName(),"ctauErr")==0 || strcmp(it->GetName(),"ctau")==0 || strcmp(it->GetName(),"ctauTrue")==0 || strcmp(it->GetName(),"ctauRes")==0 || strcmp(it->GetName(),"ctauNRes")==0 ) continue;
     if (val==-1e99) return false;          // the parameter was not found!
     if (val != it->getVal()) return false;  // the parameter was found, but with a different value!
     if ( ((RooRealVar&)(*pars2)[it->GetName()]).getMin() != it->getMin() ) return false;  // the parameter has different lower limit
@@ -331,7 +333,7 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
   string print = "[INFO] Variables loaded: ";
   for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
     string name = it->GetName();
-    if ( name=="invMass" || name=="ctau" || name=="ctauErr" ||
+    if ( name=="invMass" || name=="ctau" || name=="ctauErr" || name=="ctauRes" || name=="ctauNRes" ||
          name=="ctauTrue" || name=="pt" || name=="cent" || 
          name=="rap" || name=="One" ) continue;
     if ( (DSTAG.find("MC")!=std::string::npos || cutSideBand) && (name.find("N_")!=std::string::npos) ) continue; 
@@ -358,7 +360,7 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
   string printFun = "[INFO] Functions loaded: ";
   for (RooRealVar* it = (RooRealVar*)parFunIt->Next(); it!=NULL; it = (RooRealVar*)parFunIt->Next() ) {
     string name = it->GetName();
-    if ( name=="invMass" || name=="ctau" || name=="ctauErr" || 
+    if ( name=="invMass" || name=="ctau" || name=="ctauErr" || name=="ctauRes" || name=="ctauNRes" ||
          name=="ctauTrue" || name=="pt" || name=="cent" || 
          name=="rap" || name=="One" ) continue;
     if ( (DSTAG.find("MC")!=std::string::npos || cutSideBand) && (name.find("N_")!=std::string::npos) ) continue; 
@@ -427,16 +429,18 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut,
   if (cutSideBand) {
     indMuonMass =  indMuonMass + "&&" + "((2.0 < invMass && invMass < 2.8) || (3.3 < invMass && invMass < 3.5) || (3.9 < invMass && invMass < 5.0))";
   }
-  string indMuonRap     = Form("(%.6f <= abs(rap) && abs(rap) < %.6f)",    cut.dMuon.AbsRap.Min,  cut.dMuon.AbsRap.Max);
-  string indMuonPt      = Form("(%.6f <= pt && pt < %.6f)",                cut.dMuon.Pt.Min,      cut.dMuon.Pt.Max);
-  string indMuonCtau    = Form("(%.6f < ctau && ctau < %.6f)",             cut.dMuon.ctau.Min,    cut.dMuon.ctau.Max); 
+  string indMuonRap     = Form("(%.6f <= abs(rap) && abs(rap) < %.6f)",    cut.dMuon.AbsRap.Min,   cut.dMuon.AbsRap.Max);
+  string indMuonPt      = Form("(%.6f <= pt && pt < %.6f)",                cut.dMuon.Pt.Min,       cut.dMuon.Pt.Max);
+  string indMuonCtau    = Form("(%.6f < ctau && ctau < %.6f)",             cut.dMuon.ctau.Min,     cut.dMuon.ctau.Max); 
   if(cut.dMuon.ctauCut!=""){ indMuonCtau = cut.dMuon.ctauCut; }
-  string indMuonCtauErr = Form("(%.12f <= ctauErr && ctauErr < %.12f)",    cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max);
-  string inCentrality   = Form("(%d <= cent && cent < %d)",                cut.Centrality.Start,  cut.Centrality.End);
-  string indMuonCtauTrue = Form("(%.12f <= ctauTrue && ctauTrue < %.12f)", cut.dMuon.ctauTrue.Min,    cut.dMuon.ctauTrue.Max);
+  string indMuonCtauErr = Form("(%.12f < ctauErr && ctauErr < %.12f)",     cut.dMuon.ctauErr.Min,  cut.dMuon.ctauErr.Max);
+  string inCentrality   = Form("(%d <= cent && cent < %d)",                cut.Centrality.Start,   cut.Centrality.End);
+  string indMuonCtauTrue = Form("(%.12f < ctauTrue && ctauTrue < %.12f)",  cut.dMuon.ctauTrue.Min, cut.dMuon.ctauTrue.Max);
+  string indMuonCtauRes = Form("(%.12f < ctauRes && ctauRes < %.12f)",     cut.dMuon.ctauRes.Min,  cut.dMuon.ctauRes.Max);
+  string indMuonCtauNRes = Form("(%.12f < ctauNRes && ctauNRes < %.12f)",  cut.dMuon.ctauNRes.Min, cut.dMuon.ctauNRes.Max);
   string strCut         = indMuonMass +"&&"+ indMuonRap +"&&"+ indMuonPt +"&&"+ indMuonCtau +"&&"+ indMuonCtauErr;
-  if (label.find("PbPb")!=std::string::npos){ strCut = strCut +"&&"+ inCentrality; } 
-  if (label.find("MC")!=std::string::npos && label.find("NOPR")!=std::string::npos){ strCut = strCut +"&&"+ indMuonCtauTrue; } 
+  if (label.find("PbPb")!=std::string::npos){ strCut = strCut +"&&"+ inCentrality; }
+  if (label.find("MC")!=std::string::npos){ strCut = strCut +"&&"+ indMuonCtauTrue +"&&"+ indMuonCtauNRes +"&&"+ indMuonCtauRes;  }
 
   // Reduce and import the datasets
   if (!(inputWS.data(Form("dOS_%s", label.c_str())))){ 
@@ -474,15 +478,19 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut,
   ((RooRealVar*)rowOS->find("pt"))->setMax(cut.dMuon.Pt.Max);
   ((RooRealVar*)rowOS->find("ctau"))->setMin(cut.dMuon.ctau.Min);        
   ((RooRealVar*)rowOS->find("ctau"))->setMax(cut.dMuon.ctau.Max);
-  ((RooRealVar*)rowOS->find("ctauErr"))->setMin(cut.dMuon.ctauErr.Min);  
+  ((RooRealVar*)rowOS->find("ctauErr"))->setMin(cut.dMuon.ctauErr.Min);
   ((RooRealVar*)rowOS->find("ctauErr"))->setMax(cut.dMuon.ctauErr.Max);
   if (label.find("PbPb")!=std::string::npos){
     ((RooRealVar*)rowOS->find("cent"))->setMin(cut.Centrality.Start);      
     ((RooRealVar*)rowOS->find("cent"))->setMax(cut.Centrality.End);
   }
-  if (label.find("MC")!=std::string::npos && label.find("NOPR")!=std::string::npos){ 
+  if (label.find("MC")!=std::string::npos){
     ((RooRealVar*)rowOS->find("ctauTrue"))->setMin(cut.dMuon.ctauTrue.Min);      
     ((RooRealVar*)rowOS->find("ctauTrue"))->setMax(cut.dMuon.ctauTrue.Max);
+    ((RooRealVar*)rowOS->find("ctauRes"))->setMin(cut.dMuon.ctauRes.Min);      
+    ((RooRealVar*)rowOS->find("ctauRes"))->setMax(cut.dMuon.ctauRes.Max);
+    ((RooRealVar*)rowOS->find("ctauNRes"))->setMin(cut.dMuon.ctauNRes.Min);      
+    ((RooRealVar*)rowOS->find("ctauNRes"))->setMax(cut.dMuon.ctauNRes.Max);
   }
   // Set the range of each global parameter in the local workspace
   myws.var("invMass")->setMin(cut.dMuon.M.Min);        
@@ -499,9 +507,13 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut,
     myws.var("cent")->setMin(cut.Centrality.Start);      
     myws.var("cent")->setMax(cut.Centrality.End);
   }
-  if (label.find("MC")!=std::string::npos && label.find("NOPR")!=std::string::npos){ 
+  if (label.find("MC")!=std::string::npos){
     myws.var("ctauTrue")->setMin(cut.dMuon.ctauTrue.Min);      
     myws.var("ctauTrue")->setMax(cut.dMuon.ctauTrue.Max);
+    myws.var("ctauRes")->setMin(cut.dMuon.ctauRes.Min);      
+    myws.var("ctauRes")->setMax(cut.dMuon.ctauRes.Max);
+    myws.var("ctauNRes")->setMin(cut.dMuon.ctauNRes.Min);      
+    myws.var("ctauNRes")->setMax(cut.dMuon.ctauNRes.Max);
   }
   cout << "[INFO] Analyzing bin: " << Form(
                                            "%.3f < pt < %.3f, %.3f < rap < %.3f, %d < cent < %d", 

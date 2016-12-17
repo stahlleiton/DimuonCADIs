@@ -38,7 +38,7 @@ void fitter(
             // Select the fitting options
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
-            bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
+            bool wantPureSMC  = true,        // Flag to indicate if we want to fit pure signal MC
             const char* applyCorr  = "",     // Apply weight to data for correction (Acceptance & Ef , l_J/psi eff...). No correction if empty variable.
             int  numCores     = 32,            // Number of cores used for fitting
             // Select the drawing options
@@ -62,7 +62,7 @@ void fitter(
   binWidth["CTAU"]     = 0.100;
   binWidth["CTAUERR"]  = 0.0025;
   binWidth["CTAUTRUE"] = 0.025;
-  binWidth["CTAURES"]  = 0.0025;
+  binWidth["CTAURES"]  = 0.25;
   binWidth["CTAUSB"]   = 0.025;
 
   map<string, string> inputFitDir;
@@ -82,7 +82,7 @@ void fitter(
   map<string, string> inputDataSet;
   inputDataSet["DOUBLEMUON"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSetCent/";
   inputDataSet["PERIPHERAL"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSetPeri/";
-  inputDataSet["MONTECARLO"] = "";
+  inputDataSet["MONTECARLO"] = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/DataSet/";
 
   if (workDirName.find("Peri")!=std::string::npos) { usePeriPD = true; }
 
@@ -214,10 +214,7 @@ void fitter(
   vector< vector< struct KinCuts > >       cutVectors;
   vector< vector< map<string, string> > >  parIniVectors;
  
-  bool existMassFits = (existDir(inputFitDirs[inputFitDirs.size()-1]["MASS"]+"mass/")==true);
   bool existCtauErr = (existDir(inputFitDirs[inputFitDirs.size()-1]["CTAUERR"]+"ctauErr/")==true);
-  bool existCtauRes = (existDir(inputFitDirs[inputFitDirs.size()-1]["CTAURES"]+"ctau/")==true);
-  bool existCtauTrue = (existDir(inputFitDirs[inputFitDirs.size()-1]["CTAUTRUE"]+"ctauTrue/")==true);
 
   map<string, map<string, bool>> VARMAP = {
     {"MASS", 
@@ -233,7 +230,7 @@ void fitter(
        {"JPSI",  fitCtau && incJpsi && incNonPrompt}, 
        {"PSI2S", fitCtau && incPsi2S && incNonPrompt},
        {"RES",   fitCtau},
-       {"TRUE",  fitCtauTrue && !existCtauTrue},
+       {"TRUE",  fitCtauTrue},
      }
     }
   };
@@ -416,14 +413,16 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
   cut.sMuon.Pt.Max  = 100000.0;
   cut.sMuon.Eta.Min = -2.4;
   cut.sMuon.Eta.Max = 2.4;
-  cut.dMuon.ctauErr.Min = -100.0;
-  cut.dMuon.ctauErr.Max = 100.0;
-  cut.dMuon.ctauRes.Min = -100.0;
-  cut.dMuon.ctauRes.Max = 100.0;
-  cut.dMuon.ctauTrue.Min = -50.0; 
-  cut.dMuon.ctauTrue.Max = 50.0;
-  cut.dMuon.ctau.Min = -100.0; 
-  cut.dMuon.ctau.Max = 100.0;   
+  cut.dMuon.ctauErr.Min = -1000.0;
+  cut.dMuon.ctauErr.Max = 1000.0;
+  cut.dMuon.ctau.Min = -1000.0;
+  cut.dMuon.ctau.Max = 1000.0;
+  cut.dMuon.ctauNRes.Min = -100000.0;
+  cut.dMuon.ctauNRes.Max = 100000.0;
+  cut.dMuon.ctauRes.Min = -1000.0;
+  cut.dMuon.ctauRes.Max = 1000.0;
+  cut.dMuon.ctauTrue.Min = -1000.0; 
+  cut.dMuon.ctauTrue.Max = 1000.0;
   cut.dMuon.ctauCut = "";   
   cut.dMuon.M.Min = 2.0; 
   cut.dMuon.M.Max = 5.0;  
@@ -522,6 +521,30 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
       }  
       cut.dMuon.ctauTrue.Min = v.at(0); 
       cut.dMuon.ctauTrue.Max = v.at(1);
+    }
+    else if (label=="ctauRes"){
+      if (col->second=="" || col->second.find("->")!=std::string::npos) {
+        cout << "[ERROR] Input column 'ctauRes' has invalid value: " << col->second << endl; return false;
+      }
+      std::vector<double> v; 
+      if(!parseString(col->second, "->", v)) { return false; }
+      if (v.size()!=2) {
+        cout << "[ERROR] Input column 'ctauRes' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
+      }  
+      cut.dMuon.ctauRes.Min = v.at(0); 
+      cut.dMuon.ctauRes.Max = v.at(1);
+    }
+    else if (label=="ctauNRes"){
+      if (col->second=="" || col->second.find("->")!=std::string::npos) {
+        cout << "[ERROR] Input column 'ctauNRes' has invalid value: " << col->second << endl; return false;
+      }
+      std::vector<double> v; 
+      if(!parseString(col->second, "->", v)) { return false; }
+      if (v.size()!=2) {
+        cout << "[ERROR] Input column 'ctauNRes' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
+      }  
+      cut.dMuon.ctauNRes.Min = v.at(0); 
+      cut.dMuon.ctauNRes.Max = v.at(1);
     }
     else if (label=="ctauResCut"){ 
       parIni[col->first] = col->second; 

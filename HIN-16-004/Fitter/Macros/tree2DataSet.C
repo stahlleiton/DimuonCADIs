@@ -101,15 +101,17 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     initOniaTree(theTree);                                       // Initialize the Onia Tree
     iniBranch(theTree,isMC);                                     // Initialize the Branches
     
-    RooRealVar* mass    = new RooRealVar("invMass","#mu#mu mass", 2.0, 5.0, "GeV/c^{2}");
-    RooRealVar* ctau    = new RooRealVar("ctau","c_{#tau}", -100.0, 100.0, "mm");
-    RooRealVar* ctauTrue = new RooRealVar("ctauTrue","c_{#tau}", -100.0, 100.0, "mm");
-    RooRealVar* ctauErr = new RooRealVar("ctauErr","#sigma_{c#tau}", -100.0, 100.0, "mm");
-    RooRealVar* ptQQ    = new RooRealVar("pt","#mu#mu p_{T}", 0.0, 50.0, "GeV/c");
-    RooRealVar* rapQQ   = new RooRealVar("rap","#mu#mu y", -2.4, 2.4, "");
-    RooRealVar* cent    = new RooRealVar("cent","centrality", 0.0, 200.0, "");
-    RooRealVar* weight  = new RooRealVar("weight","MC weight", 0.0, 10000.0, "");
-    RooRealVar* weightCorr   = new RooRealVar("weightCorr","Data correction weight", 0.0, 10000.0, "");
+    RooRealVar* mass    = new RooRealVar("invMass","#mu#mu mass", 1.0, 6.0, "GeV/c^{2}");
+    RooRealVar* ctau    = new RooRealVar("ctau","c_{#tau}", -100000.0, 100000.0, "mm");
+    RooRealVar* ctauTrue = new RooRealVar("ctauTrue","c_{#tau}", -100000.0, 100000.0, "mm");
+    RooRealVar* ctauNRes = new RooRealVar("ctauNRes","c_{#tau}", -100000.0, 100000.0, "");
+    RooRealVar* ctauRes = new RooRealVar("ctauRes","c_{#tau}", -100000.0, 100000.0, "");
+    RooRealVar* ctauErr = new RooRealVar("ctauErr","#sigma_{c#tau}", -100000.0, 100000.0, "mm");
+    RooRealVar* ptQQ    = new RooRealVar("pt","#mu#mu p_{T}", -1.0, 10000.0, "GeV/c");
+    RooRealVar* rapQQ   = new RooRealVar("rap","#mu#mu y", -2.5, 2.5, "");
+    RooRealVar* cent    = new RooRealVar("cent","centrality", -1.0, 1000.0, "");
+    RooRealVar* weight  = new RooRealVar("weight","MC weight", 0.0, 10000000.0, "");
+    RooRealVar* weightCorr   = new RooRealVar("weightCorr","Data correction weight", 0.0, 10000000.0, "");
     RooArgSet*  cols    = NULL;
     
     if (applyWeight)
@@ -117,6 +119,8 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
       setCentralityMap(Form("%s/Input/CentralityMap_PbPb2015.txt",gSystem->ExpandPathName(gSystem->pwd())));
       if (isMC) {
         cols = new RooArgSet(*mass, *ctau, *ctauErr, *ctauTrue, *ptQQ, *rapQQ, *cent, *weight);
+        cols->add(*ctauNRes);
+        cols->add(*ctauRes);
       } else {
         cols = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent, *weight);
       }
@@ -128,6 +132,8 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     {
       if (isMC) {
         cols = new RooArgSet(*mass, *ctau, *ctauErr, *ctauTrue, *ptQQ, *rapQQ, *cent, *weightCorr);
+        cols->add(*ctauNRes);
+        cols->add(*ctauRes);
       } else {
         cols = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent, *weightCorr);
       }
@@ -140,6 +146,8 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     {
       if (isMC) {
         cols = new RooArgSet(*mass, *ctau, *ctauErr, *ctauTrue, *ptQQ, *rapQQ, *cent);
+        cols->add(*ctauNRes);
+        cols->add(*ctauRes);
       } else {
         cols = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent);
       }  
@@ -186,6 +194,8 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
           if (theTree->GetBranch("Reco_QQ_ctauTrue3D")) { ctauTrue->setVal(Reco_QQ_ctauTrue3D[iQQ]); }
           else if (theTree->GetBranch("Reco_QQ_ctauTrue")) { ctauTrue->setVal(Reco_QQ_ctauTrue[iQQ]); }
           else { cout << "[ERROR] No ctauTrue information found in the Onia Tree" << endl; }
+          ctauNRes->setVal( (ctau->getValV() - ctauTrue->getValV())/(ctauErr->getValV()) );
+          ctauRes->setVal( (ctau->getValV() - ctauTrue->getValV()) );
         }
 
         if (applyWeight){
@@ -317,7 +327,7 @@ void iniBranch(TChain* fChain, bool isMC)
 bool checkDS(RooDataSet* DS, string DSName)
 {
   bool incCent     = (DSName.find("PbPb")!=std::string::npos);
-  bool incCtauTrue = (DSName.find("MC")!=std::string::npos && DSName.find("NOPR")!=std::string::npos);
+  bool incCtauTrue = (DSName.find("MC")!=std::string::npos);
   const RooArgSet* row = DS->get();
   if (
       (row->find("invMass")!=0) &&
@@ -325,7 +335,9 @@ bool checkDS(RooDataSet* DS, string DSName)
       (row->find("ctau")!=0)    &&
       (row->find("ctauErr")!=0) &&
       (incCent     ? row->find("cent")!=0     : true) &&
-      (incCtauTrue ? row->find("ctauTrue")!=0 : true)
+      (incCtauTrue ? row->find("ctauTrue")!=0 : true) &&
+      (incCtauTrue ? row->find("ctauRes")!=0 : true) &&
+      (incCtauTrue ? row->find("ctauNRes")!=0 : true)
       ) 
     { return true; }
   else 

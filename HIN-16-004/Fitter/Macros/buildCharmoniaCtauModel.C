@@ -691,7 +691,7 @@ bool addBackgroundCtauModel(RooWorkspace& ws, string object, CtauModel model, ma
       }
       
       // create the variables for this model 
-      if ( !ws.var(Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))) && !ws.function(Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))) ){ 
+      if ( !ws.var(Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))) ){ 
         ws.factory( parIni[Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))].c_str() ); 
       } 
       ws.factory( parIni[Form("lambdaDSS_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() ); 
@@ -730,7 +730,7 @@ bool addBackgroundCtauModel(RooWorkspace& ws, string object, CtauModel model, ma
  
     case (CtauModel::Delta): 
       
-      if ( !ws.var(Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))) && !ws.function(Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))) ){ 
+      if ( !ws.var(Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))) ){ 
         ws.factory( parIni[Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))].c_str() ); 
       }
 
@@ -775,7 +775,7 @@ bool addSignalCtauModel(RooWorkspace& ws, string object, CtauModel model, map<st
       }
       
       // create the variables for this model 
-      if ( !ws.var(Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))) && !ws.function(Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))) ){ 
+      if ( !ws.var(Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))) ){ 
         ws.factory( parIni[Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))].c_str() ); 
       }
       ws.factory( parIni[Form("lambdaDSS_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() ); 
@@ -790,7 +790,7 @@ bool addSignalCtauModel(RooWorkspace& ws, string object, CtauModel model, map<st
  
     case (CtauModel::Delta):
 
-      if ( !ws.var(Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))) && !ws.function(Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))) ){ 
+      if ( !ws.var(Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))) ){ 
         ws.factory( parIni[Form("N_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))].c_str() ); 
       }
 

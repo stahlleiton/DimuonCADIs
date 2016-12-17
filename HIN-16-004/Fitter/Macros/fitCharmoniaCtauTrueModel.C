@@ -204,9 +204,9 @@ void setCtauTrueFileName(string& FileName, string outputDir, string TAG, string 
 void setCtauTrueCutParameters(struct KinCuts& cut)
 {
   // Define the ctau true range
-  if (cut.dMuon.ctauTrue.Min==-50.0 && cut.dMuon.ctauTrue.Max==50.0) { 
+  if (cut.dMuon.ctauTrue.Min==-1000.0 && cut.dMuon.ctauTrue.Max==1000.0) { 
     // Default ctau values, means that the user did not specify a ctau True range
-    cut.dMuon.ctauTrue.Min = -1.0;
+    cut.dMuon.ctauTrue.Min = -10.0;
     cut.dMuon.ctauTrue.Max = 10.0;
   }
   

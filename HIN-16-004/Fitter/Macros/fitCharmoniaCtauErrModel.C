@@ -243,10 +243,10 @@ bool isCtauErrPdfAlreadyFound(RooWorkspace& myws, string FileName, vector<string
 void setCtauErrCutParameters(struct KinCuts& cut)
 {
   // Define the ctau error range
-  if (cut.dMuon.ctauErr.Min==-100.0 && cut.dMuon.ctauErr.Max==100.0) { 
+  if (cut.dMuon.ctauErr.Min==-1000.0 && cut.dMuon.ctauErr.Max==1000.0) { 
     // Default ctau error values, means that the user did not specify a ctau error range
-    cut.dMuon.ctauErr.Min = 0.0000001; 
-    cut.dMuon.ctauErr.Max = 1.0;
+    cut.dMuon.ctauErr.Min = 0.0; 
+    cut.dMuon.ctauErr.Max = 10.0;
   }
   cout << "[INFO] Setting ctauErr range to min: " << cut.dMuon.ctauErr.Min << " and max " << cut.dMuon.ctauErr.Max << endl;
 

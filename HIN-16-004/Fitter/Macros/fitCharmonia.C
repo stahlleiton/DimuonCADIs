@@ -7,6 +7,7 @@
 #include "fitCharmoniaCtauErrModel.C"
 #include "fitCharmoniaCtauTrueModel.C"
 #include "fitCharmoniaCtauMassModel.C"
+#include "fitCharmoniaCtauResModel.C"
 
 void setOptions(struct InputOpt* opt);
 
@@ -57,6 +58,8 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
   cutCtau = (cutCtau && !fitCtau && !fitCtauTrue);
   getMeanPT = false;
   wantPureSMC = (DSTAG.find("MC")!=std::string::npos && wantPureSMC);
+  bool isMC = (DSTAG.find("MC")!=std::string::npos);
+
   // Setting default user-defined input fit directories ( "" means use current working directory )
   if (inputFitDir.count("MASS")==0)     { inputFitDir["MASS"]     = ""; }
   if (inputFitDir.count("CTAUTRUE")==0) { inputFitDir["CTAUTRUE"] = ""; }
@@ -134,7 +137,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
          ) { return false; }
   }
 
-  if (fitCtau && !doCtauErrPDF && !fitCtauTrue && !fitMass && (incJpsi!=incBkg)) {
+  if (fitCtau && !doCtauErrPDF && !fitCtauTrue && !fitMass && (incJpsi!=incBkg) && !isMC) {
 
     // Setting extra input information needed by each fitter
     bool loadFitResult = false;
@@ -147,6 +150,22 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
                            doFit, wantPureSMC, loadFitResult, inputFitDir, numCores, 
                            setLogScale, incSS, binWidth
                            ) 
+         ) { return false; }
+  }
+
+  if (fitCtau && !doCtauErrPDF && !fitCtauTrue && !fitMass && !incBkg && isMC) {
+
+    // Setting extra input information needed by each fitter
+    bool loadFitResult = false;
+    bool doFit = true;
+    bool importDS = true;
+
+    if ( !fitCharmoniaCtauResModel( myws, inputWorkspace, cut, parIni, opt, outputDir, 
+                                    DSTAG, isPbPb, importDS, 
+                                    incJpsi, incPsi2S,
+                                    doFit, wantPureSMC, loadFitResult, inputFitDir, numCores, 
+                                    setLogScale, incSS, binWidth
+                                    ) 
          ) { return false; }
   }
 

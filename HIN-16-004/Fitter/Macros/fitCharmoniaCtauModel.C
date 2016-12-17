@@ -442,11 +442,11 @@ void setCtauFileName(string& FileName, string outputDir, string TAG, string plot
 void setCtauCutParameters(struct KinCuts& cut, bool incNonPrompt)
 {
   // Define the ctau range
-  if (cut.dMuon.ctau.Min==-100. && cut.dMuon.ctau.Max==100.) { 
+  if (cut.dMuon.ctau.Min==-1000. && cut.dMuon.ctau.Max==1000.) { 
     // Default ctau values, means that the user did not specify a ctau range
     if (incNonPrompt) {
-      cut.dMuon.ctau.Min = -6.0;
-      cut.dMuon.ctau.Max = 10.0;
+      cut.dMuon.ctau.Min = -50.0;
+      cut.dMuon.ctau.Max = 100.0;
     } else {
       cut.dMuon.ctau.Min = -2.0;
       cut.dMuon.ctau.Max = 2.0;
