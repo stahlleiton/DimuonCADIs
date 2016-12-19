@@ -7,7 +7,7 @@
 #include "drawCtauResPlot.C"
 
 
-void setCtauResCutParameters(struct KinCuts& cut);
+void setCtauResCutParameters(struct KinCuts& cut, bool incNonPrompt);
 void setCtauResFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut, bool isPbPb);
 void setCtauResGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label, double binWidth);
 bool setCtauResModel( struct OniaModel& model, map<string, string>&  parIni, bool isPbPb);
@@ -50,13 +50,14 @@ bool fitCharmoniaCtauResModel( RooWorkspace& myws,             // Local Workspac
     isMC = true;
   }
   if (!isMC)  { cout << "[ERROR] The ctau resolution fit can only be performed in MC!" << endl; return false; }
+  bool incNonPrompt = (DSTAG.find("NOPR")!=std::string::npos);
 
   string COLL = (isPbPb ? "PbPb" : "PP" );
   bool usePerEventError = true;
   bool incBkg = false;
 
   if (importDS) {
-    setCtauResCutParameters(cut);
+    setCtauResCutParameters(cut, incNonPrompt);
     if (usePerEventError) {
       // check if we have already done the ctauErr fits. If yes, load their parameters
       string FileName = "";
@@ -258,7 +259,7 @@ void setCtauResFileName(string& FileName, string outputDir, string TAG, string p
 };
  
 
-void setCtauResCutParameters(struct KinCuts& cut)
+void setCtauResCutParameters(struct KinCuts& cut, bool incNonPrompt)
 {
   if (cut.dMuon.ctauNRes.Min==-100000.0 && cut.dMuon.ctauNRes.Max==100000.0) {
     // Default ctau values, means that the user did not specify a ctau Normalized Resolution range
@@ -266,7 +267,7 @@ void setCtauResCutParameters(struct KinCuts& cut)
     cut.dMuon.ctauNRes.Max = 30.0;
   }
   // Define the ctau true range
-  if (cut.dMuon.ctauTrue.Min==-1000.0) { cut.dMuon.ctauTrue.Min = -5.0; } // Removes cases with ctauTrue = -99
+  if (cut.dMuon.ctauTrue.Min==-1000.0) { cut.dMuon.ctauTrue.Min = (incNonPrompt ? 0.1 : -5.0); } // Removes cases with ctauTrue = -99
   if (cut.dMuon.ctau.Min==-1000.0)     { cut.dMuon.ctau.Min = -5.0;     } // Removes cases with ctau = -99
   
   return;
