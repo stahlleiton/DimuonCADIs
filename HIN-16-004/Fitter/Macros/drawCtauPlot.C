@@ -231,7 +231,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   }
 
   // Drawing the Legend
-  double ymin = 0.7202;
+  double ymin = 0.7802;
   if (incPsi2S && incJpsi && incSS)  { ymin = 0.7202; } 
   if (incPsi2S && incJpsi && !incSS) { ymin = 0.7452; }
   TLegend* leg = new TLegend(0.5175, ymin, 0.7180, 0.8809); leg->SetTextSize(0.03);

@@ -4,6 +4,7 @@
 #include "Utilities/initClasses.h"
 #include "buildCharmoniaCtauModel.C"
 #include "fitCharmoniaMassModel.C"
+#include "fitCharmoniaCtauResModel.C"
 #include "fitCharmoniaCtauErrModel.C"
 #include "drawCtauPlot.C"
 
@@ -139,23 +140,22 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
     if (fitSideBand) {
       // check if we have already done the resolution fits. If yes, load their results
       string FileName = "";
-      bool fitSB = false;
       string plotLabel = Form("_CtauRes_%s", parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str());
       string DSTAG = Form("MCJPSIPR_%s", (isPbPb?"PbPb":"PP"));
-      setCtauFileName(FileName, (inputFitDir["CTAURES"]=="" ? outputDir : inputFitDir["CTAURES"]), DSTAG, plotLabel, cut, isPbPb, fitSB);
+      setCtauResFileName(FileName, (inputFitDir["CTAURES"]=="" ? outputDir : inputFitDir["CTAURES"]), DSTAG, plotLabel, cut, isPbPb);
       if (wantPureSMC) { plotLabel = plotLabel + "_NoBkg"; }
       bool found = false;
       if (!found && gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAURES"]!="") {
         plotLabel = string(Form("_CtauRes_%s_NoBkg", parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str()));
-        setCtauFileName(FileName, (inputFitDir["CTAURES"]=="" ? outputDir : inputFitDir["CTAURES"]), DSTAG, plotLabel, cut, isPbPb, fitSB);
+        setCtauResFileName(FileName, (inputFitDir["CTAURES"]=="" ? outputDir : inputFitDir["CTAURES"]), DSTAG, plotLabel, cut, isPbPb);
       } else if (inputFitDir["CTAURES"]!="") { found = true; }
       if (!found && gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAURES"]!="") {
         plotLabel = Form("_CtauRes_%s", parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str());
-        setCtauFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, fitSB);
+        setCtauResFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
       } else if (inputFitDir["CTAURES"]!="") { found = true; }
       if (!found && gSystem->AccessPathName(FileName.c_str())) {
         plotLabel = string(Form("_CtauRes_%s_NoBkg", parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str()));
-        setCtauFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, fitSB);
+        setCtauResFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
       } else { found = true; }
       if (!found && gSystem->AccessPathName(FileName.c_str())) {
         cout << "[ERROR] User Input File : " << FileName << " was not found!" << endl;
@@ -167,9 +167,11 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
       } else { 
         cout << "[INFO] The ctau resolution fits were found, so I'll load the fit results." << endl; 
       }
-      if (!setConstant(myws, Form("rSigma21_CtauRes_%s", COLL.c_str()), true)) { return false; }
-      if (!setConstant(myws, Form("ctau2_CtauRes_%s", COLL.c_str()), true))    { return false; }
-      if (!setConstant(myws, Form("f_CtauRes_%s", COLL.c_str()), true))        { return false; }
+      if (myws.pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")))) {
+        cout << "[INFO] Setting Prompt Background parameters to constant!" << endl;
+        myws.pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("ctauErr")))->setAttribAll("Constant", kTRUE); 
+      } else { cout << "[ERROR] Prompt Background PDF was not found!" << endl; return false; }
+      if (!setConstant(myws, Form("s1_CtauRes_%s", COLL.c_str()), false)) { return false; }
     }
 
     // save the initial values of the model we've just created

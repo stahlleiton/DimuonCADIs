@@ -175,16 +175,15 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
     } else { 
       cout << "[INFO] The ctau sideband fits were found, so I'll load the fit results." << endl; 
     }
+    if (myws.pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")))) {
+      cout << "[INFO] Setting Prompt Background parameters to constant!" << endl;
+      myws.pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("ctauErr")))->setAttribAll("Constant", kTRUE); 
+    } else { cout << "[ERROR] Prompt Background PDF was not found!" << endl; return false; }
     if (myws.pdf(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")))) {
       cout << "[INFO] Setting NonPrompt Background parameters to constant!" << endl;
       myws.pdf(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("ctauErr")))->setAttribAll("Constant", kTRUE); 
     } else { cout << "[ERROR] NonPrompt Background PDF was not found!" << endl; return false; }
-    if (!setConstant(myws, Form("rSigma21_CtauRes_%s", COLL.c_str()), true)) { return false; }
-    if (!setConstant(myws, Form("ctau2_CtauRes_%s", COLL.c_str()), true))    { return false; }
-    if (!setConstant(myws, Form("f_CtauRes_%s", COLL.c_str()), true))        { return false; }
-    if (!setConstant(myws, Form("b_Bkg_%s", COLL.c_str()), true))            { return false; }
-    if (!setConstant(myws, Form("ctau1_CtauRes_%s", COLL.c_str()), false))   { return false; }
-    if (!setConstant(myws, Form("sigma1_CtauRes_%s", COLL.c_str()), false))  { return false; }
+    if (!setConstant(myws, Form("s1_CtauRes_%s", COLL.c_str()), false)) { return false; }
   }
 
   //// LOAD CTAU TRUE PDF RESULTS

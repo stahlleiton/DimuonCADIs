@@ -18,11 +18,11 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 
 void fitter(
             const string workDirName="Test", // Working directoryi
-            bool useExtFiles  = false, // Use external fit files as input
+            bool useExtFiles  = true, // Use external fit files as input
             bool usePeriPD    = false, // If yes, use the PERIPHERAL PD provided by the user
             // Select the type of datasets to fit
-            bool fitData      = false,        // Fits Data datasets
-            bool fitMC        = true,         // Fits MC datasets
+            bool fitData      = true,        // Fits Data datasets
+            bool fitMC        = false,         // Fits MC datasets
             bool fitPbPb      = true,         // Fits PbPb datasets
             bool fitPP        = true,        // Fits PP datasets
             bool fitMass      = false,       // Fits invariant mass distribution
@@ -30,22 +30,22 @@ void fitter(
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
             bool doCtauErrPDF = false,         // If yes, it builds the Ctau Error PDFs from data
             // Select the type of object to fit
-            bool incJpsi      = true,          // Includes Jpsi model
+            bool incJpsi      = false,          // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
-            bool incBkg       = false,         // Includes Background model
+            bool incBkg       = true,         // Includes Background model
             bool incPrompt    = true,         // Includes Prompt ctau model
-            bool incNonPrompt = false,          // Includes Non Prompt ctau model 
+            bool incNonPrompt = true,          // Includes Non Prompt ctau model 
             // Select the fitting options
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
-            bool wantPureSMC  = true,        // Flag to indicate if we want to fit pure signal MC
+            bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
             const char* applyCorr  = "",     // Apply weight to data for correction (Acceptance & Ef , l_J/psi eff...). No correction if empty variable.
-            int  numCores     = 32,            // Number of cores used for fitting
+            int  numCores     = 32,           // Number of cores used for fitting
             // Select the drawing options
             bool  setLogScale  = true,         // Draw plot with log scale
             bool  incSS        = false,        // Include Same Sign data
             bool  zoomPsi      = false         // Zoom Psi(2S) peak on extra pad
-            ) 
+            )
 {
   // -------------------------------------------------------------------------------
   // STEP 0: INITIALIZE THE FITTER WORK ENVIROMENT
@@ -86,6 +86,8 @@ void fitter(
 
   if (workDirName.find("Peri")!=std::string::npos) { usePeriPD = true; }
 
+  if (doCtauErrPDF) { inputFitDir["CTAUERR"] = ""; }
+  if (fitMass && !fitCtau) { inputFitDir["MASS"] = ""; }
   for (map<string, string>::iterator iMap=inputFitDir.begin();  iMap!=inputFitDir.end(); iMap++) {
     if (iMap->second!="") { 
       if (!useExtFiles) iMap->second = "";
@@ -214,14 +216,12 @@ void fitter(
   vector< vector< struct KinCuts > >       cutVectors;
   vector< vector< map<string, string> > >  parIniVectors;
  
-  bool existCtauErr = (existDir(inputFitDirs[inputFitDirs.size()-1]["CTAUERR"]+"ctauErr/")==true);
-
   map<string, map<string, bool>> VARMAP = {
     {"MASS", 
      {
-       {"BKG",   (((fitMass  && incBkg)) || (!existCtauErr && (fitCtau || doCtauErrPDF)))}, 
-       {"JPSI",  ((fitMass && incJpsi) || (!existCtauErr && (fitCtau || doCtauErrPDF))) && incJpsi}, 
-       {"PSI2S", ((fitMass && incPsi2S) || (!existCtauErr && (fitCtau || doCtauErrPDF))) && incPsi2S}
+       {"BKG",   ((fitMass  && incBkg) || (fitCtau || doCtauErrPDF))}, 
+       {"JPSI",  ((fitMass && incJpsi) || (fitCtau || doCtauErrPDF)) && incJpsi}, 
+       {"PSI2S", ((fitMass && incPsi2S) || (fitCtau || doCtauErrPDF)) && incPsi2S}
      }
     },
     {"CTAU", 

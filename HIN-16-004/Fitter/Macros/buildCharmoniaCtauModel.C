@@ -450,34 +450,37 @@ void fixCtauParPsi2StoJpsi(map<string, string>& parIni, bool isPbPb)
 
 bool defineCtauResolModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb)
 { 
-
   if (ws.pdf(Form("pdfCTAURES_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) { 
     cout << Form("[ERROR] The %s Ctau Resolution Model has already been implemented!", object.c_str()) << endl;
     return false; 
   }
 
+  string pdfType = "pdfCTAURES";
+  string varName = "ctau";
+  bool usePerEventError = true;
+
   cout << Form("[INFO] Implementing %s Ctau Resolution Model", object.c_str()) << endl;
   
   switch(model) 
-    {  
+    {
     case (CtauModel::SingleGaussianResolution):  
       if (!( 
-            parIni.count(Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))) && 
-            parIni.count(Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))) 
-             )) { 
+            parIni.count(Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
+            parIni.count(Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))) 
+             )) {
  	cout << Form("[ERROR] Initial parameters where not found for Single Gaussian Ctau Resolution Model in %s", (isPbPb?"PbPb":"PP")) << endl; return false; 
       }
 
       // create the variables for this model  
       if (!ws.var("One")) { ws.factory("One[1.0]"); }
       if (!ws.var(Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );  }
-      if (!ws.var(Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP")))) { ws.factory( parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
+      if (!ws.var(Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP")))) { ws.factory( parIni[Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
 
-      // create the two PDFs
-      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("pdfCTAURES_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), "ctau", 
- 		      Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP")), 
- 		      Form("sigma1_%s_%s", "CtauRes", (isPbPb?"PbPb":"PP")),
-                      "ctauErr"
+      // create the PDF
+      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("%s_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), varName.c_str(),
+ 		      Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+ 		      Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                      (usePerEventError?"ctauErr":"One")
  		      ));
       
       cout << Form("[INFO] %s Single Gaussian Ctau Resolution PDF in %s included", object.c_str(), (isPbPb?"PbPb":"PP")) << endl; break;
@@ -486,9 +489,9 @@ bool defineCtauResolModel(RooWorkspace& ws, string object, CtauModel model, map<
 
       if (!( 
             parIni.count(Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))) && 
-            parIni.count(Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))) && 
+            parIni.count(Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))) && 
             parIni.count(Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP"))) && 
-            parIni.count(Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))) && 
+            parIni.count(Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP"))) && 
             parIni.count(Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))) 
              )) { 
  	cout << Form("[ERROR] Initial parameters where not found for Double Gaussian Ctau Resolution Model in %s", (isPbPb?"PbPb":"PP")) << endl; return false; 
@@ -497,41 +500,42 @@ bool defineCtauResolModel(RooWorkspace& ws, string object, CtauModel model, map<
       // create the variables for this model  
       if (!ws.var("One")) { ws.factory("One[1.0]"); }
       if (!ws.var(Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))))   { ws.factory( parIni[Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str()  ); }
-      if (!ws.var(Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
+      if (!ws.var(Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
       if (!ws.var(Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP"))))   { ws.factory( parIni[Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str()  ); }
-      if (!ws.var(Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
+      if (!ws.var(Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
       if (!ws.var(Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))))       { ws.factory( parIni[Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );      }
       
       // create the two PDFs
-      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("pdfCTAURES1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), "ctau", 
+      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("%s1_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), varName.c_str(),
  		      Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP")),
- 		      Form("sigma1_%s_%s", "CtauRes", (isPbPb?"PbPb":"PP")),
-                      "ctauErr"
+ 		      Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                      (usePerEventError?"ctauErr":"One")
  		      ));
-      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("pdfCTAURES2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), "ctau", 
+      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("%s2_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), varName.c_str(),
  		      Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 
- 		      Form("sigma2_%s_%s", "CtauRes", (isPbPb?"PbPb":"PP")),
-                      "ctauErr"
+ 		      Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                      (usePerEventError?"ctauErr":"One")
  		      ));
 
       // combine the two PDFs
-      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("pdfCTAURES_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),  
+      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("%s_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("%s1_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("%s2_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")),  
  		      Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))
  		      ));
 
       cout << Form("[INFO] %s Double Gaussian Ctau Resolution PDF in %s included", object.c_str(), (isPbPb?"PbPb":"PP")) << endl; break;
 
+
     case (CtauModel::TripleGaussianResolution):  
 
       if (!( 
             parIni.count(Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))) && 
-            parIni.count(Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
+            parIni.count(Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
             parIni.count(Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
-            parIni.count(Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
+            parIni.count(Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
             parIni.count(Form("ctau3_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
-            parIni.count(Form("sigma3_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
+            parIni.count(Form("s3_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
             parIni.count(Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
             parIni.count(Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP")))
              )) { 
@@ -541,40 +545,40 @@ bool defineCtauResolModel(RooWorkspace& ws, string object, CtauModel model, map<
       // create the variables for this model  
       if (!ws.var("One")) { ws.factory("One[1.0]"); }
       if (!ws.var(Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))))   { ws.factory( parIni[Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str()  ); }
-      if (!ws.var(Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
+      if (!ws.var(Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
       if (!ws.var(Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP"))))   { ws.factory( parIni[Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str()  ); }
-      if (!ws.var(Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
+      if (!ws.var(Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
       if (!ws.var(Form("ctau3_CtauRes_%s", (isPbPb?"PbPb":"PP"))))   { ws.factory( parIni[Form("ctau3_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str()  ); }
-      if (!ws.var(Form("sigma3_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("sigma3_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
+      if (!ws.var(Form("s3_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("s3_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
       if (!ws.var(Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))))       { ws.factory( parIni[Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );      }
       if (!ws.var(Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP"))))      { ws.factory( parIni[Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );     }
       
-      // create the two PDFs
-      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("pdfCTAURES1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), "ctau", 
+      // create the three PDFs
+      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("%s1_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), varName.c_str(),
  		      Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP")),
- 		      Form("sigma1_%s_%s", "CtauRes", (isPbPb?"PbPb":"PP")),
-                      "ctauErr"
+ 		      Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                      (usePerEventError?"ctauErr":"One")
  		      ));
-      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("pdfCTAURES2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), "ctau", 
+      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("%s2_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), varName.c_str(),
  		      Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 
- 		      Form("sigma2_%s_%s", "CtauRes", (isPbPb?"PbPb":"PP")),
-                      "ctauErr"
+ 		      Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                      (usePerEventError?"ctauErr":"One")
  		      ));
-      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("pdfCTAURES3_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), "ctau", 
+      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("%s3_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), varName.c_str(),
  		      Form("ctau3_CtauRes_%s", (isPbPb?"PbPb":"PP")), 
- 		      Form("sigma3_%s_%s", "CtauRes", (isPbPb?"PbPb":"PP")),
-                      "ctauErr"
+ 		      Form("s3_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                      (usePerEventError?"ctauErr":"One")
  		      ));
 
       // combine the two PDFs
-      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("pdfCTAURES23_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES3_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),  
+      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("%s23_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("%s2_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("%s3_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")),  
  		      Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP"))
  		      ));
-      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("pdfCTAURES_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES23_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),  
+      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("%s_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("%s1_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("%s23_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")),  
  		      Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))
  		      ));
 
@@ -584,13 +588,13 @@ bool defineCtauResolModel(RooWorkspace& ws, string object, CtauModel model, map<
 
       if (!( 
             parIni.count(Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))) && 
-            parIni.count(Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
+            parIni.count(Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
             parIni.count(Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
-            parIni.count(Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
+            parIni.count(Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
             parIni.count(Form("ctau3_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
-            parIni.count(Form("sigma3_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
+            parIni.count(Form("s3_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
             parIni.count(Form("ctau4_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
-            parIni.count(Form("sigma4_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
+            parIni.count(Form("s4_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
             parIni.count(Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
             parIni.count(Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP"))) &&
             parIni.count(Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP")))
@@ -601,53 +605,53 @@ bool defineCtauResolModel(RooWorkspace& ws, string object, CtauModel model, map<
       // create the variables for this model  
       if (!ws.var("One")) { ws.factory("One[1.0]"); }
       if (!ws.var(Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))))   { ws.factory( parIni[Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str()  ); }
-      if (!ws.var(Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
+      if (!ws.var(Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
       if (!ws.var(Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP"))))   { ws.factory( parIni[Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str()  ); }
-      if (!ws.var(Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
+      if (!ws.var(Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
       if (!ws.var(Form("ctau3_CtauRes_%s", (isPbPb?"PbPb":"PP"))))   { ws.factory( parIni[Form("ctau3_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str()  ); }
-      if (!ws.var(Form("sigma3_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("sigma3_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
+      if (!ws.var(Form("s3_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("s3_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
       if (!ws.var(Form("ctau4_CtauRes_%s", (isPbPb?"PbPb":"PP"))))   { ws.factory( parIni[Form("ctau4_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str()  ); }
-      if (!ws.var(Form("sigma4_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("sigma4_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
+      if (!ws.var(Form("s4_CtauRes_%s", (isPbPb?"PbPb":"PP"))))  { ws.factory( parIni[Form("s4_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() ); }
       if (!ws.var(Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))))       { ws.factory( parIni[Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );      }
       if (!ws.var(Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP"))))      { ws.factory( parIni[Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );     }
       if (!ws.var(Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP"))))      { ws.factory( parIni[Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str() );     }
       
-      // create the two PDFs
-      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("pdfCTAURES1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), "ctau", 
+      // create the four PDFs
+      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("%s1_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), varName.c_str(),
  		      Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP")),
- 		      Form("sigma1_%s_%s", "CtauRes", (isPbPb?"PbPb":"PP")),
-                      "ctauErr"
+ 		      Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                      (usePerEventError?"ctauErr":"One")
  		      ));
-      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("pdfCTAURES2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), "ctau", 
+      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("%s2_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), varName.c_str(),
  		      Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 
- 		      Form("sigma2_%s_%s", "CtauRes", (isPbPb?"PbPb":"PP")),
-                      "ctauErr"
+ 		      Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                      (usePerEventError?"ctauErr":"One")
  		      ));
-      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("pdfCTAURES3_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), "ctau", 
+      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("%s3_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), varName.c_str(),
  		      Form("ctau3_CtauRes_%s", (isPbPb?"PbPb":"PP")), 
- 		      Form("sigma3_%s_%s", "CtauRes", (isPbPb?"PbPb":"PP")),
-                      "ctauErr"
+ 		      Form("s3_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                      (usePerEventError?"ctauErr":"One")
  		      ));
-      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("pdfCTAURES4_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), "ctau", 
+      ws.factory(Form("GaussModel::%s(%s, %s, %s, One, %s)", Form("%s4_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), varName.c_str(),
  		      Form("ctau4_CtauRes_%s", (isPbPb?"PbPb":"PP")), 
- 		      Form("sigma4_%s_%s", "CtauRes", (isPbPb?"PbPb":"PP")),
-                      "ctauErr"
+ 		      Form("s4_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                      (usePerEventError?"ctauErr":"One")
  		      ));
 
       // combine the two PDFs
-      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("pdfCTAURES34_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES3_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES4_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),  
+      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("%s34_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")),
+ 		      Form("%s3_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("%s4_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")),  
  		      Form("f3_CtauRes_%s", (isPbPb?"PbPb":"PP"))
  		      ));
-      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("pdfCTAURES234_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES34_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),  
+      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("%s234_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")),
+ 		      Form("%s2_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("%s34_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")),  
  		      Form("f2_CtauRes_%s", (isPbPb?"PbPb":"PP"))
  		      ));
-      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("pdfCTAURES_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
- 		      Form("pdfCTAURES234_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),  
+      ws.factory(Form("AddModel::%s({%s, %s}, {%s})", Form("%s_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")),
+ 		      Form("%s1_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")), 
+ 		      Form("%s234_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")),  
  		      Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))
  		      ));
 
@@ -858,41 +862,35 @@ void setCtauDefaultParameters(map<string, string> &parIni, bool isPbPb, double n
   } else if (parIni[Form("ctau4_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
     parIni[Form("ctau4_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("ctau4_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.0, -1.0, 1.0);
   }
-  if (parIni.count(Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.0, 0.01, 2.0);
+  if (parIni.count(Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
+    parIni[Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.0, 0.01, 2.0);
   }
-  if (parIni.count(Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
-      parIni[Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 1.0, 3.0);
+  if (parIni.count(Form("rS21_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("rS21_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
+      parIni[Form("rS21_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rS21_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 1.0, 3.0);
   }
-  if (parIni.count(Form("rSigma32_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("rSigma32_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
-      parIni[Form("rSigma32_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rSigma32_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 1.0, 3.0);
+  if (parIni.count(Form("rS32_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("rS32_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
+      parIni[Form("rS32_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rS32_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 1.0, 3.0);
   }
-  if (parIni.count(Form("rSigma43_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("rSigma43_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
-      parIni[Form("rSigma43_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rSigma43_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 1.0, 3.0);
+  if (parIni.count(Form("rS43_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("rS43_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
+      parIni[Form("rS43_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rS43_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 1.0, 3.0);
   }
-  if (parIni.count(Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0) {
-    parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{%s,%s})", Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")),
-                                                                   parIni[Form("rSigma21_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str(), Form("sigma1_CtauRes_%s", (isPbPb?"PbPb":"PP") ));
-  } else if ( parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
-    parIni[Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 0.001, 6.0);
+  if (parIni.count(Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0) {
+    parIni[Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{%s,%s})", Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                                                                   parIni[Form("rS21_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str(), Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP") ));
+  } else if ( parIni[Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
+    parIni[Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 0.001, 6.0);
   }
-  if (parIni.count(Form("sigma3_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0) {
-    parIni[Form("sigma3_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{%s,%s})", Form("sigma3_CtauRes_%s", (isPbPb?"PbPb":"PP")),
-                                                                   parIni[Form("rSigma32_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str(), Form("sigma2_CtauRes_%s", (isPbPb?"PbPb":"PP") ));
-  } else if ( parIni[Form("sigma3_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
-    parIni[Form("sigma3_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("sigma3_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 0.001, 6.0);
+  if (parIni.count(Form("s3_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0) {
+    parIni[Form("s3_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{%s,%s})", Form("s3_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                                                                   parIni[Form("rS32_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str(), Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP") ));
+  } else if ( parIni[Form("s3_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
+    parIni[Form("s3_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("s3_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 0.001, 6.0);
   }
-  if (parIni.count(Form("sigma4_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0) {
-    parIni[Form("sigma4_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{%s,%s})", Form("sigma4_CtauRes_%s", (isPbPb?"PbPb":"PP")),
-                                                                   parIni[Form("rSigma43_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str(), Form("sigma3_CtauRes_%s", (isPbPb?"PbPb":"PP") ));
-  } else if ( parIni[Form("sigma4_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
-    parIni[Form("sigma4_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("sigma4_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 0.001, 6.0);
-  }
-  if (parIni.count(Form("sigmaMC_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("sigmaMC_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("sigmaMC_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("sigmaMC_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")), 0.000001, 0.0000001, 1.0);
-  }
-  if (parIni.count(Form("sigmaMC_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("sigmaMC_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))]=="") {
-    parIni[Form("sigmaMC_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("sigmaMC_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")), 0.000001, 0.0000001, 1.0);
+  if (parIni.count(Form("s4_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0) {
+    parIni[Form("s4_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{%s,%s})", Form("s4_CtauRes_%s", (isPbPb?"PbPb":"PP")),
+                                                                   parIni[Form("rS43_CtauRes_%s", (isPbPb?"PbPb":"PP"))].c_str(), Form("s3_CtauRes_%s", (isPbPb?"PbPb":"PP") ));
+  } else if ( parIni[Form("s4_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
+    parIni[Form("s4_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("s4_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.2, 0.001, 6.0);
   }
   if (parIni.count(Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
     parIni[Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("f_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.8, 0.4, 1.0);
