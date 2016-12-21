@@ -160,7 +160,7 @@ bool fitCharmoniaCtauResModel( RooWorkspace& myws,             // Local Workspac
   // Fit the Datasets
   if (skipFit==false) {
     bool isWeighted = myws.data(dsName.c_str())->isWeighted();
-    RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), NumCPU(numCores), ConditionalObservables(*myws.var("ctauErr")), SumW2Error(isWeighted), Save());
+    RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), NumCPU(numCores), ConditionalObservables(*myws.var("ctauErr")), Range("FullWindow"), SumW2Error(isWeighted), Save());
     fitResult->Print("v");
     myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str()));
     // Draw the mass plot
@@ -237,7 +237,7 @@ void setCtauResGlobalParameterRange(RooWorkspace& myws, map<string, string>& par
   cut.dMuon.ctauNRes.Min = ctauNResMin;
   myws.var("ctauNRes")->setRange("FullWindow", cut.dMuon.ctauNRes.Min, cut.dMuon.ctauNRes.Max);
   Double_t ctauResMax; Double_t ctauResMin;
-  myws.data(Form("dOS_%s", label.c_str()))->getRange(*myws.var("ctauRes"), ctauResMin, ctauResMax);
+  myws.data(Form("dOS_%s", label.c_str()))->reduce(parIni["CtauNResRange_Cut"].c_str())->getRange(*myws.var("ctauRes"), ctauResMin, ctauResMax);
   ctauResMin -= 0.00001;  ctauResMax += 0.00001;
   cout << "[INFO] Range from data: ctauResMin: " << ctauResMin << "  ctauResMax: " << ctauResMax << endl;
   myws.var("ctauRes")->setRange("CtauResWindow", ctauResMin, ctauResMax);
