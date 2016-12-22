@@ -42,7 +42,7 @@
 #endif
 
 void v2TheoryOpen_pt(bool bSavePlots = true, 
-                  float rangeYAxis    = 0.27,
+                  float rangeYAxis    = 0.29,
                   float rangeXAxis    = 30,
                   const char* inputDir= "../macro_v2/outRoot", // the place where the input root files, with the histograms are
                   const char* figNamePrefix="v2TheoryOpen_pt")
@@ -105,6 +105,21 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   gNPJpsi_K15->SetLineWidth(3);
 
 
+  // -----------------------------------------------------------------------------------------
+  // -------- B, NP Jpsi from TAMU
+  TGraphErrors *gB_TAMU      = new TGraphErrors(v2TAMU_numpoints, v2TAMU_xval, v2TAMU_B, 0, 0);
+  TGraphErrors *gNPJpsi_TAMU = new TGraphErrors(v2TAMU_numpoints, v2TAMU_xval, v2TAMU_NPJpsi, 0, 0);
+
+  gB_TAMU->SetName("gB_TAMU");
+  gB_TAMU->SetLineStyle(7); //dashed line (9)
+  gB_TAMU->SetLineColor(kRed+1);
+  gB_TAMU->SetLineWidth(3);
+  gNPJpsi_TAMU->SetName("gNPJpsi_TAMU");
+  gNPJpsi_TAMU->SetLineStyle(1); //Solid line
+  gNPJpsi_TAMU->SetLineColor(kRed+1);
+  gNPJpsi_TAMU->SetLineWidth(3);
+
+  
   //------------------------------------------------------------------------
   // drawing
   // put everything on one plot
@@ -125,7 +140,10 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   gNPJpsi_K15->Draw("l");
 //  gD_K15->Draw("l");
   gB_K15->Draw("l");
- 
+  gB_TAMU->Draw("l");
+  gNPJpsi_TAMU->Draw("l");
+  
+    
   pgV2LowSyst->Draw("2");
   pgV2Low->Draw("PZ");
   pgV2LowP->Draw("P");
@@ -176,7 +194,7 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   
   TLegendEntry *entry_K;
   entry_K=leg_K->AddEntry("K08K15","MC@sHQ + EPOS (Cent. 20-60%, |y| < 1)",""); 
-  entry_K->SetTextFont(42);
+  entry_K->SetTextFont(132);
   entry_K->SetTextSize(entrySize);//-0.005);
   entry_K=leg_K->AddEntry("K08K15","",""); // empty column for a alignment
 //  entry_K=leg_K->AddEntry("gD_K08","D (K=0.8)","L");
@@ -191,20 +209,45 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
   entry_K=leg_K->AddEntry("gB_K08","B (K=0.8)","L");
   entry_K->SetLineWidth(3);
   entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize);//-0.005);
+  entry_K->SetTextSize(entrySize-0.005);
   entry_K=leg_K->AddEntry("gB_K15","B (K=1.5)","L");
   entry_K->SetLineWidth(3);
   entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize);//-0.005);
+  entry_K->SetTextSize(entrySize-0.005);
 
   entry_K=leg_K->AddEntry("gNPJpsi_K08","NP J/#psi (K=0.8)","L");
   entry_K->SetLineWidth(3);
   entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize);//-0.005);
+  entry_K->SetTextSize(entrySize-0.005);
   entry_K=leg_K->AddEntry("gNPJpsi_K15","NP J/#psi (K=1.5)","L");
   entry_K->SetLineWidth(3);
   entry_K->SetTextFont(42);
-  entry_K->SetTextSize(entrySize);//-0.005);
+  entry_K->SetTextSize(entrySize-0.005);
+ 
+  TLegend *leg_TAMU = new TLegend(0.228,0.53,0.7,0.65,NULL,"brNDC"); //0.62
+  leg_TAMU->SetBorderSize(0);
+  leg_TAMU->SetMargin(0.167);
+  leg_TAMU->SetTextFont(132);
+  leg_TAMU->SetTextSize(ltxSetTextSize3);
+  leg_TAMU->SetLineColor(1);
+  leg_TAMU->SetLineStyle(1);
+  leg_TAMU->SetLineWidth(1);
+  leg_TAMU->SetFillColor(19);
+  leg_TAMU->SetFillStyle(0);
+
+  TLegendEntry *entry_TAMU;
+  entry_TAMU=leg_TAMU->AddEntry("","TAMU (Cent. 20-40%)",""); 
+  entry_TAMU->SetTextFont(132);
+  entry_TAMU->SetTextSize(entrySize);
+  
+  entry_TAMU=leg_TAMU->AddEntry("gB_TAMU","B","L");
+  entry_TAMU->SetLineWidth(3);
+  entry_TAMU->SetTextFont(42);
+  entry_TAMU->SetTextSize(entrySize-0.005);
+  entry_TAMU=leg_TAMU->AddEntry("gNPJpsi_TAMU","NP J/#psi","L");
+  entry_TAMU->SetLineWidth(3);
+  entry_TAMU->SetTextFont(42);
+  entry_TAMU->SetTextSize(entrySize-0.005);
  
   TLatex *lat = new TLatex();
   lat->SetNDC();
@@ -214,6 +257,7 @@ void v2TheoryOpen_pt(bool bSavePlots = true,
 
   leg->Draw();
   leg_K->Draw();
+  leg_TAMU->Draw();
   gPad->RedrawAxis();
   pcCombi->Update();
 
