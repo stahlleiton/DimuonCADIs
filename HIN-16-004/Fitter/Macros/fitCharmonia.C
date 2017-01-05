@@ -8,6 +8,7 @@
 #include "fitCharmoniaCtauTrueModel.C"
 #include "fitCharmoniaCtauMassModel.C"
 #include "fitCharmoniaCtauResModel.C"
+#include "fitCharmoniaCtauResDataModel.C"
 
 void setOptions(struct InputOpt* opt);
 
@@ -28,6 +29,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
                    bool incPrompt    = true,       // Includes Prompt ctau model
                    bool incNonPrompt = false,      // Includes NonPrompt ctau model
                    bool doCtauErrPDF = false,      // If yes, it builds the Ctau Error PDFs from data
+                   bool fitRes       = false,      // If yes fits the resolution from Data or MC
                    // Select the fitting options
                    bool cutCtau      = false,      // Apply prompt ctau cuts
                    bool doSimulFit   = false,      // Do simultaneous fit
@@ -137,7 +139,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
          ) { return false; }
   }
 
-  if (fitCtau && !doCtauErrPDF && !fitCtauTrue && !fitMass && (incJpsi!=incBkg) && !isMC) {
+  if (fitCtau && !doCtauErrPDF && !fitCtauTrue && !fitMass && (incJpsi!=incBkg) && !isMC && !fitRes) {
 
     // Setting extra input information needed by each fitter
     bool loadFitResult = false;
@@ -153,7 +155,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
          ) { return false; }
   }
 
-  if (fitCtau && !doCtauErrPDF && !fitCtauTrue && !fitMass && !incBkg && isMC) {
+  if (fitCtau && !doCtauErrPDF && !fitCtauTrue && !fitMass && !incBkg && isMC && fitRes) {
 
     // Setting extra input information needed by each fitter
     bool loadFitResult = false;
@@ -167,6 +169,22 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
                                     setLogScale, incSS, binWidth
                                     ) 
          ) { return false; }
+  }
+  
+  if (fitCtau && !doCtauErrPDF && !fitCtauTrue && !fitMass && !incBkg && !isMC  && fitRes) {
+    
+    // Setting extra input information needed by each fitter
+    bool loadFitResult = false;
+    bool doFit = true;
+    bool importDS = true;
+    
+    if ( !fitCharmoniaCtauResDataModel( myws, inputWorkspace, cut, parIni, opt, outputDir,
+                                   DSTAG, isPbPb, importDS,
+                                   incJpsi, incPsi2S,
+                                   doFit, loadFitResult, inputFitDir, numCores,
+                                   setLogScale, incSS, binWidth
+                                   )
+        ) { return false; }
   }
 
   if (fitCtau && fitMass && !doCtauErrPDF && !fitCtauTrue ) {

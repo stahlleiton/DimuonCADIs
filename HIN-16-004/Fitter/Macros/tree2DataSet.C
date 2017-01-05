@@ -103,6 +103,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     
     RooRealVar* mass    = new RooRealVar("invMass","#mu#mu mass", 1.0, 6.0, "GeV/c^{2}");
     RooRealVar* ctau    = new RooRealVar("ctau","c_{#tau}", -100000.0, 100000.0, "mm");
+    RooRealVar* ctauN    = new RooRealVar("ctauN","c_{#tau}", -100000.0, 100000.0, "");
     RooRealVar* ctauTrue = new RooRealVar("ctauTrue","c_{#tau}", -100000.0, 100000.0, "mm");
     RooRealVar* ctauNRes = new RooRealVar("ctauNRes","c_{#tau}", -100000.0, 100000.0, "");
     RooRealVar* ctauRes = new RooRealVar("ctauRes","c_{#tau}", -100000.0, 100000.0, "");
@@ -123,6 +124,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         cols->add(*ctauRes);
       } else {
         cols = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent, *weight);
+        cols->add(*ctauN);
       }
       dataOS = new RooDataSet(Form("dOS_%s", DSName.c_str()), "dOS", *cols, WeightVar(*weight), StoreAsymError(*mass));
       dataSS = new RooDataSet(Form("dSS_%s", DSName.c_str()), "dSS", *cols, WeightVar(*weight), StoreAsymError(*mass));
@@ -136,6 +138,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         cols->add(*ctauRes);
       } else {
         cols = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent, *weightCorr);
+        cols->add(*ctauN);
       }
       if (!readCorrection(Form("%s/Input/%s",gSystem->ExpandPathName(gSystem->pwd()),corrFileName.Data()))){ return false; }
       dataOS = new RooDataSet(Form("dOS_%s_%s", DSName.c_str(),corrName.Data()), "dOS", *cols, WeightVar(*weightCorr), StoreAsymError(*mass));
@@ -150,6 +153,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         cols->add(*ctauRes);
       } else {
         cols = new RooArgSet(*mass, *ctau, *ctauErr, *ptQQ, *rapQQ, *cent);
+        cols->add(*ctauN);
       }  
       dataOS = new RooDataSet(Form("dOS_%s", DSName.c_str()), "dOS", *cols, StoreAsymError(*mass));
       dataSS = new RooDataSet(Form("dSS_%s", DSName.c_str()), "dSS", *cols, StoreAsymError(*mass));
@@ -186,6 +190,8 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         if (theTree->GetBranch("Reco_QQ_ctauErr3D")) { ctauErr->setVal(Reco_QQ_ctauErr3D[iQQ]); }
         else if (theTree->GetBranch("Reco_QQ_ctauErr")) { ctauErr->setVal(Reco_QQ_ctauErr[iQQ]); }
         else { cout << "[ERROR] No ctauErr information found in the Onia Tree" << endl; }
+        
+        ctauN->setVal(ctau->getVal()/ctauErr->getVal());
         
         ptQQ->setVal(RecoQQ4mom->Pt());
         rapQQ->setVal(RecoQQ4mom->Rapidity());
@@ -333,6 +339,7 @@ bool checkDS(RooDataSet* DS, string DSName)
       (row->find("invMass")!=0) &&
       (row->find("pt")!=0)      &&
       (row->find("ctau")!=0)    &&
+      (row->find("ctauN")!=0)    &&
       (row->find("ctauErr")!=0) &&
       (incCent     ? row->find("cent")!=0     : true) &&
       (incCtauTrue ? row->find("ctauTrue")!=0 : true) &&

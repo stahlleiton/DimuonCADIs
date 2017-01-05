@@ -29,6 +29,7 @@ void fitter(
             bool fitCtau      = true,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
             bool doCtauErrPDF = false,         // If yes, it builds the Ctau Error PDFs from data
+            bool fitRes       = false,         // If yes fits the resolution from Data or MC
             // Select the type of object to fit
             bool incJpsi      = false,          // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
@@ -70,7 +71,7 @@ void fitter(
   inputFitDir["CTAUERR"]  = string("/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/NOMINAL/") + (usePeriPD ? "DataFitsPeri/" :  "DataFitsCent/");
   inputFitDir["CTAUTRUE"] = string("/afs/cern.ch/user/v/vabdulla/public/PbPb2015/DataFits/");
   // inputFitDir["CTAURES"]  = string("/home/llr/cms/abdullah/RAA/DimuonCADIs/HIN-16-004/Fitter/Output/") + (usePeriPD ? "DataFitsPeri/" :  "DataFitsCent/");
-  inputFitDir["CTAURES"]  = string("/afs/cern.ch/user/v/vabdulla/public/PbPb2015/") + (usePeriPD ? "DataFitsPeri_NP/" :  "DataFitsCent_NP/");
+  inputFitDir["CTAURES"]  = string("");//string("/afs/cern.ch/user/v/vabdulla/public/PbPb2015/") + (usePeriPD ? "DataFitsPeri_NP/" :  "DataFitsCent_NP/");
   inputFitDir["CTAUSB"]   = string("/home/llr/cms/stahl/RAA_Analysis/NORMAL/DimuonCADIs/HIN-16-004/Fitter/Output/") + workDirName + "/";
   
   map<string, string> inputInitialFilesDir;
@@ -308,6 +309,7 @@ void fitter(
                                  incPrompt,       // Includes Prompt ctau model
                                  incNonPrompt,    // Includes NonPrompt ctau model
                                  doCtauErrPDF,    // If yes, it builds the Ctau Error PDFs from data
+                                 fitRes,          // If yes fits the resolution from Data or MC
                                  // Select the fitting options
                                  cutCtau,         // Apply prompt ctau cuts
                                  doSimulFit,      // Do simultaneous fitC
@@ -347,6 +349,7 @@ void fitter(
                                             incPrompt,       // Includes Prompt ctau model
                                             incNonPrompt,    // Includes NonPrompt ctau model
                                             doCtauErrPDF,    // If yes, it builds the Ctau Error PDFs from data
+                                            fitRes,          // If yes fits the resolution from Data or MC
                                             // Select the fitting options
                                             cutCtau,         // Apply prompt ctau cuts
                                             doSimulFit,      // Do simultaneous fit
