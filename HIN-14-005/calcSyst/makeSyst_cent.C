@@ -135,27 +135,27 @@ void makeSyst_cent( bool bSavePlots     = 1,
   TH1F *phCorr_npr_aa_y1624_pt365_copy;
   
   // total uncertainty separately for pp and pbpb
-  double systErrTotal_pr_pp_y024_pt6530_copy[20]={0};
-  double systErrTotal_pr_pp_y012_pt6530_copy[20]={0};
-  double systErrTotal_pr_pp_y1216_pt6530_copy[20]={0};
-  double systErrTotal_pr_pp_y1624_pt6530_copy[20]={0};
-  double systErrTotal_pr_pp_y1624_pt365_copy[20]={0};
-  double systErrTotal_pr_aa_y024_pt6530_copy[20]={0};
-  double systErrTotal_pr_aa_y012_pt6530_copy[20]={0};
-  double systErrTotal_pr_aa_y1216_pt6530_copy[20]={0};
-  double systErrTotal_pr_aa_y1624_pt6530_copy[20]={0};
-  double systErrTotal_pr_aa_y1624_pt365_copy[20]={0};
+  double systErrTotal_pr_pp_y024_pt6530_copy[50]={0};
+  double systErrTotal_pr_pp_y012_pt6530_copy[50]={0};
+  double systErrTotal_pr_pp_y1216_pt6530_copy[50]={0};
+  double systErrTotal_pr_pp_y1624_pt6530_copy[50]={0};
+  double systErrTotal_pr_pp_y1624_pt365_copy[50]={0};
+  double systErrTotal_pr_aa_y024_pt6530_copy[50]={0};
+  double systErrTotal_pr_aa_y012_pt6530_copy[50]={0};
+  double systErrTotal_pr_aa_y1216_pt6530_copy[50]={0};
+  double systErrTotal_pr_aa_y1624_pt6530_copy[50]={0};
+  double systErrTotal_pr_aa_y1624_pt365_copy[50]={0};
 
-  double systErrTotal_npr_pp_y024_pt6530_copy[20]={0};
-  double systErrTotal_npr_pp_y012_pt6530_copy[20]={0};
-  double systErrTotal_npr_pp_y1216_pt6530_copy[20]={0};
-  double systErrTotal_npr_pp_y1624_pt6530_copy[20]={0};
-  double systErrTotal_npr_pp_y1624_pt365_copy[20]={0};
-  double systErrTotal_npr_aa_y024_pt6530_copy[20]={0};
-  double systErrTotal_npr_aa_y012_pt6530_copy[20]={0};
-  double systErrTotal_npr_aa_y1216_pt6530_copy[20]={0};
-  double systErrTotal_npr_aa_y1624_pt6530_copy[20]={0};
-  double systErrTotal_npr_aa_y1624_pt365_copy[20]={0};
+  double systErrTotal_npr_pp_y024_pt6530_copy[50]={0};
+  double systErrTotal_npr_pp_y012_pt6530_copy[50]={0};
+  double systErrTotal_npr_pp_y1216_pt6530_copy[50]={0};
+  double systErrTotal_npr_pp_y1624_pt6530_copy[50]={0};
+  double systErrTotal_npr_pp_y1624_pt365_copy[50]={0};
+  double systErrTotal_npr_aa_y024_pt6530_copy[50]={0};
+  double systErrTotal_npr_aa_y012_pt6530_copy[50]={0};
+  double systErrTotal_npr_aa_y1216_pt6530_copy[50]={0};
+  double systErrTotal_npr_aa_y1624_pt6530_copy[50]={0};
+  double systErrTotal_npr_aa_y1624_pt365_copy[50]={0};
   
 
 
@@ -484,12 +484,16 @@ void makeSyst_cent( bool bSavePlots     = 1,
       // Taa scale factor 
       double scale_cent       = 1./(adTaa12[ibin-1]*adDeltaCent12[ibin-1]);
       if(ih!=0) scale_cent = 1/(adTaa6[ibin-1]*adDeltaCent6[ibin-1]);
-      const double scale_cent6      = 1./(adTaa6[ibin-1]*adDeltaCent6[ibin-1]);
-
+      double scale_cent6      = 0;
+      if (ibin<=nBinsNpart6) {
+        scale_cent6 = 1./(adTaa6[ibin-1]*adDeltaCent6[ibin-1]);
+      }
       // taa relative uncertainty
-      double taa6_relerr   = TMath::Power(adTaa6Err[ibin-1] / adTaa6[ibin-1],2);
+      double taa6_relerr   = 0;
       const double taa12_relerr  = TMath::Power(adTaa12Err[ibin-1] / adTaa12[ibin-1],2); 
-      if (ibin>nBinsNpart6) taa6_relerr = 0;
+      if (ibin<=nBinsNpart6) {
+        taa6_relerr = TMath::Power(adTaa6Err[ibin-1] / adTaa6[ibin-1],2);
+      }
 
       if(bDoDebug) cout << "###### Taa uncert: bin6= " << taa6_relerr << "\tbin12= " << taa12_relerr << endl;
 
