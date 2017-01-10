@@ -135,27 +135,27 @@ void makeSyst_cent( bool bSavePlots     = 1,
   TH1F *phCorr_npr_aa_y1624_pt365_copy;
   
   // total uncertainty separately for pp and pbpb
-  double systErrTotal_pr_pp_y024_pt6530_copy[50]={0};
-  double systErrTotal_pr_pp_y012_pt6530_copy[50]={0};
-  double systErrTotal_pr_pp_y1216_pt6530_copy[50]={0};
-  double systErrTotal_pr_pp_y1624_pt6530_copy[50]={0};
-  double systErrTotal_pr_pp_y1624_pt365_copy[50]={0};
-  double systErrTotal_pr_aa_y024_pt6530_copy[50]={0};
-  double systErrTotal_pr_aa_y012_pt6530_copy[50]={0};
-  double systErrTotal_pr_aa_y1216_pt6530_copy[50]={0};
-  double systErrTotal_pr_aa_y1624_pt6530_copy[50]={0};
-  double systErrTotal_pr_aa_y1624_pt365_copy[50]={0};
+  double systErrTotal_pr_pp_y024_pt6530_copy[100]={0};
+  double systErrTotal_pr_pp_y012_pt6530_copy[100]={0};
+  double systErrTotal_pr_pp_y1216_pt6530_copy[100]={0};
+  double systErrTotal_pr_pp_y1624_pt6530_copy[100]={0};
+  double systErrTotal_pr_pp_y1624_pt365_copy[100]={0};
+  double systErrTotal_pr_aa_y024_pt6530_copy[100]={0};
+  double systErrTotal_pr_aa_y012_pt6530_copy[100]={0};
+  double systErrTotal_pr_aa_y1216_pt6530_copy[100]={0};
+  double systErrTotal_pr_aa_y1624_pt6530_copy[100]={0};
+  double systErrTotal_pr_aa_y1624_pt365_copy[100]={0};
 
-  double systErrTotal_npr_pp_y024_pt6530_copy[50]={0};
-  double systErrTotal_npr_pp_y012_pt6530_copy[50]={0};
-  double systErrTotal_npr_pp_y1216_pt6530_copy[50]={0};
-  double systErrTotal_npr_pp_y1624_pt6530_copy[50]={0};
-  double systErrTotal_npr_pp_y1624_pt365_copy[50]={0};
-  double systErrTotal_npr_aa_y024_pt6530_copy[50]={0};
-  double systErrTotal_npr_aa_y012_pt6530_copy[50]={0};
-  double systErrTotal_npr_aa_y1216_pt6530_copy[50]={0};
-  double systErrTotal_npr_aa_y1624_pt6530_copy[50]={0};
-  double systErrTotal_npr_aa_y1624_pt365_copy[50]={0};
+  double systErrTotal_npr_pp_y024_pt6530_copy[100]={0};
+  double systErrTotal_npr_pp_y012_pt6530_copy[100]={0};
+  double systErrTotal_npr_pp_y1216_pt6530_copy[100]={0};
+  double systErrTotal_npr_pp_y1624_pt6530_copy[100]={0};
+  double systErrTotal_npr_pp_y1624_pt365_copy[100]={0};
+  double systErrTotal_npr_aa_y024_pt6530_copy[100]={0};
+  double systErrTotal_npr_aa_y012_pt6530_copy[100]={0};
+  double systErrTotal_npr_aa_y1216_pt6530_copy[100]={0};
+  double systErrTotal_npr_aa_y1624_pt6530_copy[100]={0};
+  double systErrTotal_npr_aa_y1624_pt365_copy[100]={0};
   
 
 
@@ -1134,7 +1134,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
               efftnpContribution_pt6530y1624_pr_pp += syst_effTnP_pt6530y1624_pr_pp[ibin-1][ifile];
                 
               efftnpContribution_pt6530y1624_npr_aa += syst_effTnP_pt6530y1624_npr_aa[ibin-1][ifile];
-              efftnpContribution_pt6530y1624_npr_pp += syst_effTnP_pt6530y1216_npr_pp[ibin-1][ifile];
+              efftnpContribution_pt6530y1624_npr_pp += syst_effTnP_pt6530y1624_npr_pp[ibin-1][ifile];
             }
             if(bDoDebug) cout << "+++++++++++++++++++++++++++++++++ Fit contribution to systm: "
                               << efftnpContribution_pt6530y1624_pr_aa << "\t& " << efftnpContribution_pt6530y1624_npr_aa << "\t; "
