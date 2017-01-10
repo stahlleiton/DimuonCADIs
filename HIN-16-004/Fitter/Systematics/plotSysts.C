@@ -49,14 +49,22 @@ void plotSysts(anabin thebin, string xaxis, string collTag, bool plotGlobalSysts
       tags.push_back(systs.back().begin()->second.name);
       systs.push_back(readSyst("Systematics/csv/syst_PbPb_sigsyst.csv"));
       tags.push_back(systs.back().begin()->second.name);
-      systs.push_back(readSyst("Systematics/csv/syst_PbPb_dummytnp.csv"));
+      systs.push_back(readSyst("Systematics/csv/syst_PbPb_fulltnp.csv"));
+      tags.push_back(systs.back().begin()->second.name);
+      systs.push_back(readSyst("Systematics/csv/syst_PbPb_muidtnp.csv"));
+      tags.push_back(systs.back().begin()->second.name);
+      systs.push_back(readSyst("Systematics/csv/syst_PbPb_statnp.csv"));
       tags.push_back(systs.back().begin()->second.name);
    } else {
       systs.push_back(readSyst("Systematics/csv/syst_PP_bkgsyst.csv"));
       tags.push_back(systs.back().begin()->second.name);
       systs.push_back(readSyst("Systematics/csv/syst_PP_sigsyst.csv"));
       tags.push_back(systs.back().begin()->second.name);
-      systs.push_back(readSyst("Systematics/csv/syst_PP_dummytnp.csv"));
+      systs.push_back(readSyst("Systematics/csv/syst_PP_fulltnp.csv"));
+      tags.push_back(systs.back().begin()->second.name);
+      systs.push_back(readSyst("Systematics/csv/syst_PP_muidtnp.csv"));
+      tags.push_back(systs.back().begin()->second.name);
+      systs.push_back(readSyst("Systematics/csv/syst_PP_statnp.csv"));
       tags.push_back(systs.back().begin()->second.name);
    }
 
@@ -67,6 +75,10 @@ void plotSysts(anabin thebin, string xaxis, string collTag, bool plotGlobalSysts
       systs.push_back(readSyst("Systematics/csv/syst_PbPb_Nmb.csv"));
       tags.push_back(systs.back().begin()->second.name);
       systs.push_back(readSyst("Systematics/csv/syst_PP_lumi.csv"));
+      tags.push_back(systs.back().begin()->second.name);
+      systs.push_back(readSyst("Systematics/csv/syst_PP_trk.csv"));
+      tags.push_back(systs.back().begin()->second.name);
+      systs.push_back(readSyst("Systematics/csv/syst_PbPb_trk.csv"));
       tags.push_back(systs.back().begin()->second.name);
    }
 

@@ -17,8 +17,8 @@ using namespace std;
 
 #ifndef poiname_check
 #define poiname_check
-// const char* poiname = "N_Jpsi";
-const char* poiname = "eff";
+const char* poiname = "N_Jpsi";
+// const char* poiname = "eff";
 #endif
 
 //////////////////
@@ -73,11 +73,11 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
          }
 
          double val;
-         double chi2 = poiFromBin(workDirName.Data(),collTag,"chi2",trbin);
-         double ndof = poiFromBin(workDirName.Data(),collTag,"ndof",trbin);
+         double chi2 = poiFromBin(workDirName.Data(),collTag,"chi2_invMass",trbin);
+         double ndof = poiFromBin(workDirName.Data(),collTag,"ndof_invMass",trbin);
 
          // in the case of a really bad chi2, print a warning -- except if we are looking at efficiencies
-         if (TString(poiname).Contains("eff") && (ndof==-999 || TMath::Prob(chi2,ndof)<1e-10)) {
+         if (!(TString(poiname).Contains("eff")) && (ndof==-999 || TMath::Prob(chi2,ndof)<1e-10)) {
             double ymin = trbin.rapbin().low();
             double ymax = trbin.rapbin().high();
             double ptmin = trbin.ptbin().low();

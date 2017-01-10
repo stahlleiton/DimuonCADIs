@@ -56,7 +56,8 @@ void results2tree(
    // collision system
    Char_t collSystem[8];
    // goodness of fit
-   float nll, chi2, chi2_invMass, chi2_ctau, chi2prob, normchi2; int npar, nparbkg, ndof , ndof_invMass, ndof_ctau;
+   float nll, chi2, chi2_invMass, chi2_ctau, chi2prob_invMass, chi2prob_ctau, normchi2_invMass,normchi2_ctau; 
+   int npar, nparbkg, ndof_invMass, ndof_ctau;
    // parameters to store: make it a vector
    vector<poi> thePois;
    TString thePoiNamesStr(thePoiNames);
@@ -78,16 +79,22 @@ void results2tree(
    tr->Branch("bkgName",bkgName,"bkgName/C");
    tr->Branch("collSystem",collSystem,"collSystem/C");
    tr->Branch("nll",&nll,"nll/F");
-   tr->Branch("chi2",&chi2,"chi2/F");
+   // tr->Branch("chi2",&chi2,"chi2/F");
    tr->Branch("chi2_invMass",&chi2_invMass,"chi2_invMass/F");
+   tr->Branch("chi2prob_invMass",&chi2prob_invMass,"chi2prob_invMass/F");
+   tr->Branch("normchi2_invMass",&normchi2_invMass,"normchi2_invMass/F");
+   tr->Branch("chi2prob_invMass",&chi2prob_invMass,"chi2prob_invMass/F");
+   tr->Branch("ndof_invMass",&ndof_invMass,"ndof_invMass/I");
    tr->Branch("chi2_ctau",&chi2_ctau,"chi2_ctau/F");
-   tr->Branch("chi2prob",&chi2prob,"chi2prob/F");
-   tr->Branch("normchi2",&normchi2,"normchi2/F");
+   tr->Branch("chi2prob_ctau",&chi2prob_ctau,"chi2prob_ctau/F");
+   tr->Branch("normchi2_ctau",&normchi2_ctau,"normchi2_ctau/F");
+   tr->Branch("chi2prob_ctau",&chi2prob_ctau,"chi2prob_ctau/F");
+   tr->Branch("ndof_ctau",&ndof_ctau,"ndof_ctau/I");
+   // tr->Branch("chi2prob",&chi2prob,"chi2prob/F");
+   // tr->Branch("normchi2",&normchi2,"normchi2/F");
    tr->Branch("npar",&npar,"npar/I");
    tr->Branch("nparbkg",&nparbkg,"nparbkg/I");
-   tr->Branch("ndof",&ndof,"ndof/I");
-   tr->Branch("ndof_invMass",&ndof_invMass,"ndof_invMass/I");
-   tr->Branch("ndof_ctau",&ndof_ctau,"ndof_ctau/I");
+   // tr->Branch("ndof",&ndof,"ndof/I");
 
    for (vector<poi>::iterator it=thePois.begin(); it!=thePois.end(); it++) {
       tr->Branch(Form("%s_val",it->name),&(it->val),Form("%s_val/F",it->name));
@@ -137,7 +144,7 @@ void results2tree(
          }
       }
 
-      nll=0; chi2=0; npar=0; ndof=0;
+      nll=0; chi2=0; npar=0; ndof_ctau=0,ndof_invMass=0;
       chi2_invMass=0; ndof_invMass=0;
       chi2_ctau=0; ndof_ctau=0;
       if (f && ws) {
@@ -154,34 +161,40 @@ void results2tree(
                npar = model->getParameters(dat)->selectByAttrib("Constant",kFALSE)->getSize();
 
                // compute the chi2 and the ndof
-               RooRealVar *chi2var = ws->var("chi2");
-               RooRealVar *ndofvar = ws->var("ndof");
+               // RooRealVar *chi2var = ws->var("chi2");
+               // RooRealVar *ndofvar = ws->var("ndof");
                RooRealVar *chi2var_invMass = ws->var("chi2_invMass");
                RooRealVar *ndofvar_invMass = ws->var("ndof_invMass");
                RooRealVar *chi2var_ctau = ws->var("chi2_ctau");
                RooRealVar *ndofvar_ctau = ws->var("ndof_ctau");
-               if (chi2var && ndofvar) {
-                  chi2 = chi2var->getVal();
-                  ndof = ndofvar->getVal();
-               } else {
-                  RooPlot* frame = ws->var("invMass")->frame(Bins(nBins));
-                  dat->plotOn(frame, DataError(RooAbsData::SumW2), XErrorSize(0));
-                  model->plotOn(frame, Precision(1e-4), Range("invMass"));
-                  TH1 *hdatact = dat->createHistogram("hdatact", *(ws->var("invMass")), Binning(nBins));
-                  RooHist *hpull = frame->pullHist(0,0, true);
-                  double* ypulls = hpull->GetY();
-                  unsigned int nFullBins = 0;
-                  for (int i = 0; i < nBins; i++) {
-                     if (hdatact->GetBinContent(i+1) > 0.0) {
-                        chi2 += ypulls[i]*ypulls[i];
-                        nFullBins++;
-                     }
-                  }
-                  ndof = nFullBins - npar;
+               if (chi2var_invMass && ndofvar_invMass) {
+                  chi2_invMass = chi2var_invMass->getVal();
+                  ndof_invMass = ndofvar_invMass->getVal();
+                  normchi2_invMass = chi2_invMass/ndof_invMass;
+                  chi2prob_invMass = TMath::Prob(chi2_invMass,ndof_invMass);
                }
-
-               normchi2 = chi2/ndof;
-               chi2prob = TMath::Prob(chi2,ndof);
+               if (chi2var_ctau && ndofvar_ctau) {
+                  chi2_ctau = chi2var_ctau->getVal();
+                  ndof_ctau = ndofvar_ctau->getVal();
+                  normchi2_ctau = chi2_ctau/ndof_ctau;
+                  chi2prob_ctau = TMath::Prob(chi2_ctau,ndof_ctau);
+               }
+               // } else {
+               //    RooPlot* frame = ws->var("invMass")->frame(Bins(nBins));
+               //    dat->plotOn(frame, DataError(RooAbsData::SumW2), XErrorSize(0));
+               //    model->plotOn(frame, Precision(1e-4), Range("invMass"));
+               //    TH1 *hdatact = dat->createHistogram("hdatact", *(ws->var("invMass")), Binning(nBins));
+               //    RooHist *hpull = frame->pullHist(0,0, true);
+               //    double* ypulls = hpull->GetY();
+               //    unsigned int nFullBins = 0;
+               //    for (int i = 0; i < nBins; i++) {
+               //       if (hdatact->GetBinContent(i+1) > 0.0) {
+               //          chi2 += ypulls[i]*ypulls[i];
+               //          nFullBins++;
+               //       }
+               //    }
+               //    ndof = nFullBins - npar;
+               // }
             }
             if (model_bkg) {
                nparbkg = model_bkg->getParameters(dat)->selectByAttrib("Constant",kFALSE)->getSize();
@@ -215,6 +228,7 @@ void results2tree(
             } else if (TString(itpoi->name).Contains("eff")) {
                // efficiency
                TFile *feff = TFile::Open(Form("../Efficiency/files/histos_%s_%s.root", 
+               // TFile *feff = TFile::Open(Form("../Efficiency/files_mihee/trg_plus1sigma/histos_%s_%s.root", 
                         TString(itpoi->name)=="effnp" ? "npjpsi" : "jpsi", 
                         isPP ? "pp" : "pbpb"));
                bool isallcent = (thebin.centbin() == binI(0,200));

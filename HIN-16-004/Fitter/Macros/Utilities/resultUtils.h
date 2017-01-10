@@ -342,8 +342,8 @@ double poiFromBin(const char* workDirName, const char* theCollSystem, const char
    tr->SetBranchAddress("ymax",&ymax);
    tr->SetBranchAddress("centmin",&centmin);
    tr->SetBranchAddress("centmax",&centmax);
-   if (string(thepoiname)!="chi2" && string(thepoiname)!="ndof") tr->SetBranchAddress(Form("%s_val",thepoiname),&val);
-   else if (string(thepoiname)!="ndof") tr->SetBranchAddress(thepoiname,&val);
+   if (!TString(thepoiname).Contains("chi2") && !TString(thepoiname).Contains("ndof")) tr->SetBranchAddress(Form("%s_val",thepoiname),&val);
+   else if (!TString(thepoiname).Contains("ndof")) tr->SetBranchAddress(thepoiname,&val);
    else tr->SetBranchAddress(thepoiname,&valI);
    tr->SetBranchAddress("collSystem",collSystem);
 
@@ -358,7 +358,7 @@ double poiFromBin(const char* workDirName, const char* theCollSystem, const char
    }
    f->Close(); delete f;
    if (!found) val = -999;
-   if (string(thepoiname)=="ndof") val = valI;
+   if (TString(thepoiname).Contains("ndof")) val = valI;
    return val;
 }
 

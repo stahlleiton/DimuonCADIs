@@ -95,14 +95,18 @@ map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name)
 
 map<anabin, syst> readSyst_all(const char* collSystem, bool doPrintTex, const char* texName) {
    vector<TString> filelist;
+   // filelist.push_back("Systematics/csv/syst_PP_lumi.csv"); // special case, do not include in the list
+   // filelist.push_back("Systematics/csv/syst_PbPb_taa.csv"); // special case, do not include in the list
    filelist.push_back("Systematics/csv/syst_PbPb_bkgsyst.csv");
    filelist.push_back("Systematics/csv/syst_PbPb_sigsyst.csv");
    filelist.push_back("Systematics/csv/syst_PP_bkgsyst.csv");
-   // filelist.push_back("Systematics/csv/syst_PP_lumi.csv"); // special case, do not include in the list
-   filelist.push_back("Systematics/csv/syst_PbPb_dummytnp.csv");
-   // filelist.push_back("Systematics/csv/syst_PbPb_taa.csv"); // special case, do not include in the list
-   filelist.push_back("Systematics/csv/syst_PP_dummytnp.csv");
    filelist.push_back("Systematics/csv/syst_PP_sigsyst.csv");
+   filelist.push_back("Systematics/csv/syst_PbPb_fulltnp.csv"); // temporary!! to be updated
+   filelist.push_back("Systematics/csv/syst_PP_fulltnp.csv"); // temporary!! to be updated
+   filelist.push_back("Systematics/csv/syst_PbPb_muidtnp.csv");
+   filelist.push_back("Systematics/csv/syst_PP_muidtnp.csv");
+   filelist.push_back("Systematics/csv/syst_PbPb_statnp.csv");
+   filelist.push_back("Systematics/csv/syst_PP_statnp.csv");
   
    vector< map<anabin, syst> > systmap_all;
 
