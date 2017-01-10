@@ -13,6 +13,7 @@ bool buildCharmoniaCtauResModel(RooWorkspace& ws, struct CharmModel model, map<s
                                 string pdfType,              // Pdf Type Name
                                 bool isPbPb,                 // Determine if we are working with PbPb (True) or PP (False)
                                 bool usePerEventError,       // Determine if we use the perEventError technique
+                                bool useTotctauErrPdf,        // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
                                 double  numEntries = 300000. // Number of entries in the dataset
                                 )
 {
@@ -24,6 +25,8 @@ bool buildCharmoniaCtauResModel(RooWorkspace& ws, struct CharmModel model, map<s
 
   string objInc = (incJpsi?"Jpsi":"Psi2S");
   string obj    = objInc + (incNonPrompt?"NoPR":"PR");
+  
+  string ctauErrPDFType = (useTotctauErrPdf?"Tot":objInc);
 
   // If the initial parameters are empty, set defaul parameter values
   setCtauResDefaultParameters(parIni, isPbPb, numEntries);
@@ -37,7 +40,7 @@ bool buildCharmoniaCtauResModel(RooWorkspace& ws, struct CharmModel model, map<s
     return false;
   }
   if (usePerEventError) {
-    RooProdPdf pdf(Form("%s_%s_%s", pdfType.c_str(), obj.c_str(), (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", objInc.c_str(), (isPbPb?"PbPb":"PP"))),
+    RooProdPdf pdf(Form("%s_%s_%s", pdfType.c_str(), obj.c_str(), (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", ctauErrPDFType.c_str(), (isPbPb?"PbPb":"PP"))),
                    Conditional( *ws.pdf(Form("%sCOND_%s_%s", pdfType.c_str(), obj.c_str(), (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var(varName.c_str())) )
                    ); 
     ws.import(pdf);

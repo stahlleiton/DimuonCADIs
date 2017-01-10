@@ -16,6 +16,7 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                              bool incPsi2S,               // Include Psi(2S) model
                              bool incPrompt,              // Include Prompt models
                              bool incNonPrompt,           // Include NonPrompt models
+                             bool useTotctauErrPdf,        // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
                              double  numEntries = 300000. // Number of entries in the dataset
                              )
 {
@@ -37,6 +38,7 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
   bool isMC = (dsName.find("MC")!=std::string::npos);
   bool incCtauErrPDF = true;
   
+  
   if (incJpsi) {
     if (incPrompt) {
       if(!defineCtauResolModel(ws, "JpsiPR", model.CtauRes, parIni, isPbPb)) { cout << "[ERROR] Defining the Prompt Ctau Resolution Model failed" << endl; return false; }
@@ -48,7 +50,7 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     }
     if (incPrompt && !incNonPrompt) {
       if (incCtauErrPDF) {
-        RooProdPdf pdfJpsi(Form("pdfCTAU_JpsiPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_Jpsi_%s", (isPbPb?"PbPb":"PP"))),
+        RooProdPdf pdfJpsi(Form("pdfCTAU_JpsiPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Jpsi"), (isPbPb?"PbPb":"PP"))),
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfJpsi);
@@ -70,7 +72,7 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     }
     if (!incPrompt && incNonPrompt) {
       if (incCtauErrPDF) {
-        RooProdPdf pdfJpsi(Form("pdfCTAU_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_Jpsi_%s", (isPbPb?"PbPb":"PP"))),
+        RooProdPdf pdfJpsi(Form("pdfCTAU_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Jpsi"), (isPbPb?"PbPb":"PP"))),
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfJpsi);
@@ -92,11 +94,11 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     }
     if (incPrompt && incNonPrompt) {
       if (incCtauErrPDF) {
-        RooProdPdf pdfJpsiPR(Form("pdfCTAU_JpsiPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_Jpsi_%s", (isPbPb?"PbPb":"PP"))),
+        RooProdPdf pdfJpsiPR(Form("pdfCTAU_JpsiPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Jpsi"), (isPbPb?"PbPb":"PP"))),
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        );
         ws.import(pdfJpsiPR);
-        RooProdPdf pdfJpsiNoPR(Form("pdfCTAU_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_Jpsi_%s", (isPbPb?"PbPb":"PP"))),
+        RooProdPdf pdfJpsiNoPR(Form("pdfCTAU_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Jpsi"), (isPbPb?"PbPb":"PP"))),
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfJpsiNoPR);
@@ -154,7 +156,7 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     }
     if (incPrompt && !incNonPrompt) {
       if (incCtauErrPDF) {
-        RooProdPdf pdfPsi2S(Form("pdfCTAU_Psi2SPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_Psi2S_%s", (isPbPb?"PbPb":"PP"))),
+        RooProdPdf pdfPsi2S(Form("pdfCTAU_Psi2SPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Psi2S"), (isPbPb?"PbPb":"PP"))),
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfPsi2S);
@@ -176,7 +178,7 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     }
     if (!incPrompt && incNonPrompt) {
       if (incCtauErrPDF) {
-        RooProdPdf pdfPsi2S(Form("pdfCTAU_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_Psi2S_%s", (isPbPb?"PbPb":"PP"))),
+        RooProdPdf pdfPsi2S(Form("pdfCTAU_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Psi2S"), (isPbPb?"PbPb":"PP"))),
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfPsi2S);
@@ -198,11 +200,11 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     }
     if (incPrompt && incNonPrompt) {
       if (incCtauErrPDF) {
-        RooProdPdf pdfPsi2SPR(Form("pdfCTAU_Psi2SPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_Psi2S_%s", (isPbPb?"PbPb":"PP"))),
+        RooProdPdf pdfPsi2SPR(Form("pdfCTAU_Psi2SPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Psi2S"), (isPbPb?"PbPb":"PP"))),
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfPsi2SPR);
-        RooProdPdf pdfPsi2SNoPR(Form("pdfCTAU_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_Psi2S_%s", (isPbPb?"PbPb":"PP"))),
+        RooProdPdf pdfPsi2SNoPR(Form("pdfCTAU_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Psi2S"), (isPbPb?"PbPb":"PP"))),
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfPsi2SNoPR);
@@ -260,7 +262,7 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     }
     if (incPrompt && !incNonPrompt) {
       if (incCtauErrPDF) {
-        RooProdPdf pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"))),
+        RooProdPdf pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Bkg"), (isPbPb?"PbPb":"PP"))),
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_BkgPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdf);
@@ -278,7 +280,7 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     }
     if (!incPrompt && incNonPrompt) {
       if (incCtauErrPDF) {
-        RooProdPdf pdf(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"))),
+        RooProdPdf pdf(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Bkg"), (isPbPb?"PbPb":"PP"))),
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_BkgNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdf);
@@ -297,11 +299,11 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     if (incPrompt && incNonPrompt) {
       if (incCtauErrPDF) {
         if ( !ws.pdf(Form("pdfCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"))) ) { return false; }
-        RooProdPdf pdfPR(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"))),
+        RooProdPdf pdfPR(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Bkg"), (isPbPb?"PbPb":"PP"))),
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_BkgPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfPR);
-        RooProdPdf pdfNoPR(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"))),
+        RooProdPdf pdfNoPR(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Bkg"), (isPbPb?"PbPb":"PP"))),
                        Conditional( *ws.pdf(Form("pdfCTAUCOND_BkgNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        ); 
         ws.import(pdfNoPR);

@@ -37,6 +37,7 @@ void fitter(
             bool incPrompt    = true,         // Includes Prompt ctau model
             bool incNonPrompt = true,          // Includes Non Prompt ctau model 
             // Select the fitting options
+            bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
             bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
@@ -311,6 +312,7 @@ void fitter(
                                  doCtauErrPDF,    // If yes, it builds the Ctau Error PDFs from data
                                  fitRes,          // If yes fits the resolution from Data or MC
                                  // Select the fitting options
+                                 useTotctauErrPdf,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
                                  cutCtau,         // Apply prompt ctau cuts
                                  doSimulFit,      // Do simultaneous fitC
                                  wantPureSMC,     // Flag to indicate if we want to fit pure signal MC
@@ -351,6 +353,7 @@ void fitter(
                                             doCtauErrPDF,    // If yes, it builds the Ctau Error PDFs from data
                                             fitRes,          // If yes fits the resolution from Data or MC
                                             // Select the fitting options
+                                            useTotctauErrPdf,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
                                             cutCtau,         // Apply prompt ctau cuts
                                             doSimulFit,      // Do simultaneous fit
                                             wantPureSMC,           // Flag to indicate if we want to fit pure signal MC

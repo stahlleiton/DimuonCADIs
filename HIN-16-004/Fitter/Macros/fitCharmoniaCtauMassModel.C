@@ -26,6 +26,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
                                 bool incJpsi       = true,      // Includes Jpsi model
                                 bool incPsi2S      = false,     // Includes Psi(2S) model
                                 // Select the fitting options
+                                bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
                                 map<string, string> inputFitDir={},// User-defined Location of the fit results
                                 int  numCores      = 2,         // Number of cores used for fitting
                                 // Select the drawing options
@@ -151,7 +152,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
   if (!setCtauModel(model, parIni, isPbPb, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt)) { return false; }
 
   // Build the Fit Model
-  if (!buildCharmoniaCtauModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsName, isPbPb, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt,  numEntries))  { return false; }
+  if (!buildCharmoniaCtauModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsName, isPbPb, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt, useTotctauErrPdf, numEntries))  { return false; }
 
   //// LOAD CTAU SIDEBAND PDF
   if (fitCtau) {

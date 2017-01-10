@@ -30,6 +30,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
                             bool incBkg        = true,      // Includes Background model
                             bool incPrompt     = true,      // Includes Prompt ctau model
                             bool incNonPrompt  = false,     // Includes NonPrompt ctau model
+                            bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
                             // Select the fitting options
                             bool doFit         = true,      // Flag to indicate if we want to perform the fit
                             bool wantPureSMC   = false,     // Flag to indicate if we want to fit pure signal MC
@@ -134,7 +135,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
            ) { return false; }
     }
     // Build the Fit Model
-    if (!buildCharmoniaCtauModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsName, isPbPb, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt,  numEntries))  { return false; }
+    if (!buildCharmoniaCtauModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsName, isPbPb, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt, useTotctauErrPdf, numEntries))  { return false; }
 
     //// LOAD CTAU RESOLUTION PDF
     if (fitSideBand) {

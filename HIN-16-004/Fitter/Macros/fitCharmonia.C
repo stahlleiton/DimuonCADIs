@@ -31,6 +31,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
                    bool doCtauErrPDF = false,      // If yes, it builds the Ctau Error PDFs from data
                    bool fitRes       = false,      // If yes fits the resolution from Data or MC
                    // Select the fitting options
+                   bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
                    bool cutCtau      = false,      // Apply prompt ctau cuts
                    bool doSimulFit   = false,      // Do simultaneous fit
                    bool wantPureSMC  = false,      // Flag to indicate if we want to fit pure signal MC
@@ -148,7 +149,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
 
     if ( !fitCharmoniaCtauModel( myws, inputWorkspace, cut, parIni, opt, outputDir, 
                            DSTAG, isPbPb, importDS, 
-                           incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, 
+                           incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, useTotctauErrPdf,
                            doFit, wantPureSMC, loadFitResult, inputFitDir, numCores, 
                            setLogScale, incSS, binWidth
                            ) 
@@ -164,7 +165,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
 
     if ( !fitCharmoniaCtauResModel( myws, inputWorkspace, cut, parIni, opt, outputDir, 
                                     DSTAG, isPbPb, importDS, 
-                                    incJpsi, incPsi2S,
+                                    incJpsi, incPsi2S, useTotctauErrPdf,
                                     doFit, wantPureSMC, loadFitResult, inputFitDir, numCores, 
                                     setLogScale, incSS, binWidth
                                     ) 
@@ -180,7 +181,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
     
     if ( !fitCharmoniaCtauResDataModel( myws, inputWorkspace, cut, parIni, opt, outputDir,
                                    DSTAG, isPbPb, importDS,
-                                   incJpsi, incPsi2S,
+                                   incJpsi, incPsi2S, useTotctauErrPdf,
                                    doFit, loadFitResult, inputFitDir, numCores,
                                    setLogScale, incSS, binWidth
                                    )
@@ -193,7 +194,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
    
     if ( !fitCharmoniaCtauMassModel( myws, inputWorkspace, cut, parIni, opt, outputDir, 
                                      DSTAG, isPbPb,
-                                     incJpsi, incPsi2S, 
+                                     incJpsi, incPsi2S, useTotctauErrPdf,
                                      inputFitDir, numCores,
                                      setLogScale, incSS, binWidth
                                      ) 

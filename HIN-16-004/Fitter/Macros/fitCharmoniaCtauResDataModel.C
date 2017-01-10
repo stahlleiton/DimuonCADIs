@@ -29,6 +29,7 @@ bool fitCharmoniaCtauResDataModel( RooWorkspace& myws,             // Local Work
                                bool incJpsi       = true,      // Includes Jpsi model
                                bool incPsi2S      = true,      // Includes Psi(2S) model
                                // Select the fitting options
+                               bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
                                bool doFit         = true,      // Flag to indicate if we want to perform the fit
                                bool loadFitResult = false,     // Load previous fit results
                                map<string, string> inputFitDir={},// User-defined Location of the fit results
@@ -155,8 +156,8 @@ bool fitCharmoniaCtauResDataModel( RooWorkspace& myws,             // Local Work
     }
 
     // Build the Fit Model
-    if (!buildCharmoniaCtauResModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsNameCut, "ctau", "pdfCTAURES", isPbPb, usePerEventError,  numEntries))  { return false; }
-    if (!buildCharmoniaCtauResModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsNameCut, "ctauN", "pdfCTAUNRES", isPbPb, false,  numEntries))  { return false; }
+    if (!buildCharmoniaCtauResModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsNameCut, "ctau", "pdfCTAURES", isPbPb, usePerEventError, useTotctauErrPdf, numEntries))  { return false; }
+    if (!buildCharmoniaCtauResModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsNameCut, "ctauN", "pdfCTAUNRES", isPbPb, false, useTotctauErrPdf, numEntries))  { return false; }
 
     // save the initial values of the model we've just created
     RooArgSet* params = (RooArgSet*) myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*myws.var("ctauN"), *myws.var("ctauErr"), *myws.var("ctau")));
