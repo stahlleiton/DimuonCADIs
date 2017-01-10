@@ -20,7 +20,7 @@ bool buildCharmoniaCtauResModel(RooWorkspace& ws, struct CharmModel model, map<s
   bool isMC = (dsName.find("MC")!=std::string::npos);
   bool incNonPrompt = (dsName.find("NOPR")!=std::string::npos);
   bool incJpsi = (dsName.find("JPSI")!=std::string::npos);
-  if (isMC==false) { cout << "[ERROR] The ctau resolution fit can only be performed in MC!" << endl; return false; }
+//  if (isMC==false) { cout << "[ERROR] The ctau resolution fit can only be performed in MC!" << endl; return false; }
 
   string objInc = (incJpsi?"Jpsi":"Psi2S");
   string obj    = objInc + (incNonPrompt?"NoPR":"PR");
@@ -32,7 +32,9 @@ bool buildCharmoniaCtauResModel(RooWorkspace& ws, struct CharmModel model, map<s
   // C r e a t e   m o d e l 
 
   if(!defineCtauResModel(ws, pdfType, obj, varName, model.CtauRes, parIni, isPbPb, usePerEventError)) { 
-    cout << "[ERROR] Defining the " << objInc  << (incNonPrompt?" Non-":" ") << "Prompt MC Ctau Resolution Model failed" << endl; return false; 
+    if (isMC) cout << "[ERROR] Defining the " << objInc  << (incNonPrompt?" Non-":" ") << "Prompt MC Ctau Resolution Model failed" << endl;
+    else cout << "[ERROR] Defining the " << objInc  << "Data Ctau Resolution Model failed" << endl;
+    return false;
   }
   if (usePerEventError) {
     RooProdPdf pdf(Form("%s_%s_%s", pdfType.c_str(), obj.c_str(), (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", objInc.c_str(), (isPbPb?"PbPb":"PP"))),
@@ -58,7 +60,6 @@ bool buildCharmoniaCtauResModel(RooWorkspace& ws, struct CharmModel model, map<s
                                                  *ws.var(Form("N_%s_%s", objInc.c_str(), (isPbPb?"PbPb":"PP")))
                                                  );
   ws.import(*themodel);
-
   setFixedVarsToContantVars(ws);
   
   return true;

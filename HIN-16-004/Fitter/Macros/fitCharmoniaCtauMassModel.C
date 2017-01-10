@@ -183,6 +183,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
       cout << "[INFO] Setting NonPrompt Background parameters to constant!" << endl;
       myws.pdf(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("ctauErr")))->setAttribAll("Constant", kTRUE); 
     } else { cout << "[ERROR] NonPrompt Background PDF was not found!" << endl; return false; }
+    if (!setConstant(myws, Form("b_Bkg_%s", COLL.c_str()), true)) { return false; }
     if (!setConstant(myws, Form("s1_CtauRes_%s", COLL.c_str()), false)) { return false; }
   }
 

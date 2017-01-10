@@ -29,6 +29,7 @@ void fitter(
             bool fitCtau      = true,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
             bool doCtauErrPDF = false,         // If yes, it builds the Ctau Error PDFs from data
+            bool fitRes       = false,         // If yes fits the resolution from Data or MC
             // Select the type of object to fit
             bool incJpsi      = false,          // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
@@ -63,21 +64,23 @@ void fitter(
   binWidth["CTAUERR"]  = 0.0025;
   binWidth["CTAUTRUE"] = 0.025;
   binWidth["CTAURES"]  = 0.25;
-  binWidth["CTAUSB"]   = 0.025;
+  binWidth["CTAUSB"]   = 0.100;
 
   map<string, string> inputFitDir;
-  inputFitDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/"; 
-  inputFitDir["CTAUERR"]  = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/NOMINAL/";
-  inputFitDir["CTAUTRUE"] = "/afs/cern.ch/user/v/vabdulla/public/";
-  inputFitDir["CTAURES"]  = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
-  inputFitDir["CTAUSB"]   = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/";
-
+  inputFitDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/") + workDirName + "/";
+  inputFitDir["CTAUERR"]  = string("/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/NOMINAL/") + (usePeriPD ? "DataFitsPeri/" :  "DataFitsCent/");
+  inputFitDir["CTAUTRUE"] = string("/afs/cern.ch/user/v/vabdulla/public/PbPb2015/DataFits/");
+  // inputFitDir["CTAURES"]  = string("/home/llr/cms/abdullah/RAA/DimuonCADIs/HIN-16-004/Fitter/Output/") + (usePeriPD ? "DataFitsPeri/" :  "DataFitsCent/");
+  inputFitDir["CTAURES"]  = string("");//string("/afs/cern.ch/user/v/vabdulla/public/PbPb2015/") + (usePeriPD ? "DataFitsPeri_NP/" :  "DataFitsCent_NP/");
+  inputFitDir["CTAUSB"]   = string("/home/llr/cms/stahl/RAA_Analysis/NORMAL/DimuonCADIs/HIN-16-004/Fitter/Output/") + workDirName + "/";
+  
   map<string, string> inputInitialFilesDir;
-  inputInitialFilesDir["MASS"]     = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/";
+  inputInitialFilesDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/") + workDirName + "/";
   inputInitialFilesDir["CTAUTRUE"] = "";
-  inputInitialFilesDir["CTAURES"]  = "";
+  inputInitialFilesDir["CTAURES"]  = string("/afs/cern.ch/user/v/vabdulla/public/PbPb2015/Input/") + (usePeriPD ? "DataFitsPeri/" :  "DataFitsCent/");
   inputInitialFilesDir["CTAUSB"]   = "";
   inputInitialFilesDir["CTAU"]     = "";
+  inputInitialFilesDir["FILES"]    = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/") + (usePeriPD ? "DataFitsPeri/" :  "DataFitsCent/");
 
   map<string, string> inputDataSet;
   inputDataSet["DOUBLEMUON"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSetCent/";
@@ -86,18 +89,11 @@ void fitter(
 
   if (workDirName.find("Peri")!=std::string::npos) { usePeriPD = true; }
 
-  if (doCtauErrPDF) { inputFitDir["CTAUERR"] = ""; }
-  if (fitMass && !fitCtau) { inputFitDir["MASS"] = ""; }
-  for (map<string, string>::iterator iMap=inputFitDir.begin();  iMap!=inputFitDir.end(); iMap++) {
-    if (iMap->second!="") { 
-      if (!useExtFiles) iMap->second = "";
-      else  iMap->second += workDirName + "/";}
-  }
-  for (map<string, string>::iterator iMap=inputInitialFilesDir.begin();  iMap!=inputInitialFilesDir.end(); iMap++) {
-    if (iMap->second!="") { 
-      if (!useExtFiles) iMap->second = "";
-      else  iMap->second += workDirName + "/";}
-  }
+  if (doCtauErrPDF) { inputFitDir["CTAUERR"] = ""; inputInitialFilesDir["CTAUERR"] = "";}
+  if (fitMass && !fitCtau) { inputFitDir["MASS"] = ""; inputInitialFilesDir["MASS"] = "";}
+  if (fitCtauTrue) { inputFitDir["CTAUTRUE"] = ""; inputInitialFilesDir["CTAUTRUE"] = ""; }
+  if (fitCtau && fitMC && !incBkg) { inputFitDir["CTAURES"] = ""; inputInitialFilesDir["CTAURES"] = ""; }
+  if (fitCtau && fitData && incBkg && !incJpsi) { inputFitDir["CTAUSB"] = ""; inputInitialFilesDir["CTAUSB"] = ""; }
 
   if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, doCtauErrPDF, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores)) { return; }
 
@@ -137,7 +133,7 @@ void fitter(
     Output: Collection of RooDataSets splitted by tag name, including OS and SS dimuons.
   */
   
-  const string InputTrees = DIR["input"][0] + "InputTrees.txt";
+  const string InputTrees = inputInitialFilesDir["FILES"] + "InputTrees.txt";
   map<string, vector<string> > InputFileCollection;
   if(!getInputFileNames(InputTrees, InputFileCollection)){ return; }
   
@@ -313,6 +309,7 @@ void fitter(
                                  incPrompt,       // Includes Prompt ctau model
                                  incNonPrompt,    // Includes NonPrompt ctau model
                                  doCtauErrPDF,    // If yes, it builds the Ctau Error PDFs from data
+                                 fitRes,          // If yes fits the resolution from Data or MC
                                  // Select the fitting options
                                  cutCtau,         // Apply prompt ctau cuts
                                  doSimulFit,      // Do simultaneous fitC
@@ -352,6 +349,7 @@ void fitter(
                                             incPrompt,       // Includes Prompt ctau model
                                             incNonPrompt,    // Includes NonPrompt ctau model
                                             doCtauErrPDF,    // If yes, it builds the Ctau Error PDFs from data
+                                            fitRes,          // If yes fits the resolution from Data or MC
                                             // Select the fitting options
                                             cutCtau,         // Apply prompt ctau cuts
                                             doSimulFit,      // Do simultaneous fit
