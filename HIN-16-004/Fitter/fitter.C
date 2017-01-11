@@ -2,7 +2,7 @@
 #include "Macros/tree2DataSet.C"
 #include "Macros/fitCharmonia.C"
 
-bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores);
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores);
 
 bool parseFile(string FileName, vector< map<string, string> >& data);
 bool parseString(string input, string delimiter, vector<double>& output);
@@ -28,6 +28,7 @@ void fitter(
             bool fitMass      = false,       // Fits invariant mass distribution
             bool fitCtau      = true,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
+            bool fitCtauReco  = false,      // Fit ctau reco MC distribution
             bool doCtauErrPDF = false,         // If yes, it builds the Ctau Error PDFs from data
             bool fitRes       = false,         // If yes fits the resolution from Data or MC
             // Select the type of object to fit
@@ -38,6 +39,7 @@ void fitter(
             bool incNonPrompt = true,          // Includes Non Prompt ctau model 
             // Select the fitting options
             bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
+            bool useCtauRecoPdf = false,     // If yes use the ctauReco PDF (template) instead of ctauTrue one
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
             bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
@@ -64,6 +66,7 @@ void fitter(
   binWidth["CTAU"]     = 0.100;
   binWidth["CTAUERR"]  = 0.0025;
   binWidth["CTAUTRUE"] = 0.025;
+  binWidth["CTAURECO"] = 0.025;
   binWidth["CTAURES"]  = 0.25;
   binWidth["CTAUSB"]   = 0.100;
 
@@ -71,6 +74,7 @@ void fitter(
   inputFitDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/") + workDirName + "/";
   inputFitDir["CTAUERR"]  = string("/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/NOMINAL/") + (usePeriPD ? "DataFitsPeri/" :  "DataFitsCent/");
   inputFitDir["CTAUTRUE"] = string("/afs/cern.ch/user/v/vabdulla/public/PbPb2015/DataFits/");
+  inputFitDir["CTAURECO"] = string("");
   // inputFitDir["CTAURES"]  = string("/home/llr/cms/abdullah/RAA/DimuonCADIs/HIN-16-004/Fitter/Output/") + (usePeriPD ? "DataFitsPeri/" :  "DataFitsCent/");
   inputFitDir["CTAURES"]  = string("");//string("/afs/cern.ch/user/v/vabdulla/public/PbPb2015/") + (usePeriPD ? "DataFitsPeri_NP/" :  "DataFitsCent_NP/");
   inputFitDir["CTAUSB"]   = string("/home/llr/cms/stahl/RAA_Analysis/NORMAL/DimuonCADIs/HIN-16-004/Fitter/Output/") + workDirName + "/";
@@ -78,6 +82,7 @@ void fitter(
   map<string, string> inputInitialFilesDir;
   inputInitialFilesDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/") + workDirName + "/";
   inputInitialFilesDir["CTAUTRUE"] = "";
+  inputInitialFilesDir["CTAURECO"] = "";
   inputInitialFilesDir["CTAURES"]  = string("/afs/cern.ch/user/v/vabdulla/public/PbPb2015/Input/") + (usePeriPD ? "DataFitsPeri/" :  "DataFitsCent/");
   inputInitialFilesDir["CTAUSB"]   = "";
   inputInitialFilesDir["CTAU"]     = "";
@@ -86,17 +91,18 @@ void fitter(
   map<string, string> inputDataSet;
   inputDataSet["DOUBLEMUON"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSetCent/";
   inputDataSet["PERIPHERAL"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSetPeri/";
-  inputDataSet["MONTECARLO"] = "/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/DataSet/";
+  inputDataSet["MONTECARLO"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSet/";//;"/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/DataSet/";
 
   if (workDirName.find("Peri")!=std::string::npos) { usePeriPD = true; }
 
   if (doCtauErrPDF) { inputFitDir["CTAUERR"] = ""; inputInitialFilesDir["CTAUERR"] = "";}
   if (fitMass && !fitCtau) { inputFitDir["MASS"] = ""; inputInitialFilesDir["MASS"] = "";}
   if (fitCtauTrue) { inputFitDir["CTAUTRUE"] = ""; inputInitialFilesDir["CTAUTRUE"] = ""; }
+  if (fitCtauReco) { inputFitDir["CTAURECO"] = ""; inputInitialFilesDir["CTAURECO"] = ""; }
   if (fitCtau && fitMC && !incBkg) { inputFitDir["CTAURES"] = ""; inputInitialFilesDir["CTAURES"] = ""; }
   if (fitCtau && fitData && incBkg && !incJpsi) { inputFitDir["CTAUSB"] = ""; inputInitialFilesDir["CTAUSB"] = ""; }
 
-  if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, doCtauErrPDF, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores)) { return; }
+  if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, fitCtauReco, doCtauErrPDF, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores)) { return; }
 
   map< string, vector<string> > DIR;
   if(!iniWorkEnv(DIR, workDirName)){ return; }
@@ -228,6 +234,7 @@ void fitter(
        {"PSI2S", fitCtau && incPsi2S && incNonPrompt},
        {"RES",   fitCtau},
        {"TRUE",  fitCtauTrue},
+       {"RECO",  fitCtauReco},
      }
     }
   };
@@ -250,6 +257,7 @@ void fitter(
               string dir = DIR["input"][j];
               if (VAR->first=="MASS" && inputInitialFilesDirs[j]["MASS"]!="") { dir = inputInitialFilesDirs[j]["MASS"]; }
               if (VAR->first=="CTAU" && PAR->first=="TRUE" && inputInitialFilesDirs[j]["CTAUTRUE"]!="") { dir = inputInitialFilesDirs[j]["CTAUTRUE"]; }
+              if (VAR->first=="CTAU" && PAR->first=="RECO" && inputInitialFilesDirs[j]["CTAURECO"]!="") { dir = inputInitialFilesDirs[j]["CTAURECO"]; }
               if (VAR->first=="CTAU" && PAR->first=="RES"  && inputInitialFilesDirs[j]["CTAURES"]!="" ) { dir = inputInitialFilesDirs[j]["CTAURES"];  }
               if (VAR->first=="CTAU" && PAR->first=="BKG"  && inputInitialFilesDirs[j]["CTAUSB"]!=""  ) { dir = inputInitialFilesDirs[j]["CTAUSB"];   }
               if (VAR->first=="CTAU" && PAR->first=="JPSI" && inputInitialFilesDirs[j]["CTAU"]!=""    ) { dir = inputInitialFilesDirs[j]["CTAU"];     }
@@ -292,7 +300,9 @@ void fitter(
           if (DSTAG.Contains("MC") && wantPureSMC) wsName = Form("%s_PureS",DSTAG.Data());
           else if (DSTAG.Contains("DATA") && strcmp(applyCorr,"")) wsName = Form("%s_%s",DSTAG.Data(),applyCorr);
           else wsName = DSTAG;
+          
           if (Workspace.count(wsName.Data())>0) {
+            
             // DATA/MC datasets were loaded
             if (doSimulFit) {
               // If do simultaneous fits, then just fits once
@@ -304,6 +314,7 @@ void fitter(
                                  fitMass,         // Fit mass distribution
                                  fitCtau,         // Fit ctau distribution
                                  fitCtauTrue,     // Fits ctau true MC distribution
+                                 fitCtauReco,     // Fit ctau reco MC distribution
                                  incJpsi,         // Includes Jpsi model
                                  incPsi2S,        // Includes Psi(2S) model
                                  incBkg,          // Includes Background model
@@ -313,6 +324,7 @@ void fitter(
                                  fitRes,          // If yes fits the resolution from Data or MC
                                  // Select the fitting options
                                  useTotctauErrPdf,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
+                                 useCtauRecoPdf,  // If yes use the ctauReco PDF (template) instead of ctauTrue one
                                  cutCtau,         // Apply prompt ctau cuts
                                  doSimulFit,      // Do simultaneous fitC
                                  wantPureSMC,     // Flag to indicate if we want to fit pure signal MC
@@ -345,6 +357,7 @@ void fitter(
                                             fitMass,         // Fit mass distribution
                                             fitCtau,         // Fit ctau distribution
                                             fitCtauTrue,     // Fits ctau true MC distribution
+                                            fitCtauReco,     // Fit ctau reco MC distribution
                                             incJpsi,         // Includes Jpsi model
                                             incPsi2S,        // Includes Psi(2S) model
                                             incBkg,          // Includes Background model
@@ -354,6 +367,7 @@ void fitter(
                                             fitRes,          // If yes fits the resolution from Data or MC
                                             // Select the fitting options
                                             useTotctauErrPdf,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
+                                            useCtauRecoPdf,  // If yes use the ctauReco PDF (template) instead of ctauTrue one
                                             cutCtau,         // Apply prompt ctau cuts
                                             doSimulFit,      // Do simultaneous fit
                                             wantPureSMC,           // Flag to indicate if we want to fit pure signal MC
@@ -757,11 +771,11 @@ bool existDir(string dir)
 };
 
 
-bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores)
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores)
 { 
   cout << "[INFO] Checking user settings " << endl;
 
-  if (!fitMass && !fitCtau && !fitCtauTrue && !doCtauErrPDF) {
+  if (!fitMass && !fitCtau && !fitCtauTrue && !doCtauErrPDF && !fitCtauReco) {
     cout << "[ERROR] At least one distribution has to be selected for fitting, please select either Mass, CtauTrue, CtauErr or Ctau!" << endl; return false;
   }
   if (fitCtauTrue && fitData) {

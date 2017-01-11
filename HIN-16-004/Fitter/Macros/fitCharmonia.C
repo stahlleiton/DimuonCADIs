@@ -6,6 +6,7 @@
 #include "fitCharmoniaCtauModel.C"
 #include "fitCharmoniaCtauErrModel.C"
 #include "fitCharmoniaCtauTrueModel.C"
+#include "fitCharmoniaCtauRecoModel.C"
 #include "fitCharmoniaCtauMassModel.C"
 #include "fitCharmoniaCtauResModel.C"
 #include "fitCharmoniaCtauResDataModel.C"
@@ -23,6 +24,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
                    bool fitMass      = true,       // Fit mass distribution
                    bool fitCtau      = false,      // Fit ctau distribution
                    bool fitCtauTrue  = false,      // Fit ctau truth MC distribution
+                   bool fitCtauReco  = false,      // Fit ctau reco MC distribution
                    bool incJpsi      = true,       // Includes Jpsi model
                    bool incPsi2S     = true,       // Includes Psi(2S) model
                    bool incBkg       = true,       // Includes Background model
@@ -32,6 +34,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
                    bool fitRes       = false,      // If yes fits the resolution from Data or MC
                    // Select the fitting options
                    bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
+                   bool useCtauRecoPdf = false,     // If yes use the ctauReco PDF (template) instead of ctauTrue one
                    bool cutCtau      = false,      // Apply prompt ctau cuts
                    bool doSimulFit   = false,      // Do simultaneous fit
                    bool wantPureSMC  = false,      // Flag to indicate if we want to fit pure signal MC
@@ -46,7 +49,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
                    bool getMeanPT    = false       // Compute the mean PT (NEED TO FIX)
 		   )  
 {
-
+  
   RooMsgService::instance().getStream(0).removeTopic(Caching);  
   RooMsgService::instance().getStream(1).removeTopic(Caching);
   RooMsgService::instance().getStream(0).removeTopic(Plotting);
@@ -124,6 +127,24 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
          ) { return false; }
   }
 
+  if (fitCtauReco && !fitCtauTrue && !fitCtau && !fitMass && !doCtauErrPDF) {
+    
+    // Setting extra input information needed by each fitter
+    double ibWidth = binWidth["CTAURECO"];
+    string iFitDir = inputFitDir["CTAURECO"];
+    bool loadFitResult = false;
+    bool importDS = true;
+    bool doCtauRecoPdf = true;
+    
+    if ( !fitCharmoniaCtauRecoModel( myws, inputWorkspace, cut, parIni, opt, outputDir,
+                                    DSTAG, isPbPb, importDS,
+                                    incJpsi, incPsi2S,
+                                    doCtauRecoPdf, wantPureSMC, loadFitResult, iFitDir, numCores,
+                                    setLogScale, incSS, ibWidth
+                                    )
+        ) { return false; }
+  }
+  
   if (doCtauErrPDF && !fitCtau && !fitCtauTrue && !fitMass) {
 
     // Setting extra input information needed by each fitter
