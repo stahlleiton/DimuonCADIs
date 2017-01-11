@@ -1167,6 +1167,7 @@ void makeSyst_cent( bool bSavePlots     = 1,
     
       // normalization for rms of the fit variations
       double rms_fitContribNorm = nFitVariations;
+      double dRelErrRaw_pr_pp=0, dRelErrRaw_np_pp=0;
       if (method==1 || method==2) rms_fitContribNorm = 1;
       switch(ih){
         case 0:// high-pt , |y|<2.4
@@ -1182,6 +1183,9 @@ void makeSyst_cent( bool bSavePlots     = 1,
             systErrTotal_npr_aa_y024_pt6530_copy[ibin-1] = phCorr_npr_aa->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_aa );
             systErrTotal_npr_pp_y024_pt6530_copy[ibin-1] = phCorr_npr_pp->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_pp );
           }
+
+          dRelErrRaw_pr_pp  = phRaw_pr_pp->GetBinError(ibin)/phRaw_pr_pp->GetBinContent(ibin);
+          dRelErrRaw_np_pp  = phRaw_npr_pp->GetBinError(ibin)/phRaw_npr_pp->GetBinContent(ibin);
 
           prJpsiErrSyst_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa  + taa12_relerr);
           if(ibin <= nBinsNpart6) { // out-of-range bins will be discarded for np
@@ -1199,8 +1203,8 @@ void makeSyst_cent( bool bSavePlots     = 1,
         
           if(ibin == 1) { // global syst is same for all bins, don't need to repeat
             if (systBoxType == 0 || systBoxType == 2) {
-              globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack);
-              globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack);
+              globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack + pow(dRelErrRaw_pr_pp,2));
+              globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack + pow(dRelErrRaw_np_pp,2));
 
               lumi_pr_y024_pt6530  = new TBox(375,1-globalSyst_pr,400.0,1+globalSyst_pr);
               lumi_npr_y024_pt6530 = new TBox(375,1-globalSyst_npr,400.0,1+globalSyst_npr);
@@ -1209,15 +1213,15 @@ void makeSyst_cent( bool bSavePlots     = 1,
               cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack) << endl;
               cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp) << endl;
               cout << "\t\t" << TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
-              cout << "\t\t" << 1-TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< 1-TMath::Sqrt(yieldSyst_npr_pp) << endl;
-              cout << "\t\t" << 1+TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< 1+TMath::Sqrt(yieldSyst_npr_pp) << endl;
+              cout << "\t\t" << 1-TMath::Sqrt(yieldSyst_pr_pp + pow(dRelErrRaw_pr_pp,2)) << "\t"<< 1-TMath::Sqrt(yieldSyst_npr_pp + pow(dRelErrRaw_np_pp,2)) << endl;
+              cout << "\t\t" << 1+TMath::Sqrt(yieldSyst_pr_pp + pow(dRelErrRaw_pr_pp,2)) << "\t"<< 1+TMath::Sqrt(yieldSyst_npr_pp + pow(dRelErrRaw_np_pp,2)) << endl;
               cout << "\t\t" << 1-TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< 1-TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
               cout << "\t\t" << 1+TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< 1+TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
 
               globalSyst_pr = TMath::Sqrt(systLumi+systSelection+systTrack);
               globalSyst_npr = TMath::Sqrt(systLumi+systSelection+systTrack);
-              globalSyst_pp_pr = TMath::Sqrt(yieldSyst_pr_pp);
-              globalSyst_pp_npr = TMath::Sqrt(yieldSyst_npr_pp);
+              globalSyst_pp_pr = TMath::Sqrt(yieldSyst_pr_pp + pow(dRelErrRaw_pr_pp,2));
+              globalSyst_pp_npr = TMath::Sqrt(yieldSyst_npr_pp + pow(dRelErrRaw_np_pp,2));
 
               lumi_pr_y024_pt6530  = new TBox(375,1-globalSyst_pr,400.0,1+globalSyst_pr);
               lumi_npr_y024_pt6530 = new TBox(375,1-globalSyst_npr,400.0,1+globalSyst_npr);
@@ -1277,35 +1281,39 @@ void makeSyst_cent( bool bSavePlots     = 1,
           systErrTotal_npr_aa_y1624_pt365_copy[ibin-1] = phCorr_npr_aa->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_aa );
           systErrTotal_npr_pp_y1624_pt365_copy[ibin-1] = phCorr_npr_pp->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_pp );
 
-          prJpsiErrSyst_pt365y1624_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa  + taa6_relerr);
-          nonPrJpsiErrSyst_pt365y1624_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa + taa6_relerr); 
+          dRelErrRaw_pr_pp  = phRaw_pr_pp->GetBinError(ibin)/phRaw_pr_pp->GetBinContent(ibin);
+          dRelErrRaw_np_pp  = phRaw_npr_pp->GetBinError(ibin)/phRaw_npr_pp->GetBinContent(ibin);
+
+          prJpsiErrSyst_pt365y1624_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa  + taa6_relerr );
+          nonPrJpsiErrSyst_pt365y1624_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa + taa6_relerr ); 
         
           if(ibin == 1) { // global syst is same for all bins, don't need to repeat
             if (systBoxType == 2) {
-              globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack);
-              globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack);
+              globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack + pow(dRelErrRaw_pr_pp,2));
+              globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack + pow(dRelErrRaw_np_pp,2));
 
               lumi_pr_y1624_pt365  = new TBox(375,1-globalSyst_pr,400.0,1+globalSyst_pr);
               lumi_npr_y1624_pt365 = new TBox(375,1-globalSyst_npr,400.0,1+globalSyst_npr);
             } else if (systBoxType == 0 || systBoxType == 1) {
-              cout << "\t\tglobalSyst y1624pt365 _pr and _npr with all 4 parts " << endl;
-              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack) << endl;
-              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp) << endl;
-              cout << "\t\t" << TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
-              cout << "\t\t" << 1-TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< 1-TMath::Sqrt(yieldSyst_npr_pp) << endl;
-              cout << "\t\t" << 1+TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< 1+TMath::Sqrt(yieldSyst_npr_pp) << endl;
-              cout << "\t\t" << 1-TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< 1-TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
-              cout << "\t\t" << 1+TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< 1+TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
-
               globalSyst_pr = TMath::Sqrt(systLumi+systSelection+systTrack);
               globalSyst_npr = TMath::Sqrt(systLumi+systSelection+systTrack);
-              globalSyst_pp_pr = TMath::Sqrt(yieldSyst_pr_pp);
-              globalSyst_pp_npr = TMath::Sqrt(yieldSyst_npr_pp);
+              globalSyst_pp_pr = TMath::Sqrt(yieldSyst_pr_pp + pow(dRelErrRaw_pr_pp,2));
+              globalSyst_pp_npr = TMath::Sqrt(yieldSyst_npr_pp + pow(dRelErrRaw_np_pp,2));
 
               lumi_pr_y1624_pt365  = new TBox(375,1-globalSyst_pr,400.0,1+globalSyst_pr);
               lumi_npr_y1624_pt365 = new TBox(375,1-globalSyst_npr,400.0,1+globalSyst_npr);
               globalpp_pr_y1624_pt365  = new TBox(375,1-globalSyst_pp_pr,400.0,1+globalSyst_pp_pr);
               globalpp_npr_y1624_pt365 = new TBox(375,1-globalSyst_pp_npr,400.0,1+globalSyst_pp_npr);
+
+              cout << "\t\tglobalSyst y1624pt365 _pr and _npr with all 4 parts " << endl;
+              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack) << endl;
+              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp) << endl;
+              cout << "\t\t" << TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
+              cout << "\t\t" << 1-globalSyst_pp_pr  << "\t"<< 1-globalSyst_pp_npr  << endl;
+              cout << "\t\t" << 1+globalSyst_pp_pr  << "\t"<< 1+globalSyst_pp_npr  << endl;
+              cout << "\t\t" << 1-globalSyst_pr  << "\t"<< 1-globalSyst_npr  << endl;
+              cout << "\t\t" << 1+globalSyst_pr  << "\t"<< 1+globalSyst_npr  << endl;
+
             }
           }
 
@@ -1362,35 +1370,38 @@ void makeSyst_cent( bool bSavePlots     = 1,
           systErrTotal_npr_aa_y012_pt6530_copy[ibin-1] = phCorr_npr_aa->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_aa );
           systErrTotal_npr_pp_y012_pt6530_copy[ibin-1] = phCorr_npr_pp->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_pp );
 
-          prJpsiErrSyst_pt6530y012_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa  + taa6_relerr);
-          nonPrJpsiErrSyst_pt6530y012_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa + taa6_relerr); 
+          dRelErrRaw_pr_pp  = phRaw_pr_pp->GetBinError(ibin)/phRaw_pr_pp->GetBinContent(ibin);
+          dRelErrRaw_np_pp  = phRaw_npr_pp->GetBinError(ibin)/phRaw_npr_pp->GetBinContent(ibin);
+
+          prJpsiErrSyst_pt6530y012_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa  + taa6_relerr );
+          nonPrJpsiErrSyst_pt6530y012_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa + taa6_relerr ); 
         
           if(ibin == 1) { // global syst is same for all bins, don't need to repeat
             if (systBoxType == 2) {
-              globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack);
-              globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack);
+              globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack + pow(dRelErrRaw_pr_pp,2));
+              globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack + pow(dRelErrRaw_np_pp,2));
 
               lumi_pr_y012_pt6530  = new TBox(325,1-globalSyst_pr,350.0,1+globalSyst_pr);
               lumi_npr_y012_pt6530 = new TBox(325,1-globalSyst_npr,350.0,1+globalSyst_npr);
             } else if (systBoxType == 0 || systBoxType == 1) {
-              cout << "\t\tglobalSyst y012pt6530 _pr and _npr with all 4 parts " << endl;
-              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack) << endl;
-              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp) << endl;
-              cout << "\t\t" << TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
-              cout << "\t\t" << 1-TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< 1-TMath::Sqrt(yieldSyst_npr_pp) << endl;
-              cout << "\t\t" << 1+TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< 1+TMath::Sqrt(yieldSyst_npr_pp) << endl;
-              cout << "\t\t" << 1-TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< 1-TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
-              cout << "\t\t" << 1+TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< 1+TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
-
               globalSyst_pr = TMath::Sqrt(systLumi+systSelection+systTrack);
               globalSyst_npr = TMath::Sqrt(systLumi+systSelection+systTrack);
-              globalSyst_pp_pr = TMath::Sqrt(yieldSyst_pr_pp);
-              globalSyst_pp_npr = TMath::Sqrt(yieldSyst_npr_pp);
+              globalSyst_pp_pr = TMath::Sqrt(yieldSyst_pr_pp + pow(dRelErrRaw_pr_pp,2));
+              globalSyst_pp_npr = TMath::Sqrt(yieldSyst_npr_pp + pow(dRelErrRaw_np_pp,2));
 
               lumi_pr_y012_pt6530  = new TBox(325,1-globalSyst_pr,400.0,1+globalSyst_pr);
               lumi_npr_y012_pt6530 = new TBox(325,1-globalSyst_npr,400.0,1+globalSyst_npr);
               globalpp_pr_y012_pt6530  = new TBox(325,1-globalSyst_pp_pr,350,1+globalSyst_pp_pr);
               globalpp_npr_y012_pt6530 = new TBox(325,1-globalSyst_pp_npr,350.0,1+globalSyst_pp_npr);
+              
+              cout << "\t\tglobalSyst y012pt6530 _pr and _npr with all 4 parts " << endl;
+              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack) << endl;
+              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp) << endl;
+              cout << "\t\t" << TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
+              cout << "\t\t" << 1-globalSyst_pp_pr  << "\t"<< 1-globalSyst_pp_npr  << endl;
+              cout << "\t\t" << 1+globalSyst_pp_pr  << "\t"<< 1+globalSyst_pp_npr  << endl;
+              cout << "\t\t" << 1-globalSyst_pr  << "\t"<< 1-globalSyst_npr  << endl;
+              cout << "\t\t" << 1+globalSyst_pr  << "\t"<< 1+globalSyst_npr  << endl;
             }
           }
           
@@ -1443,35 +1454,38 @@ void makeSyst_cent( bool bSavePlots     = 1,
           systErrTotal_npr_aa_y1216_pt6530_copy[ibin-1] = phCorr_npr_aa->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_aa );
           systErrTotal_npr_pp_y1216_pt6530_copy[ibin-1] = phCorr_npr_pp->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_pp );
 
+          dRelErrRaw_pr_pp  = phRaw_pr_pp->GetBinError(ibin)/phRaw_pr_pp->GetBinContent(ibin);
+          dRelErrRaw_np_pp  = phRaw_npr_pp->GetBinError(ibin)/phRaw_npr_pp->GetBinContent(ibin);
+
           prJpsiErrSyst_pt6530y1216_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa  + taa6_relerr);
           nonPrJpsiErrSyst_pt6530y1216_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa + taa6_relerr); 
       
           if(ibin == 1) { // global syst is same for all bins, don't need to repeat
             if (systBoxType == 2) {
-              globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack);
-              globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack);
+              globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack + pow(dRelErrRaw_pr_pp,2));
+              globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack + pow(dRelErrRaw_np_pp,2));
 
               lumi_pr_y1216_pt6530  = new TBox(350,1-globalSyst_pr,375,1+globalSyst_pr);
               lumi_npr_y1216_pt6530 = new TBox(350,1-globalSyst_npr,375,1+globalSyst_npr);
             } else if (systBoxType == 0 || systBoxType == 1) {
-              cout << "\t\tglobalSyst y1216pt6530 _pr and _npr with all 4 parts " << endl;
-              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack) << endl;
-              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp) << endl;
-              cout << "\t\t" << TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
-              cout << "\t\t" << 1-TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< 1-TMath::Sqrt(yieldSyst_npr_pp) << endl;
-              cout << "\t\t" << 1+TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< 1+TMath::Sqrt(yieldSyst_npr_pp) << endl;
-              cout << "\t\t" << 1-TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< 1-TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
-              cout << "\t\t" << 1+TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< 1+TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
-
               globalSyst_pr = TMath::Sqrt(systLumi+systSelection+systTrack);
               globalSyst_npr = TMath::Sqrt(systLumi+systSelection+systTrack);
-              globalSyst_pp_pr = TMath::Sqrt(yieldSyst_pr_pp);
-              globalSyst_pp_npr = TMath::Sqrt(yieldSyst_npr_pp);
+              globalSyst_pp_pr = TMath::Sqrt(yieldSyst_pr_pp + pow(dRelErrRaw_pr_pp,2));
+              globalSyst_pp_npr = TMath::Sqrt(yieldSyst_npr_pp + pow(dRelErrRaw_np_pp,2));
 
               lumi_pr_y1216_pt6530  = new TBox(350,1-globalSyst_pr,375,1+globalSyst_pr);
               lumi_npr_y1216_pt6530 = new TBox(350,1-globalSyst_npr,375,1+globalSyst_npr);
               globalpp_pr_y1216_pt6530  = new TBox(350,1-globalSyst_pp_pr,375,1+globalSyst_pp_pr);
               globalpp_npr_y1216_pt6530 = new TBox(350,1-globalSyst_pp_npr,375,1+globalSyst_pp_npr);
+
+              cout << "\t\tglobalSyst y1216pt6530 _pr and _npr with all 4 parts " << endl;
+              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack) << endl;
+              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp) << endl;
+              cout << "\t\t" << TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
+              cout << "\t\t" << 1-globalSyst_pp_pr  << "\t"<< 1-globalSyst_pp_npr  << endl;
+              cout << "\t\t" << 1+globalSyst_pp_pr  << "\t"<< 1+globalSyst_pp_npr  << endl;
+              cout << "\t\t" << 1-globalSyst_pr  << "\t"<< 1-globalSyst_npr  << endl;
+              cout << "\t\t" << 1+globalSyst_pr  << "\t"<< 1+globalSyst_npr  << endl;
             }
           }
 
@@ -1524,13 +1538,16 @@ void makeSyst_cent( bool bSavePlots     = 1,
           systErrTotal_npr_aa_y1624_pt6530_copy[ibin-1] = phCorr_npr_aa->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_aa );
           systErrTotal_npr_pp_y1624_pt6530_copy[ibin-1] = phCorr_npr_pp->GetBinContent(ibin) * TMath::Sqrt( yieldSyst_npr_pp );
 
+          dRelErrRaw_pr_pp  = phRaw_pr_pp->GetBinError(ibin)/phRaw_pr_pp->GetBinContent(ibin);
+          dRelErrRaw_np_pp  = phRaw_npr_pp->GetBinError(ibin)/phRaw_npr_pp->GetBinContent(ibin);
+
           prJpsiErrSyst_pt6530y1624_cent[ibin-1]    = yieldRatio_pr  * TMath::Sqrt(yieldSyst_pr_aa+taa6_relerr);
           nonPrJpsiErrSyst_pt6530y1624_cent[ibin-1] = yieldRatio_npr * TMath::Sqrt(yieldSyst_npr_aa+taa6_relerr); 
          
           if(ibin == 1) { // global syst is same for all bins, don't need to repeat
             if (systBoxType == 2) {
-              globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack);
-              globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack);
+              globalSyst_pr  = TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack + pow(dRelErrRaw_pr_pp,2));
+              globalSyst_npr = TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack + pow(dRelErrRaw_np_pp,2));
 
               lumi_pr_y1624_pt6530  = new TBox(375,1-globalSyst_pr,400.0,1+globalSyst_pr);
               lumi_npr_y1624_pt6530 = new TBox(375,1-globalSyst_npr,400.0,1+globalSyst_npr);
@@ -1538,19 +1555,10 @@ void makeSyst_cent( bool bSavePlots     = 1,
               lumi_pr_y1624_pt6530_pty  = new TBox(350,1-globalSyst_pr,375,1+globalSyst_pr);
               lumi_npr_y1624_pt6530_pty = new TBox(350,1-globalSyst_npr,375.0,1+globalSyst_npr);
             } else if (systBoxType == 0 || systBoxType == 1) {
-              cout << "\t\tglobalSyst y1624pt6530 _pr and _npr with all 4 parts " << endl;
-              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack) << endl;
-              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp) << endl;
-              cout << "\t\t" << TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
-              cout << "\t\t" << 1-TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< 1-TMath::Sqrt(yieldSyst_npr_pp) << endl;
-              cout << "\t\t" << 1+TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< 1+TMath::Sqrt(yieldSyst_npr_pp) << endl;
-              cout << "\t\t" << 1-TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< 1-TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
-              cout << "\t\t" << 1+TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< 1+TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
-
               globalSyst_pr = TMath::Sqrt(systLumi+systSelection+systTrack);
               globalSyst_npr = TMath::Sqrt(systLumi+systSelection+systTrack);
-              globalSyst_pp_pr = TMath::Sqrt(yieldSyst_pr_pp);
-              globalSyst_pp_npr = TMath::Sqrt(yieldSyst_npr_pp);
+              globalSyst_pp_pr = TMath::Sqrt(yieldSyst_pr_pp + pow(dRelErrRaw_pr_pp,2));
+              globalSyst_pp_npr = TMath::Sqrt(yieldSyst_npr_pp + pow(dRelErrRaw_np_pp,2));
 
               lumi_pr_y1624_pt6530  = new TBox(375,1-globalSyst_pr,400.0,1+globalSyst_pr);
               lumi_npr_y1624_pt6530 = new TBox(375,1-globalSyst_npr,400.0,1+globalSyst_npr);
@@ -1561,6 +1569,15 @@ void makeSyst_cent( bool bSavePlots     = 1,
               globalpp_npr_y1624_pt6530 = new TBox(375,1-globalSyst_pp_npr,400.0,1+globalSyst_pp_npr);
               globalpp_pr_y1624_pt6530_pty  = new TBox(350,1-globalSyst_pp_pr,375,1+globalSyst_pp_pr);
               globalpp_npr_y1624_pt6530_pty = new TBox(350,1-globalSyst_pp_npr,375.0,1+globalSyst_pp_npr);
+
+              cout << "\t\tglobalSyst y1624pt6530 _pr and _npr with all 4 parts " << endl;
+              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp+systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp+systLumi+systSelection+systTrack) << endl;
+              cout << "\t\t" << TMath::Sqrt(yieldSyst_pr_pp) << "\t"<< TMath::Sqrt(yieldSyst_npr_pp) << endl;
+              cout << "\t\t" << TMath::Sqrt(systLumi+systSelection+systTrack) << "\t"<< TMath::Sqrt(systLumi+systSelection+systTrack) << endl;
+              cout << "\t\t" << 1-globalSyst_pp_pr  << "\t"<< 1-globalSyst_pp_npr  << endl;
+              cout << "\t\t" << 1+globalSyst_pp_pr  << "\t"<< 1+globalSyst_pp_npr  << endl;
+              cout << "\t\t" << 1-globalSyst_pr  << "\t"<< 1-globalSyst_npr  << endl;
+              cout << "\t\t" << 1+globalSyst_pr  << "\t"<< 1+globalSyst_npr  << endl;
             }
           }
 
