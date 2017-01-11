@@ -189,7 +189,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
       double yieldRatio_pr     = phCorr_pr_aa->GetBinContent(ibin)/phCorr_pr_pp->GetBinContent(ibin);
     
       raa_pr      =  yieldRatio_pr * scaleFactor * scale_cent;
-      raaErr_pr   = TMath::Sqrt(TMath::Power(dRelErrRaw_pr_pp,2)+TMath::Power(dRelErrRaw_pr_aa,2))*raa_pr;
+      raaErr_pr   = TMath::Sqrt(TMath::Power(dRelErrRaw_pr_aa,2))*raa_pr;
 
       //non-prompt
       // get the rel uncert from the raw sample
@@ -204,7 +204,7 @@ void makeRaa_cent( bool bSavePlots           = 1,
       
         if(ih==0)raa_npr= yieldRatio_npr * scaleFactor * scale_cent_np;// the 1D nonPr has 6 bins only
         else raa_npr    = yieldRatio_npr * scaleFactor * scale_cent;
-        raaErr_npr = TMath::Sqrt(TMath::Power(dRelErrRaw_npr_pp,2)+TMath::Power(dRelErrRaw_npr_aa,2))*raa_npr;
+        raaErr_npr = TMath::Sqrt(TMath::Power(dRelErrRaw_npr_aa,2))*raa_npr;
       }
 
       // Check bin content
