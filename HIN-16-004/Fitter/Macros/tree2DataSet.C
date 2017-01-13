@@ -339,12 +339,12 @@ bool checkDS(RooDataSet* DS, string DSName)
       (row->find("invMass")!=0) &&
       (row->find("pt")!=0)      &&
       (row->find("ctau")!=0)    &&
-      (!incCtauTrue ? row->find("ctauN")!=0   : true)    &&
       (row->find("ctauErr")!=0) &&
       (incCent     ? row->find("cent")!=0     : true) &&
       (incCtauTrue ? row->find("ctauTrue")!=0 : true) &&
       (incCtauTrue ? row->find("ctauRes")!=0 : true) &&
-      (incCtauTrue ? row->find("ctauNRes")!=0 : true)
+      (incCtauTrue ? row->find("ctauNRes")!=0 : true) &&
+      (incCtauTrue ? true : row->find("ctauN")!=0)
       ) 
     { return true; }
   else 

@@ -6,7 +6,7 @@
 void setCtauResDataRange(RooWorkspace& myws, RooPlot* frame, string dsName, string varName, bool setLogScale, vector<double> rangeErr, double excEvts=0.0);
 void printCtauResDataParameters(RooWorkspace myws, TPad* Pad, bool isPbPb, string pdfName, bool isWeighted);
 
-void drawCtauResDataPlot(RooWorkspace& myws,   // Local workspace
+bool drawCtauResDataPlot(RooWorkspace& myws,   // Local workspace
                      string outputDir,     // Output directory
                      struct InputOpt opt,  // Variable with run information (kept for legacy purpose)
                      struct KinCuts cut,   // Variable with current kinematic cuts
@@ -27,12 +27,13 @@ void drawCtauResDataPlot(RooWorkspace& myws,   // Local workspace
 
   if (DSTAG.find("_")!=std::string::npos) DSTAG.erase(DSTAG.find("_"));
   
-  string dsNameCut = dsName+"_CTAUNRESCUT"; // This is the dataset used to fit
+  string dsNameCut = dsName+"_CTAUNCUT"; // This is the dataset used to fit
 
   bool isWeighted = myws.data(dsName.c_str())->isWeighted();
+  bool isMC = (DSTAG.find("MC")!=std::string::npos);
   bool incJpsi = (dsName.find("JPSI")!=std::string::npos);
   bool incNonPrompt = (DSTAG.find("NOPR")!=std::string::npos);
-  vector<double> range; range.push_back(cut.dMuon.ctauNRes.Min); range.push_back(cut.dMuon.ctauNRes.Max);
+  vector<double> range; range.push_back(cut.dMuon.ctauN.Min); range.push_back(cut.dMuon.ctauN.Max);
 
   string pdfType  = "pdfCTAUNRES";
   string varName = "ctauN";
@@ -43,7 +44,8 @@ void drawCtauResDataPlot(RooWorkspace& myws,   // Local workspace
   double minRange = -10.0;
   double maxRange = 10.0;
   Double_t outTot = myws.data(dsName.c_str())->sumEntries();
-  Double_t outErr = abs(outTot - (myws.data(dsNameCut.c_str())->sumEntries()));
+  Double_t outErr = outTot - (myws.data(dsNameCut.c_str())->sumEntries());
+  if (outErr<0) { cout << "[ERROR] Number of events is smaller after ctau cut: Total " << outTot << " and cutted " << (myws.data(dsNameCut.c_str())->sumEntries()) << endl; return false; }
 //  Double_t outErr = myws.data(dsName.c_str())->reduce(Form("(ctauN>%.6f || ctauN<%.6f)", range[1], range[0]))->sumEntries();
   int nBins = min(int( round((maxRange - minRange)/binWidth) ), 1000);
   int COLOR[] = { kGreen+3, kRed+2, kBlue+2, kViolet-5};
@@ -59,14 +61,14 @@ void drawCtauResDataPlot(RooWorkspace& myws,   // Local workspace
     if (myws.pdf(Form("%s%d_%s_%s", pdfType.c_str(), i, obj.c_str(),(isPbPb?"PbPb":"PP")))){
       myws.pdf(pdfTotName.c_str())->plotOn(frame,Name(Form("PDF%d", i)),Components(RooArgSet(*myws.pdf(Form("%s%d_%s_%s", pdfType.c_str(), i, obj.c_str(), (isPbPb?"PbPb":"PP"))))),
                                            Normalization(myws.data(dsNameCut.c_str())->sumEntries(), RooAbsReal::NumEvent),
-                                           LineColor(COLOR[i-1]), Precision(1e-5), NormRange("CtauNResWindow")
+                                           LineColor(COLOR[i-1]), Precision(1e-5), NormRange("CtauNWindow")
                                            );
       nGauss++;
     }
   }
   
   myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PDF"), Normalization(myws.data(dsNameCut.c_str())->sumEntries(), RooAbsReal::NumEvent),
-                                       LineColor(kBlack), Precision(1e-5), NormRange("CtauNResWindow")
+                                       LineColor(kBlack), Precision(1e-5), NormRange("CtauNWindow")
                                        );
 
   myws.data(dsName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
@@ -117,7 +119,7 @@ void drawCtauResDataPlot(RooWorkspace& myws,   // Local workspace
   pad1->cd(); 
   frame->Draw();
 
-  printCtauResDataParameters(myws, pad1, isPbPb, pdfTotName, isWeighted);
+  printCtauResDataParameters(myws, pad1, isPbPb, pdfTotName, (isWeighted&&isMC));
   pad1->SetLogy(setLogScale);
 
   // Drawing the text in the plot
@@ -213,6 +215,7 @@ void drawCtauResDataPlot(RooWorkspace& myws,   // Local workspace
   cFig->Clear();
   cFig->Close();
 
+  return true;
 }
 
 void setCtauResDataRange(RooWorkspace& myws, RooPlot* frame, string dsName, string varName, bool setLogScale, vector<double> rangeErr, double excEvts)
