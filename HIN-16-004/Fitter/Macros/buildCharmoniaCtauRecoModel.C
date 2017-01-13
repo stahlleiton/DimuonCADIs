@@ -5,7 +5,6 @@
 
 bool createCtauRecoTemplate(RooWorkspace& ws, string dsName, string pdfType, struct KinCuts cut, bool incJpsi, bool incPsi2S, double binWidth);
 void setCtauRecoDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries);
-//bool addCtauRecoModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb);
 bool ctauHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, vector<double> range);
 TH1* rebinctauhist(TH1 *hist, double xmin=1e99, double xmax=-1e99);
 
@@ -27,8 +26,8 @@ bool buildCharmoniaCtauRecoModel(RooWorkspace& ws, map<string, string>  parIni,
 
   // C r e a t e   m o d e l
   // Total PDF
-  string pdfType = "pdfCTAURECO";
-  string pdfName = Form("%s_Tot_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"));
+  string pdfType = "pdfCTAU";
+  string pdfName = Form("%s_%s_%s", pdfType.c_str(), incJpsi?"JpsiNoPR":"Psi2SNoPR", (isPbPb?"PbPb":"PP"));
   
   if(!createCtauRecoTemplate(ws, dsName, pdfType, cut, incJpsi, incPsi2S, binWidth)) { cout << "[ERROR] Creating the Ctau Reco Template failed" << endl; return false; }
 
@@ -63,31 +62,13 @@ bool createCtauRecoTemplate(RooWorkspace& ws, string dsName, string pdfType, str
   double ctauRecoMax = cut.dMuon.ctauTrue.Max, ctauRecoMin = cut.dMuon.ctauTrue.Min;
   vector<double> rangeErr; rangeErr.push_back(cut.dMuon.ctauTrue.Min); rangeErr.push_back(cut.dMuon.ctauTrue.Max);
   int nBins = min(int( round((ctauRecoMax - ctauRecoMin)/binWidth) ), 1000);
-  
-  TH1D* hTot = (TH1D*)ws.data(dsName.c_str())->createHistogram(Form("%s_Tot_%s", hType.c_str(), (isPbPb?"PbPb":"PP")), *ws.var("ctau"), Binning(nBins, ctauRecoMin, ctauRecoMax));
-  if ( !ctauHistToPdf(ws, hTot, Form("%s_Tot_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP")), rangeErr)) { return false; }
+
+  TH1D* hTot = (TH1D*)ws.data(dsName.c_str())->createHistogram(Form("%s_%s_%s", hType.c_str(), incJpsi?"JpsiNoPR":"Psi2SNoPR", (isPbPb?"PbPb":"PP")), *ws.var("ctau"), Binning(nBins, ctauRecoMin, ctauRecoMax));
+  if ( !ctauHistToPdf(ws, hTot, Form("%s_%s_%s", pdfType.c_str(), incJpsi?"JpsiNoPR":"Psi2SNoPR", (isPbPb?"PbPb":"PP")), rangeErr)) { return false; }
   hTot->Delete();
   
   return true;
 };
-
-
-//bool addCtauRecoModel(RooWorkspace& ws, string object, string pdfType, map<string,string> parIni, bool isPbPb)
-//{
-//  if (ws.pdf(Form("%sTot_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")))) {
-//    cout << Form("[ERROR] The %s Extended Ctau Reco Model has already been implemented!", object.c_str()) << endl;
-//    return false;
-//  }
-//  
-//  if (!ws.var(Form("N_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))){ ws.factory( parIni[Form("N_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() ); }
-//  // create the Extended PDF
-//  ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")),
-//                  Form("%s_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")),
-//                  Form("N_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))
-//                  ));
-//  
-//  return true;
-//};
 
 
 bool ctauHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, vector<double> range)
@@ -100,7 +81,7 @@ bool ctauHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, vector<double> 
   // 1) Remove the Under and Overflow bins
   hist->ClearUnderflowAndOverflow();
   // 2) Set negative bin content to zero
-  for (int i=0; i<=hist->GetNbinsX(); i++) { if (hist->GetBinContent(i)<0) { hist->SetBinContent(i, 0.0000000001); } }
+  for (int i=0; i<=hist->GetNbinsX(); i++) { if (hist->GetBinContent(i)<0) { hist->SetBinContent(i, 0.00000000000001); } }
   // 2) Reduce the range of histogram and rebin it
   TH1* hClean = rebinctauhist(hist, range[0], range[1]);
   
@@ -142,12 +123,12 @@ TH1* rebinctauhist(TH1 *hist, double xmin, double xmax)
   vector<double> newbins;
   newbins.push_back(hcopy->GetBinLowEdge(imin));
   for (int i=imin; i<=imax; i++) {
-    if (hcopy->GetBinContent(i)>0.1) {
+    if (hcopy->GetBinContent(i)>0.000000000001) {
       newbins.push_back(hcopy->GetBinLowEdge(i)+hcopy->GetBinWidth(i));
     } else {
       int nrebin=2;
       for (i++; i<=imax; i++) {
-        if (hcopy->GetBinContent(i)>0.00000001) {
+        if (hcopy->GetBinContent(i)>0.000000000001) {
           newbins.push_back(hcopy->GetBinLowEdge(i)+hcopy->GetBinWidth(i));
           hcopy->SetBinContent(i,hcopy->GetBinContent(i)/nrebin);
           break;
