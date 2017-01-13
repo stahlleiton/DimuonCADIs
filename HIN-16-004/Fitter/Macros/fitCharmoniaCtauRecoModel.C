@@ -72,9 +72,9 @@ bool fitCharmoniaCtauRecoModel( RooWorkspace& myws,             // Local Workspa
   setCtauRecoGlobalParameterRange(myws, parIni, cut, label);
   
   // Define pdf and plot names
-  string pdfName = Form("pdfCTAURECO_Tot_%s", COLL.c_str());
+  string pdfName = Form("pdfCTAU_%s_%s", incJpsi?"JpsiNoPR":"Psi2SNoPR", (isPbPb?"PbPb":"PP"));
   string plotLabel = "";
-  if (incJpsi || incPsi2S) { plotLabel = plotLabel + Form("_CtauReco_%s", parIni[Form("Model_CtauReco_%s", COLL.c_str())].c_str());        }
+  if (incJpsi || incPsi2S) { plotLabel = plotLabel + "_CtauReco";}// Form("_CtauReco_%s", parIni[Form("Model_CtauReco_%s", COLL.c_str())].c_str());        }
   if (wantPureSMC)         { plotLabel = plotLabel + "_NoBkg"; }
 
   // check if we have already done this fit. If yes, do nothing and return true.
@@ -102,7 +102,7 @@ bool fitCharmoniaCtauRecoModel( RooWorkspace& myws,             // Local Workspa
     // Build the Ctau Reco Template
     if (!buildCharmoniaCtauRecoModel(myws, parIni, cut, dsName.c_str(), incJpsi, incPsi2S, binWidth, numEntries))  { return false; }
 
-     int nBins = min(int( round((cut.dMuon.ctauTrue.Max - cut.dMuon.ctauTrue.Min)/binWidth) ), 1000);
+    int nBins = min(int( round((cut.dMuon.ctauTrue.Max - cut.dMuon.ctauTrue.Min)/binWidth) ), 1000);
     // Draw the ctau reco plot
     drawCtauRecoPlot(myws, outputDir, opt, cut, parIni, plotLabel, DSTAG, isPbPb, incJpsi, incPsi2S, wantPureSMC, setLogScale, incSS, nBins);
 
@@ -125,7 +125,7 @@ void setCtauRecoGlobalParameterRange(RooWorkspace& myws, map<string, string>& pa
   ctauRecoMin -= 0.00001;  ctauRecoMax += 0.00001;
   if (ctauRecoMin<cut.dMuon.ctauTrue.Min) { ctauRecoMin = cut.dMuon.ctauTrue.Min; }
   if (ctauRecoMax>cut.dMuon.ctauTrue.Max) { ctauRecoMax = cut.dMuon.ctauTrue.Max; }
-  cout << "Range from data: ctauRecoMin: " << ctauRecoMin << "  ctauRecoMax: " << ctauRecoMax << endl;
+  cout << "[INFO] Range from data: ctauRecoMin: " << ctauRecoMin << "  ctauRecoMax: " << ctauRecoMax << endl;
   myws.var("ctau")->setRange("CtauRecoWindow", ctauRecoMin, ctauRecoMax);
   parIni["CtauRecoRange_Cut"]   = Form("(%.12f <= ctau && ctau < %.12f)", ctauRecoMin, ctauRecoMax);
   cut.dMuon.ctauTrue.Max = (double)(ceil(ctauRecoMax));

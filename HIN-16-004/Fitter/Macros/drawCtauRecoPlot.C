@@ -33,12 +33,11 @@ void drawCtauRecoPlot(RooWorkspace& myws,   // Local workspace
 
   string dsOSName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   string dsSSName = Form("dSS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
-  string pdfName  = "pdfCTAURECO";
-  string pdfTotName  = Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP"));
+  string pdfName  = "pdfCTAU";
+  string pdfTotName  = Form("%s_%s_%s", pdfName.c_str(), incJpsi?"JpsiNoPR":"Psi2SNoPR", (isPbPb?"PbPb":"PP"));
   if (plotPureSMC) dsOSName = Form("dOS_%s_%s_NoBkg", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
 
   bool isWeighted = myws.data(dsOSName.c_str())->isWeighted();
-
   // Create the main plot of the fit
   RooPlot*   frame = myws.var("ctau")->frame(Bins(nBins), Range(cut.dMuon.ctauTrue.Min, cut.dMuon.ctauTrue.Max));
 
@@ -47,13 +46,13 @@ void drawCtauRecoPlot(RooWorkspace& myws,   // Local workspace
   }
   myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
   myws.pdf(pdfTotName.c_str())->plotOn(frame, Name("PDF"),  Normalization(myws.data(dsOSName.c_str())->sumEntries(), RooAbsReal::NumEvent),
-                                       LineColor(kRed+2), LineStyle(1), Precision(1e-4), NormRange("CtauRecoWindow"), Range("CtauRecoWindow")
+                                       LineColor(kRed+2), LineStyle(1), Precision(1e-4), NormRange("CtauRecoFullWindow"), Range("CtauRecoWindow")
                                        );
 
   // Create the pull distribution of the fit
   RooHist *hpull = frame->pullHist(0, 0, true);
   hpull->SetName("hpull");
-  RooPlot* frame2 = myws.var("ctau")->frame(Title("Pull Distribution"), Range(cut.dMuon.ctauTrue.Min, cut.dMuon.ctauTrue.Max));
+  RooPlot* frame2 = myws.var("ctau")->frame(Title("Pull Distribution"), Bins(nBins), Range(cut.dMuon.ctauTrue.Min, cut.dMuon.ctauTrue.Max));
   frame2->addPlotable(hpull, "PX");	
 ;
   // set the CMS style
@@ -180,7 +179,7 @@ void drawCtauRecoPlot(RooWorkspace& myws,   // Local workspace
 void setCtauRecoRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLogScale)
 { 
   // Find maximum and minimum points of Plot to rescale Y axis
-  TH1* h = myws.data(dsName.c_str())->createHistogram("hist", *myws.var("ctauTrue"), Binning(frame->GetNbinsX(),frame->GetXaxis()->GetXmin(),frame->GetXaxis()->GetXmax()));
+  TH1* h = myws.data(dsName.c_str())->createHistogram("hist", *myws.var("ctau"), Binning(frame->GetNbinsX(),frame->GetXaxis()->GetXmin(),frame->GetXaxis()->GetXmax()));
   Double_t YMax = h->GetBinContent(h->GetMaximumBin());
   // Double_t YMin = min( h->GetBinContent(h->FindFirstBinAbove(0.0)), h->GetBinContent(h->FindLastBinAbove(0.0)) );
   Double_t YMin = 1e99;
