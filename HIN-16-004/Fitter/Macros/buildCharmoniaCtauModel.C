@@ -10,7 +10,8 @@ bool addSignalCtauModel(RooWorkspace& ws, string object, CtauModel model, map<st
 bool addBackgroundCtauModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb);
 bool createCtauBkgTemplate(RooWorkspace& ws, string dsName, string pdfType, struct KinCuts cut, bool incJpsi, bool incPsi2S, double binWidth);
 bool ctauBkgHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, vector<double> range);
-TH1* rebinctauBkghist(TH1 *hist, double xmin=1e99, double xmax=-1e99);
+TH1* rebinctauBkghist(RooWorkspace& ws, TH1 *hist, double xmin=1e99, double xmax=-1e99);
+void findRangeFromPlot(vector<double>& range, struct KinCuts cut, double binWidth);
 
 bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<string, string>  parIni, string dsName,
                              struct KinCuts cut,          // Variable containing all kinematic cuts
@@ -977,8 +978,10 @@ bool createCtauBkgTemplate(RooWorkspace& ws, string dsName, string pdfType, stru
   if (dsName.find("MC")!=std::string::npos)   { return false;  }  // Only accept data
   
   // create weighted data sets
-  double ctauMax = cut.dMuon.ctau.Max, ctauMin = cut.dMuon.ctau.Min;
-  vector<double> range; range.push_back(cut.dMuon.ctau.Min); range.push_back(cut.dMuon.ctau.Max);
+  vector<double> range; range.push_back(0); range.push_back(0);
+  findRangeFromPlot(range,cut,binWidth);
+  
+  double ctauMax = range[1], ctauMin = range[0];
   int nBins = min(int( round((ctauMax - ctauMin)/binWidth) ), 1000);
   
   TH1D* hTot = (TH1D*)ws.data(dsName.c_str())->createHistogram(Form("%s_Bkg_%s", hType.c_str(), (isPbPb?"PbPb":"PP")), *ws.var("ctau"), Binning(nBins, ctauMin, ctauMax));
@@ -1000,7 +1003,7 @@ bool ctauBkgHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, vector<doubl
   // 2) Set negative bin content to zero
   for (int i=0; i<=hist->GetNbinsX(); i++) { if (hist->GetBinContent(i)<0) { hist->SetBinContent(i, 0.0000000001); } }
   // 2) Reduce the range of histogram and rebin it
-  TH1* hClean = rebinctauBkghist(hist, range[0], range[1]);
+  TH1* hClean = rebinctauBkghist(ws, hist, range[0], range[1]);
   
   cout << Form("[INFO] Implementing %s Template", pdfName.c_str()) << endl;
   
@@ -1027,7 +1030,7 @@ bool ctauBkgHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, vector<doubl
 };
 
 
-TH1* rebinctauBkghist(TH1 *hist, double xmin, double xmax)
+TH1* rebinctauBkghist(RooWorkspace& ws, TH1 *hist, double xmin, double xmax)
 {
   TH1 *hcopy = (TH1*) hist->Clone("hcopy");
   
@@ -1060,8 +1063,51 @@ TH1* rebinctauBkghist(TH1 *hist, double xmin, double xmax)
   
   TH1 *ans = hcopy->Rebin(newbins.size()-1,"hnew",newbins.data());
   
+// //Functionality not working yet
+//  vector<double> fullBins;
+//  fullBins.push_back(-3.0); //hardcoded
+//  for (int i=0 ; i < (int)newbins.size() ; i++)
+//  {
+//    fullBins.push_back(newbins[i]);
+//  }
+//  fullBins.push_back(5.0);//hardcoded
+//  
+//  RooBinning* tempBin = new RooBinning(fullBins.size()-1,fullBins.data(),"TemplateBinning");
+//  ws.import(*tempBin);
+  
   delete hcopy;
   return ans;
+};
+
+void findRangeFromPlot(vector<double>& range, struct KinCuts cut, double binWidth)
+{
+  double minRange = -3.0; //hardcoded (must be the same as in drawCtauPlot.C)
+  double maxRange = 5.0;
+  
+  double ctauMax = cut.dMuon.ctau.Max, ctauMin = cut.dMuon.ctau.Min;
+  
+  int nBins = min(int( round((maxRange - minRange)/binWidth) ), 1000);
+  
+  double binLeftBoundLow(minRange), binBoundLeftHigh(minRange+binWidth);
+  double binRighttBoundLow(maxRange-binWidth), binBoundRightHigh(maxRange);
+  for (int i = 1 ; i <= nBins ; i++)
+  {
+    if ( (ctauMin >= binLeftBoundLow) && (ctauMin < binBoundLeftHigh)) range[0] = binLeftBoundLow;
+    else
+    {
+      binLeftBoundLow += binWidth;
+      binBoundLeftHigh += binWidth;
+    }
+    
+    if ( (ctauMax >= binRighttBoundLow) && (ctauMax < binBoundRightHigh)) range[1] = binBoundRightHigh;
+    else
+    {
+      binRighttBoundLow -= binWidth;
+      binBoundRightHigh -= binWidth;
+    }
+  }
+  
+  return;
 };
 
 #endif // #ifndef buildCharmoniaCtauModel_C

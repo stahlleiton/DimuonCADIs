@@ -225,7 +225,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
   }
   else
   {
-    found = found && isCtauBkgPdfAlreadyFound(myws, FileName, pdfName, loadFitResult);
+    found = found && isCtauBkgPdfAlreadyFound(myws, FileName, Form("pdfCTAU_Bkg_%s", COLL.c_str()), loadFitResult);
     if (found) {
       if (loadFitResult) {
         cout << "[INFO] This ctau Bkg Pdf was already made, so I'll load the pdf." << endl;
@@ -251,7 +251,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
     // Save the results
     string FileName = ""; setCtauFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, fitSideBand, usectauBkgTemplate);
     myws.saveSnapshot(Form("%s_parFit", pdfName.c_str()),*newpars,kTRUE);
-    saveWorkSpace(myws, Form("%sctau%s/%s/result", outputDir.c_str(), (fitSideBand?"SB":""), DSTAG.c_str()), FileName);
+    saveWorkSpace(myws, Form("%sctau%s/%s/result", outputDir.c_str(), (fitSideBand?Form("SB%s",usectauBkgTemplate?"Temp":""):""), DSTAG.c_str()), FileName);
   }
   
   return true;
@@ -507,8 +507,8 @@ bool isCtauBkgPdfAlreadyFound(RooWorkspace& myws, string FileName, string pdfNam
   bool found = true;
   string dataName = pdfName;
   dataName.replace(dataName.find("pdf"), string("pdf").length(), "dh");
-  if ( !(ws->pdf(pdfName.c_str())) || !(ws->data(dataName.c_str())) ) {
-    cout << "[INFO] " << pdfName << " was not found in: " << FileName << endl; found = false;
+  if ( !(ws->pdf(pdfName.c_str())) ) {
+    cout << "[INFO] " << pdfName << " was not found in: " << FileName << " or " << dataName.c_str() << endl; found = false;
   }
   if (loadCtauBkgPdf && found) {
     myws.import(*(ws->pdf(pdfName.c_str())));

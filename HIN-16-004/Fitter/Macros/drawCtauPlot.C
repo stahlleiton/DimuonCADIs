@@ -75,7 +75,12 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   double normTot   = 1.0;  if (myws.data(hOSName.c_str()))  { normTot   = myws.data(dsOSName.c_str())->sumEntries()*normDSTot/myws.data(hOSName.c_str())->sumEntries();  }
 
   // Create the main plot of the fit
-  RooPlot*   frame     = myws.var("ctau")->frame(Bins(nBins), Range(minRange, maxRange));
+  RooPlot*   frame = myws.var("ctau")->frame(Bins(nBins), Range(minRange, maxRange));
+// // FUntionality not working yet
+//  RooPlot*   frame(0x0);
+//  if (!usectauBkgTemplate) frame = myws.var("ctau")->frame(Bins(nBins), Range(minRange, maxRange));
+//  else frame = myws.var("ctau")->frame(Binning("TemplateBinning"),Range(minRange, maxRange));
+  
   frame->updateNormVars(RooArgSet(*myws.var("invMass"), *myws.var("ctau"), *myws.var("ctauErr"))) ;
   myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
   
@@ -179,7 +184,11 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   RooHist *hpull = frame->pullHist(0, "PDF", true);
   hpull->SetName("hpull");
   RooPlot* frame2 = myws.var("ctau")->frame(Title("Pull Distribution"), Bins(nBins), Range(minRange, maxRange));
-  frame2->addPlotable(hpull, "PX"); 
+// // FUntionality not working yet
+//  RooPlot* frame2(0x0);
+//  if (!usectauBkgTemplate) frame2 = myws.var("ctau")->frame(Title("Pull Distribution"), Bins(nBins), Range(minRange, maxRange));
+//  else frame2 = myws.var("ctau")->frame(Title("Pull Distribution"),Binning("TemplateBinning"),Range(minRange, maxRange));
+  frame2->addPlotable(hpull, "PX");
   
   // Create the main canvas
   TCanvas *cFig  = new TCanvas(Form("cCtauFig_%s", (isPbPb?"PbPb":"PP")), "cCtauFig",800,800);
@@ -250,7 +259,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   TLegend* leg = new TLegend(0.5175, ymin, 0.7180, 0.8809); leg->SetTextSize(0.03);
   leg->AddEntry(frame->findObject("dOS"), (incSS?"Opposite Charge":"Data"),"pe");
   if (incSS) { leg->AddEntry(frame->findObject("dSS"),"Same Charge","pe"); }
-  if(frame->findObject("PDF")) { leg->AddEntry(frame->findObject("PDF"),"Total fit","l"); }
+  if(frame->findObject("PDF")) { leg->AddEntry(frame->findObject("PDF"),(usectauBkgTemplate&&!incJpsi&&!incPsi2S)?"Bkg template":"Total fit","l"); }
   if((incBkg && (incJpsi || incPsi2S)) && frame->findObject("BKG")) { leg->AddEntry(frame->findObject("BKG"),"Background","fl");  }
   if(incBkg && incJpsi && frame->findObject("JPSI")) { leg->AddEntry(frame->findObject("JPSI"),"J/#psi PDF","l"); }
   if(incBkg && incPsi2S && frame->findObject("PSI2S")) { leg->AddEntry(frame->findObject("PSI2S"),"#psi(2S) PDF","l"); }
@@ -329,7 +338,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   }
   cFig->Clear();
   cFig->Close();
-
+  
 }
 
 void setCtauRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLogScale, vector<double> rangeErr, double excEvts)
