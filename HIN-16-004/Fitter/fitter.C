@@ -39,6 +39,7 @@ void fitter(
             bool incNonPrompt = true,          // Includes Non Prompt ctau model 
             // Select the fitting options
             bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
+            bool usectauBkgTemplate = false,// If yes use a template for Bkg ctau instead of the fitted Pdf
             bool useCtauRecoPdf = false,     // If yes use the ctauReco PDF (template) instead of ctauTrue one
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doSimulFit   = false,        // Do simultaneous fit
@@ -230,7 +231,7 @@ void fitter(
     {"CTAU", 
      {
        {"BKG",   fitCtau && incBkg && incNonPrompt}, 
-       {"JPSI",  fitCtau && incJpsi && incNonPrompt}, 
+       {"JPSI",  fitCtau && incJpsi && incNonPrompt},
        {"PSI2S", fitCtau && incPsi2S && incNonPrompt},
        {"RES",   fitCtau},
        {"TRUE",  fitCtauTrue},
@@ -324,6 +325,7 @@ void fitter(
                                  fitRes,          // If yes fits the resolution from Data or MC
                                  // Select the fitting options
                                  useTotctauErrPdf,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
+                                 usectauBkgTemplate,// If yes use a template for Bkg ctau instead of the fitted Pdf
                                  useCtauRecoPdf,  // If yes use the ctauReco PDF (template) instead of ctauTrue one
                                  cutCtau,         // Apply prompt ctau cuts
                                  doSimulFit,      // Do simultaneous fitC
@@ -367,6 +369,7 @@ void fitter(
                                             fitRes,          // If yes fits the resolution from Data or MC
                                             // Select the fitting options
                                             useTotctauErrPdf,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
+                                            usectauBkgTemplate,// If yes use a template for Bkg ctau instead of the fitted Pdf
                                             useCtauRecoPdf,  // If yes use the ctauReco PDF (template) instead of ctauTrue one
                                             cutCtau,         // Apply prompt ctau cuts
                                             doSimulFit,      // Do simultaneous fit

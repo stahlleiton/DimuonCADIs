@@ -27,6 +27,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
                                 bool incPsi2S      = false,     // Includes Psi(2S) model
                                 // Select the fitting options
                                 bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
+                                bool usectauBkgTemplate = false,// If yes use a template for Bkg ctau instead of the fitted Pdf
                                 map<string, string> inputFitDir={},// User-defined Location of the fit results
                                 int  numCores      = 2,         // Number of cores used for fitting
                                 // Select the drawing options
@@ -152,7 +153,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
   if (!setCtauModel(model, parIni, isPbPb, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt)) { return false; }
 
   // Build the Fit Model
-  if (!buildCharmoniaCtauModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsName, isPbPb, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt, useTotctauErrPdf, numEntries))  { return false; }
+  if (!buildCharmoniaCtauModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsName, cut, isPbPb, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt, useTotctauErrPdf, usectauBkgTemplate, binWidth["CTAUSB"], numEntries))  { return false; }
 
   //// LOAD CTAU SIDEBAND PDF
   if (fitCtau) {
@@ -161,10 +162,10 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
     bool fitSB = true;
     string plotLabel = Form("_BkgNoPR_%s_CtauRes_%s", parIni[Form("Model_BkgNoPR_%s", COLL.c_str())].c_str(), parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str());
     string DSTAG = Form("DATA_%s", (isPbPb?"PbPb":"PP"));
-    setCtauFileName(FileName, (inputFitDir["CTAUSB"]=="" ? outputDir : inputFitDir["CTAUSB"]), DSTAG, plotLabel, cut, isPbPb, fitSB);
+    setCtauFileName(FileName, (inputFitDir["CTAUSB"]=="" ? outputDir : inputFitDir["CTAUSB"]), DSTAG, plotLabel, cut, isPbPb, fitSB, usectauBkgTemplate);
     bool found = false;
     if (!found && gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAUSB"]!="") {
-      setCtauFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, fitSB);
+      setCtauFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, fitSB, usectauBkgTemplate);
     } else if (inputFitDir["CTAUSB"]!="") { found = true; }
     if (!found && gSystem->AccessPathName(FileName.c_str())) {
       cout << "[ERROR] User Input File : " << FileName << " was not found!" << endl;

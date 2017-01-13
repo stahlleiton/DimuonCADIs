@@ -34,6 +34,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
                    bool fitRes       = false,      // If yes fits the resolution from Data or MC
                    // Select the fitting options
                    bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
+                   bool usectauBkgTemplate = false,// If yes use a template for Bkg ctau instead of the fitted Pdf
                    bool useCtauRecoPdf = false,     // If yes use the ctauReco PDF (template) instead of ctauTrue one
                    bool cutCtau      = false,      // Apply prompt ctau cuts
                    bool doSimulFit   = false,      // Do simultaneous fit
@@ -170,7 +171,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
 
     if ( !fitCharmoniaCtauModel( myws, inputWorkspace, cut, parIni, opt, outputDir, 
                            DSTAG, isPbPb, importDS, 
-                           incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, useTotctauErrPdf,
+                           incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, useTotctauErrPdf, usectauBkgTemplate,
                            doFit, wantPureSMC, loadFitResult, inputFitDir, numCores, 
                            setLogScale, incSS, binWidth
                            ) 
@@ -215,7 +216,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
    
     if ( !fitCharmoniaCtauMassModel( myws, inputWorkspace, cut, parIni, opt, outputDir, 
                                      DSTAG, isPbPb,
-                                     incJpsi, incPsi2S, useTotctauErrPdf,
+                                     incJpsi, incPsi2S, useTotctauErrPdf, usectauBkgTemplate,
                                      inputFitDir, numCores,
                                      setLogScale, incSS, binWidth
                                      ) 

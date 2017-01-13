@@ -8,15 +8,21 @@ void setCtauDefaultParameters(map<string, string> &parIni, bool isPbPb, double n
 bool defineCtauResolModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb); 
 bool addSignalCtauModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb); 
 bool addBackgroundCtauModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb);
+bool createCtauBkgTemplate(RooWorkspace& ws, string dsName, string pdfType, struct KinCuts cut, bool incJpsi, bool incPsi2S, double binWidth);
+bool ctauBkgHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, vector<double> range);
+TH1* rebinctauBkghist(TH1 *hist, double xmin=1e99, double xmax=-1e99);
 
 bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<string, string>  parIni, string dsName,
+                             struct KinCuts cut,          // Variable containing all kinematic cuts
                              bool isPbPb,                 // Determine if we are working with PbPb (True) or PP (False)
                              bool incBkg,                 // Include background model
                              bool incJpsi,                // Include Jpsi model
                              bool incPsi2S,               // Include Psi(2S) model
                              bool incPrompt,              // Include Prompt models
                              bool incNonPrompt,           // Include NonPrompt models
-                             bool useTotctauErrPdf,        // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
+                             bool useTotctauErrPdf,       // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
+                             bool usectauBkgTemplate,     // If yes use a template for Bkg ctau instead of the fitted Pdf
+                             double  binWidth,            // Bin width
                              double  numEntries = 300000. // Number of entries in the dataset
                              )
 {
@@ -252,95 +258,103 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     }
   }  
   if (incBkg) {
-    if (incPrompt) {
-      if(!defineCtauResolModel(ws, "BkgPR", model.CtauRes, parIni, isPbPb)) { cout << "[ERROR] Defining the Prompt Ctau Resolution Model failed" << endl; return false; }
-      if(!addBackgroundCtauModel(ws, "BkgPR", model.Bkg.Ctau.Prompt, parIni, isPbPb)) { cout << "[ERROR] Adding Prompt Bkg Ctau Model failed" << endl; return false; }
+    if (!usectauBkgTemplate)
+    {
+      if (incPrompt) {
+        if(!defineCtauResolModel(ws, "BkgPR", model.CtauRes, parIni, isPbPb)) { cout << "[ERROR] Defining the Prompt Ctau Resolution Model failed" << endl; return false; }
+        if(!addBackgroundCtauModel(ws, "BkgPR", model.Bkg.Ctau.Prompt, parIni, isPbPb)) { cout << "[ERROR] Adding Prompt Bkg Ctau Model failed" << endl; return false; }
+      }
+      if (incNonPrompt) {
+        if(!defineCtauResolModel(ws, "BkgNoPR", model.CtauRes, parIni, isPbPb)) { cout << "[ERROR] Defining the Non-Prompt Ctau Resolution Model failed" << endl; return false; }
+        if(!addBackgroundCtauModel(ws, "BkgNoPR", model.Bkg.Ctau.NonPrompt, parIni, isPbPb)) { cout << "[ERROR] Adding NonPrompt Bkg Ctau Model failed" << endl; return false; }
+      }
+      if (incPrompt && !incNonPrompt) {
+        if (incCtauErrPDF) {
+          RooProdPdf pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Bkg"), (isPbPb?"PbPb":"PP"))),
+                         Conditional( *ws.pdf(Form("pdfCTAUCOND_BkgPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
+                         );
+          ws.import(pdf);
+        }
+        if ( ws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) ){
+          ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_BkgPR_%s", (isPbPb?"PbPb":"PP")),
+                          Form("%s_BkgPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
+                          Form("pdfMASS_Bkg_%s",(isPbPb?"PbPb":"PP"))
+                          ));
+        }
+        ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_BkgPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
+                        Form("%s_BkgPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
+                        Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))
+                        ));
+      }
+      if (!incPrompt && incNonPrompt) {
+        if (incCtauErrPDF) {
+          RooProdPdf pdf(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Bkg"), (isPbPb?"PbPb":"PP"))),
+                         Conditional( *ws.pdf(Form("pdfCTAUCOND_BkgNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
+                         );
+          ws.import(pdf);
+        }
+        if ( ws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) ){
+          ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_BkgNoPR_%s", (isPbPb?"PbPb":"PP")),
+                          Form("%s_BkgNoPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
+                          Form("pdfMASS_Bkg_%s",(isPbPb?"PbPb":"PP"))
+                          ));
+        }
+        ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_BkgNoPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
+                        Form("%s_BkgNoPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
+                        Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))
+                        ));
+      }
+      if (incPrompt && incNonPrompt) {
+        if (incCtauErrPDF) {
+          if ( !ws.pdf(Form("pdfCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"))) ) { return false; }
+          RooProdPdf pdfPR(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Bkg"), (isPbPb?"PbPb":"PP"))),
+                           Conditional( *ws.pdf(Form("pdfCTAUCOND_BkgPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
+                           );
+          ws.import(pdfPR);
+          RooProdPdf pdfNoPR(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Bkg"), (isPbPb?"PbPb":"PP"))),
+                             Conditional( *ws.pdf(Form("pdfCTAUCOND_BkgNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
+                             );
+          ws.import(pdfNoPR);
+        }
+        ws.factory( parIni[Form("b_Bkg_%s", (isPbPb?"PbPb":"PP"))].c_str() );
+        if (incCtauErrPDF) {
+          ws.factory(Form("SUM::%s(%s*%s, %s)", Form("pdfCTAU_Bkg_%s", (isPbPb?"PbPb":"PP")),
+                          Form("b_Bkg_%s", (isPbPb?"PbPb":"PP")),
+                          Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")),
+                          Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP"))
+                          ));
+        } else {
+          ws.factory(Form("SUM::%s(%s*%s, %s)", Form("pdfCTAUCOND_Bkg_%s", (isPbPb?"PbPb":"PP")),
+                          Form("b_Bkg_%s", (isPbPb?"PbPb":"PP")),
+                          Form("pdfCTAUCOND_BkgNoPR_%s", (isPbPb?"PbPb":"PP")),
+                          Form("pdfCTAUCOND_BkgPR_%s", (isPbPb?"PbPb":"PP"))
+                          ));
+        }
+        if ( ws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) ){
+          ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_BkgPR_%s", (isPbPb?"PbPb":"PP")),
+                          Form("%s_BkgPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
+                          Form("pdfMASS_Bkg_%s",(isPbPb?"PbPb":"PP"))
+                          ));
+          ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_BkgNoPR_%s", (isPbPb?"PbPb":"PP")),
+                          Form("%s_BkgNoPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
+                          Form("pdfMASS_Bkg_%s",(isPbPb?"PbPb":"PP"))
+                          ));
+          ws.factory(Form("SUM::%s(%s*%s, %s)", Form("pdfCTAUMASS_Bkg_%s", (isPbPb?"PbPb":"PP")),
+                          Form("b_Bkg_%s", (isPbPb?"PbPb":"PP")),
+                          Form("pdfCTAUMASS_BkgNoPR_%s", (isPbPb?"PbPb":"PP")),
+                          Form("pdfCTAUMASS_BkgPR_%s", (isPbPb?"PbPb":"PP"))
+                          ));
+        }
+        ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_Bkg_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
+                        Form("%s_Bkg_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
+                        Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))
+                        ));
+      }
     }
-    if (incNonPrompt) {
-      if(!defineCtauResolModel(ws, "BkgNoPR", model.CtauRes, parIni, isPbPb)) { cout << "[ERROR] Defining the Non-Prompt Ctau Resolution Model failed" << endl; return false; }
-      if(!addBackgroundCtauModel(ws, "BkgNoPR", model.Bkg.Ctau.NonPrompt, parIni, isPbPb)) { cout << "[ERROR] Adding NonPrompt Bkg Ctau Model failed" << endl; return false; }
-    }
-    if (incPrompt && !incNonPrompt) {
-      if (incCtauErrPDF) {
-        RooProdPdf pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Bkg"), (isPbPb?"PbPb":"PP"))),
-                       Conditional( *ws.pdf(Form("pdfCTAUCOND_BkgPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
-                       ); 
-        ws.import(pdf);
-      }
-      if ( ws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) ){
-        ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_BkgPR_%s", (isPbPb?"PbPb":"PP")),
-                        Form("%s_BkgPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
-                        Form("pdfMASS_Bkg_%s",(isPbPb?"PbPb":"PP"))
-                        ));
-      }
-      ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_BkgPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
-                      Form("%s_BkgPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
-                      Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))
-                      ));
-    }
-    if (!incPrompt && incNonPrompt) {
-      if (incCtauErrPDF) {
-        RooProdPdf pdf(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Bkg"), (isPbPb?"PbPb":"PP"))),
-                       Conditional( *ws.pdf(Form("pdfCTAUCOND_BkgNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
-                       ); 
-        ws.import(pdf);
-      }
-      if ( ws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) ){
-        ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_BkgNoPR_%s", (isPbPb?"PbPb":"PP")),
-                        Form("%s_BkgNoPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
-                        Form("pdfMASS_Bkg_%s",(isPbPb?"PbPb":"PP"))
-                        ));
-      }
-      ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_BkgNoPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
-                      Form("%s_BkgNoPR_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
-                      Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))
-                      ));
-    }
-    if (incPrompt && incNonPrompt) {
-      if (incCtauErrPDF) {
-        if ( !ws.pdf(Form("pdfCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"))) ) { return false; }
-        RooProdPdf pdfPR(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Bkg"), (isPbPb?"PbPb":"PP"))),
-                       Conditional( *ws.pdf(Form("pdfCTAUCOND_BkgPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
-                       ); 
-        ws.import(pdfPR);
-        RooProdPdf pdfNoPR(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", (useTotctauErrPdf?"Tot":"Bkg"), (isPbPb?"PbPb":"PP"))),
-                       Conditional( *ws.pdf(Form("pdfCTAUCOND_BkgNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
-                       ); 
-        ws.import(pdfNoPR);
-      }
-      ws.factory( parIni[Form("b_Bkg_%s", (isPbPb?"PbPb":"PP"))].c_str() );
-      if (incCtauErrPDF) {
-        ws.factory(Form("SUM::%s(%s*%s, %s)", Form("pdfCTAU_Bkg_%s", (isPbPb?"PbPb":"PP")),
-                        Form("b_Bkg_%s", (isPbPb?"PbPb":"PP")),
-                        Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")),
-                        Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP"))
-                        ));
-      } else {
-        ws.factory(Form("SUM::%s(%s*%s, %s)", Form("pdfCTAUCOND_Bkg_%s", (isPbPb?"PbPb":"PP")),
-                        Form("b_Bkg_%s", (isPbPb?"PbPb":"PP")),
-                        Form("pdfCTAUCOND_BkgNoPR_%s", (isPbPb?"PbPb":"PP")),
-                        Form("pdfCTAUCOND_BkgPR_%s", (isPbPb?"PbPb":"PP"))
-                        ));
-      }
-      if ( ws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) ){
-        ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_BkgPR_%s", (isPbPb?"PbPb":"PP")),
-                        Form("%s_BkgPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
-                        Form("pdfMASS_Bkg_%s",(isPbPb?"PbPb":"PP"))
-                        ));
-        ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_BkgNoPR_%s", (isPbPb?"PbPb":"PP")),
-                        Form("%s_BkgNoPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
-                        Form("pdfMASS_Bkg_%s",(isPbPb?"PbPb":"PP"))
-                        ));
-        ws.factory(Form("SUM::%s(%s*%s, %s)", Form("pdfCTAUMASS_Bkg_%s", (isPbPb?"PbPb":"PP")),
-                        Form("b_Bkg_%s", (isPbPb?"PbPb":"PP")),
-                        Form("pdfCTAUMASS_BkgNoPR_%s", (isPbPb?"PbPb":"PP")),
-                        Form("pdfCTAUMASS_BkgPR_%s", (isPbPb?"PbPb":"PP"))
-                        ));
-      }
-      ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("%sTot_Bkg_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
-                      Form("%s_Bkg_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")),
-                      Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))
-                      ));
+    else
+    {
+      if (incPrompt && incNonPrompt ) { if( !createCtauBkgTemplate(ws, dsName, pdfName, cut, incJpsi, incPsi2S, binWidth)) {cout << "[ERROR] Creating the Bkg Ctau Template failed" << endl; return false;}}
+      else {cout << "[ERROR] To create the Bkg Ctau Template we need to activate prompt and nonpromt Jpsi" << endl; return false;}
     }
   }
   
@@ -952,5 +966,102 @@ void setCtauDefaultParameters(map<string, string> &parIni, bool isPbPb, double n
 
 };
 
+
+bool createCtauBkgTemplate(RooWorkspace& ws, string dsName, string pdfType, struct KinCuts cut, bool incJpsi, bool incPsi2S, double binWidth)
+{
+  string hType = pdfType;
+  hType.replace(hType.find("pdf"), string("pdf").length(), "h");
+  
+  bool isPbPb = false;
+  if (dsName.find("PbPb")!=std::string::npos) { isPbPb = true; }
+  if (dsName.find("MC")!=std::string::npos)   { return false;  }  // Only accept data
+  
+  // create weighted data sets
+  double ctauMax = cut.dMuon.ctau.Max, ctauMin = cut.dMuon.ctau.Min;
+  vector<double> range; range.push_back(cut.dMuon.ctau.Min); range.push_back(cut.dMuon.ctau.Max);
+  int nBins = min(int( round((ctauMax - ctauMin)/binWidth) ), 1000);
+  
+  TH1D* hTot = (TH1D*)ws.data(dsName.c_str())->createHistogram(Form("%s_Bkg_%s", hType.c_str(), (isPbPb?"PbPb":"PP")), *ws.var("ctau"), Binning(nBins, ctauMin, ctauMax));
+  if ( !ctauBkgHistToPdf(ws, hTot, Form("%s_Bkg_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP")), range)) { return false; }
+  hTot->Delete();
+
+  return true;
+};
+
+bool ctauBkgHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, vector<double> range)
+{
+  if (ws.pdf(pdfName.c_str())) {
+    cout << Form("[INFO] The %s Template has already been created!", pdfName.c_str()) << endl;
+    return true;
+  }
+  // Cleaning the input histogram
+  // 1) Remove the Under and Overflow bins
+  hist->ClearUnderflowAndOverflow();
+  // 2) Set negative bin content to zero
+  for (int i=0; i<=hist->GetNbinsX(); i++) { if (hist->GetBinContent(i)<0) { hist->SetBinContent(i, 0.0000000001); } }
+  // 2) Reduce the range of histogram and rebin it
+  TH1* hClean = rebinctauBkghist(hist, range[0], range[1]);
+  
+  cout << Form("[INFO] Implementing %s Template", pdfName.c_str()) << endl;
+  
+  string dataName = pdfName;
+  dataName.replace(dataName.find("pdf"), string("pdf").length(), "dh");
+  RooDataHist* dataHist = new RooDataHist(dataName.c_str(), "", *ws.var("ctau"), hClean);
+  if (dataHist==NULL) { cout << "[ERROR] DataHist used to create " << pdfName << " failed!" << endl; return false; }
+  if (dataHist->sumEntries()==0) { cout << "[ERROR] DataHist used to create " << pdfName << " is empty!" << endl; return false; }
+  if (fabs(dataHist->sumEntries()-hClean->GetSumOfWeights())>0.001) { cout << "[ERROR] DataHist used to create " << pdfName << "  " << " is invalid!  " << endl; return false; }
+  ws.import(*dataHist);
+  
+  bool isPbPb=false;
+  if (pdfName.find("PbPb")!=std::string::npos) isPbPb=true;
+  RooHistPdf* pdf = new RooHistPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctau"), *((RooDataHist*)ws.data(dataName.c_str())));
+  //RooKeysPdf* pdf = new RooKeysPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctauErr"), *((RooDataSet*)ws.data(dataName.c_str())),RooKeysPdf::NoMirror, isPbPb?0.4:0.4);
+  if (pdf==NULL) { cout << "[ERROR] RooKeysPDF " << pdfName << " is NULL!" << endl; return false; }
+  pdf->setNormRange("CtauFullWindow");
+  ws.import(*pdf);
+  
+  delete pdf;
+  delete dataHist;
+  
+  return true;
+};
+
+
+TH1* rebinctauBkghist(TH1 *hist, double xmin, double xmax)
+{
+  TH1 *hcopy = (TH1*) hist->Clone("hcopy");
+  
+  // range of the new hist
+  int imin = hcopy->FindBin(xmin);
+  if (imin>=hcopy->GetNbinsX()) imin=1;
+  int imax = hcopy->FindBin(0.999999*xmax);
+  if (imax<=1) imax=hcopy->GetNbinsX();
+  
+  vector<double> newbins;
+  newbins.push_back(hcopy->GetBinLowEdge(imin));
+  for (int i=imin; i<=imax; i++) {
+    if (hcopy->GetBinContent(i)>0.1) {
+      newbins.push_back(hcopy->GetBinLowEdge(i)+hcopy->GetBinWidth(i));
+    } else {
+      int nrebin=2;
+      for (i++; i<=imax; i++) {
+        if (hcopy->GetBinContent(i)>0.00000001) {
+          newbins.push_back(hcopy->GetBinLowEdge(i)+hcopy->GetBinWidth(i));
+          hcopy->SetBinContent(i,hcopy->GetBinContent(i)/nrebin);
+          break;
+        }
+        nrebin++;
+      }
+    }
+  }
+  
+  if (xmin < newbins[1]) newbins[0] = xmin;
+  if (xmax > newbins[newbins.size()-2]) newbins[newbins.size()-1] = xmax;
+  
+  TH1 *ans = hcopy->Rebin(newbins.size()-1,"hnew",newbins.data());
+  
+  delete hcopy;
+  return ans;
+};
 
 #endif // #ifndef buildCharmoniaCtauModel_C
