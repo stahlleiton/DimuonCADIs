@@ -91,7 +91,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
   struct InputOpt opt; setOptions(&opt);
 
   // Starting the fits for each variable (where the magic starts)
-  if (fitMass && !fitCtau && !fitCtauTrue && !doCtauErrPDF) {
+  if (fitMass && !fitCtau && !fitCtauTrue && !doCtauErrPDF && !fitRes && !fitCtauReco) {
     
     // Setting extra input information needed by each fitter
     double ibWidth = binWidth["MASS"];
@@ -109,7 +109,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
          ) { return false; }
   }
 
-  if (fitCtauTrue && !fitCtau && !fitMass && !doCtauErrPDF) {
+  if (fitCtauTrue && !fitCtau && !fitMass && !doCtauErrPDF && !fitRes && !fitCtauReco) {
 
     // Setting extra input information needed by each fitter
     double ibWidth = binWidth["CTAUTRUE"];
@@ -128,7 +128,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
          ) { return false; }
   }
 
-  if (fitCtauReco && !fitCtauTrue && !fitCtau && !fitMass && !doCtauErrPDF) {
+  if (fitCtauReco && !fitCtauTrue && !fitCtau && !fitMass && !doCtauErrPDF && !fitRes) {
     
     // Setting extra input information needed by each fitter
     double ibWidth = binWidth["CTAURECO"];
@@ -146,7 +146,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
         ) { return false; }
   }
   
-  if (doCtauErrPDF && !fitCtau && !fitCtauTrue && !fitMass) {
+  if (doCtauErrPDF && !fitCtau && !fitCtauTrue && !fitMass && !fitRes && !fitCtauReco) {
 
     // Setting extra input information needed by each fitter
     bool loadFitResult = false;
@@ -162,7 +162,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
          ) { return false; }
   }
 
-  if (fitCtau && !doCtauErrPDF && !fitCtauTrue && !fitMass && (incJpsi!=incBkg) && !isMC && !fitRes) {
+  if (fitCtau && !doCtauErrPDF && !fitCtauTrue && !fitMass && !fitRes && !fitCtauReco && (incJpsi!=incBkg) && !isMC) {
 
     // Setting extra input information needed by each fitter
     bool loadFitResult = false;
@@ -178,7 +178,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
          ) { return false; }
   }
 
-  if (fitCtau && !doCtauErrPDF && !fitCtauTrue && !fitMass && !incBkg && isMC && fitRes) {
+  if (fitRes && !doCtauErrPDF && !fitCtauTrue && !fitMass && !fitCtau && !fitCtauReco && !incBkg && isMC) {
 
     // Setting extra input information needed by each fitter
     bool loadFitResult = false;
@@ -194,7 +194,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
          ) { return false; }
   }
   
-  if (fitCtau && !doCtauErrPDF && !fitCtauTrue && !fitMass && !incBkg && !isMC  && fitRes) {
+  if (fitRes && !doCtauErrPDF && !fitCtauTrue && !fitMass && !fitCtau && !fitCtauReco && !isMC) {
     
     // Setting extra input information needed by each fitter
     bool loadFitResult = false;
@@ -210,7 +210,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
         ) { return false; }
   }
 
-  if (fitCtau && fitMass && !doCtauErrPDF && !fitCtauTrue ) {
+  if (fitCtau && fitMass && !doCtauErrPDF && !fitCtauTrue && !fitRes && !fitCtauReco ) {
 
     // Setting extra input information needed by each fitter
    

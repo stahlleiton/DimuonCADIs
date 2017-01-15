@@ -2,7 +2,7 @@
 #include "Macros/tree2DataSet.C"
 #include "Macros/fitCharmonia.C"
 
-bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores);
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool fitRes, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores);
 
 bool parseFile(string FileName, vector< map<string, string> >& data);
 bool parseString(string input, string delimiter, vector<double>& output);
@@ -26,15 +26,15 @@ void fitter(
             bool fitPbPb      = true,         // Fits PbPb datasets
             bool fitPP        = true,        // Fits PP datasets
             bool fitMass      = false,       // Fits invariant mass distribution
-            bool fitCtau      = true,       // Fits ctau distribution
+            bool fitCtau      = false,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
             bool fitCtauReco  = false,      // Fit ctau reco MC distribution
             bool doCtauErrPDF = false,         // If yes, it builds the Ctau Error PDFs from data
-            bool fitRes       = false,         // If yes fits the resolution from Data or MC
+            bool fitRes       = true,         // If yes fits the resolution from Data or MC
             // Select the type of object to fit
-            bool incJpsi      = false,          // Includes Jpsi model
+            bool incJpsi      = true,          // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
-            bool incBkg       = true,         // Includes Background model
+            bool incBkg       = false,         // Includes Background model
             bool incPrompt    = true,         // Includes Prompt ctau model
             bool incNonPrompt = true,          // Includes Non Prompt ctau model 
             // Select the fitting options
@@ -96,14 +96,15 @@ void fitter(
 
   if (workDirName.find("Peri")!=std::string::npos) { usePeriPD = true; }
 
-  if (doCtauErrPDF) { inputFitDir["CTAUERR"] = ""; inputInitialFilesDir["CTAUERR"] = "";}
-  if (fitMass && !fitCtau) { inputFitDir["MASS"] = ""; inputInitialFilesDir["MASS"] = "";}
-  if (fitCtauTrue) { inputFitDir["CTAUTRUE"] = ""; inputInitialFilesDir["CTAUTRUE"] = ""; }
-  if (fitCtauReco) { inputFitDir["CTAURECO"] = ""; inputInitialFilesDir["CTAURECO"] = ""; }
-  if (fitCtau && fitMC && !incBkg) { inputFitDir["CTAURES"] = ""; inputInitialFilesDir["CTAURES"] = ""; }
-  if (fitCtau && fitData && incBkg && !incJpsi) { inputFitDir["CTAUSB"] = ""; inputInitialFilesDir["CTAUSB"] = ""; }
+  bool fitTest = (workDirName=="Test");
+  if (doCtauErrPDF || fitTest) { inputFitDir["CTAUERR"] = ""; inputInitialFilesDir["CTAUERR"] = "";}
+  if ((fitMass && !fitCtau) || fitTest) { inputFitDir["MASS"] = ""; inputInitialFilesDir["MASS"] = "";}
+  if (fitCtauTrue || fitTest) { inputFitDir["CTAUTRUE"] = ""; inputInitialFilesDir["CTAUTRUE"] = ""; }
+  if (fitCtauReco || fitTest) { inputFitDir["CTAURECO"] = ""; inputInitialFilesDir["CTAURECO"] = ""; }
+  if (fitRes || fitTest) { inputFitDir["CTAURES"] = ""; inputInitialFilesDir["CTAURES"] = ""; }
+  if ((fitCtau && fitData && incBkg && !incJpsi) || fitTest) { inputFitDir["CTAUSB"] = ""; inputInitialFilesDir["CTAUSB"] = ""; }
 
-  if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, fitCtauReco, doCtauErrPDF, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores)) { return; }
+  if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, fitCtauReco, fitRes, doCtauErrPDF, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores)) { return; }
 
   map< string, vector<string> > DIR;
   if(!iniWorkEnv(DIR, workDirName)){ return; }
@@ -223,9 +224,9 @@ void fitter(
   map<string, map<string, bool>> VARMAP = {
     {"MASS", 
      {
-       {"BKG",   ((fitMass  && incBkg) || (fitCtau || doCtauErrPDF))}, 
-       {"JPSI",  ((fitMass && incJpsi) || (fitCtau || doCtauErrPDF)) && incJpsi}, 
-       {"PSI2S", ((fitMass && incPsi2S) || (fitCtau || doCtauErrPDF)) && incPsi2S}
+       {"BKG",   ((fitMass  && incBkg) || (fitCtau || doCtauErrPDF || (fitRes && fitData)))}, 
+       {"JPSI",  ((fitMass && incJpsi) || (fitCtau || doCtauErrPDF || (fitRes && fitData))) && incJpsi}, 
+       {"PSI2S", ((fitMass && incPsi2S) || (fitCtau || doCtauErrPDF || (fitRes && fitData))) && incPsi2S}
      }
     },
     {"CTAU", 
@@ -233,9 +234,8 @@ void fitter(
        {"BKG",   fitCtau && incBkg && incNonPrompt}, 
        {"JPSI",  fitCtau && incJpsi && incNonPrompt},
        {"PSI2S", fitCtau && incPsi2S && incNonPrompt},
-       {"RES",   fitCtau},
+       {"RES",   fitRes},
        {"TRUE",  fitCtauTrue},
-       {"RECO",  fitCtauReco},
      }
     }
   };
@@ -437,6 +437,8 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
   cut.dMuon.ctau.Max = 1000.0;
   cut.dMuon.ctauNRes.Min = -100000.0;
   cut.dMuon.ctauNRes.Max = 100000.0;
+  cut.dMuon.ctauN.Min = -100000.0;
+  cut.dMuon.ctauN.Max = 100000.0;
   cut.dMuon.ctauRes.Min = -1000.0;
   cut.dMuon.ctauRes.Max = 1000.0;
   cut.dMuon.ctauTrue.Min = -1000.0; 
@@ -565,6 +567,21 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
       cut.dMuon.ctauNRes.Max = v.at(1);
     }
     else if (label=="ctauResCut"){ 
+      parIni[col->first] = col->second; 
+    }
+    else if (label=="ctauN"){
+      if (col->second=="" || col->second.find("->")!=std::string::npos) {
+        cout << "[ERROR] Input column 'ctauN' has invalid value: " << col->second << endl; return false;
+      }
+      std::vector<double> v; 
+      if(!parseString(col->second, "->", v)) { return false; }
+      if (v.size()!=2) {
+        cout << "[ERROR] Input column 'ctauN' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
+      }  
+      cut.dMuon.ctauN.Min = v.at(0); 
+      cut.dMuon.ctauN.Max = v.at(1);
+    }
+    else if (label=="ctauNCut"){ 
       parIni[col->first] = col->second; 
     }
     else if (label.find("Model")!=std::string::npos){
@@ -774,12 +791,12 @@ bool existDir(string dir)
 };
 
 
-bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores)
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool fitRes, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores)
 { 
   cout << "[INFO] Checking user settings " << endl;
 
-  if (!fitMass && !fitCtau && !fitCtauTrue && !doCtauErrPDF && !fitCtauReco) {
-    cout << "[ERROR] At least one distribution has to be selected for fitting, please select either Mass, CtauTrue, CtauErr or Ctau!" << endl; return false;
+  if (!fitMass && !fitCtau && !fitCtauTrue && !doCtauErrPDF && !fitCtauReco && !fitRes) {
+    cout << "[ERROR] At least one distribution has to be selected for fitting, please select either Mass, CtauTrue, CtauErr, Ctau, CtauN or CtauReco!" << endl; return false;
   }
   if (fitCtauTrue && fitData) {
     cout << "[ERROR] We can not fit the truth ctau distribution on data, please select only MC!" << endl; return false;
