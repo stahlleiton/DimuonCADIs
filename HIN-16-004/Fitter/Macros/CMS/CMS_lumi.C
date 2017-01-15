@@ -37,6 +37,18 @@ CMS_lumi( TPad* pad, int iPeriod, int iPosX, TString label )
   pad->cd();
 
   TString lumiText, lumiText2;
+  if( iPeriod==-107 ) // Negative iPeriod is for MC
+  {
+    lumiText += "pp ";
+    lumiText += label.Data();
+    lumiText += " MC (5.02 TeV)";
+  }
+  if( iPeriod==-108 )
+  {
+    lumiText += "PbPb ";
+    lumiText += label.Data();
+    lumiText += " MC (5.02 TeV)";
+  }
   if( iPeriod==1 )
     {
       lumiText += lumi_7TeV;
