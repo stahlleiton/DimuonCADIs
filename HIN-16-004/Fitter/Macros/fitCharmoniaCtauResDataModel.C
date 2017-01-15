@@ -5,7 +5,7 @@
 #include "buildCharmoniaCtauResModel.C"
 #include "fitCharmoniaCtauErrModel.C"
 #include "drawCtauResDataPlot.C"
-#include "RooStatsDir/SPlot.h"
+#include "RooStats/SPlot.h"
 
 
 void setCtauResDataCutParameters(struct KinCuts& cut);
