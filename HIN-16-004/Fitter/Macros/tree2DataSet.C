@@ -43,16 +43,23 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
   
   bool isPbPb = false;
   if (DSName.find("PbPb")!=std::string::npos) isPbPb =true;
-  int triggerIndex_PP   = 0;
-  int triggerIndex_PbPb = 0;
+  int triggerIndex_PP   = PP::HLT_HIL1DoubleMu0_v1;
+  int triggerIndex_PbPb = HI::HLT_HIL1DoubleMu0_v1;
   int CentFactor = 1;
+  
+  bool usePeriPD = false;
+  if (InputFileNames[0].find("HIOniaPeripheral30100")!=std::string::npos) {
+    cout << "[INFO] Working with Peripheral PbPb PD" << endl;
+    usePeriPD = true;
+    triggerIndex_PbPb = HI::HLT_HIL1DoubleMu0_2HF_Cent30100_v1;
+  }
   
   bool applyWeight = false;
   if (isMC && isPbPb) applyWeight = true;
   
   bool isPureSDataset = false;
   if (OutputFileName.find("_PureS")!=std::string::npos) isPureSDataset = true;
-  
+
   bool applyWeight_Corr = false;
   if ( (OutputFileName.find("_AccEff")!=std::string::npos) || (OutputFileName.find("_lJpsiEff")!=std::string::npos) ) applyWeight_Corr = true;
   if(applyWeight == true) applyWeight_Corr = false;
@@ -242,7 +249,8 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         if (
             ( RecoQQ::areMuonsInAcceptance2015(iQQ) ) &&  // 2015 Global Muon Acceptance Cuts
             ( RecoQQ::passQualityCuts2015(iQQ)      ) &&  // 2015 Soft Global Muon Quality Cuts
-            ( RecoQQ::isTriggerMatch(iQQ, (isPbPb ? triggerIndex_PbPb : triggerIndex_PP))        )     // HLT_HIL1DoubleMu0_v1
+            ( isPbPb ? (RecoQQ::isTriggerMatch(iQQ,triggerIndex_PbPb) || (usePeriPD ? false : RecoQQ::isTriggerMatch(iQQ,HI::HLT_HIL1DoubleMu0_2HF_v1))) :
+              RecoQQ::isTriggerMatch(iQQ, triggerIndex_PP) )     // if PbPb && !periPD then (HLT_HIL1DoubleMu0_v1 || HLT_HIL1DoubleMu0_2HF_v1)
             )
         {
           if (Reco_QQ_sign[iQQ]==0) { // Opposite-Sign dimuons
