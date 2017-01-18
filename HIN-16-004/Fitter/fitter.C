@@ -92,7 +92,7 @@ void fitter(
   map<string, string> inputDataSet;
   inputDataSet["DOUBLEMUON"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSetCent/";
   inputDataSet["PERIPHERAL"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSetPeri/";
-  inputDataSet["MONTECARLO"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSet/";//;"/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/DataSet/";
+  inputDataSet["MONTECARLO"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSets/";
 
   if (workDirName.find("Peri")!=std::string::npos) { usePeriPD = true; }
 
