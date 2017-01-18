@@ -162,6 +162,29 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     
     Long64_t nentries = theTree->GetEntries();
     //nentries = 50000;
+    
+    float normF = 0.;
+    if (isMC && isPbPb)
+    {
+      cout << "[INFO] Computing sum of weights for " << nentries << " nentries" << endl;
+      
+      for (Long64_t jentry=0; jentry<nentries;jentry++) {
+        
+        if (jentry%1000000==0) cout << "[INFO] " << jentry << "/" << nentries << endl;
+        
+        if (theTree->LoadTree(jentry)<0) break;
+        if (theTree->GetTreeNumber()!=fCurrent) {
+          fCurrent = theTree->GetTreeNumber();
+          cout << "[INFO] Processing Root File: " << InputFileNames[fCurrent] << endl;
+        }
+        
+        theTree->GetEntry(jentry);
+        normF += theTree->GetWeight()*getNColl(Centrality,!isPbPb);
+      }
+      
+      normF = nentries/normF;
+    }
+    
     cout << "[INFO] Starting to process " << nentries << " nentries" << endl;
     for (Long64_t jentry=0; jentry<nentries;jentry++) {
       
@@ -205,7 +228,8 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         }
 
         if (applyWeight){
-          double w = theTree->GetWeight();//*getNColl(Centrality,!isPbPb);
+          double w = theTree->GetWeight();
+          if (isMC && isPbPb) w = w*getNColl(Centrality,!isPbPb)*normF;
           weight->setVal(w);
         }
         else if (applyWeight_Corr)
