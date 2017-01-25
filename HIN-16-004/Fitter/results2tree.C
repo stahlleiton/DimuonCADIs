@@ -34,6 +34,8 @@ struct poi {
    float parIni_ctaumass_err;
    float parFit_ctaumass;
    float parFit_ctaumass_err;
+   float min;
+   float max;
 };
 
 const int nBins = 46;
@@ -107,6 +109,8 @@ void results2tree(
    for (vector<poi>::iterator it=thePois.begin(); it!=thePois.end(); it++) {
       tr->Branch(Form("%s_val",it->name),&(it->val),Form("%s_val/F",it->name));
       tr->Branch(Form("%s_err",it->name),&(it->err),Form("%s_err/F",it->name));
+      tr->Branch(Form("%s_min",it->name),&(it->min),Form("%s_min/F",it->name));
+      tr->Branch(Form("%s_max",it->name),&(it->max),Form("%s_max/F",it->name));
       tr->Branch(Form("%s_parIni_mass",it->name),&(it->parIni_mass),Form("%s_parIni_mass/F",it->name));
       tr->Branch(Form("%s_parIni_mass_err",it->name),&(it->parIni_mass_err),Form("%s_parIni_mass_err/F",it->name));
       tr->Branch(Form("%s_parLoad_mass",it->name),&(it->parLoad_mass),Form("%s_parLoad_mass/F",it->name));
@@ -232,6 +236,8 @@ void results2tree(
             RooRealVar *thevar_parFit_ctaumass = pdfCTAUMASS_Tot_parFit ? (RooRealVar*) pdfCTAUMASS_Tot_parFit->find(Form("%s_%s",itpoi->name,collSystem)) : 0;
             itpoi->val = thevar ? thevar->getVal() : 0;
             itpoi->err = thevar ? thevar->getError() : 0;
+            itpoi->min = thevar ? thevar->getMin() : 0;
+            itpoi->max = thevar ? thevar->getMax() : 0;
             itpoi->parIni_mass = thevar_parIni_mass ? thevar_parIni_mass->getVal() : 0;
             itpoi->parIni_mass_err = thevar_parIni_mass ? thevar_parIni_mass->getError() : 0;
             itpoi->parLoad_mass = thevar_parLoad_mass ? thevar_parLoad_mass->getVal() : 0;
