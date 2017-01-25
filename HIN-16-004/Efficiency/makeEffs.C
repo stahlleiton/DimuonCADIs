@@ -1,4 +1,6 @@
 #include "oniaEff.C"
+#include "oniaEff_TnPToyStudy.C"
+#include "oniaEff_pTShapeVary.C"
 #include <TChain.h>
 #include <TFile.h>
 #include <TSystem.h>
@@ -55,5 +57,12 @@ void makeEffs() {
    cout << "Efficiencies for pbpb non-prompt Jpsi" << endl;
    oniaEff obj_npjpsi_pbpb(tch_npjpsi_pbpb);
    obj_npjpsi_pbpb.Loop(Form("%s/histos_npjpsi_pbpb.root",dir.c_str()),true,obj_npjpsi_pbpb.tnpTypes::trg);
+
+   // Or efficiency systematics can be tested like below
+//   oniaEff_pTShapeVary obj_npjpsi_pbpb(tch_npjpsi_pbpb);
+//   obj_npjpsi_pbpb.LoopVary(Form("%s/histos_npjpsi_pbpb.root",dir.c_str()),true,obj_npjpsi_pbpb.tnpTypes::trg_ptWeighting);
+
+//   oniaEff_TnPToyStudy obj_npjpsi_pbpb(tch_npjpsi_pbpb);
+//   obj_npjpsi_pbpb.LoopVary(Form("%s/histos_npjpsi_pbpb.root",dir.c_str()),true,obj_npjpsi_pbpb.tnpTypes::trg_toy);
 
 }
