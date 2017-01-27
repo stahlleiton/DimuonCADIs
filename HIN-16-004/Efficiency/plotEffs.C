@@ -554,13 +554,26 @@ void plotMultipleSamples(vector<TGraphAsymmErrors*> heff, vector<string> *histna
     
   // except the 0th item, other histograms will be divided by 0th item
   pad2.cd();
+  double max = 0; // y-axis maximum for ratio plots
   for (int i=1; i<NGraph; i++) {
     TGraphAsymmErrors *rtmp = new TGraphAsymmErrors(geff[i],geff[0],"pois");
     ratio.push_back(rtmp);
-    SetHistStyle(ratio[i-1],i,i,0.97,1.22);
-    double xrangemin = geff[0]->GetXaxis()->GetXmin();
-    double xrangemax = geff[0]->GetXaxis()->GetXmax();
-    ratio[i-1]->GetXaxis()->SetRangeUser(xrangemin,xrangemax);
+    max = TMath::MaxElement(rtmp->GetN(), rtmp->GetY());
+  }
+  for (int i=1; i<NGraph; i++) {
+    SetHistStyle(ratio[i-1],i,i,0.90,max+0.17);
+    if (rap=="1.8-2.4" && pt=="3-6.5") {
+      SetHistStyle(ratio[i-1],i,i,0.90,max+0.17);
+    }
+    if (cent=="" && ispbpb) {
+      ratio[i-1]->GetXaxis()->SetRangeUser(0,100);
+    } else if (pt=="" && cent=="0-100") {
+      ratio[i-1]->GetXaxis()->SetRangeUser(0,50);
+    } else if (pt=="" && rap=="0-2.4") {
+      ratio[i-1]->GetXaxis()->SetRangeUser(0,50);
+    } else if (rap=="" && pt=="6.5-30" && cent=="0-100") {
+      ratio[i-1]->GetXaxis()->SetRangeUser(0,2.4);
+    }
     ratio[i-1]->GetXaxis()->SetTitleOffset(1.00);
     ratio[i-1]->GetYaxis()->SetTitleSize(0.10);
     ratio[i-1]->GetYaxis()->SetTitleOffset(0.60);
@@ -572,7 +585,17 @@ void plotMultipleSamples(vector<TGraphAsymmErrors*> heff, vector<string> *histna
     ratio[i-1]->GetYaxis()->SetTitle("Ratio (SF/no SF)");
   }
 
+  TLine *line = new TLine(); line->SetLineColor(kGray+2);
   for (int i=1; i<NGraph; i++) {
+    if (cent=="" && ispbpb) {
+      line->DrawLine(0,1,100,1);
+    } else if (pt=="" && cent=="0-100") {
+      line->DrawLine(0,1,50,1);
+    } else if (pt=="" && rap=="0-2.4") {
+      line->DrawLine(0,1,50,1);
+    } else if (rap=="" && pt=="6.5-30" && cent=="0-100") {
+      line->DrawLine(0,1,2.4,1);
+    }
     if (i==1) ratio[i-1]->Draw("ap");
     else ratio[i-1]->Draw("p");
   }
@@ -668,14 +691,12 @@ void callMultiples(vector<string> *inputfile, bool ispbpb, string *outname, vect
     string rap = raparr[i];
     string pt = "6.5-30";
     string cent = "";
-    cout << rap << " " << pt << " " << cent << endl;
     if (i+1 == heff_size) {
       rap = "1.8-2.4";
       pt = "3-6.5";
-      plotMultipleSamples(heff_cent_rap, histname, outname, xVar, xaxis, rap, pt, cent, ispbpb);
-    } else {
-      plotMultipleSamples(heff_cent_rap, histname, outname, xVar, xaxis, rap, pt, cent, ispbpb);
     }
+    cout << rap << " " << pt << " " << cent << endl;
+    plotMultipleSamples(heff_cent_rap, histname, outname, xVar, xaxis, rap, pt, cent, ispbpb);
     
     heff_cent_rap.clear();
     delete[] xaxis;

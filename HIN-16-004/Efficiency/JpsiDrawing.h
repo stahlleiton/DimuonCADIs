@@ -2,7 +2,7 @@
 #include <TH1.h>
 #include <TLegend.h>
 
-int colorArr[] = {kBlack, kRed+1, kOrange+7, kSpring+4, kBlue+1, kViolet-4, kMagenta, kMagenta+2};
+int colorArr[] = {kBlack, kRed+1, kGreen+3, kBlue+1, kViolet-4, kMagenta, kMagenta+2};
 //int colorArr[] = {kBlack, kRed+1, kOrange+7, kSpring+4, kGreen+3, kAzure+1, kBlue+2, kViolet+5, kViolet-4, kMagenta, kMagenta+2};
 //int colorArr[] = {kRed+1, kSpring+4, kAzure+1, kBlue+2, kMagenta, kMagenta+2};
 //int colorArr[] = {kRed+1, kSpring+4, kBlue+2, kMagenta, kMagenta+2};
