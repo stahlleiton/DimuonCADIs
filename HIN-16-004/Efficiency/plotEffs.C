@@ -565,7 +565,7 @@ void plotMultipleSamples(vector<TGraphAsymmErrors*> heff, vector<string> *histna
     if (rap=="1.8-2.4" && pt=="3-6.5") {
       SetHistStyle(ratio[i-1],i,i,0.90,max+0.17);
     }
-    if (cent=="" && ispbpb) {
+    if (cent=="") {
       ratio[i-1]->GetXaxis()->SetRangeUser(0,100);
     } else if (pt=="" && cent=="0-100") {
       ratio[i-1]->GetXaxis()->SetRangeUser(0,50);
