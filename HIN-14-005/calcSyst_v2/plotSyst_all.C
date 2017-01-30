@@ -53,7 +53,7 @@ void plotSyst_all(
   setTDRStyle();
  
   // input files: prompt and non-prompt ones
-  const int nFiles = 9;
+  const int nFiles = 8;
   // the position in the array where a specific type of set of variations starts;
   // it's used later; make sure it corresponds to what's in array
   int iVar_tnp = 1;
@@ -68,7 +68,7 @@ void plotSyst_all(
 	      "histsV2Yields_20160304_v2W_const_dPhiBins4",//4
               "histsV2Yields_20160304_v2W_MLAR_dPhiBins4",//5
               "histsV2Yields_20160304_v2W_polFunct_dPhiBins4",//6
-              "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",//7
+//              "histsV2Yields_20160304_v2W_resOpt2_dPhiBins4",//7
               "histsV2Yields_20160304_v2W_sigG1G2_dPhiBins4"//8
   };
 // legend or systm variation
@@ -79,7 +79,7 @@ const char* legendSyst[] = {"",
 			    "constrained",
 			    "bFrac_MLAR",
 			    "bkg_polFunct",
-			    "signal_resOpt2", 
+//			    "signal_resOpt2", 
 			    "signal_2Gaus"
 			    };
 
@@ -377,7 +377,7 @@ const char* legendSyst[] = {"",
       leg1->AddEntry(gSyst_fit1,Form("%s",legendSyst[5]),"P");
       leg1->AddEntry(gSyst_fit2,Form("%s",legendSyst[6]),"P");
       leg1->AddEntry(gSyst_fit3,Form("%s",legendSyst[7]),"P");
-      leg1->AddEntry(gSyst_fit4,Form("%s",legendSyst[8]),"P");
+//      leg1->AddEntry(gSyst_fit4,Form("%s",legendSyst[8]),"P");
       
       // legend for rest of variations
       TLegend *leg2 = new TLegend(0.65,0.15,0.8,0.35);
@@ -390,7 +390,7 @@ const char* legendSyst[] = {"",
       leg2->AddEntry(gSyst_4d,Form("%s",legendSyst[2]),"P");
       leg2->AddEntry(gSyst_3d,Form("%s",legendSyst[3]),"P");
  
-  //----------------------------------------
+      //----------------------------------------
       TLatex *lcent = new TLatex(20,-80,"Cent. 10-60%");
       lcent->SetTextFont(42);
       lcent->SetTextSize(0.05);
@@ -413,14 +413,14 @@ const char* legendSyst[] = {"",
       gSyst_fit1->Draw("P");
       gSyst_fit2->Draw("P");
       gSyst_fit3->Draw("P");
-      gSyst_fit4->Draw("P");
+      //gSyst_fit4->Draw("P");
      
       pc->cd(2);
       gSyst_tnp->Draw("P");
       gSyst_4d->Draw("P");
       gSyst_3d->Draw("P");
 
-      // //---------------------------------- legends and labels
+      //---------------------------------- legends and labels
       TLatex *lCateg = new TLatex(20,85,Form("%s",legend[iCateg]));
       pc->cd(1);
       leg1->Draw();

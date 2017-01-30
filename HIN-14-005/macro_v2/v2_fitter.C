@@ -418,7 +418,7 @@ void v2_fitter(int jpsiCategory      = -1, // -1 all; 1 : Prompt, 2 : Non-Prompt
           phPhiNor[iBin]->GetXaxis()->SetTitleOffset(0.95);
           phPhiNor[iBin]->GetYaxis()->SetTitleOffset(1.45);
           phPhiNor[iBin]->GetYaxis()->SetTitleSize(0.05);
-          phPhiNor[iBin]->GetYaxis()->SetTitle("#frac{1}{N_{total}^{J/#psi}} #frac{dN}{|#Delta#Phi|} (rad^{-1})");
+          phPhiNor[iBin]->GetYaxis()->SetTitle("#frac{1}{N_{total}^{J/#psi}} #frac{dN}{d|#Delta#Phi|} (rad^{-1})");
           phPhiNor[iBin]->GetXaxis()->SetTitle("|#Delta#Phi| (rad)");
           phPhiNor[iBin]->SetMarkerStyle(20);
           phPhiNor[iBin]->SetMarkerColor(kBlack);

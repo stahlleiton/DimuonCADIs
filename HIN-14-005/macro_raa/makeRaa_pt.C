@@ -185,6 +185,15 @@ void makeRaa_pt( bool bSavePlots           = 1,
       raa_npr    = yieldRatio_npr * scaleFactor * scale_cent;
       raaErr_npr = TMath::Sqrt(TMath::Power(dRelErrRaw_npr_pp,2)+TMath::Power(dRelErrRaw_npr_aa,2))*raa_npr;
      
+      cout << "Yield prompt PbPb : PbPberr : pp : pperr \n";
+      printf("%.2f$\\pm$%.2f  &  ",phCorr_pr_aa->GetBinContent(ibin),dRelErrRaw_pr_aa);
+      printf("%.2f$\\pm$%.2f",phCorr_pr_pp->GetBinContent(ibin),dRelErrRaw_pr_pp);
+      cout << endl;
+      cout << "Yield non-prompt PbPb : PbPberr : pp : pperr \n";
+      printf("%.2f$\\pm$%.2f  &  ",phCorr_npr_aa->GetBinContent(ibin),dRelErrRaw_npr_aa);
+      printf("%.2f$\\pm$%.2f",phCorr_npr_pp->GetBinContent(ibin),dRelErrRaw_npr_pp);
+      cout << endl;
+
       // fill the corresponding array
       switch(ih){
       case 0:
@@ -374,7 +383,7 @@ void makeRaa_pt( bool bSavePlots           = 1,
     f4->Draw("same");
   }
  
-  CMS_lumi(c1,12014000,0);
+  CMS_lumi(c1,12003000,0);
   lat->SetTextSize(ltxSetTextSize1);
   lat->SetTextFont(132);
   lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Prompt J/#psi");
@@ -448,7 +457,7 @@ void makeRaa_pt( bool bSavePlots           = 1,
     lumi->Draw();
     f4->Draw("same");
   }
-  CMS_lumi(c11b,12014000,0);
+  CMS_lumi(c11b,12003000,0);
   lat->SetTextSize(ltxSetTextSize1);
   lat->SetTextFont(132);
   lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Prompt J/#psi");
@@ -495,7 +504,7 @@ void makeRaa_pt( bool bSavePlots           = 1,
     f4->Draw("same");
   }
  
-  CMS_lumi(c2,12014000,0);
+  CMS_lumi(c2,12003000,0);
   lat->SetTextSize(ltxSetTextSize1);
   lat->SetTextFont(132);
   lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Nonprompt J/#psi");
@@ -572,7 +581,7 @@ void makeRaa_pt( bool bSavePlots           = 1,
     lumi->Draw();
     f4->Draw("same");
   }
-  CMS_lumi(c22b,12014000,0);
+  CMS_lumi(c22b,12003000,0);
   lat->SetTextSize(ltxSetTextSize1);
   lat->SetTextFont(132);
   lat->DrawLatex(ltxText_xStart,ltxText_yStart,"Nonprompt J/#psi");

@@ -192,7 +192,7 @@ void v2_cent_plotter(
     lt1->SetTextFont(42);
     lt1->SetTextSize(ltxSetTextSize2);
     
-    TH1F *phAxis = new TH1F("phAxis",";N_{part};v_{2}",10,0,400);
+    TH1F *phAxis = new TH1F("phAxis",";<N_{part}>;v_{2}",10,0,400);
     if(iCateg==2) {
       phAxis->GetYaxis()->SetRangeUser(-0.07,0.25);
     } else {
