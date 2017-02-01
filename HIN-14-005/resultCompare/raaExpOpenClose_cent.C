@@ -107,7 +107,7 @@ void raaExpOpenClose_cent(const char* inputDir = "../macro_raa/outRoot", // the 
 
   TCanvas *pc = new TCanvas("pc","pc");
 
-  TF1 *f4 = new TF1("f4","-1",0,400);
+  TF1 *f4 = new TF1("f4","1",0,400);
   //  f4->SetLineWidth(1);
   f4->GetXaxis()->SetTitle("<N_{part}>");
   f4->GetYaxis()->SetTitle("R_{AA}");
