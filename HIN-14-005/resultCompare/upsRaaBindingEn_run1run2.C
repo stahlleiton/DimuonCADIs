@@ -1,6 +1,6 @@
 {
 //=========Macro generated from canvas: c1/c1
-//=========  (Sat Feb  4 19:20:09 2017) by ROOT version5.34/36
+//=========  (Sat Feb  4 22:12:42 2017) by ROOT version5.34/36
    TCanvas *c1 = new TCanvas("c1", "c1",68,44,600,600);
    gStyle->SetOptFit(1);
    gStyle->SetOptStat(0);
@@ -47,7 +47,7 @@
    phAxis->GetZaxis()->SetTitleSize(0.06);
    phAxis->GetZaxis()->SetTitleFont(42);
    phAxis->Draw("");
-   TLine *line = new TLine(0,1,400,1);
+   TLine *line = new TLine(0,1,1.2,1);
    line->Draw();
    
    TGraphErrors *gre = new TGraphErrors(1);
@@ -540,7 +540,7 @@
    arrow->SetLineWidth(3);
    arrow->Draw();
    
-   TLegend *leg = new TLegend(0.18,0.6,0.4,0.75,NULL,"brNDC");
+   TLegend *leg = new TLegend(0.16,0.6,0.4,0.75,NULL,"brNDC");
    leg->SetBorderSize(0);
 
    ci = TColor::GetColor("#000099");
@@ -560,7 +560,7 @@
    entry->SetMarkerSize(1);
    entry->SetTextFont(62);
    entry->SetTextSize(0.04);
-   entry=leg->AddEntry("Graph","p_{T}#in[0,20] GeV/c, |y| < 2.4","");
+   entry=leg->AddEntry("Graph","p_{T}#in [0,20] GeV/c, |y| < 2.4","");
    entry->SetLineColor(1);
    entry->SetLineStyle(1);
    entry->SetLineWidth(1);
@@ -580,7 +580,7 @@
    entry->SetTextSize(0.035);
    leg->Draw();
    
-   leg = new TLegend(0.56,0.6,0.78,0.75,NULL,"brNDC");
+   leg = new TLegend(0.54,0.6,0.78,0.75,NULL,"brNDC");
    leg->SetBorderSize(0);
 
    ci = TColor::GetColor("#990000");
@@ -600,7 +600,7 @@
    entry->SetMarkerSize(1);
    entry->SetTextFont(62);
    entry->SetTextSize(0.04);
-   entry=leg->AddEntry("Graph","p_{T}#in[0,30] GeV/c, |y| < 2.4","");
+   entry=leg->AddEntry("Graph","p_{T}#in [0,30] GeV/c, |y| < 2.4","");
    entry->SetLineColor(1);
    entry->SetLineStyle(1);
    entry->SetLineWidth(1);
@@ -619,25 +619,22 @@
    entry->SetTextFont(42);
    entry->SetTextSize(0.035);
    leg->Draw();
-   TLatex *   tex = new TLatex(1.02,0.62,"#varUpsilon(1S)");
+   TLatex *   tex = new TLatex(0.97,0.56,"#varUpsilon(1S)");
    tex->SetTextFont(42);
-   tex->SetTextSize(0.04);
    tex->SetLineWidth(2);
    tex->Draw();
       tex = new TLatex(0.5,0.35,"#varUpsilon(2S)");
    tex->SetTextFont(42);
-   tex->SetTextSize(0.04);
    tex->SetLineWidth(2);
    tex->Draw();
       tex = new TLatex(0.175,0.2,"#varUpsilon(3S)");
    tex->SetTextFont(42);
-   tex->SetTextSize(0.04);
    tex->SetLineWidth(2);
    tex->Draw();
       tex = new TLatex(0.99,1.1,"CMS");
    tex->SetLineWidth(2);
    tex->Draw();
-      tex = new TLatex(0.08,1.1,"PbPb #sqrt{s_{NN}} = 5.02 TeV");
+      tex = new TLatex(0.08,1.1,"PbPb");
    tex->SetLineWidth(2);
    tex->Draw();
       tex = new TLatex(0.81,1.02,"Preliminary");
