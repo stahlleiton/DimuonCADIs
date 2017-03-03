@@ -40,7 +40,7 @@ b) the systematic uncertainties, which are calculated in excel, and hard-coded i
 #endif
 
 void v2_pt_plotter(
-       int jpsiCategory         = 2, // -1: All; 1 : Prompt, 2 : Non-Prompt, 3: Bkg
+       int jpsiCategory         = 1, // -1: All; 1 : Prompt, 2 : Non-Prompt, 3: Bkg
        int npNumBinsHighPt      = 1, // possible number of bins for non-prompt high-pt: 1 or 2
        string nDphiBins         = "4",
        const char* outputDir    = "output", 
@@ -327,7 +327,10 @@ void v2_pt_plotter(
 
     lt1->SetTextSize(ltxSetTextSize2);
     lt1->SetTextFont(42);
-    lt1->DrawLatex(ltxCentOnly_x,ltxCentOnly_y,Form("%s",centBinsLegend[0]));
+    lt1->DrawLatex(ltxCentOnly_x-0.08,ltxCentOnly_y,Form("%s",centBinsLegend[0]));
+    lt1->SetTextSize(ltxSetTextSize2-0.012);
+    lt1->DrawLatex(ltxCentOnly_x-0.08,ltxCentOnly_y-0.05,"Global uncertainty 2.7%");
+    lt1->SetTextSize(ltxSetTextSize2);
 
     pgV2_sys->Draw("2");
     pgV2_low_sys->Draw("2");

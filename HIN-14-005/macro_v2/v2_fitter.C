@@ -424,13 +424,13 @@ void v2_fitter(int jpsiCategory      = -1, // -1 all; 1 : Prompt, 2 : Non-Prompt
           phPhiNor[iBin]->SetMarkerColor(kBlack);
           phPhiNor[iBin]->SetMarkerSize(1.5);
           phPhiNor[iBin]->Draw("e1");
-          lt1->SetTextSize(0.04);
+          lt1->SetTextSize(0.036);
           if (iVar == 0 && iCateg == 1) { // mb pr J/psi number is written here
-            lt1->DrawLatex(0.22,0.34,Form("v_{2} = 0.07 #pm 0.01 (stat.) #pm 0.01 (syst.)"));
+            lt1->DrawLatex(0.22,0.34,Form("v_{2} = 0.07 #pm 0.01(stat.) #pm 0.01(syst.) #pm 0.03(glob.)"));
             lt1->DrawLatex(0.22,0.27,Form("v_{2}^{obs} = %.2f #pm %.2f",dFit_v2[iBin],dFit_v2Err[iBin]));
             lt1->DrawLatex(0.22,0.20,Form("R = 82%%"));
           } else if (iVar == 0 && iCateg == 2) { // mb npr J/psi number is written here
-            lt1->DrawLatex(0.22,0.34,Form("v_{2} = 0.03 #pm 0.03 (stat.) #pm 0.02 (syst.)"));
+            lt1->DrawLatex(0.22,0.34,Form("v_{2} = 0.07 #pm 0.01(stat.) #pm 0.01(syst.) #pm 0.03(glob.)"));
             lt1->DrawLatex(0.22,0.27,Form("v_{2}^{obs} = %.2f #pm %.2f",dFit_v2[iBin],dFit_v2Err[iBin]));
             lt1->DrawLatex(0.22,0.20,Form("R = 82%%"));
           } else {

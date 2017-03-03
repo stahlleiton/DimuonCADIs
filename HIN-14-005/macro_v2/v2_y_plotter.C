@@ -230,6 +230,9 @@ void v2_y_plotter(
     lt1->SetTextFont(42);
     lt1->SetTextSize(ltxSetTextSize2);
     lt1->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{6.5 < p_{T} < 30 GeV/c}{Cent. 10-60%}");
+    lt1->SetTextSize(ltxSetTextSize2-0.012);
+    lt1->DrawLatex(ltxText_xUp,ltxText_yUp-0.1,"Global uncertainty 2.7%");
+    lt1->SetTextSize(ltxSetTextSize2);
       
     pgV2_sys->Draw("2");
     pgV2->Draw("PZ");

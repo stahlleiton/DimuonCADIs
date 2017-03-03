@@ -216,6 +216,9 @@ void v2_cent_plotter(
     lt1->SetTextFont(42);
     lt1->SetTextSize(ltxSetTextSize2);
     lt1->DrawLatex(ltxText_xUp,ltxText_yUp,"#splitline{6.5 < p_{T} < 30 GeV/c}{|y| < 2.4}");
+    lt1->SetTextSize(ltxSetTextSize2-0.012);
+    lt1->DrawLatex(ltxText_xUp,ltxText_yUp-0.1,"Global uncertainty 2.7%");
+    lt1->SetTextSize(ltxSetTextSize2);
 
 
     if(iCateg==2) {
