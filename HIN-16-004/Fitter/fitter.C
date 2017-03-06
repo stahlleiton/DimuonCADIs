@@ -19,6 +19,7 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 void fitter(
             const string workDirName="Test", // Working directoryi
             bool useExtFiles  = true, // Use external fit files as input
+            bool useExtDS     = true, // Use external data/mc DataSets
             bool usePeriPD    = false, // If yes, use the PERIPHERAL PD provided by the user
             // Select the type of datasets to fit
             bool fitData      = true,        // Fits Data datasets
@@ -90,9 +91,9 @@ void fitter(
   inputInitialFilesDir["FILES"]    = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/") + (usePeriPD ? "DataFitsPeri/" :  "DataFitsCent/");
 
   map<string, string> inputDataSet;
-  inputDataSet["DOUBLEMUON"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSetCent/";
-  inputDataSet["PERIPHERAL"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSetPeri/";
-  inputDataSet["MONTECARLO"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSet/";//;"/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/DataSet/";
+  inputDataSet["DOUBLEMUON"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSets/";
+  inputDataSet["PERIPHERAL"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSets/";
+  inputDataSet["MONTECARLO"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSets/";
 
   if (workDirName.find("Peri")!=std::string::npos) { usePeriPD = true; }
 
@@ -168,16 +169,26 @@ void fitter(
       if ( (FILETAG.find("PP")!=std::string::npos)   && !fitPP   ) continue; // If we find PP, check if the user wants PP
       if ( (FILETAG.find("PbPb")!=std::string::npos) && !fitPbPb ) continue; // If we find PbPb, check if the user wants PbPb
       string dir = DIR["dataset"][0];
-      if (usePeriPD==true  && inputDataSet["PERIPHERAL"]!="" && (existDir(inputDataSet["PERIPHERAL"])==true)) { dir = inputDataSet["PERIPHERAL"]; }
-      if (usePeriPD==false && inputDataSet["DOUBLEMUON"]!="" && (existDir(inputDataSet["DOUBLEMUON"])==true)) { dir = inputDataSet["DOUBLEMUON"]; }
+      
+      bool isPbPb = false, isPeriPD = false;
+      if (FILETAG.find("PbPb")!=std::string::npos) { isPbPb = true; }
+      if (InputFileNames[0].find("HIOniaPeripheral30100")!=std::string::npos) { isPeriPD = true; }
+      
+      if (isPbPb && usePeriPD && !isPeriPD){
+        cout << "[ERROR] Requested to use Peripheral PD but InputTress.txt does not contain the corresponding trees" << endl;
+        return;
+      }
+      
+      if (useExtDS==true && usePeriPD==true  && inputDataSet["PERIPHERAL"]!="" && (existDir(inputDataSet["PERIPHERAL"])==true)) { dir = inputDataSet["PERIPHERAL"]; }
+      if (useExtDS==true && usePeriPD==false && inputDataSet["DOUBLEMUON"]!="" && (existDir(inputDataSet["DOUBLEMUON"])==true)) { dir = inputDataSet["DOUBLEMUON"]; }
       if(strcmp(applyCorr,"")){
-        OutputFileName = dir + "DATASET_" + FILETAG + "_" + string(applyCorr) + ".root";
+        OutputFileName = dir + "DATASET_" + FILETAG + "_" + string(applyCorr) + (isPbPb?(isPeriPD?"_PERI":"_CENT"):"") + ".root";
         if(gSystem->AccessPathName(OutputFileName.c_str())) { OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + "_" + string(applyCorr) + ".root"; }
         if(!tree2DataSet(Workspace[Form("%s_%s",DSTAG.c_str(),applyCorr)], InputFileNames, FILETAG, OutputFileName)){ return; }
       }
       else {
-        OutputFileName = dir + "DATASET_" + FILETAG + ".root";
-        if(gSystem->AccessPathName(OutputFileName.c_str())) { OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + ".root"; }
+        OutputFileName = dir + "DATASET_" + FILETAG + (isPbPb?(isPeriPD?"_PERI":"_CENT"):"") + ".root";
+        if(gSystem->AccessPathName(OutputFileName.c_str())) { OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + (isPbPb?(isPeriPD?"_PERI":"_CENT"):"") + ".root"; }
         string NAMETAG = DSTAG;
         if (checkData) { NAMETAG = string("MC")+(incJpsi?"JPSI":"PSI2S")+(incNonPrompt?"NOPR":"PR")+"_"+(fitPP?"PP":"PbPb"); }
         if(!tree2DataSet(Workspace[NAMETAG], InputFileNames, FILETAG, OutputFileName)){ return; }
@@ -194,7 +205,7 @@ void fitter(
       if ( (FILETAG.find("NOPR")!=std::string::npos) ) { if (!incNonPrompt) continue; } // If we find Non-Prompt MC, check if the user wants to include Non-Prompt
       else if ( (FILETAG.find("PR")!=std::string::npos) && !incPrompt ) continue; // If we find Prompt MC, check if the user wants to include Prompt
       string dir = DIR["dataset"][0];
-      if (inputDataSet["MONTECARLO"]!="" && (existDir(inputDataSet["MONTECARLO"])==true)) { dir = inputDataSet["MONTECARLO"]; }
+      if (useExtDS==true && inputDataSet["MONTECARLO"]!="" && (existDir(inputDataSet["MONTECARLO"])==true)) { dir = inputDataSet["MONTECARLO"]; }
       OutputFileName = dir + "DATASET_" + FILETAG + ".root";
       if(gSystem->AccessPathName(OutputFileName.c_str())) { OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + ".root"; }
       if(!tree2DataSet(Workspace[DSTAG], InputFileNames, FILETAG, OutputFileName)){ return; }
