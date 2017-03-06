@@ -3,6 +3,7 @@
 #include "TGraphAsymmErrors.h"
 #include "TString.h"
 #include "TCanvas.h"
+#include "TPad.h"
 #include "TLegend.h"
 #include "TSystem.h"
 
@@ -125,7 +126,7 @@ drawingEff::drawingEff(string fname, bool ispbpb_){
 
 void drawingEff::checkUnderFlow(TH1 *hnum, TH1 *hden){
 
-  cout << "\ncheckUnderFlow: " << hnum->GetName() << " " << hden->GetName() << endl;
+//  cout << "\ncheckUnderFlow: " << hnum->GetName() << " " << hden->GetName() << endl;
   for (int j=0; j<=hnum->GetNbinsX()+1; j++) {
     double num0 = hnum->GetBinContent(j);
     double den0 = hden->GetBinContent(j);
@@ -235,6 +236,20 @@ void drawingEff::getEfficiency(){
 
   for (int i=0; i<nbins_4rap+2; i++) {
     TGraphAsymmErrors *geff = new TGraphAsymmErrors(hnum_cent_rap[i],hden_cent_rap[i],"n");
+    const int np = geff->GetN();
+    for (int a=0; a<np; a++) {
+      double gey = geff->GetErrorYhigh(a);
+      double gex = geff->GetErrorXhigh(a);
+      if (gey!=gey) { // when error is nan, error will be calculated by hand!
+        double eyd = hden_cent_rap[i]->GetBinError(a+1);
+        double eyn = hnum_cent_rap[i]->GetBinError(a+1);
+        double yd = hden_cent_rap[i]->GetBinContent(a+1);
+        double yn = hnum_cent_rap[i]->GetBinContent(a+1);
+        double uncert = yn/yd * sqrt( pow(eyd/yd,2) + pow(eyn/yn,2) ) / 2.0;
+        cout << "   getEfficiency("<<a<<")\t" << yn/yd << "  " << uncert << endl;
+        geff->SetPointError(a,gex,gex,uncert,uncert);
+      }
+    }
     heff_cent_rap.push_back(geff);
 
     string gname = hnum_cent_rap[i]->GetName();
@@ -249,6 +264,20 @@ void drawingEff::getEfficiency(){
   
   for (int i=0; i<nbins_4rap+1; i++) {
     TGraphAsymmErrors *geff = new TGraphAsymmErrors(hnum_pt_rap[i],hden_pt_rap[i],"n");
+    const int np = geff->GetN();
+    for (int a=0; a<np; a++) {
+      double gey = geff->GetErrorYhigh(a);
+      double gex = geff->GetErrorXhigh(a);
+      if (gey!=gey) { // when error is nan, error will be calculated by hand!
+        double eyd = hden_pt_rap[i]->GetBinError(a+1);
+        double eyn = hnum_pt_rap[i]->GetBinError(a+1);
+        double yd = hden_pt_rap[i]->GetBinContent(a+1);
+        double yn = hnum_pt_rap[i]->GetBinContent(a+1);
+        double uncert = yn/yd * sqrt( pow(eyd/yd,2) + pow(eyn/yn,2) ) / 2.0;
+        cout << "   getEfficiency("<<a<<")\t" << yn/yd << "  " << uncert << endl;
+        geff->SetPointError(a,gex,gex,uncert,uncert);
+      }
+    }
     heff_pt_rap.push_back(geff);
    
     string gname = hnum_pt_rap[i]->GetName();
@@ -263,6 +292,20 @@ void drawingEff::getEfficiency(){
  
   for (int i=0; i<(ispbpb?nbins_3cent:1); i++) {
     TGraphAsymmErrors *geff = new TGraphAsymmErrors(hnum_pt_cent[i],hden_pt_cent[i],"n");
+    const int np = geff->GetN();
+    for (int a=0; a<np; a++) {
+      double gey = geff->GetErrorYhigh(a);
+      double gex = geff->GetErrorXhigh(a);
+      if (gey!=gey) { // when error is nan, error will be calculated by hand!
+        double eyd = hden_pt_cent[i]->GetBinError(a+1);
+        double eyn = hnum_pt_cent[i]->GetBinError(a+1);
+        double yd = hden_pt_cent[i]->GetBinContent(a+1);
+        double yn = hnum_pt_cent[i]->GetBinContent(a+1);
+        double uncert = yn/yd * sqrt( pow(eyd/yd,2) + pow(eyn/yn,2) ) / 2.0;
+        cout << "   getEfficiency("<<a<<")\t" << yn/yd << "  " << uncert << endl;
+        geff->SetPointError(a,gex,gex,uncert,uncert);
+      }
+    }
     heff_pt_cent.push_back(geff);
     
     string gname = hnum_pt_cent[i]->GetName();
@@ -276,7 +319,20 @@ void drawingEff::getEfficiency(){
   }
 
   heff_rap = new TGraphAsymmErrors(hnum_rap,hden_rap,"n");
-  
+  const int np = heff_rap->GetN();
+  for (int a=0; a<np; a++) {
+    double gey = heff_rap->GetErrorYhigh(a);
+    double gex = heff_rap->GetErrorXhigh(a);
+    if (gey!=gey) { // when error is nan, error will be calculated by hand!
+      double eyd = hden_rap->GetBinError(a+1);
+      double eyn = hnum_rap->GetBinError(a+1);
+      double yd = hden_rap->GetBinContent(a+1);
+      double yn = hnum_rap->GetBinContent(a+1);
+      double uncert = yn/yd * sqrt( pow(eyd/yd,2) + pow(eyn/yn,2) ) / 2.0;
+      cout << "   getEfficiency("<<a<<")\t" << yn/yd << "  " << uncert << endl;
+      heff_rap->SetPointError(a,gex,gex,uncert,uncert);
+    }
+  }
   string gname = hnum_rap->GetName();
   gname.replace(gname.begin(),gname.begin()+4,"heff");
   heff_rap->SetName(gname.c_str());
@@ -443,21 +499,30 @@ void plotEffs() {
 // For 1 kinematic region, draw different SFs on a same canvas
 // -> Call "drawMultiples()" function to execute this macro
 //////////////////////////////////////////////////////////////////
-void plotMultipleSamples(vector<TGraphAsymmErrors*> heff, vector<string> *histname, string *outname, int xVar, string rap, string pt, string cent, bool ispbpb) {
+void plotMultipleSamples(vector<TGraphAsymmErrors*> heff, vector<string> *histname, string *outname, int xVar, const double *xaxis, string rap, string pt, string cent, bool ispbpb) {
 
   setTDRStyle();
   gStyle->SetEndErrorSize(3);
 
   const int NGraph = heff.size();
 
-  TCanvas *can = new TCanvas("can","can",600,600);
-  TLatex *lat = new TLatex(); lat->SetNDC(); lat->SetTextSize(0.035);
-  TLegend *leg = new TLegend(0.55,0.70,0.94,0.88);
+  TCanvas can("can","can",600,600);
+  TPad pad1("pad1","pad1",0.0,0.35,1.0,0.99);
+  pad1.SetTopMargin(0.05);
+  pad1.SetBottomMargin(0);
+  pad1.Draw();
+  TPad pad2("pad2","pad2",0.0,0.0,1.0,0.35);
+  pad2.SetTopMargin(0);
+  pad2.SetBottomMargin(0.30);
+  pad2.Draw();
+  
+  TLatex *lat = new TLatex(); lat->SetNDC(); lat->SetTextSize(0.05);
+  TLegend *leg = new TLegend(0.60,0.65,0.94,0.88);
   SetLegendStyle(leg);
 
+  pad1.cd();
   for (int i=0; i<NGraph; i++) {
     SetHistStyle(heff[i],i,i,0,1.3);
-    
     leg->AddEntry(heff[i],histname->at(i).c_str(),"p");
     
     if (i==0) heff[i]->Draw("ap");
@@ -465,39 +530,115 @@ void plotMultipleSamples(vector<TGraphAsymmErrors*> heff, vector<string> *histna
   }
   leg->Draw();
 
+  // Draw ratios
+  vector<TGraphAsymmErrors*> ratio;
+  vector<TH1F*> geff;
+  for (int i=0; i<NGraph; i++) {
+    int Ntotal = heff[i]->GetN();
+    
+    // create ratio histograms
+    double *y = heff[i]->GetY();
+    double *eylow = heff[i]->GetEYlow();
+    double *eyhigh = heff[i]->GetEYhigh();
+    
+    TH1F *htmp = new TH1F(Form("h%d_%s",i,heff[i]->GetName()),"htmp",Ntotal,xaxis);
+    cout << htmp->GetName() << endl;
+    for (int a=0; a<Ntotal; a++) {
+      htmp->SetBinContent(a+1,y[a]);
+      double ey = (eylow[a]>eyhigh[a] ? eylow[a] : eyhigh[a]);
+      htmp->SetBinError(a+1,ey);
+      cout << "\t" << a << "  " << xaxis[a] << " " << xaxis[a+1] << "  " << y[a] << "  " << ey << endl;
+    }
+    geff.push_back(htmp);
+  }
+    
+  // except the 0th item, other histograms will be divided by 0th item
+  pad2.cd();
+  double max = 0; // y-axis maximum for ratio plots
+  for (int i=1; i<NGraph; i++) {
+    TGraphAsymmErrors *rtmp = new TGraphAsymmErrors(geff[i],geff[0],"pois");
+    ratio.push_back(rtmp);
+    max = TMath::MaxElement(rtmp->GetN(), rtmp->GetY());
+  }
+  for (int i=1; i<NGraph; i++) {
+    SetHistStyle(ratio[i-1],i,i,0.90,max+0.17);
+    if (rap=="1.8-2.4" && pt=="3-6.5") {
+      SetHistStyle(ratio[i-1],i,i,0.90,max+0.17);
+    }
+    if (cent=="") {
+      ratio[i-1]->GetXaxis()->SetRangeUser(0,100);
+    } else if (pt=="" && cent=="0-100") {
+      ratio[i-1]->GetXaxis()->SetRangeUser(0,50);
+    } else if (pt=="" && rap=="0-2.4") {
+      ratio[i-1]->GetXaxis()->SetRangeUser(0,50);
+    } else if (rap=="" && pt=="6.5-30" && cent=="0-100") {
+      ratio[i-1]->GetXaxis()->SetRangeUser(0,2.4);
+    }
+    ratio[i-1]->GetXaxis()->SetTitleOffset(1.00);
+    ratio[i-1]->GetYaxis()->SetTitleSize(0.10);
+    ratio[i-1]->GetYaxis()->SetTitleOffset(0.60);
+    ratio[i-1]->GetXaxis()->SetTitleSize(0.10);
+    ratio[i-1]->GetXaxis()->SetLabelSize(0.10);
+    ratio[i-1]->GetYaxis()->SetLabelSize(0.10);
+    string title = heff[0]->GetXaxis()->GetTitle();
+    ratio[i-1]->GetXaxis()->SetTitle(title.c_str());
+    ratio[i-1]->GetYaxis()->SetTitle("Ratio (SF/no SF)");
+  }
+
+  TLine *line = new TLine(); line->SetLineColor(kGray+2);
+  for (int i=1; i<NGraph; i++) {
+    if (cent=="" && ispbpb) {
+      line->DrawLine(0,1,100,1);
+    } else if (pt=="" && cent=="0-100") {
+      line->DrawLine(0,1,50,1);
+    } else if (pt=="" && rap=="0-2.4") {
+      line->DrawLine(0,1,50,1);
+    } else if (rap=="" && pt=="6.5-30" && cent=="0-100") {
+      line->DrawLine(0,1,2.4,1);
+    }
+    if (i==1) ratio[i-1]->Draw("ap");
+    else ratio[i-1]->Draw("p");
+  }
+
   gSystem->mkdir(Form("%s",outname->c_str()),kTRUE);
 
+  pad1.cd();
   if (xVar == 0) { // vs. Cent
     lat->DrawLatex(0.2,0.85,Form("|y|: %s, %s GeV/c",rap.c_str(),pt.c_str()));
     
-    can->SaveAs(Form("%s/cent_rap%s_pt%s.png",outname->c_str(),rap.c_str(),pt.c_str()));
-    can->SaveAs(Form("%s/cent_rap%s_pt%s.pdf",outname->c_str(),rap.c_str(),pt.c_str()));
+    can.SaveAs(Form("%s/cent_rap%s_pt%s.png",outname->c_str(),rap.c_str(),pt.c_str()));
+    can.SaveAs(Form("%s/cent_rap%s_pt%s.pdf",outname->c_str(),rap.c_str(),pt.c_str()));
 
   } else if (xVar == 1) { // vs. pt in 4+1 |y| regions
     if (ispbpb) lat->DrawLatex(0.2,0.85,Form("|y|: %s, 0-100%%",rap.c_str()));
     else lat->DrawLatex(0.2,0.85,Form("|y|: %s",rap.c_str()));
     
-    can->SaveAs(Form("%s/pt_rap%s.png",outname->c_str(),rap.c_str()));
-    can->SaveAs(Form("%s/pt_rap%s.pdf",outname->c_str(),rap.c_str()));
+    can.SaveAs(Form("%s/pt_rap%s.png",outname->c_str(),rap.c_str()));
+    can.SaveAs(Form("%s/pt_rap%s.pdf",outname->c_str(),rap.c_str()));
   
   } else if (xVar == 2) { // vs. pt in 3 cent regions
     if (ispbpb) lat->DrawLatex(0.2,0.85,Form("%s%%",cent.c_str()));
 
-    can->SaveAs(Form("%s/pt_cent%s.png",outname->c_str(),cent.c_str()));
-    can->SaveAs(Form("%s/pt_cent%s.pdf",outname->c_str(),cent.c_str()));
+    can.SaveAs(Form("%s/pt_cent%s.png",outname->c_str(),cent.c_str()));
+    can.SaveAs(Form("%s/pt_cent%s.pdf",outname->c_str(),cent.c_str()));
 
   } else if (xVar == 3) { // vs. rap integrated over all regions
     lat->DrawLatex(0.2,0.80,"6.5-50 GeV/c");
     if (ispbpb) lat->DrawLatex(0.2,0.75,"0-100%");
 
-    can->SaveAs(Form("%s/rap.png",outname->c_str()));
-    can->SaveAs(Form("%s/rap.pdf",outname->c_str()));
+    can.SaveAs(Form("%s/rap.png",outname->c_str()));
+    can.SaveAs(Form("%s/rap.pdf",outname->c_str()));
   }
-  
-  delete can;
+   
+  for (int i=0; i<NGraph; i++) {
+    delete geff[i];
+    if (i<NGraph-1) { // except the 0th item, other histograms will be divided by 0th item
+      delete ratio[i];
+    }
+  }
+ 
   delete leg;
   delete lat;
-  
 }
 
 
@@ -520,7 +661,8 @@ void callMultiples(vector<string> *inputfile, bool ispbpb, string *outname, vect
   vector<TGraphAsymmErrors*> heff_pt_rap;
   vector<TGraphAsymmErrors*> heff_pt_cent;
   vector<TGraphAsymmErrors*> heff_rap;
-
+  
+  //xVar is for drawing latex on plots
   //xVar == 0 : vs. Cent
   //xVar == 1 : vs. pt in 4+1 |y| regions
   //xVar == 2 : vs. pt in 3 cent regions
@@ -528,24 +670,36 @@ void callMultiples(vector<string> *inputfile, bool ispbpb, string *outname, vect
   // Eff vs centrality in 4+1 |y| regions (6.5-50 GeV/c), forward & low pT region
   unsigned int heff_size = fsource[0]->heff_cent_rap.size();
   cout << "heff_size: " << heff_size << endl;
-  for (unsigned int i=0; i<heff_size; i++) {
+  for (unsigned int i=0; i<heff_size; i++) { // heff_size == number of loops for each 4+1 |y| region
     int xVar = 0;
     for (unsigned int fidx=0; fidx<isize; fidx++) {
-      heff_cent_rap.push_back(fsource[fidx]->heff_cent_rap[i]);
+      heff_cent_rap.push_back(fsource[fidx]->heff_cent_rap[i]); // Compare fdix input files
     }
+    // Defining x-axis to re-making ratio histogram
+    TH1F *hden = fsource[0]->hden_cent_rap[i];
+    const int nbins = hden->GetNbinsX();
+    double *xaxis = new double[nbins+1];
+    for (int a=0; a<nbins; a++) {
+      xaxis[a] = hden->GetBinLowEdge(a+1);
+    }
+    xaxis[nbins] = xaxis[nbins-1] + hden->GetBinWidth(nbins);
+    for (int a=0; a<nbins+1; a++) {
+      cout << "xaxis[" << a << "] " << xaxis[a] << endl;
+    }
+    // done with definining x-axis
+
     string rap = raparr[i];
     string pt = "6.5-30";
     string cent = "";
-    cout << rap << " " << pt << " " << cent << endl;
     if (i+1 == heff_size) {
       rap = "1.8-2.4";
       pt = "3-6.5";
-      plotMultipleSamples(heff_cent_rap, histname, outname, xVar, rap, pt, cent, ispbpb);
-    } else {
-      plotMultipleSamples(heff_cent_rap, histname, outname, xVar, rap, pt, cent, ispbpb);
     }
-
+    cout << rap << " " << pt << " " << cent << endl;
+    plotMultipleSamples(heff_cent_rap, histname, outname, xVar, xaxis, rap, pt, cent, ispbpb);
+    
     heff_cent_rap.clear();
+    delete[] xaxis;
   }
   // Eff vs pT in 4+1 |y| regions
   heff_size = fsource[0]->heff_pt_rap.size();
@@ -554,13 +708,27 @@ void callMultiples(vector<string> *inputfile, bool ispbpb, string *outname, vect
     for (unsigned int fidx=0; fidx<isize; fidx++) {
       heff_pt_rap.push_back(fsource[fidx]->heff_pt_rap[i]);
     }
+    // Defining x-axis to re-making ratio histogram
+    TH1F *hden = fsource[0]->hden_pt_rap[i];
+    int nbins = hden->GetNbinsX();
+    double *xaxis = new double[nbins+1];
+    for (int a=0; a<nbins; a++) {
+      xaxis[a] = hden->GetBinLowEdge(a+1);
+    }
+    xaxis[nbins] = xaxis[nbins-1] + hden->GetBinWidth(nbins);
+    for (int a=0; a<nbins+1; a++) {
+      cout << "xaxis[" << a << "] " << xaxis[a] << endl;
+    }
+    // done with definining x-axis
+
     string rap = raparr[i];
     string pt = "";
     string cent = "0-100";
     cout << rap << " " << pt << " " << cent << endl;
-    plotMultipleSamples(heff_pt_rap, histname, outname, xVar, rap, pt, cent, ispbpb);
+    plotMultipleSamples(heff_pt_rap, histname, outname, xVar, xaxis, rap, pt, cent, ispbpb);
 
     heff_pt_rap.clear();
+    delete[] xaxis;
   }
   // Eff vs pT in 3 centrality regions
   heff_size = fsource[0]->heff_pt_cent.size();
@@ -569,25 +737,54 @@ void callMultiples(vector<string> *inputfile, bool ispbpb, string *outname, vect
     for (unsigned int fidx=0; fidx<isize; fidx++) {
       heff_pt_cent.push_back(fsource[fidx]->heff_pt_cent[i]);
     }
+    // Defining x-axis to re-making ratio histogram
+    TH1F *hden = fsource[0]->hden_pt_cent[i];
+    int nbins = hden->GetNbinsX();
+    double *xaxis = new double[nbins+1];
+    for (int a=0; a<nbins; a++) {
+      xaxis[a] = hden->GetBinLowEdge(a+1);
+    }
+    xaxis[nbins] = xaxis[nbins-1] + hden->GetBinWidth(nbins);
+    for (int a=0; a<nbins+1; a++) {
+      cout << "xaxis[" << a << "] " << xaxis[a] << endl;
+    }
+    // done with definining x-axis
+
     string rap = "0-2.4";
     string pt = "";
     string cent = centarr[i];
     cout << rap << " " << pt << " " << cent << endl;
-    plotMultipleSamples(heff_pt_cent, histname, outname, xVar, rap, pt, cent, ispbpb);
+    plotMultipleSamples(heff_pt_cent, histname, outname, xVar, xaxis, rap, pt, cent, ispbpb);
 
     heff_pt_cent.clear();
+    delete[] xaxis;
   }
   // Eff vs rap integrated
   int xVar = 3;
   for (unsigned int fidx=0; fidx<isize; fidx++) {
     heff_rap.push_back(fsource[fidx]->heff_rap);
   }
+  // Defining x-axis to re-making ratio histogram
+  TH1F *hden = fsource[0]->hden_rap;
+  int nbins = hden->GetNbinsX();
+  double *xaxis = new double[nbins+1];
+  for (int a=0; a<nbins; a++) {
+    xaxis[a] = hden->GetBinLowEdge(a+1);
+  }
+  xaxis[nbins] = xaxis[nbins-1] + hden->GetBinWidth(nbins);
+  for (int a=0; a<nbins+1; a++) {
+    cout << "xaxis[" << a << "] " << xaxis[a] << endl;
+  }
+  // done with definining x-axis
+
   string rap = "";
   string pt = "6.5-30";
   string cent = "0-100";
   cout << rap << " " << pt << " " << cent << endl;
-  plotMultipleSamples(heff_rap, histname, outname, xVar, rap, pt, cent, ispbpb);
+  plotMultipleSamples(heff_rap, histname, outname, xVar, xaxis, rap, pt, cent, ispbpb);
 
+  heff_rap.clear();
+  delete[] xaxis;
   for (unsigned int i=0; i<isize; i++) {
     delete fsource[i];
   }

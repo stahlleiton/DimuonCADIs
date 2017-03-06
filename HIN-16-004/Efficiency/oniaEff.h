@@ -29,6 +29,8 @@ public :
      trg__muid__sta = 2,
      trg__muid = 3,
      trg__sta = 4,
+     trg_toy = 5, // 100 toyMC variations, stat. only
+     trg_ptWeighting = 6, // 100 pt weighting variations
      trg_binned = 10,
      trg_plus1sigma = 11,
      trg_minus1sigma = 12
@@ -299,6 +301,7 @@ public :
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
    virtual void     Loop(const char* fname, bool ispbpb=false, int tnptype=0);
+//   virtual void     LoopVary(const char* fname, bool ispbpb=false, int tnptype=0);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);
    Bool_t isTriggerMatch (Int_t iRecoQQ, Int_t TriggerBit);
