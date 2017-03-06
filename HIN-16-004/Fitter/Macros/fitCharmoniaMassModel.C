@@ -339,12 +339,12 @@ void setMassGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni
       if (incJpsi)
         {
           if (cut.dMuon.AbsRap.Min >= 1.6) {
-            myws.var("invMass")->setRange("MassWindow", 2.6, 3.32);
-            parIni["MassRange_Cut"] = Form("(invMass>%.6f && invMass<%.6f)", 2.6, 3.32);
+            myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, 3.32);
+            parIni["MassRange_Cut"] = Form("(invMass>%.6f && invMass<%.6f)", cut.dMuon.M.Min, 3.32);
           }
           else {
-            myws.var("invMass")->setRange("MassWindow", 2.6, 3.26);
-            parIni["MassRange_Cut"] = Form("(invMass>%.6f && invMass<%.6f)", 2.6, 3.26);
+            myws.var("invMass")->setRange("MassWindow", cut.dMuon.M.Min, 3.26);
+            parIni["MassRange_Cut"] = Form("(invMass>%.6f && invMass<%.6f)", cut.dMuon.M.Min, 3.26);
           }
         }
     }
@@ -407,8 +407,8 @@ void setMassCutParameters(struct KinCuts& cut, bool incJpsi, bool incPsi2S, bool
     // Default mass values, means that the user did not specify a mass range
     if ( incJpsi && !incPsi2S) {
       if (isMC && !useForCtauFits){
-        cut.dMuon.M.Min = 2.2;
-        cut.dMuon.M.Max = 4.0;
+        cut.dMuon.M.Min = 2.6;
+        cut.dMuon.M.Max = 3.5;
       } else {
         cut.dMuon.M.Min = 2.6;
         cut.dMuon.M.Max = 3.5;
