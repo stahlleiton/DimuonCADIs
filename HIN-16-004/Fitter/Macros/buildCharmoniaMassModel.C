@@ -12,6 +12,7 @@ bool addBackgroundMassModel(RooWorkspace& ws, string object, MassModel model, ma
 
 bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<string, string>  parIni, 
                              bool isPbPb,                 // Determine if we are working with PbPb (True) or PP (False)
+                             bool doConstrFit,            // Do constrained fit
                              bool doSimulFit,             // Do simultaneous fit
                              bool incBkg,                 // Include background model
                              bool incJpsi,                // Include Jpsi model
@@ -79,6 +80,14 @@ bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<stri
     if(!addBackgroundMassModel(ws, "Bkg", model.Bkg.Mass, parIni, isPbPb)) { cout << "[ERROR] Adding Background Mass Model failed" << endl; return false; }
   }
 
+  // Constraint PDFs
+  if (doConstrFit)
+  {
+    ws.factory(Form("Gaussian::sigmaAlphaConstr(%s,RooConstVar(%f),RooConstVar(%f))",Form("alpha_Jpsi_%s", isPbPb?"PbPb":"PP"), ws.var(Form("alpha_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV(), 0.2*ws.var(Form("alpha_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV()));
+    ws.factory(Form("Gaussian::sigmaNConstr(%s,RooConstVar(%f),RooConstVar(%f))",Form("n_Jpsi_%s", isPbPb?"PbPb":"PP"), ws.var(Form("n_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV(), 0.2*ws.var(Form("n_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV()));
+    if (isPbPb) ws.factory(Form("Gaussian::sigmaRSigmaConstr(%s,RooConstVar(%f),RooConstVar(%f))",Form("rSigma21_Jpsi_%s", isPbPb?"PbPb":"PP"), ws.var(Form("rSigma21_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV(), 0.2*ws.var(Form("rSigma21_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV()));
+  }
+  
   // Total PDF
   string pdfType = "pdfMASS";
   string pdfName = Form("%s_Tot_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"));

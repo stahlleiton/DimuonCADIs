@@ -106,7 +106,7 @@ bool fitCharmoniaCtauResDataModel( RooWorkspace& myws,             // Local Work
     if ( !fitCharmoniaMassModel( myws, inputWorkspace, cut, parIni, opt, outputDir,
                                 DSTAG, isPbPb, importDS,
                                 incJpsi, incPsi2S, true,
-                                doMassFit, cutCtau, doSimulFit, false, applyCorr, loadMassFitResult, iMassFitDir, numCores,
+                                doMassFit, cutCtau, false, doSimulFit, false, applyCorr, loadMassFitResult, iMassFitDir, numCores,
                                 setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
                                 )
         ) { return false; }

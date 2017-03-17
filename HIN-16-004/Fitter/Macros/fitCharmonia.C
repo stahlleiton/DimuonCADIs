@@ -37,6 +37,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
                    bool usectauBkgTemplate = false,// If yes use a template for Bkg ctau instead of the fitted Pdf
                    bool useCtauRecoPdf = false,     // If yes use the ctauReco PDF (template) instead of ctauTrue one
                    bool cutCtau      = false,      // Apply prompt ctau cuts
+                   bool doConstrFit   = false,     // Do constrained fit
                    bool doSimulFit   = false,      // Do simultaneous fit
                    bool wantPureSMC  = false,      // Flag to indicate if we want to fit pure signal MC
                    map<string, string> inputFitDir={},// User-defined Location of the fit results
@@ -103,7 +104,7 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
     if ( !fitCharmoniaMassModel( myws, inputWorkspace, cut, parIni, opt, outputDir, 
                                  DSTAG, isPbPb, importDS,
                                  incJpsi, incPsi2S, incBkg, 
-                                 doFit, cutCtau, doSimulFit, wantPureSMC, applyCorr, loadFitResult, iFitDir, numCores, 
+                                 doFit, cutCtau, doConstrFit, doSimulFit, wantPureSMC, applyCorr, loadFitResult, iFitDir, numCores,
                                  setLogScale, incSS, zoomPsi, ibWidth, getMeanPT 
                                  ) 
          ) { return false; }

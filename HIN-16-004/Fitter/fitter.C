@@ -2,7 +2,7 @@
 #include "Macros/tree2DataSet.C"
 #include "Macros/fitCharmonia.C"
 
-bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool fitRes, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores);
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool fitRes, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doConstrFit, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores);
 
 bool parseFile(string FileName, vector< map<string, string> >& data);
 bool parseString(string input, string delimiter, vector<double>& output);
@@ -12,8 +12,8 @@ void findSubDir(vector<string>& dirlist, string dirname);
 bool existDir(string dir);
 bool readFile(string FileName, vector< vector<string> >& content, const int nCol=-1, int nRow=-1);
 bool getInputFileNames(const string InputTrees, map<string, vector<string> >& InputFileCollection);
-bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, string>& parIni, bool isPbPb);
-bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vector< map<string, string> >&  parIniVector, bool isPbPb);
+bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, string>& parIni, bool isPbPb, bool doConstrFit);
+bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vector< map<string, string> >&  parIniVector, bool isPbPb, bool doConstrFit);
 
 
 void fitter(
@@ -43,10 +43,11 @@ void fitter(
             bool usectauBkgTemplate = false,// If yes use a template for Bkg ctau instead of the fitted Pdf
             bool useCtauRecoPdf = false,     // If yes use the ctauReco PDF (template) instead of ctauTrue one
             bool cutCtau      = false,        // Apply prompt ctau cuts
+            bool doConstrFit   = false,        // Do constrained fit
             bool doSimulFit   = false,        // Do simultaneous fit
             bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
             const char* applyCorr  = "",     // Apply weight to data for correction (Acceptance & Ef , l_J/psi eff...). No correction if empty variable.
-            int  numCores     = 32,           // Number of cores used for fitting
+            int  numCores     = 8,           // Number of cores used for fitting
             // Select the drawing options
             bool  setLogScale  = true,         // Draw plot with log scale
             bool  incSS        = false,        // Include Same Sign data
@@ -105,7 +106,7 @@ void fitter(
   if (fitRes || fitTest) { inputFitDir["CTAURES"] = ""; inputInitialFilesDir["CTAURES"] = ""; }
   if ((fitCtau && fitData && incBkg && !incJpsi) || fitTest) { inputFitDir["CTAUSB"] = ""; inputInitialFilesDir["CTAUSB"] = ""; }
 
-  if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, fitCtauReco, fitRes, doCtauErrPDF, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores)) { return; }
+  if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, fitCtauReco, fitRes, doCtauErrPDF, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doConstrFit, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores)) { return; }
 
   map< string, vector<string> > DIR;
   if(!iniWorkEnv(DIR, workDirName)){ return; }
@@ -275,7 +276,7 @@ void fitter(
               if (VAR->first=="CTAU" && PAR->first=="JPSI" && inputInitialFilesDirs[j]["CTAU"]!=""    ) { dir = inputInitialFilesDirs[j]["CTAU"];     }
               string name3 = name2 + COL->first + ".csv";
               InputFile = (dir + name3);
-              if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
+              if (!addParameters(InputFile, cutVector, parIniVector, true, doConstrFit)) { return; }
             }
           }
         }
@@ -339,6 +340,7 @@ void fitter(
                                  usectauBkgTemplate,// If yes use a template for Bkg ctau instead of the fitted Pdf
                                  useCtauRecoPdf,  // If yes use the ctauReco PDF (template) instead of ctauTrue one
                                  cutCtau,         // Apply prompt ctau cuts
+                                 doConstrFit,     // Do constrained fit
                                  doSimulFit,      // Do simultaneous fitC
                                  wantPureSMC,     // Flag to indicate if we want to fit pure signal MC
                                  inputFitDirs[index], // Map of user-defined directory paths of previous fit results
@@ -383,6 +385,7 @@ void fitter(
                                             usectauBkgTemplate,// If yes use a template for Bkg ctau instead of the fitted Pdf
                                             useCtauRecoPdf,  // If yes use the ctauReco PDF (template) instead of ctauTrue one
                                             cutCtau,         // Apply prompt ctau cuts
+                                            doConstrFit,     // Do constrained fit
                                             doSimulFit,      // Do simultaneous fit
                                             wantPureSMC,           // Flag to indicate if we want to fit pure signal MC
                                             inputFitDirs[index],// Map of user-defined directory paths of previous fit results
@@ -409,7 +412,7 @@ void fitter(
 };
   
 
-bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vector< map<string, string> >&  parIniVector, bool isPbPb)
+bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vector< map<string, string> >&  parIniVector, bool isPbPb, bool doConstrFit)
 {
   vector< map<string, string> >  data;
   if(!parseFile(InputFile, data)) { return false; }
@@ -417,7 +420,7 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
   if (cutVector.size()==0) {
     for(vector< map<string, string> >::iterator row=data.begin(); row!=data.end(); ++row) {
       struct KinCuts cut; map<string, string> parIni;
-      if(!setParameters(*row, cut, parIni, isPbPb)) { return false; }
+      if(!setParameters(*row, cut, parIni, isPbPb, doConstrFit)) { return false; }
       cutVector.push_back(cut);  parIniVector.push_back(parIni);
     }
   }
@@ -425,7 +428,7 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
     if (data.size()!=cutVector.size()) { cout << "[ERROR] The initial parameters in file " << InputFile << " are not consistent with previous files!" << endl; return false; }
     for (unsigned int i=0; i<data.size(); i++) {
       struct KinCuts cut;
-      if (!setParameters(data.at(i), cut, parIniVector.at(i), isPbPb)) { return false; };
+      if (!setParameters(data.at(i), cut, parIniVector.at(i), isPbPb, doConstrFit)) { return false; };
       if (!isEqualKinCuts(cut, cutVector.at(i), isPbPb)) { cout << "[ERROR] The bins in file " << InputFile << " are not consistent with previous files!" << endl; return false; }
     }
   }
@@ -434,7 +437,7 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 };
 
 
-bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, string>& parIni, bool isPbPb)
+bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, string>& parIni, bool isPbPb, bool doConstrFit)
 {
 
   // set initial parameters
@@ -619,10 +622,14 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
           cout << "[ERROR] Initial parameter " << col->first << " has incorrect number of values, it has: " << v.size() << endl; return false;
         } 
 	// everything seems alright, then proceed to save the values
-	if (v.size()==1) { 
-	  // if only one value is given i.e. [ num ], consider it a constant value
-	  parIni[col->first] = Form("%s[ %.6f, %.6f, %.6f]", col->first.c_str(), v.at(0), v.at(0), v.at(0));
-	} else {
+	if (v.size()==1)
+  {
+	  // if only one value is given i.e. [ num ], consider it a constant value if doConstrFit = false. If doConstrFit = true, the parameter range will be +- 100% of the value
+    if (doConstrFit) parIni[col->first] = Form("%s[ %.6f, %.6f, %.6f]", col->first.c_str(), v.at(0), v.at(0) - abs(v.at(0)), v.at(0) + abs(v.at(0)));
+	  else parIni[col->first] = Form("%s[ %.6f, %.6f, %.6f]", col->first.c_str(), v.at(0), v.at(0), v.at(0));
+	}
+  else
+  {
 	  parIni[col->first] = col->first + col->second;
 	}
       } else {
@@ -802,12 +809,18 @@ bool existDir(string dir)
 };
 
 
-bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool fitRes, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores)
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool fitRes, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doConstrFit, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores)
 { 
   cout << "[INFO] Checking user settings " << endl;
 
   if (!fitMass && !fitCtau && !fitCtauTrue && !doCtauErrPDF && !fitCtauReco && !fitRes) {
     cout << "[ERROR] At least one distribution has to be selected for fitting, please select either Mass, CtauTrue, CtauErr, Ctau, CtauN or CtauReco!" << endl; return false;
+  }
+  if (doConstrFit && (fitCtau || fitCtauTrue || fitCtauReco|| fitRes)) {
+    cout << "[ERROR] Constrained fits only implemented for invariant mass!" << endl; return false;
+  }
+  if (doConstrFit && doSimulFit) {
+    cout << "[ERROR] Constrained fits not implemented with simultaneous fits!" << endl; return false;
   }
   if (fitCtauTrue && fitData) {
     cout << "[ERROR] We can not fit the truth ctau distribution on data, please select only MC!" << endl; return false;

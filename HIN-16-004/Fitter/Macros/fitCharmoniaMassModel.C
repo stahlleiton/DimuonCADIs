@@ -29,6 +29,7 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
                             // Select the fitting options
                             bool doFit       = true,       // Flag to indicate if we want to perform the fit
                             bool cutCtau     = false,      // Apply prompt ctau cuts
+                            bool doConstrFit   = false,    // Do constrained fit
                             bool doSimulFit  = false,      // Do simultaneous fit
                             bool wantPureSMC = false,      // Flag to indicate if we want to fit pure signal MC
                             const char* applyCorr ="",     // Flag to indicate if we want corrected dataset and which correction
@@ -92,7 +93,7 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
     setMassGlobalParameterRange(myws, parIni, cut, incJpsi, incPsi2S, incBkg, wantPureSMC);
 
     // Build the Fit Model
-    if (!buildCharmoniaMassModel(myws, model.PP, parIni, false, doSimulFit, incBkg, incJpsi, incPsi2S, numEntries))  { return false; }
+    if (!buildCharmoniaMassModel(myws, model.PP, parIni, false, doConstrFit, doSimulFit, incBkg, incJpsi, incPsi2S, numEntries))  { return false; }
 
     // Define plot names
     if (incJpsi)  { plotLabelPP += Form("_Jpsi_%s", parIni["Model_Jpsi_PP"].c_str());   } 
@@ -127,7 +128,7 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
     setMassGlobalParameterRange(myws, parIni, cut, incJpsi, incPsi2S, incBkg, wantPureSMC);
 
     // Build the Fit Model
-    if (!buildCharmoniaMassModel(myws, model.PbPb, parIni, true, doSimulFit, incBkg, incJpsi, incPsi2S, numEntries))  { return false; }
+    if (!buildCharmoniaMassModel(myws, model.PbPb, parIni, true, doConstrFit, doSimulFit, incBkg, incJpsi, incPsi2S, numEntries))  { return false; }
 
     // Define plot names
     if (incJpsi)  { plotLabelPbPb += Form("_Jpsi_%s", parIni["Model_Jpsi_PbPb"].c_str());   } 
@@ -224,7 +225,24 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
     // Fit the Datasets
     if (skipFit==false) {
       bool isWeighted = myws.data(dsName.c_str())->isWeighted();
-      RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(isWeighted), Range(cutSideBand ? parIni["BkgMassRange_FULL_Label"].c_str() : "MassWindow"), NumCPU(numCores), Save());
+      RooFitResult* fitResult(0x0);
+      if (doConstrFit)
+      {
+        cout << "[INFO] Performing constrained fit" << endl;
+        
+        if (isPbPb) {
+          cout << "[INFO] Constrained variables: alpha, n, ratio of sigmas" << endl;
+          fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(isWeighted), Range(cutSideBand ? parIni["BkgMassRange_FULL_Label"].c_str() : "MassWindow"), ExternalConstraints(RooArgSet(*(myws.pdf("sigmaAlphaConstr")),*(myws.pdf("sigmaNConstr")),*(myws.pdf("sigmaRSigmaConstr")))), NumCPU(numCores), Save());
+        }
+        else {
+          cout << "[INFO] Constrained variables: alpha, n, ratio of sigmas" << endl;
+          fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(isWeighted), Range(cutSideBand ? parIni["BkgMassRange_FULL_Label"].c_str() : "MassWindow"), ExternalConstraints(RooArgSet(*(myws.pdf("sigmaAlphaConstr")),*(myws.pdf("sigmaNConstr")))), NumCPU(numCores), Save());
+        }
+      }
+      else
+      {
+       fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(isWeighted), Range(cutSideBand ? parIni["BkgMassRange_FULL_Label"].c_str() : "MassWindow"), NumCPU(numCores), Save());
+      }
       fitResult->Print("v"); 
       myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
       // Create the output files
