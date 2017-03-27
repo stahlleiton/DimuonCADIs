@@ -81,11 +81,19 @@ bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<stri
   }
 
   // Constraint PDFs
-  if (doConstrFit)
+  if (doConstrFit) //FIXME: hardcoded values should be moved to input files
   {
-    ws.factory(Form("Gaussian::sigmaAlphaConstr(%s,RooConstVar(%f),RooConstVar(%f))",Form("alpha_Jpsi_%s", isPbPb?"PbPb":"PP"), ws.var(Form("alpha_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV(), 0.2*ws.var(Form("alpha_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV()));
-    ws.factory(Form("Gaussian::sigmaNConstr(%s,RooConstVar(%f),RooConstVar(%f))",Form("n_Jpsi_%s", isPbPb?"PbPb":"PP"), ws.var(Form("n_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV(), 0.2*ws.var(Form("n_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV()));
-    if (isPbPb) ws.factory(Form("Gaussian::sigmaRSigmaConstr(%s,RooConstVar(%f),RooConstVar(%f))",Form("rSigma21_Jpsi_%s", isPbPb?"PbPb":"PP"), ws.var(Form("rSigma21_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV(), 0.2*ws.var(Form("rSigma21_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV()));
+    if (isPbPb)
+    {
+      ws.factory(Form("Gaussian::sigmaAlphaConstr(%s,RooConstVar(%f),RooConstVar(%f))",Form("alpha_Jpsi_%s", isPbPb?"PbPb":"PP"), ws.var(Form("alpha_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV(), 0.21*ws.var(Form("alpha_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV()));
+      ws.factory(Form("Gaussian::sigmaNConstr(%s,RooConstVar(%f),RooConstVar(%f))",Form("n_Jpsi_%s", isPbPb?"PbPb":"PP"), ws.var(Form("n_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV(), 0.54*ws.var(Form("n_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV()));
+      ws.factory(Form("Gaussian::sigmaRSigmaConstr(%s,RooConstVar(%f),RooConstVar(%f))",Form("rSigma21_Jpsi_%s", isPbPb?"PbPb":"PP"), ws.var(Form("rSigma21_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV(), 0.3*ws.var(Form("rSigma21_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV()));
+    }
+    else
+    {
+      ws.factory(Form("Gaussian::sigmaAlphaConstr(%s,RooConstVar(%f),RooConstVar(%f))",Form("alpha_Jpsi_%s", isPbPb?"PbPb":"PP"), ws.var(Form("alpha_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV(), 0.16*ws.var(Form("alpha_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV()));
+      ws.factory(Form("Gaussian::sigmaNConstr(%s,RooConstVar(%f),RooConstVar(%f))",Form("n_Jpsi_%s", isPbPb?"PbPb":"PP"), ws.var(Form("n_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV(), 0.21*ws.var(Form("n_Jpsi_%s", isPbPb?"PbPb":"PP"))->getValV()));
+    }
   }
   
   // Total PDF
