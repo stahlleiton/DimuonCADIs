@@ -247,7 +247,7 @@ void fitter(
        {"JPSI",  fitCtau && incJpsi && incNonPrompt},
        {"PSI2S", fitCtau && incPsi2S && incNonPrompt},
        {"RES",   fitRes},
-       {"TRUE",  fitCtauTrue},
+       {"TRUE",  fitCtauTrue || fitCtauReco},
      }
     }
   };
