@@ -149,7 +149,7 @@ void results2tree(
          if (catchjpsi) {strcpy(jpsiName, t.Data()); catchjpsi=false;}
          if (catchbkg) {strcpy(bkgName, t.Data()); catchbkg=false;}
          if (catchtype) {modelType = t; catchtype=false;}
-         if (t=="Jpsi") catchjpsi=true;
+         if ((t=="Jpsi") || t=="CtauRes") catchjpsi=true;
          if (t=="Bkg") catchbkg=true;
          if (t.EndsWith("FIT")) catchtype=true;
       }
@@ -169,7 +169,7 @@ void results2tree(
       chi2_ctau=0; ndof_ctau=0;
       if (f && ws) {
          // get the model for nll and npar
-         RooAbsPdf *model = pdfFromWS(ws, Form("_%s",collSystem), Form("pdf%s_Tot",modelType.Data()));
+        RooAbsPdf *model = (strcmp(modelType.Data(),"CTAURES")) ? pdfFromWS(ws, Form("_%s",collSystem), Form("pdf%s_Tot",modelType.Data())) : pdfFromWS(ws, Form("_%s",collSystem), "pdfCTAUNRES_Tot");
 
          RooAbsPdf *model_bkg = pdfFromWS(ws, Form("_%s",collSystem), Form("pdf%s_Bkg",modelType.Data()));
          const char* token = (strcmp(DSTag,"DATA") && wantPureSMC) ? Form("_%s_NoBkg",collSystem) : Form("_%s",collSystem);
