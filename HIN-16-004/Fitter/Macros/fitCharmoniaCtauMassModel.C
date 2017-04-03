@@ -114,11 +114,12 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
     const char* applyCorr = "";
     bool doSimulFit = false;
     bool cutCtau = false;
+    bool doConstrFit = false;
 
     if ( !fitCharmoniaMassModel( myws, inputWorkspace, cut, parIni, opt, outputDir, 
                                  DSTAG, isPbPb, importDS,
                                  incJpsi, incPsi2S, true, 
-                                 doMassFit, cutCtau, false, doSimulFit, wantPureSMC, applyCorr, loadMassFitResult, iMassFitDir, numCores, 
+                                 doMassFit, cutCtau, doConstrFit, doSimulFit, wantPureSMC, applyCorr, loadMassFitResult, iMassFitDir, numCores, 
                                  setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
                                  ) 
          ) { return false; }
@@ -152,8 +153,70 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
   struct OniaModel model;
   if (!setCtauModel(model, parIni, isPbPb, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt)) { return false; }
 
+  //// LOAD CTAU SIDEBAND PDF
+  if (fitCtau) {
+    // check if we have already done the sideband fits. If yes, load their results
+    string FileName = "";
+    bool fitSB = true;
+    string plotLabel = Form("_BkgNoPR_%s_CtauRes_%s", parIni[Form("Model_BkgNoPR_%s", COLL.c_str())].c_str(), parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str());
+    string DSTAG = Form("DATA_%s", (isPbPb?"PbPb":"PP"));
+    setCtauFileName(FileName, (inputFitDir["CTAUSB"]=="" ? outputDir : inputFitDir["CTAUSB"]), DSTAG, plotLabel, cut, isPbPb, fitSB, usectauBkgTemplate);
+    bool found = false;
+    if (!found && gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAUSB"]!="") {
+      setCtauFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, fitSB, usectauBkgTemplate);
+    } else if (inputFitDir["CTAUSB"]!="") { found = true; }
+    if (!found && gSystem->AccessPathName(FileName.c_str())) {
+      cout << "[ERROR] User Input File : " << FileName << " was not found!" << endl;
+      return false;
+    }
+    if (usectauBkgTemplate) {
+      vector<string> pdfNames; pdfNames.push_back(Form("pdfCTAUCOND_Bkg_%s", COLL.c_str()));
+      if ( !isPdfAlreadyFound(myws, FileName, pdfNames, true) ) {
+        cout << "[ERROR] The ctau sideband fit results were not loaded!" << endl;
+        return false;
+      } else { 
+        cout << "[INFO] The ctau sideband fits were found, so I'll load the fit results." << endl; 
+      }
+    }
+  }
+
   // Build the Fit Model
   if (!buildCharmoniaCtauModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsName, cut, isPbPb, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt, useTotctauErrPdf, usectauBkgTemplate, binWidth["CTAUSB"], numEntries))  { return false; }
+
+  //// LOAD CTAU RESOLUTION PDF
+  if (fitCtau && usectauBkgTemplate) {
+    // check if we have already done the resolution fits. If yes, load their results
+    string FileName = "";
+    string plotLabel = Form("_CtauRes_%s", parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str());
+    string DSTAG = Form("MCJPSIPR_%s", (isPbPb?"PbPb":"PP"));
+    if (inputFitDir["CTAURES"].find("NP")!=std::string::npos) DSTAG = Form("MCJPSINOPR_%s", (isPbPb?"PbPb":"PP")); 
+    setCtauResFileName(FileName, (inputFitDir["CTAURES"]=="" ? outputDir : inputFitDir["CTAURES"]), DSTAG, plotLabel, cut, isPbPb);
+    if (wantPureSMC) { plotLabel = plotLabel + "_NoBkg"; }
+    bool found = false;
+    if (!found && gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAURES"]!="") {
+      plotLabel = string(Form("_CtauRes_%s_NoBkg", parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str()));
+      setCtauResFileName(FileName, (inputFitDir["CTAURES"]=="" ? outputDir : inputFitDir["CTAURES"]), DSTAG, plotLabel, cut, isPbPb);
+    } else if (inputFitDir["CTAURES"]!="") { found = true; }
+    if (!found && gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAURES"]!="") {
+      plotLabel = Form("_CtauRes_%s", parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str());
+      setCtauResFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
+    } else if (inputFitDir["CTAURES"]!="") { found = true; }
+    if (!found && gSystem->AccessPathName(FileName.c_str())) {
+      plotLabel = string(Form("_CtauRes_%s_NoBkg", parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str()));
+      setCtauResFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
+    } else { found = true; }
+    if (!found && gSystem->AccessPathName(FileName.c_str())) {
+      cout << "[ERROR] User Input File : " << FileName << " was not found!" << endl;
+      return false;
+    }
+    if ( !loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) {
+      cout << "[ERROR] The ctau resolution fit results were not loaded!" << endl;
+      return false;
+    } else { 
+      cout << "[INFO] The ctau resolution fits were found, so I'll load the fit results." << endl; 
+    }
+    myws.pdf(Form("pdfCTAU_JpsiPR_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("ctauErr")))->setAttribAll("Constant", kTRUE);
+  }
 
   //// LOAD CTAU SIDEBAND PDF
   if (fitCtau) {
@@ -171,22 +234,24 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
       cout << "[ERROR] User Input File : " << FileName << " was not found!" << endl;
       return false;
     }
-    if ( !loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) {
-      cout << "[ERROR] The ctau sideband fit results were not loaded!" << endl;
-      return false;
-    } else { 
-      cout << "[INFO] The ctau sideband fits were found, so I'll load the fit results." << endl; 
+    if (!usectauBkgTemplate) {
+      if ( !loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) {
+        cout << "[ERROR] The ctau sideband fit results were not loaded!" << endl;
+        return false;
+      } else { 
+        cout << "[INFO] The ctau sideband fits were found, so I'll load the fit results." << endl; 
+      }
+      if (myws.pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")))) {
+        cout << "[INFO] Setting Prompt Background parameters to constant!" << endl;
+        myws.pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("ctauErr")))->setAttribAll("Constant", kTRUE); 
+      } else { cout << "[ERROR] Prompt Background PDF was not found!" << endl; return false; }
+      if (myws.pdf(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")))) {
+        cout << "[INFO] Setting NonPrompt Background parameters to constant!" << endl;
+        myws.pdf(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("ctauErr")))->setAttribAll("Constant", kTRUE); 
+      } else { cout << "[ERROR] NonPrompt Background PDF was not found!" << endl; return false; }
+      if (!setConstant(myws, Form("b_Bkg_%s", COLL.c_str()), true)) { return false; }
+      if (!setConstant(myws, Form("s1_CtauRes_%s", COLL.c_str()), false)) { return false; }
     }
-    if (myws.pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")))) {
-      cout << "[INFO] Setting Prompt Background parameters to constant!" << endl;
-      myws.pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("ctauErr")))->setAttribAll("Constant", kTRUE); 
-    } else { cout << "[ERROR] Prompt Background PDF was not found!" << endl; return false; }
-    if (myws.pdf(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")))) {
-      cout << "[INFO] Setting NonPrompt Background parameters to constant!" << endl;
-      myws.pdf(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("ctauErr")))->setAttribAll("Constant", kTRUE); 
-    } else { cout << "[ERROR] NonPrompt Background PDF was not found!" << endl; return false; }
-    if (!setConstant(myws, Form("b_Bkg_%s", COLL.c_str()), true)) { return false; }
-    if (!setConstant(myws, Form("s1_CtauRes_%s", COLL.c_str()), false)) { return false; }
   }
 
   //// LOAD CTAU TRUE PDF RESULTS

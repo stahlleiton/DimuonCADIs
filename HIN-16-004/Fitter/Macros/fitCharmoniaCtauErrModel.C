@@ -77,7 +77,7 @@ bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspac
     setCtauErrFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, cutSideBand);
   }
   bool found =  true; bool skipCtauErrPdf = !doCtauErrPdf;
-  found = found && isCtauErrPdfAlreadyFound(myws, FileName, pdfNames, loadCtauErrPdf);
+  found = found && isPdfAlreadyFound(myws, FileName, pdfNames, loadCtauErrPdf);
   if (found) {
     if (loadCtauErrPdf) {
       cout << "[INFO] This ctauErr Pdf was already made, so I'll load the pdf." << endl;
@@ -117,11 +117,12 @@ bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspac
     const char* applyCorr = "";
     bool doSimulFit = false;
     bool cutCtau = false;
+    bool doConstrFit = false;
 
     if ( !fitCharmoniaMassModel( myws, inputWorkspace, cut, parIni, opt, outputDir, 
                                  DSTAG, isPbPb, importDS,
                                  incJpsi, incPsi2S, true, 
-                                 doMassFit, cutCtau, false, doSimulFit, wantPureSMC, applyCorr, loadMassFitResult, iMassFitDir, numCores,
+                                 doMassFit, cutCtau, doConstrFit, doSimulFit, wantPureSMC, applyCorr, loadMassFitResult, iMassFitDir, numCores, 
                                  setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
                                  ) 
          ) { return false; }
@@ -196,47 +197,6 @@ void setCtauErrFileName(string& FileName, string outputDir, string TAG, string p
   FileName = Form("%sctauErr%s/%s/result/FIT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), (cutSideBand?"SB":""), TAG.c_str(), "CTAUERR", TAG.c_str(), (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
 
   return;
-};
-
-
-bool isCtauErrPdfAlreadyFound(RooWorkspace& myws, string FileName, vector<string> pdfNames, bool loadCtauErrPdf)
-{
-  if (gSystem->AccessPathName(FileName.c_str())) {
-    cout << "[INFO] Results not found for: " << FileName << endl;
-    return false; // File was not found
-  }
-  TFile *file = new TFile(FileName.c_str());
-  if (!file) return false;
-
-  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
-  if (!ws) {
-    cout << "[INFO] Workspace not found in: " << FileName << endl;
-    file->Close(); delete file;
-    return false;
-  }
-
-  bool found = true;
-  for (unsigned int i=0; i<pdfNames.size(); i++) {
-    string pdfName = pdfNames.at(i);
-    string dataName = pdfName;
-    dataName.replace(dataName.find("pdf"), string("pdf").length(), "dh");
-    if ( !(ws->pdf(pdfName.c_str())) || !(ws->data(dataName.c_str())) ) {
-      cout << "[INFO] " << pdfName << " was not found in: " << FileName << endl; found = false;
-    }
-    if (loadCtauErrPdf && found) {
-      myws.import(*(ws->pdf(pdfName.c_str())));
-      myws.import(*(ws->data(dataName.c_str())));
-      if (ws->pdf(pdfName.c_str()))   { cout << "[INFO] Pdf " << pdfName << " succesfully imported!" << endl;       }
-      else {  cout << "[ERROR] Pdf " << pdfName << " import failed!" << endl; found = false; }
-      if (ws->data(dataName.c_str())) { cout << "[INFO] DataHist " << dataName << " succesfully imported!" << endl; }
-      else {  cout << "[ERROR] DataHist " << dataName << " import failed!" << endl; found = false; }
-    }
-  }
-  
-  delete ws;
-  file->Close(); delete file;
-
-  return found;
 };
 
 
