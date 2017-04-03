@@ -32,21 +32,22 @@ bool drawCtauResDataPlot(RooWorkspace& myws,   // Local workspace
   bool isWeighted = myws.data(dsName.c_str())->isWeighted();
   bool isMC = (DSTAG.find("MC")!=std::string::npos);
   bool incJpsi = (dsName.find("JPSI")!=std::string::npos);
+  bool incPsi2S = (dsName.find("PSI2S")!=std::string::npos);
   bool incNonPrompt = (DSTAG.find("NOPR")!=std::string::npos);
   vector<double> range; range.push_back(cut.dMuon.ctauN.Min); range.push_back(cut.dMuon.ctauN.Max);
 
   string pdfType  = "pdfCTAUNRES";
   string varName = "ctauN";
   string pdfTotName  = Form("%s_Tot_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"));
-  string obj = (incJpsi?"Jpsi":"Psi2S");
-  obj += (incNonPrompt?"NoPR":"PR");
+  string obj = "Bkg";
+  if (incJpsi) obj = "Jpsi";
+  if (incPsi2S) obj = "Psi2S";
  
   double minRange = -10.0;
   double maxRange = 10.0;
-  Double_t outTot = myws.data(dsName.c_str())->sumEntries();
-  Double_t outErr = outTot - (myws.data(dsNameCut.c_str())->sumEntries());
-  if (outErr<0) { cout << "[ERROR] Number of events is smaller after ctau cut: Total " << outTot << " and cutted " << (myws.data(dsNameCut.c_str())->sumEntries()) << endl; return false; }
-//  Double_t outErr = myws.data(dsName.c_str())->reduce(Form("(ctauN>%.6f || ctauN<%.6f)", range[1], range[0]))->sumEntries();
+  Double_t outTot = myws.data(dsName.c_str())->numEntries();
+  Double_t outErr = outTot - (myws.data(dsNameCut.c_str())->numEntries());
+  if (outErr<0) { cout << "[ERROR] Number of events is smaller after ctau cut: Total " << outTot << " and cutted " << (myws.data(dsNameCut.c_str())->numEntries()) << endl; return false; }
   int nBins = min(int( round((maxRange - minRange)/binWidth) ), 1000);
   int COLOR[] = { kGreen+3, kRed+2, kBlue+2, kViolet-5};
 
@@ -81,7 +82,6 @@ bool drawCtauResDataPlot(RooWorkspace& myws,   // Local workspace
   hpull->SetName("hpull");
   RooPlot* frame2 = myws.var(varName.c_str())->frame(Title("Pull Distribution"), Bins(nBins), Range(minRange, maxRange));
   frame2->addPlotable(hpull, "PX"); 
-
   // Create the main canvas
   TCanvas *cFig  = new TCanvas(Form("cCtauFig_%s", (isPbPb?"PbPb":"PP")), "cCtauFig",800,800);
   TPad    *pad1  = new TPad(Form("pad1_%s", (isPbPb?"PbPb":"PP")),"",0,0.23,1,1);
@@ -113,7 +113,7 @@ bool drawCtauResDataPlot(RooWorkspace& myws,   // Local workspace
   pad2->SetBottomMargin(0.4);
   pad2->SetFillStyle(4000); 
   pad2->SetFrameFillStyle(4000); 
-  pad1->SetBottomMargin(0.015); 
+  pad1->SetBottomMargin(0.015);
   //plot fit
   pad1->Draw();
   pad1->cd(); 
@@ -259,9 +259,9 @@ void setCtauResDataRange(RooWorkspace& myws, RooPlot* frame, string dsName, stri
 void printCtauResDataParameters(RooWorkspace myws, TPad* Pad, bool isPbPb, string pdfName, bool isWeighted)
 {
   Pad->cd();
-  TLatex *t = new TLatex(); t->SetNDC(); t->SetTextSize(0.026); float dy = 0.045; 
+  TLatex *t = new TLatex(); t->SetNDC(); t->SetTextSize(0.026); float dy = 0.045;
   RooArgSet* Parameters = (RooArgSet*)myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*myws.var("ctauErr"), *myws.var("ctau"), *myws.var("ctauN")))->selectByAttrib("Constant",kFALSE);
-  TIterator* parIt = Parameters->createIterator(); 
+  TIterator* parIt = Parameters->createIterator();
   for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
     stringstream ss(it->GetName()); string s1, s2, s3, label; 
     getline(ss, s1, '_'); getline(ss, s2, '_'); getline(ss, s3, '_');
@@ -279,6 +279,7 @@ void printCtauResDataParameters(RooWorkspace myws, TPad* Pad, bool isPbPb, strin
     if(s2=="CtauRes")  { s2="Res";   }
     else if(s2=="Jpsi" && (s1=="N" || s1=="b"))  { s2="J/#psi";   }
     else if(s2=="Psi2S" && (s1=="N" || s1=="b"))  { s2="#psi(2S)";   }
+    else if(s2=="Bkg" && (s1=="N" || s1=="b"))  { s2="Bkg";   }
     else {continue;}
     if(s3!=""){
       label=Form("%s_{%s}^{%s}", s1.c_str(), s2.c_str(), s3.c_str());
