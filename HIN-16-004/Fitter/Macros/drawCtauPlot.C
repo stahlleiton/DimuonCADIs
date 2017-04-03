@@ -64,8 +64,8 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
     minRange = -3.0;
     maxRange = 5.0;
   }
-  Double_t outTot = myws.data(dsOSName.c_str())->sumEntries();
-  Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctau>%.6f || ctau<%.6f)", range[1], range[0]))->sumEntries();
+  Double_t outTot = myws.data(dsOSName.c_str())->numEntries();
+  Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctau>%.6f || ctau<%.6f)", range[1], range[0]))->numEntries();
   int nBins = min(int( round((maxRange - minRange)/binWidth) ), 1000);
 
   double normDSTot   = 1.0;  if (myws.data(dsOSNameCut.c_str()))  { normDSTot   = myws.data(dsOSName.c_str())->sumEntries()/myws.data(dsOSNameCut.c_str())->sumEntries();  }
@@ -227,7 +227,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   pad1->cd(); 
   frame->Draw();
 
-  printCtauParameters(myws, pad1, isPbPb, pdfTotName, isWeighted);
+  if (!usectauBkgTemplate) printCtauParameters(myws, pad1, isPbPb, pdfTotName, isWeighted);
   pad1->SetLogy(setLogScale);
 
   // Drawing the text in the plot
@@ -311,7 +311,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   frame2->Draw(); 
   
   // *** Print chi2/ndof 
-  printChi2(myws, pad2, frame, "ctau", dsOSName.c_str(), pdfTotName.c_str(), nBins);
+  if (!usectauBkgTemplate) printChi2(myws, pad2, frame, "ctau", dsOSName.c_str(), pdfTotName.c_str(), nBins);
   
   pline->Draw("same");
   pad2->Update();
@@ -361,8 +361,8 @@ void setCtauRange(RooWorkspace& myws, RooPlot* frame, string dsName, bool setLog
       Ydown = YMin/(TMath::Power((YMax/YMin), (0.2/(1.0-0.5-0.2))));
     } 
     else {
-      Yup = YMax*TMath::Power((YMax/0.1), 0.5);
-      Ydown = 0.1;
+      Yup = YMax*TMath::Power((YMax/0.01), 0.5);
+      Ydown = 0.01;
     }
   }
   else
