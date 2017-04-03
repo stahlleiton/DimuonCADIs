@@ -1100,10 +1100,12 @@ TH1* rebinctauBkghist(RooWorkspace& ws, TH1 *hist, double xmin, double xmax)
 
 void findRangeFromPlot(vector<double>& range, struct KinCuts cut, double binWidth)
 {
-  double minRange = -3.0; //hardcoded (must be the same as in drawCtauPlot.C)
-  double maxRange = 5.0;
+  double minRange = -4.0; //hardcoded (must be the same as in drawCtauPlot.C)
+  double maxRange = 7.0;
   
   double ctauMax = cut.dMuon.ctau.Max, ctauMin = cut.dMuon.ctau.Min;
+  if (ctauMax > maxRange) range[1] = maxRange;
+  if (ctauMin < minRange) range[0] = minRange;
   
   int nBins = min(int( round((maxRange - minRange)/binWidth) ), 1000);
   

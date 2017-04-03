@@ -61,8 +61,8 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   if (!incNonPrompt) {
     if (abs(maxRange)>abs(minRange)) { minRange = -1.0*abs(maxRange); } else { maxRange = abs(minRange); }
   } else {
-    minRange = -3.0;
-    maxRange = 5.0;
+    minRange = -4.0;
+    maxRange = 7.0;
   }
   Double_t outTot = myws.data(dsOSName.c_str())->numEntries();
   Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctau>%.6f || ctau<%.6f)", range[1], range[0]))->numEntries();
