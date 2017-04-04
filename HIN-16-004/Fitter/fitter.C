@@ -18,24 +18,24 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 
 void fitter(
             const string workDirName="Test", // Working directoryi
-            bool useExtFiles  = true, // Use external fit files as input
-            bool useExtDS     = true, // Use external data/mc DataSets
+            bool useExtFiles  = false, // Use external fit files as input
+            bool useExtDS     = false, // Use external data/mc DataSets
             bool usePeriPD    = false, // If yes, use the PERIPHERAL PD provided by the user
             // Select the type of datasets to fit
             bool fitData      = true,        // Fits Data datasets
-            bool fitMC        = false,         // Fits MC datasets
+            bool fitMC        = true,         // Fits MC datasets
             bool fitPbPb      = true,         // Fits PbPb datasets
             bool fitPP        = true,        // Fits PP datasets
-            bool fitMass      = false,       // Fits invariant mass distribution
+            bool fitMass      = true,       // Fits invariant mass distribution
             bool fitCtau      = false,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
             bool fitCtauReco  = false,      // Fit ctau reco MC distribution
             bool doCtauErrPDF = false,         // If yes, it builds the Ctau Error PDFs from data
-            bool fitRes       = true,         // If yes fits the resolution from Data or MC
+            bool fitRes       = false,         // If yes fits the resolution from Data or MC
             // Select the type of object to fit
             bool incJpsi      = true,          // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
-            bool incBkg       = false,         // Includes Background model
+            bool incBkg       = true,         // Includes Background model
             bool incPrompt    = true,         // Includes Prompt ctau model
             bool incNonPrompt = true,          // Includes Non Prompt ctau model 
             // Select the fitting options
@@ -47,7 +47,7 @@ void fitter(
             bool doSimulFit   = false,        // Do simultaneous fit
             bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
             const char* applyCorr  = "",     // Apply weight to data for correction (Acceptance & Ef , l_J/psi eff...). No correction if empty variable.
-            int  numCores     = 8,           // Number of cores used for fitting
+            int  numCores     = 32,           // Number of cores used for fitting
             // Select the drawing options
             bool  setLogScale  = true,         // Draw plot with log scale
             bool  incSS        = false,        // Include Same Sign data
@@ -145,7 +145,7 @@ void fitter(
     Output: Collection of RooDataSets splitted by tag name, including OS and SS dimuons.
   */
   
-  const string InputTrees = inputInitialFilesDir["FILES"] + "InputTrees.txt";
+  const string InputTrees = (useExtDS ? inputInitialFilesDir["FILES"] : DIR["input"][0]) + "InputTrees.txt";
   map<string, vector<string> > InputFileCollection;
   if(!getInputFileNames(InputTrees, InputFileCollection)){ return; }
   
