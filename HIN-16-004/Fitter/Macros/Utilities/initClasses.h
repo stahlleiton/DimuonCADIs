@@ -146,14 +146,15 @@ ParticleMass Mass = {3.096, 3.686, 9.460, 10.023, 10.355, 91.188};
 enum class MassModel 
 {
     InvalidModel =0,
-    SingleGaussian=1, 
-    DoubleGaussian=2, 
-    SingleCrystalBall=3, 
-    DoubleCrystalBall=4, 
-    GaussianAndCrystalBall=6, 
-    Uniform=7, 
-    Chebychev1=8, 
-    Chebychev2=9, 
+    SingleGaussian=1,
+    DoubleGaussian=2,
+    SingleCrystalBall=3,
+    ExtendedCrystalBall=4,
+    DoubleCrystalBall=5,
+    GaussianAndCrystalBall=6,
+    Uniform=7,
+    Chebychev1=8,
+    Chebychev2=9,
     Chebychev3=10, 
     Chebychev4=11,
     Chebychev5=12,
@@ -171,6 +172,7 @@ map< string , MassModel > MassModelDictionary = {
   {"SingleGaussian",          MassModel::SingleGaussian},
   {"DoubleGaussian",          MassModel::DoubleGaussian},
   {"SingleCrystalBall",       MassModel::SingleCrystalBall},
+  {"ExtendedCrystalBall",     MassModel::ExtendedCrystalBall},
   {"DoubleCrystalBall",       MassModel::DoubleCrystalBall},
   {"GaussianAndCrystalBall",  MassModel::GaussianAndCrystalBall},
   {"Uniform",                 MassModel::Uniform},
@@ -456,8 +458,8 @@ int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut,
   cout << "[INFO] Importing local RooDataSet with cuts: " << strCut << endl;
   RooDataSet* dataOS = (RooDataSet*)inputWS.data(Form("dOS_%s", label.c_str()))->reduce(strCut.c_str());
   if (dataOS->sumEntries()==0){ 
-    cout << "[WARNING] No events from dataset " <<  Form("dOS_%s", label.c_str()) << " passed the kinematic cuts!" << endl;
-    return 0;
+    cout << "[ERROR] No events from dataset " <<  Form("dOS_%s", label.c_str()) << " passed the kinematic cuts!" << endl;
+    return -1;
   }  
   myws.import(*dataOS);
   delete dataOS;
@@ -631,5 +633,44 @@ bool setConstant( RooWorkspace& myws, string parName, bool CONST)
   return true;
 };
 
+bool isPdfAlreadyFound(RooWorkspace& myws, string FileName, vector<string> pdfNames, bool loadCtauErrPdf)
+{
+  if (gSystem->AccessPathName(FileName.c_str())) {
+    cout << "[INFO] Results not found for: " << FileName << endl;
+    return false; // File was not found
+  }
+  TFile *file = new TFile(FileName.c_str());
+  if (!file) return false;
+
+  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  if (!ws) {
+    cout << "[INFO] Workspace not found in: " << FileName << endl;
+    file->Close(); delete file;
+    return false;
+  }
+
+  bool found = true;
+  for (unsigned int i=0; i<pdfNames.size(); i++) {
+    string pdfName = pdfNames.at(i);
+    string dataName = pdfName;
+    dataName.replace(dataName.find("pdf"), string("pdf").length(), "dh");
+    if ( !(ws->pdf(pdfName.c_str())) || !(ws->data(dataName.c_str())) ) {
+      cout << "[INFO] " << pdfName << " was not found in: " << FileName << endl; found = false;
+    }
+    if (loadCtauErrPdf && found) {
+      myws.import(*(ws->pdf(pdfName.c_str())));
+      myws.import(*(ws->data(dataName.c_str())));
+      if (ws->pdf(pdfName.c_str()))   { cout << "[INFO] Pdf " << pdfName << " succesfully imported!" << endl;       }
+      else {  cout << "[ERROR] Pdf " << pdfName << " import failed!" << endl; found = false; }
+      if (ws->data(dataName.c_str())) { cout << "[INFO] DataHist " << dataName << " succesfully imported!" << endl; }
+      else {  cout << "[ERROR] DataHist " << dataName << " import failed!" << endl; found = false; }
+    }
+  }
+  
+  delete ws;
+  file->Close(); delete file;
+
+  return found;
+};
 
 #endif // #ifndef initClasses_h

@@ -53,8 +53,8 @@ void drawCtauErrorPlot(RooWorkspace& myws,   // Local workspace
   RooPlot* frame     = myws.var("ctauErr")->frame(Range(minRange, maxRange));
   RooBinning bins(nBins, cut.dMuon.ctauErr.Min, cut.dMuon.ctauErr.Max);
   Double_t norm = myws.data(hOSName.c_str())->sumEntries();
-  Double_t outTot = myws.data(dsOSName.c_str())->sumEntries();
-  Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctauErr>=%.6f || ctauErr<=%.6f)", rangeErr[1], rangeErr[0]))->sumEntries();
+  Double_t outTot = myws.data(dsOSName.c_str())->numEntries();
+  Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctauErr>=%.6f || ctauErr<=%.6f)", rangeErr[1], rangeErr[0]))->numEntries();
  
   myws.data(hOSName.c_str())->plotOn(frame, Name("dOS"), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2), DataError(RooAbsData::SumW2), Binning(bins));
   if (incJpsi&&incBkg) { myws.pdf(Form("pdfCTAUERRTot_Tot_%s", (isPbPb?"PbPb":"PP")))->plotOn(frame,Name("PDF"), LineStyle(1), LineColor(kGreen+1), Precision(1e-6), Range("CtauErrFullWindow") ); }

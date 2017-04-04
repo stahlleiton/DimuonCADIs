@@ -91,7 +91,7 @@ bool createCtauErrTemplateUsingSPLOT(RooWorkspace& ws, string dsName, string pdf
 
   bool isPbPb = false;
   if (dsName.find("PbPb")!=std::string::npos) { isPbPb = true; }
-  if (dsName.find("MC")!=std::string::npos)   { return false;  }  // Only accept data
+  if (dsName.find("MC")!=std::string::npos)   { cout << "[ERROR] sPlot can only be run on data!" << endl; return false;  }  // Only accept data
 
   string pdfMassName = Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP"));
   RooArgList yieldList;
