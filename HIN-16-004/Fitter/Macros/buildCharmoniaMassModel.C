@@ -1,7 +1,9 @@
+
 #ifndef buildCharmoniaMassModel_C
 #define buildCharmoniaMassModel_C
 
 #include "Utilities/initClasses.h"
+#include "Utilities/RooExtCBShape.h"
 
 void fixMassParPsi2StoJpsi(map<string, string>& parIni, bool isPbPb);
 void fixPbPbtoPP(map<string, string>& parIni);
@@ -588,6 +590,9 @@ bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<st
 {
   cout << Form("[INFO] Implementing %s Mass Model", object.c_str()) << endl;
   
+  std::string lb = Form("_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"));
+  RooAbsPdf* pdf = NULL;
+
   switch(model) 
     {    
     case (MassModel::SingleGaussian): 
@@ -691,6 +696,47 @@ bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<st
                       ));
 
       cout << Form("[INFO] %s Single Crystal Ball PDF in %s included", object.c_str(), (isPbPb?"PbPb":"PP")) << endl; break;
+      
+    case (MassModel::ExtendedCrystalBall):  
+
+      gROOT->ProcessLine(".L ./Macros/Utilities/RooExtCBShape.cxx+");
+      // check that all input parameters are defined
+      if (!( 
+            parIni.count(Form("m_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) &&
+            parIni.count(Form("sigma1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) &&
+            parIni.count(Form("alpha_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) &&
+            parIni.count(Form("n_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) &&
+            parIni.count(Form("alpha2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) &&
+            parIni.count(Form("n2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))
+             )) {
+	cout << Form("[ERROR] Initial parameters where not found for %s Extended Crystal Ball Model in %s", object.c_str(), (isPbPb?"PbPb":"PP")) << endl; return false; 
+      }
+
+      // create the variables for this model
+      ws.factory( parIni[Form("m_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() );
+      ws.factory( parIni[Form("sigma1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() );
+      ws.factory( parIni[Form("alpha_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() );
+      ws.factory( parIni[Form("n_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() );
+      ws.factory( parIni[Form("alpha2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() );
+      ws.factory( parIni[Form("n2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() );
+
+      // create the PDF
+      pdf = new RooExtCBShape(("pdfMASS"+lb).c_str(), ("pdfMASS"+lb).c_str(),
+                              *ws.var("invMass"),
+                              *ws.var(("m"+lb).c_str()),
+                              *ws.var(("sigma1"+lb).c_str()),
+                              *ws.var(("alpha"+lb).c_str()),
+                              *ws.var(("n"+lb).c_str()),
+                              *ws.var(("alpha2"+lb).c_str()),
+                              *ws.var(("n2"+lb).c_str())
+                              );
+      if (pdf) { ws.import(*pdf); }
+      ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("pdfMASSTot_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),
+                      Form("pdfMASS_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),
+                      parIni[Form("N_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str()
+                      ));
+
+      cout << Form("[INFO] %s Extended Crystal Ball PDF in %s included", object.c_str(), (isPbPb?"PbPb":"PP")) << endl; break;
       
     case (MassModel::DoubleCrystalBall): 
       
@@ -920,7 +966,7 @@ void setMassDefaultParameters(map<string, string> &parIni, bool isPbPb, double n
   }
   else if (parIni[Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP"))]=="")
   {
-    parIni[Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP")), 1.8, 0.5, 10.0);
+    parIni[Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("n2_Jpsi_%s", (isPbPb?"PbPb":"PP")), 12.0, 0.5, 100.0);
   }
   if (parIni.count(Form("n_Psi2S_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("n_Psi2S_%s", (isPbPb?"PbPb":"PP"))]=="") {
     parIni[Form("n_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("n_Psi2S_%s", (isPbPb?"PbPb":"PP")), 1.8, 0.5, 10.0);

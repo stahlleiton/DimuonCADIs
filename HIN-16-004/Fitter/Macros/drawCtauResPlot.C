@@ -53,8 +53,8 @@ void drawCtauResPlot(RooWorkspace& myws,   // Local workspace
 
   double minRange = -10.0;
   double maxRange = 10.0;
-  Double_t outTot = myws.data(dsOSName.c_str())->sumEntries();
-  Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctauNRes>%.6f || ctauNRes<%.6f)", range[1], range[0]))->sumEntries();
+  Double_t outTot = myws.data(dsOSName.c_str())->numEntries();
+  Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctauNRes>%.6f || ctauNRes<%.6f)", range[1], range[0]))->numEntries();
   int nBins = min(int( round((maxRange - minRange)/binWidth) ), 1000);
   int COLOR[] = { kGreen+3, kRed+2, kBlue+2, kViolet-5};
 

@@ -202,13 +202,15 @@ bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the inp
     bool doFit = true;
     bool importDS = true;
     
+    bool useSPlot = true;
+
     if ( !fitCharmoniaCtauResDataModel( myws, inputWorkspace, cut, parIni, opt, outputDir,
-                                   DSTAG, isPbPb, importDS,
-                                   incJpsi, incPsi2S, useTotctauErrPdf,
-                                   doFit, loadFitResult, inputFitDir, numCores,
-                                   setLogScale, incSS, binWidth
-                                   )
-        ) { return false; }
+                                        DSTAG, isPbPb, importDS,
+                                        incJpsi, incPsi2S, incBkg, useSPlot, useTotctauErrPdf,
+                                        doFit, loadFitResult, inputFitDir, numCores,
+                                        setLogScale, incSS, binWidth
+                                        )
+         ) { return false; }
   }
 
   if (fitCtau && fitMass && !doCtauErrPDF && !fitCtauTrue && !fitRes && !fitCtauReco ) {
