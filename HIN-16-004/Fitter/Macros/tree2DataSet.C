@@ -186,8 +186,9 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         }
         
         theTree->GetEntry(jentry);
-        normF += theTree->GetWeight()*getNColl(Centrality,!isPbPb);
-      }
+       // normF += theTree->GetWeight()*getNColl(Centrality,!isPbPb);
+        normF += theTree->GetWeight();  
+    }
       
       normF = nentries/normF;
     }
@@ -236,7 +237,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
 
         if (applyWeight){
           double w = theTree->GetWeight();
-          if (isMC && isPbPb) w = w*getNColl(Centrality,!isPbPb)*normF;
+          if (isMC && isPbPb) w = w*normF;//*getNColl(Centrality,!isPbPb)*normF;
           weight->setVal(w);
         }
         else if (applyWeight_Corr)
