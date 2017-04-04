@@ -18,16 +18,16 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 
 void fitter(
             const string workDirName="Test", // Working directoryi
-            bool useExtFiles  = false, // Use external fit files as input
+            bool useExtFiles  = true, // Use external fit files as input
             bool useExtDS     = false, // Use external data/mc DataSets
             bool usePeriPD    = false, // If yes, use the PERIPHERAL PD provided by the user
             // Select the type of datasets to fit
             bool fitData      = true,        // Fits Data datasets
-            bool fitMC        = true,         // Fits MC datasets
+            bool fitMC        = false,         // Fits MC datasets
             bool fitPbPb      = true,         // Fits PbPb datasets
             bool fitPP        = true,        // Fits PP datasets
             bool fitMass      = true,       // Fits invariant mass distribution
-            bool fitCtau      = false,       // Fits ctau distribution
+            bool fitCtau      = true,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
             bool fitCtauReco  = false,      // Fit ctau reco MC distribution
             bool doCtauErrPDF = false,         // If yes, it builds the Ctau Error PDFs from data
@@ -40,7 +40,7 @@ void fitter(
             bool incNonPrompt = true,          // Includes Non Prompt ctau model 
             // Select the fitting options
             bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
-            bool usectauBkgTemplate = false,// If yes use a template for Bkg ctau instead of the fitted Pdf
+            bool usectauBkgTemplate = true,// If yes use a template for Bkg ctau instead of the fitted Pdf
             bool useCtauRecoPdf = false,     // If yes use the ctauReco PDF (template) instead of ctauTrue one
             bool cutCtau      = false,        // Apply prompt ctau cuts
             bool doConstrFit   = false,        // Do constrained fit
@@ -63,6 +63,9 @@ void fitter(
 	 |-> Output  |-> <WorkDir> : Contain Output Plots and Results for a given work directory (e.g. 20160201)
 	 |-> DataSet : Contain all the datasets (MC and Data)
   */
+
+
+  gROOT->ProcessLine(".L ./Macros/Utilities/RooExtCBShape.cxx+");
 
   map<string, double> binWidth;
   binWidth["MASS"]     = 0.025;
@@ -247,8 +250,8 @@ void fitter(
        {"BKG",   fitCtau && incBkg && incNonPrompt}, 
        {"JPSI",  fitCtau && incJpsi && incNonPrompt},
        {"PSI2S", fitCtau && incPsi2S && incNonPrompt},
-       {"RES",   fitRes},
-       {"TRUE",  fitCtauTrue || fitCtauReco},
+       {"RES",   (fitCtau || fitRes)},
+       {"TRUE",  (fitCtauTrue || fitCtauReco)},
      }
     }
   };
@@ -816,6 +819,9 @@ bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitM
 
   if (!fitMass && !fitCtau && !fitCtauTrue && !doCtauErrPDF && !fitCtauReco && !fitRes) {
     cout << "[ERROR] At least one distribution has to be selected for fitting, please select either Mass, CtauTrue, CtauErr, Ctau, CtauN or CtauReco!" << endl; return false;
+  }
+  if (fitCtau && fitRes) {
+    cout << "[ERROR] We can not fit Ctau and CtauRes at the same time, please fix your input settings!" << endl; return false;
   }
   if (doConstrFit && (fitCtau || fitCtauTrue || fitCtauReco|| fitRes)) {
     cout << "[ERROR] Constrained fits only implemented for invariant mass!" << endl; return false;

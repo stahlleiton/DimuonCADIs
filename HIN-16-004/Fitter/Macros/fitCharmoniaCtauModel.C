@@ -90,7 +90,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
   string plotLabel = "";
   map<string, bool> plotLabels = {{"JpsiNoPR", (incJpsi&&incNonPrompt)}, 
                                   {"Psi2SNoPR", (incPsi2S&&incNonPrompt)}, 
-                                  {"BkgNoPR", (incBkg&&incNonPrompt&&!incPrompt)},
+                                  {"BkgNoPR", (incBkg&&incNonPrompt)},
                                   {"CtauRes", (true)}};
   for (map<string, bool>::iterator iter = plotLabels.begin(); iter!=plotLabels.end(); iter++) {
     string obj = iter->first;
