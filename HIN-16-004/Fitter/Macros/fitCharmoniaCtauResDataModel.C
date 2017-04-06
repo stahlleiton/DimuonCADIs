@@ -112,37 +112,37 @@ bool fitCharmoniaCtauResDataModel( RooWorkspace& myws,             // Local Work
   vector<string> dsNames = { dsName2Fit };
   bool createSignalDS = ( !isSPlotDSAlreadyFound(myws, FileName, dsNames, true) );
 
-  if (createSignalDS) {
-    if (incJpsi || incPsi2S || incBkg) {
-      // Setting extra input information needed by each fitter
-      string iMassFitDir = inputFitDir["MASS"];
-      double ibWidth = binWidth["MASS"];
-      bool loadMassFitResult = true;
-      bool doMassFit = false;
-      bool importDS = false;
-      bool getMeanPT = false;
-      bool zoomPsi = false;
-      const char* applyCorr = "";
-      bool doSimulFit = false;
-      bool cutCtau = false;
-      bool doConstrFit = false;
+  if (incJpsi || incPsi2S || incBkg) {
+    // Setting extra input information needed by each fitter
+    string iMassFitDir = inputFitDir["MASS"];
+    double ibWidth = binWidth["MASS"];
+    bool loadMassFitResult = true;
+    bool doMassFit = false;
+    bool importDS = false;
+    bool getMeanPT = false;
+    bool zoomPsi = false;
+    const char* applyCorr = "";
+    bool doSimulFit = false;
+    bool cutCtau = false;
+    bool doConstrFit = false;
     
-      if ( !fitCharmoniaMassModel( myws, inputWorkspace, cut, parIni, opt, outputDir,
-                                   DSTAG, isPbPb, importDS,
-                                   true, incPsi2S, true,
-                                   doMassFit, cutCtau, doConstrFit, doSimulFit, false, applyCorr, loadMassFitResult, iMassFitDir, numCores,
-                                   setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
-                                   )
-           ) { return false; }
-      if (myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
-        cout << "[INFO] Setting mass parameters to constant!" << endl;
-        myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
-      } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
-      if (myws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))))   { reNormMassVar(myws, "Bkg", isPbPb);   }
-      if (myws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))))  { reNormMassVar(myws, "Jpsi", isPbPb);  }
-      if (myws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP")))) { reNormMassVar(myws, "Psi2S", isPbPb); }
-    }
-  
+    if ( !fitCharmoniaMassModel( myws, inputWorkspace, cut, parIni, opt, outputDir,
+                                 DSTAG, isPbPb, importDS,
+                                 true, incPsi2S, true,
+                                 doMassFit, cutCtau, doConstrFit, doSimulFit, false, applyCorr, loadMassFitResult, iMassFitDir, numCores,
+                                 setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
+                                 )
+         ) { return false; }
+    if (myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
+      cout << "[INFO] Setting mass parameters to constant!" << endl;
+      myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
+    } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
+    if (myws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))))   { reNormMassVar(myws, "Bkg", isPbPb);   }
+    if (myws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))))  { reNormMassVar(myws, "Jpsi", isPbPb);  }
+    if (myws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP")))) { reNormMassVar(myws, "Psi2S", isPbPb); }
+  }
+
+  if (createSignalDS) {  
     if (importDS) {
       if (!createSignalCtauDSUsingSPLOT(myws, dsName, parIni, cut, incJpsi, incPsi2S, incBkg, useSPlot)){ cout << "[ERROR] Creating the Ctau Error Templates using sPLOT failed" << endl; return false; }
     }
