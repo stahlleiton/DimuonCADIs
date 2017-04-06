@@ -93,50 +93,67 @@ bool fitCharmoniaCtauResDataModel( RooWorkspace& myws,             // Local Work
   }
   else if (doFit && !(myws.data(dsName.c_str()))) { cout << "[ERROR] No local dataset was found to perform the fit!" << endl; return false; }
 
-  if (incJpsi || incPsi2S || incBkg) {
-    // Setting extra input information needed by each fitter
-    string iMassFitDir = inputFitDir["MASS"];
-    double ibWidth = binWidth["MASS"];
-    bool loadMassFitResult = true;
-    bool doMassFit = false;
-    bool importDS = false;
-    bool getMeanPT = false;
-    bool zoomPsi = false;
-    const char* applyCorr = "";
-    bool doSimulFit = false;
-    bool cutCtau = false;
-    bool doConstrFit = false;
-    
-    if ( !fitCharmoniaMassModel( myws, inputWorkspace, cut, parIni, opt, outputDir,
-                                 DSTAG, isPbPb, importDS,
-                                 true, incPsi2S, true,
-                                 doMassFit, cutCtau, doConstrFit, doSimulFit, false, applyCorr, loadMassFitResult, iMassFitDir, numCores,
-                                 setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
-                                 )
-         ) { return false; }
-    if (myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
-      cout << "[INFO] Setting mass parameters to constant!" << endl;
-      myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
-    } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
-    if (myws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))))   { reNormMassVar(myws, "Bkg", isPbPb);   }
-    if (myws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))))  { reNormMassVar(myws, "Jpsi", isPbPb);  }
-    if (myws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP")))) { reNormMassVar(myws, "Psi2S", isPbPb); }
-  }
-  
   string dsName2Fit = dsName;
   if (incJpsi) dsName2Fit += "_JPSI";
   else if (incPsi2S) dsName2Fit += "_PSI2S";
   else if (incBkg) dsName2Fit += "_BKG";
+  string dsNameCut = dsName2Fit+"_CTAUNCUT";
+
+  // Define pdf and plot names
+  string plotLabel = "";
+  plotLabel = plotLabel + Form("_CtauRes_%s", parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str());
+  string pdfName = Form("pdfCTAURES_Tot_%s", (isPbPb?"PbPb":"PP"));
+
+  string FileName = "";
+  setCtauResDataFileName(FileName, (inputFitDir["CTAURES"]=="" ? outputDir : inputFitDir["CTAURES"]), DSTAG, plotLabel, cut, isPbPb);
+
+
+  // Check if we have already made the Signal DataSet
+  vector<string> dsNames = { dsName2Fit };
+  bool createSignalDS = ( !isSPlotDSAlreadyFound(myws, FileName, dsNames, true) );
+
+  if (createSignalDS) {
+    if (incJpsi || incPsi2S || incBkg) {
+      // Setting extra input information needed by each fitter
+      string iMassFitDir = inputFitDir["MASS"];
+      double ibWidth = binWidth["MASS"];
+      bool loadMassFitResult = true;
+      bool doMassFit = false;
+      bool importDS = false;
+      bool getMeanPT = false;
+      bool zoomPsi = false;
+      const char* applyCorr = "";
+      bool doSimulFit = false;
+      bool cutCtau = false;
+      bool doConstrFit = false;
+    
+      if ( !fitCharmoniaMassModel( myws, inputWorkspace, cut, parIni, opt, outputDir,
+                                   DSTAG, isPbPb, importDS,
+                                   true, incPsi2S, true,
+                                   doMassFit, cutCtau, doConstrFit, doSimulFit, false, applyCorr, loadMassFitResult, iMassFitDir, numCores,
+                                   setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
+                                   )
+           ) { return false; }
+      if (myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
+        cout << "[INFO] Setting mass parameters to constant!" << endl;
+        myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
+      } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
+      if (myws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))))   { reNormMassVar(myws, "Bkg", isPbPb);   }
+      if (myws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))))  { reNormMassVar(myws, "Jpsi", isPbPb);  }
+      if (myws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP")))) { reNormMassVar(myws, "Psi2S", isPbPb); }
+    }
   
+    if (importDS) {
+      if (!createSignalCtauDSUsingSPLOT(myws, dsName, parIni, cut, incJpsi, incPsi2S, incBkg, useSPlot)){ cout << "[ERROR] Creating the Ctau Error Templates using sPLOT failed" << endl; return false; }
+    }
+  }
+
   if (importDS) {
     // Set global parameters
-    if (!createSignalCtauDSUsingSPLOT(myws, dsName, parIni, cut, incJpsi, incPsi2S, incBkg, useSPlot)){ cout << "[ERROR] Creating the Ctau Error Templates using sPLOT failed" << endl; return false; }
     setCtauResDataGlobalParameterRange(myws, parIni, cut, dsName2Fit, binWidth["CTAURES"]);
     RooDataSet* dataToFit = (RooDataSet*)(myws.data(dsName2Fit.c_str())->reduce(parIni["CtauNRange_Cut"].c_str()))->Clone((dsName2Fit+"_CTAUNCUT").c_str());
     myws.import(*dataToFit, Rename((dsName2Fit+"_CTAUNCUT").c_str()));
   }
-  string dsNameCut = dsName2Fit+"_CTAUNCUT";
-  string pdfName = Form("pdfCTAURES_Tot_%s", (isPbPb?"PbPb":"PP"));
 
   if (!loadFitResult) {
     // Set models based on initial parameters
@@ -153,13 +170,7 @@ bool fitCharmoniaCtauResDataModel( RooWorkspace& myws,             // Local Work
     delete params;
   }
 
-  // Define pdf and plot names
-  string plotLabel = "";
-  plotLabel = plotLabel + Form("_CtauRes_%s", parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str());
-
   // check if we have already done this fit. If yes, do nothing and return true.
-  string FileName = "";
-  setCtauResDataFileName(FileName, (inputFitDir["CTAURES"]=="" ? outputDir : inputFitDir["CTAURES"]), DSTAG, plotLabel, cut, isPbPb);
   if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAURES"]!="") {
     cout << "[WARNING] User Input File : " << FileName << " was not found!" << endl;
     if (loadFitResult) return false;

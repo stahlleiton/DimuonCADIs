@@ -633,6 +633,41 @@ bool setConstant( RooWorkspace& myws, string parName, bool CONST)
   return true;
 };
 
+bool isSPlotDSAlreadyFound(RooWorkspace& myws, string FileName, vector<string> dsNames, bool loadDS)
+{
+  if (gSystem->AccessPathName(FileName.c_str())) {
+    cout << "[INFO] Results not found for: " << FileName << endl;
+    return false; // File was not found
+  }
+  TFile *file = new TFile(FileName.c_str());
+  if (!file) return false;
+
+  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  if (!ws) {
+    cout << "[INFO] Workspace not found in: " << FileName << endl;
+    file->Close(); delete file;
+    return false;
+  }
+
+  bool found = true;
+  for (unsigned int i=0; i<dsNames.size(); i++) {
+    string dsName = dsNames.at(i);
+    if ( !(ws->data(dsName.c_str())) ) {
+      cout << "[INFO] " << dsName << " was not found in: " << FileName << endl; found = false;
+    }
+    if (loadDS && found) {
+      myws.import(*(ws->data(dsName.c_str())));
+      if (myws.data(dsName.c_str())) { cout << "[INFO] sPlot DataSet " << dsName << " succesfully imported!" << endl; }
+      else {  cout << "[ERROR] sPlot DataSet " << dsName << " import failed!" << endl; found = false; }
+    }
+  }
+  
+  delete ws;
+  file->Close(); delete file;
+
+  return found;
+};
+
 bool isPdfAlreadyFound(RooWorkspace& myws, string FileName, vector<string> pdfNames, bool loadCtauErrPdf)
 {
   if (gSystem->AccessPathName(FileName.c_str())) {
@@ -660,9 +695,9 @@ bool isPdfAlreadyFound(RooWorkspace& myws, string FileName, vector<string> pdfNa
     if (loadCtauErrPdf && found) {
       myws.import(*(ws->pdf(pdfName.c_str())));
       myws.import(*(ws->data(dataName.c_str())));
-      if (ws->pdf(pdfName.c_str()))   { cout << "[INFO] Pdf " << pdfName << " succesfully imported!" << endl;       }
+      if (myws.pdf(pdfName.c_str()))   { cout << "[INFO] Pdf " << pdfName << " succesfully imported!" << endl;       }
       else {  cout << "[ERROR] Pdf " << pdfName << " import failed!" << endl; found = false; }
-      if (ws->data(dataName.c_str())) { cout << "[INFO] DataHist " << dataName << " succesfully imported!" << endl; }
+      if (myws.data(dataName.c_str())) { cout << "[INFO] DataHist " << dataName << " succesfully imported!" << endl; }
       else {  cout << "[ERROR] DataHist " << dataName << " import failed!" << endl; found = false; }
     }
   }
