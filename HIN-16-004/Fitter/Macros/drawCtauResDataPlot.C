@@ -58,8 +58,8 @@ bool drawCtauResDataPlot(RooWorkspace& myws,   // Local workspace
 
   int nGauss = 1;
   for (int i=1; i<5; i++) {
-    cout << Form("%s%d_%s_%s", pdfType.c_str(), i, obj.c_str(),(isPbPb?"PbPb":"PP")) << endl;
     if (myws.pdf(Form("%s%d_%s_%s", pdfType.c_str(), i, obj.c_str(),(isPbPb?"PbPb":"PP")))){
+      cout << Form("%s%d_%s_%s", pdfType.c_str(), i, obj.c_str(),(isPbPb?"PbPb":"PP")) << endl;
       myws.pdf(pdfTotName.c_str())->plotOn(frame,Name(Form("PDF%d", i)),Components(RooArgSet(*myws.pdf(Form("%s%d_%s_%s", pdfType.c_str(), i, obj.c_str(), (isPbPb?"PbPb":"PP"))))),
                                            Normalization(myws.data(dsNameCut.c_str())->sumEntries(), RooAbsReal::NumEvent),
                                            LineColor(COLOR[i-1]), Precision(1e-5), NormRange("CtauNWindow")
