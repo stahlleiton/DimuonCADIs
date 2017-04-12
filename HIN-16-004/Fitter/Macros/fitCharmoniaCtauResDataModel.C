@@ -17,7 +17,7 @@ bool createSignalCtauDSUsingSPLOT(RooWorkspace& ws, string dsName, map<string, s
 
 
 bool fitCharmoniaCtauResDataModel( RooWorkspace& myws,             // Local Workspace
-                               RooWorkspace& inputWorkspace,   // Workspace with all the input RooDatasets
+                               const RooWorkspace& inputWorkspace,   // Workspace with all the input RooDatasets
                                struct KinCuts& cut,            // Variable containing all kinematic cuts
                                map<string, string>&  parIni,   // Variable containing all initial parameters
                                struct InputOpt& opt,           // Variable with run information (kept for legacy purpose)

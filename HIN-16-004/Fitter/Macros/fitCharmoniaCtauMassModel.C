@@ -14,7 +14,7 @@ void setCtauMassFileName(string& FileName, string outputDir, string TAG, string 
 
 
 bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspace
-                                RooWorkspace& inputWorkspace,   // Workspace with all the input RooDatasets
+                                const RooWorkspace& inputWorkspace,   // Workspace with all the input RooDatasets
                                 struct KinCuts& cut,            // Variable containing all kinematic cuts
                                 map<string, string>&  parIni,   // Variable containing all initial parameters
                                 struct InputOpt& opt,           // Variable with run information (kept for legacy purpose)

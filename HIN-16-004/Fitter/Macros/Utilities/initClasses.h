@@ -429,7 +429,7 @@ bool loadCtauErrRange(RooWorkspace& myws, string FileName, struct KinCuts& cut)
 };
 
 
-int importDataset(RooWorkspace& myws, RooWorkspace& inputWS, struct KinCuts cut, string label, bool cutSideBand=false)
+int importDataset(RooWorkspace& myws, const RooWorkspace& inputWS, struct KinCuts cut, string label, bool cutSideBand=false)
 {
   string indMuonMass    = Form("(%.6f < invMass && invMass < %.6f)",       cut.dMuon.M.Min,       cut.dMuon.M.Max);
   if (cutSideBand) {
