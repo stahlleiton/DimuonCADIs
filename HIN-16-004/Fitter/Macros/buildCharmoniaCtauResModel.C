@@ -27,7 +27,8 @@ bool buildCharmoniaCtauResModel(RooWorkspace& ws, struct CharmModel model, map<s
   if (incJpsi) obj = "Jpsi";
   if (incPsi2S) obj = "Psi2S";
   
-  string ctauErrPDFType = (useTotctauErrPdf?"Tot":obj);
+  string pdfCtauErrName = Form("pdfCTAUERR_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"));
+  if (useTotctauErrPdf) { pdfCtauErrName = Form("pdfCTAUERRTot_Tot_%s", (isPbPb?"PbPb":"PP")); }
 
   // If the initial parameters are empty, set defaul parameter values
   setCtauResDefaultParameters(parIni, isPbPb, numEntries);
@@ -40,8 +41,8 @@ bool buildCharmoniaCtauResModel(RooWorkspace& ws, struct CharmModel model, map<s
     else cout << "[ERROR] Defining the " << obj  << "Data Ctau Resolution Model failed" << endl;
     return false;
   }
-  if (ws.pdf(Form("pdfCTAUERR_%s_%s", ctauErrPDFType.c_str(), (isPbPb?"PbPb":"PP")))) {
-    RooProdPdf pdf(Form("%s_%s_%s", pdfType.c_str(), obj.c_str(), (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form("pdfCTAUERR_%s_%s", ctauErrPDFType.c_str(), (isPbPb?"PbPb":"PP"))),
+  if (ws.pdf(pdfCtauErrName.c_str())) {
+    RooProdPdf pdf(Form("%s_%s_%s", pdfType.c_str(), obj.c_str(), (isPbPb?"PbPb":"PP")), "", *ws.pdf(pdfCtauErrName.c_str()),
                    Conditional( *ws.pdf(Form("%sCOND_%s_%s", pdfType.c_str(), obj.c_str(), (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var(varName.c_str())) )
                    ); 
     ws.import(pdf);

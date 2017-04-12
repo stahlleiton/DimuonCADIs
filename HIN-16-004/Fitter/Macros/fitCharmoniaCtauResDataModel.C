@@ -137,9 +137,9 @@ bool fitCharmoniaCtauResDataModel( RooWorkspace& myws,             // Local Work
       cout << "[INFO] Setting mass parameters to constant!" << endl;
       myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
     } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
-    if (myws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))))   { reNormMassVar(myws, "Bkg", isPbPb);   }
-    if (myws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))))  { reNormMassVar(myws, "Jpsi", isPbPb);  }
-    if (myws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP")))) { reNormMassVar(myws, "Psi2S", isPbPb); }
+    if (myws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))))   { setConstant( myws, Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")), false);   }
+    if (myws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))))  { setConstant( myws, Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP")), false);  }
+    if (myws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP")))) { setConstant( myws, Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")), false); }
   }
 
   if (createSignalDS) {  
@@ -159,6 +159,24 @@ bool fitCharmoniaCtauResDataModel( RooWorkspace& myws,             // Local Work
     // Set models based on initial parameters
     struct OniaModel model;
     if (!setCtauResDataModel(model, parIni, isPbPb)) { return false; }
+
+    //// LOAD CTAU ERROR PDF
+    if (usePerEventError) {
+      // Setting extra input information needed by each fitter
+      bool loadCtauErrFitResult = true;
+      bool doCtauErrFit = true;
+      bool importDS = true;
+      bool incJpsi = true;
+      string DSTAG = Form("DATA_%s", (isPbPb?"PbPb":"PP"));
+  
+      if ( !fitCharmoniaCtauErrModel( myws, inputWorkspace, cut, parIni, opt, outputDir, 
+                                      DSTAG, isPbPb, importDS, 
+                                      incJpsi, incPsi2S, incBkg, 
+                                      doCtauErrFit, false, loadCtauErrFitResult, inputFitDir, numCores,
+                                      setLogScale, incSS, binWidth
+                                      ) 
+           ) { return false; }
+    }
 
     // Build the Fit Model
     if (!buildCharmoniaCtauResModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsNameCut, "ctau", "pdfCTAURES", isPbPb, usePerEventError, useTotctauErrPdf, numEntries))  { return false; }
