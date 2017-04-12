@@ -14,7 +14,7 @@ void setCtauMassFileName(string& FileName, string outputDir, string TAG, string 
 
 
 bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspace
-                                RooWorkspace& inputWorkspace,   // Workspace with all the input RooDatasets
+                                const RooWorkspace& inputWorkspace,   // Workspace with all the input RooDatasets
                                 struct KinCuts& cut,            // Variable containing all kinematic cuts
                                 map<string, string>&  parIni,   // Variable containing all initial parameters
                                 struct InputOpt& opt,           // Variable with run information (kept for legacy purpose)
@@ -127,9 +127,9 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
       cout << "[INFO] Setting mass parameters to constant!" << endl;
       myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE); 
     } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
-    if (myws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))))   { reNormMassVar(myws, "Bkg", isPbPb);   }
-    if (myws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))))  { reNormMassVar(myws, "Jpsi", isPbPb);  }
-    if (myws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP")))) { reNormMassVar(myws, "Psi2S", isPbPb); }
+    if (myws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))))   { setConstant( myws, Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")), false);   }
+    if (myws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))))  { setConstant( myws, Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP")), false);  }
+    if (myws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP")))) { setConstant( myws, Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")), false); }
   }
 
   //// LOAD CTAU ERROR PDF

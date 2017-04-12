@@ -13,7 +13,7 @@
 
 void setOptions(struct InputOpt* opt);
 
-bool fitCharmonia( RooWorkspace&  inputWorkspace,  // Workspace with all the input RooDatasets
+bool fitCharmonia( const RooWorkspace&  inputWorkspace,  // Workspace with all the input RooDatasets
 		   struct KinCuts cut,             // Variable containing all kinematic cuts
 		   map<string, string>  parIni,    // Variable containing all initial parameters
 		   string outputDir,               // Path to output directory
