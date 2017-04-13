@@ -26,9 +26,13 @@ bool buildCharmoniaCtauResModel(RooWorkspace& ws, struct CharmModel model, map<s
   string obj = "Bkg";
   if (incJpsi) obj = "Jpsi";
   if (incPsi2S) obj = "Psi2S";
-  
+ 
+  ws.factory("Gaussian::test(ctauErr,RooConstVar(1),RooConstVar(0.1))"); 
   string pdfCtauErrName = Form("pdfCTAUERR_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"));
-  if (useTotctauErrPdf) { pdfCtauErrName = Form("pdfCTAUERRTot_Tot_%s", (isPbPb?"PbPb":"PP")); }
+  if (useTotctauErrPdf) { 
+     pdfCtauErrName = Form("pdfCTAUERRTot_Tot_%s", (isPbPb?"PbPb":"PP"));
+     cout << "[INFO] Using total ctauErr PDF" << endl; 
+  }
 
   // If the initial parameters are empty, set defaul parameter values
   setCtauResDefaultParameters(parIni, isPbPb, numEntries);

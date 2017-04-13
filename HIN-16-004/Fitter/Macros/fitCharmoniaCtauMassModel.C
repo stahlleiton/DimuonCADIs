@@ -321,7 +321,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
 
   // Fit the Datasets
   bool isWeighted = myws.data(dsName.c_str())->isWeighted();
-  RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), NumCPU(numCores), ConditionalObservables(*myws.var("ctauErr")), SumW2Error(isWeighted), Save());
+  RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), NumCPU(numCores), SumW2Error(isWeighted), Save());
   fitResult->Print("v");
   myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str()));
   // Draw the mass plot
