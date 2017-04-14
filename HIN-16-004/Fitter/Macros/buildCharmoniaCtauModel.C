@@ -710,6 +710,10 @@ bool addBackgroundCtauModel(RooWorkspace& ws, string object, CtauModel model, ma
     cout << Form("[WARNING] The %s Background Ctau Model has already been implemented!", object.c_str()) << endl;
     return true; 
   }
+  if (ws.pdf(Form("pdfCTAUCOND_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) { 
+    cout << Form("[INFO] The %s Background Ctau Conditional Model has already been implemented!", object.c_str()) << endl;
+    return true; 
+  }
 
   cout << Form("[INFO] Implementing %s Background Ctau Model", object.c_str()) << endl;
    
@@ -753,7 +757,7 @@ bool addBackgroundCtauModel(RooWorkspace& ws, string object, CtauModel model, ma
  		      Form("lambdaDDS_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),
  		      Form("pdfCTAURES_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))
  		      ));
-      
+
       // combine the three PDFs
       ws.factory(Form("SUM::%s(%s*%s, %s)", Form("pdfCTAU1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
  		      Form("fDFSS_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),
@@ -795,6 +799,10 @@ bool addSignalCtauModel(RooWorkspace& ws, string object, CtauModel model, map<st
 {
   if (ws.pdf(Form("pdfCTAU_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) { 
     cout << Form("[WARNING] The %s Signal Ctau Model has already been implemented!", object.c_str()) << endl;
+    return true; 
+  }
+  if (ws.pdf(Form("pdfCTAUCOND_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) { 
+    cout << Form("[INFO] The %s Signal Ctau Conditional Model has already been implemented!", object.c_str()) << endl;
     return true; 
   }
 

@@ -6,6 +6,7 @@
 #include "fitCharmoniaCtauModel.C"
 #include "fitCharmoniaCtauErrModel.C"
 #include "fitCharmoniaCtauTrueModel.C"
+#include "fitCharmoniaCtauRecoModel.C"
 #include "drawMassFrom2DPlot.C"
 #include "drawCtauFrom2DPlot.C"
 #include "drawCtauMass2DPlot.C"
@@ -28,6 +29,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
                                 // Select the fitting options
                                 bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
                                 bool usectauBkgTemplate = false,// If yes use a template for Bkg ctau instead of the fitted Pdf
+                                bool useCtauRecoPdf = false,    // If yes use the ctauReco PDF (template) instead of ctauTrue one
                                 map<string, string> inputFitDir={},// User-defined Location of the fit results
                                 int  numCores      = 2,         // Number of cores used for fitting
                                 // Select the drawing options
@@ -180,6 +182,42 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
     }
   }
 
+  //// LOAD CTAU RECO PDF RESULTS
+  if (fitCtau) {
+    if (useCtauRecoPdf) {
+      // check if we have already done the ctau Reco fits. If yes, load their results
+      string FileName = "";
+      string plotLabel = "_CtauReco";
+      string DSTAG = Form("MCJPSINOPR_%s", (isPbPb?"PbPb":"PP"));
+      string pdfName = Form("pdfCTAU_%s_%s", incJpsi?"JpsiNoPR":"Psi2SNoPR", (isPbPb?"PbPb":"PP"));
+      string newPdfName = Form("pdfCTAUCOND_%s_%s", incJpsi?"JpsiNoPR":"Psi2SNoPR", (isPbPb?"PbPb":"PP"));
+      setCtauRecoFileName(FileName, (inputFitDir["CTAURECO"]=="" ? outputDir : inputFitDir["CTAURECO"]), DSTAG, plotLabel, cut, isPbPb);
+      bool found = false;
+      if (!found && gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAURECO"]!="") {
+        plotLabel = "_CtauReco_NoBkg";
+        setCtauRecoFileName(FileName, (inputFitDir["CTAURECO"]=="" ? outputDir : inputFitDir["CTAURECO"]), DSTAG, plotLabel, cut, isPbPb);
+      } else if (inputFitDir["CTAURECO"]!="") { found = true; }
+      if (!found && gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAURECO"]!="") {
+        plotLabel = "_CtauReco";
+        setCtauRecoFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
+      } else if (inputFitDir["CTAURECO"]!="") { found = true; }
+      if (!found && gSystem->AccessPathName(FileName.c_str())) {
+        plotLabel = "_CtauReco_NoBkg";
+        setCtauRecoFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
+      } else { found = true; }
+      if (!found && gSystem->AccessPathName(FileName.c_str())) {
+        cout << "[ERROR] User Input File : " << FileName << " was not found!" << endl;
+        return false;
+      }
+      if ( !isCtauRecoPdfAlreadyFound(myws, FileName, pdfName, true, newPdfName ) ) {
+        cout << "[ERROR] The ctau reco template results were not loaded!" << endl;
+        return false;
+      } else { 
+        cout << "[INFO] The ctau reco templates were found, so I'll load them." << endl; 
+      }
+    }
+  }
+
   // Build the Fit Model
   if (!buildCharmoniaCtauModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsName, cut, isPbPb, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt, useTotctauErrPdf, usectauBkgTemplate, binWidth["CTAUSB"], numEntries))  { return false; }
 
@@ -256,34 +294,36 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
 
   //// LOAD CTAU TRUE PDF RESULTS
   if (fitCtau) {
-    // check if we have already done the ctau true fits. If yes, load their results
-    string FileName = "";
-    string ModelName = Form("Model_JpsiNoPR_%s", COLL.c_str());
-    string plotLabel = Form("_CtauTrue_%s", parIni[ModelName.c_str()].c_str());
-    string DSTAG = Form("MCJPSINOPR_%s", (isPbPb?"PbPb":"PP"));
-    setCtauTrueFileName(FileName, (inputFitDir["CTAUTRUE"]=="" ? outputDir : inputFitDir["CTAUTRUE"]), DSTAG, plotLabel, cut, isPbPb);
-    bool found = false;
-    if (!found && gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAUTRUE"]!="") {
-      plotLabel = string(Form("_CtauTrue_%s_NoBkg", parIni[ModelName.c_str()].c_str()));
+    if (!useCtauRecoPdf) {
+      // check if we have already done the ctau true fits. If yes, load their results
+      string FileName = "";
+      string ModelName = Form("Model_JpsiNoPR_%s", COLL.c_str());
+      string plotLabel = Form("_CtauTrue_%s", parIni[ModelName.c_str()].c_str());
+      string DSTAG = Form("MCJPSINOPR_%s", (isPbPb?"PbPb":"PP"));
       setCtauTrueFileName(FileName, (inputFitDir["CTAUTRUE"]=="" ? outputDir : inputFitDir["CTAUTRUE"]), DSTAG, plotLabel, cut, isPbPb);
-    } else if (inputFitDir["CTAUTRUE"]!="") { found = true; }
-    if (!found && gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAUTRUE"]!="") {
-      plotLabel = string(Form("_CtauTrue_%s", parIni[ModelName.c_str()].c_str()));
-      setCtauTrueFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
-    } else if (inputFitDir["CTAUTRUE"]!="") { found = true; }
-    if (!found && gSystem->AccessPathName(FileName.c_str())) {
-      plotLabel = string(Form("_CtauTrue_%s_NoBkg", parIni[ModelName.c_str()].c_str()));
-      setCtauTrueFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
-    } else { found = true; }
-    if (!found && gSystem->AccessPathName(FileName.c_str())) {
-      cout << "[ERROR] User Input File : " << FileName << " was not found!" << endl;
-      return false;
-    }
-    if ( !loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) {
-      cout << "[ERROR] The ctau true fit results were not loaded!" << endl;
-      return false;
-    } else { 
-      cout << "[INFO] The ctau true fits were found, so I'll load the fit results." << endl; 
+      bool found = false;
+      if (!found && gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAUTRUE"]!="") {
+        plotLabel = string(Form("_CtauTrue_%s_NoBkg", parIni[ModelName.c_str()].c_str()));
+        setCtauTrueFileName(FileName, (inputFitDir["CTAUTRUE"]=="" ? outputDir : inputFitDir["CTAUTRUE"]), DSTAG, plotLabel, cut, isPbPb);
+      } else if (inputFitDir["CTAUTRUE"]!="") { found = true; }
+      if (!found && gSystem->AccessPathName(FileName.c_str()) && inputFitDir["CTAUTRUE"]!="") {
+        plotLabel = string(Form("_CtauTrue_%s", parIni[ModelName.c_str()].c_str()));
+        setCtauTrueFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
+      } else if (inputFitDir["CTAUTRUE"]!="") { found = true; }
+      if (!found && gSystem->AccessPathName(FileName.c_str())) {
+        plotLabel = string(Form("_CtauTrue_%s_NoBkg", parIni[ModelName.c_str()].c_str()));
+        setCtauTrueFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
+      } else { found = true; }
+      if (!found && gSystem->AccessPathName(FileName.c_str())) {
+        cout << "[ERROR] User Input File : " << FileName << " was not found!" << endl;
+        return false;
+      }
+      if ( !loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) {
+        cout << "[ERROR] The ctau true fit results were not loaded!" << endl;
+        return false;
+      } else { 
+        cout << "[INFO] The ctau true fits were found, so I'll load the fit results." << endl; 
+      }
     }
   }
 
