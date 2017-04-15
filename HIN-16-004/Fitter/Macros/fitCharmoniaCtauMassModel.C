@@ -125,15 +125,35 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
                                  setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
                                  ) 
          ) { return false; }
+    // Let's set all mass parameters to constant except the Number of Events
     if (myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
       cout << "[INFO] Setting mass parameters to constant!" << endl;
       myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE); 
     } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
-    if (myws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))))   { setConstant( myws, Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")), false);   }
-    if (myws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))))  { setConstant( myws, Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP")), false);  }
-    if (myws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP")))) { setConstant( myws, Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")), false); }
+    std::vector< std::string > objs = {"Bkg", "Jpsi", "Psi2S"};
+    // Let's fit again the mass with only the N parameters free, to account for possible ctau or ctauErr cuts in the input datasets
+    for (auto obj : objs) {
+      if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"))))  setConstant( myws, Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), false);
+    }
+    std::cout << "[INFO] Fitting the mass distribution to update the number of events!" << std::endl;
+    RooFitResult* fitResult = myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(numCores), PrintLevel(-1), Save());
+    fitResult->Print("v");
+    // Let's constrain the Number of Signal events to the updated mass fit results
+    RooArgSet pdfList = RooArgSet("ConstrainPdfList");
+    for (auto obj : objs) {
+      if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"))))  {
+      myws.factory(Form("Gaussian::%s_Gauss(%s,%s_Mean[%f],%s_Sigma[%f])", Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), 
+                        Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), myws.var(Form("N_%s_%s", obj.c_str(), isPbPb?"PbPb":"PP"))->getValV(), 
+                        Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")) , myws.var(Form("N_%s_%s", obj.c_str(), isPbPb?"PbPb":"PP"))->getError()));
+      pdfList.add(*myws.pdf(Form("N_%s_%s_Gauss", obj.c_str(), (isPbPb?"PbPb":"PP"))), kFALSE);
+      std::cout << "[INFO] Constraining N_" << obj << " with Mean : " << myws.var(Form("N_%s_%s_Mean", obj.c_str(), (isPbPb?"PbPb":"PP")))->getVal() 
+                << " and Sigma: " << myws.var(Form("N_%s_%s_Sigma", obj.c_str(), (isPbPb?"PbPb":"PP")))->getVal() << std::endl;
+      }
+    }
+    myws.defineSet("ConstrainPdfList", pdfList);
+    if (!myws.set("ConstrainPdfList")) { std::cout << "[ERROR] No constrain pdf list was found" << std::endl; return false; }
   }
-
+  
   //// LOAD CTAU ERROR PDF
   if (usePerEventError) {
     // Setting extra input information needed by each fitter
@@ -247,7 +267,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
       cout << "[ERROR] User Input File : " << FileName << " was not found!" << endl;
       return false;
     }
-    if ( !loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) {
+    if ( !loadPreviousFitResult(myws, FileName, DSTAG, isPbPb, false, false) ) {
       cout << "[ERROR] The ctau resolution fit results were not loaded!" << endl;
       return false;
     } else { 
@@ -273,7 +293,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
       return false;
     }
     if (!usectauBkgTemplate) {
-      if ( !loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) {
+      if ( !loadPreviousFitResult(myws, FileName, DSTAG, isPbPb, false, false) ) {
         cout << "[ERROR] The ctau sideband fit results were not loaded!" << endl;
         return false;
       } else { 
@@ -288,7 +308,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
         myws.pdf(Form("pdfCTAU_BkgNoPR_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("ctauErr")))->setAttribAll("Constant", kTRUE); 
       } else { cout << "[ERROR] NonPrompt Background PDF was not found!" << endl; return false; }
       if (!setConstant(myws, Form("b_Bkg_%s", COLL.c_str()), true)) { return false; }
-      if (!setConstant(myws, Form("s1_CtauRes_%s", COLL.c_str()), false)) { return false; }
+      if (!setConstant(myws, Form("s1_CtauRes_%s", COLL.c_str()), true)) { return false; }
     }
   }
 
@@ -318,7 +338,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
         cout << "[ERROR] User Input File : " << FileName << " was not found!" << endl;
         return false;
       }
-      if ( !loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) {
+      if ( !loadPreviousFitResult(myws, FileName, DSTAG, isPbPb, false, false) ) {
         cout << "[ERROR] The ctau true fit results were not loaded!" << endl;
         return false;
       } else { 
@@ -361,7 +381,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
 
   // Fit the Datasets
   bool isWeighted = myws.data(dsName.c_str())->isWeighted();
-  RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), NumCPU(numCores), SumW2Error(isWeighted), Save());
+  RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), ExternalConstraints(*myws.set("ConstrainPdfList")), NumCPU(numCores), SumW2Error(isWeighted), Save());
   fitResult->Print("v");
   myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str()));
   // Draw the mass plot
