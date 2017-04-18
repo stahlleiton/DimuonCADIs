@@ -8,7 +8,7 @@
 void setCtauRecoFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut, bool isPbPb);
 void setCtauRecoGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label);
 void setCtauRecoCutParameters(struct KinCuts& cut);
-bool isCtauRecoPdfAlreadyFound(RooWorkspace& myws, string FileName, string pdfName, bool loadCtauRecoPdf=false);
+bool isCtauRecoPdfAlreadyFound(RooWorkspace& myws, string FileName, string pdfName, bool loadCtauRecoPdf=false, string newPdfName="");
 
 
 bool fitCharmoniaCtauRecoModel( RooWorkspace& myws,             // Local Workspace
@@ -156,7 +156,7 @@ void setCtauRecoCutParameters(struct KinCuts& cut)
   return;
 };
 
-bool isCtauRecoPdfAlreadyFound(RooWorkspace& myws, string FileName, string pdfName, bool loadCtauRecoPdf)
+bool isCtauRecoPdfAlreadyFound(RooWorkspace& myws, string FileName, string pdfName, bool loadCtauRecoPdf, string newPdfName)
 {
   if (gSystem->AccessPathName(FileName.c_str())) {
     cout << "[INFO] Results not found for: " << FileName << endl;
@@ -179,11 +179,14 @@ bool isCtauRecoPdfAlreadyFound(RooWorkspace& myws, string FileName, string pdfNa
     cout << "[INFO] " << pdfName << " was not found in: " << FileName << endl; found = false;
   }
   if (loadCtauRecoPdf && found) {
-    myws.import(*(ws->pdf(pdfName.c_str())));
-    myws.import(*(ws->data(dataName.c_str())));
-    if (ws->pdf(pdfName.c_str()))   { cout << "[INFO] Pdf " << pdfName << " succesfully imported!" << endl;       }
+    if (newPdfName!="") {
+      myws.import(*(ws->pdf(pdfName.c_str())), RooFit::RenameVariable(pdfName.c_str(),newPdfName.c_str()));
+      myws.import(*(ws->data(dataName.c_str())));
+      pdfName = newPdfName;
+    }
+    if (myws.pdf(pdfName.c_str()))   { cout << "[INFO] Pdf " << pdfName << " succesfully imported!" << endl;       }
     else {  cout << "[ERROR] Pdf " << pdfName << " import failed!" << endl; found = false; }
-    if (ws->data(dataName.c_str())) { cout << "[INFO] DataHist " << dataName << " succesfully imported!" << endl; }
+    if (myws.data(dataName.c_str())) { cout << "[INFO] DataHist " << dataName << " succesfully imported!" << endl; }
     else {  cout << "[ERROR] DataHist " << dataName << " import failed!" << endl; found = false; }
   }
 

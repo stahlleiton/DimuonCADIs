@@ -101,13 +101,15 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     if (incPrompt && incNonPrompt) {
       if (incCtauErrPDF) {
         RooProdPdf pdfJpsiPR(Form("pdfCTAU_JpsiPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form((useTotctauErrPdf?"pdfCTAUERRTot_Tot_%s":"pdfCTAUERR_Jpsi_%s"), (isPbPb?"PbPb":"PP"))),
-                       Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
-                       );
+                             Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
+                             );
         ws.import(pdfJpsiPR);
-        RooProdPdf pdfJpsiNoPR(Form("pdfCTAU_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form((useTotctauErrPdf?"pdfCTAUERRTot_Tot_%s":"pdfCTAUERR_Jpsi_%s"), (isPbPb?"PbPb":"PP"))),
-                       Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
-                       ); 
-        ws.import(pdfJpsiNoPR);
+        if (!ws.pdf(Form("pdfCTAU_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")))) {
+          RooProdPdf pdfJpsiNoPR(Form("pdfCTAU_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form((useTotctauErrPdf?"pdfCTAUERRTot_Tot_%s":"pdfCTAUERR_Jpsi_%s"), (isPbPb?"PbPb":"PP"))),
+                                 Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
+                                 ); 
+          ws.import(pdfJpsiNoPR);
+        }
       } else {
         ws.factory(Form("SUM::%s(%s)", Form("pdfCTAU_JpsiPR_%s", (isPbPb?"PbPb":"PP")),
                         Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))
@@ -710,6 +712,10 @@ bool addBackgroundCtauModel(RooWorkspace& ws, string object, CtauModel model, ma
     cout << Form("[WARNING] The %s Background Ctau Model has already been implemented!", object.c_str()) << endl;
     return true; 
   }
+  if (ws.pdf(Form("pdfCTAUCOND_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) { 
+    cout << Form("[INFO] The %s Background Ctau Conditional Model has already been implemented!", object.c_str()) << endl;
+    return true; 
+  }
 
   cout << Form("[INFO] Implementing %s Background Ctau Model", object.c_str()) << endl;
    
@@ -753,7 +759,7 @@ bool addBackgroundCtauModel(RooWorkspace& ws, string object, CtauModel model, ma
  		      Form("lambdaDDS_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),
  		      Form("pdfCTAURES_%s_%s", objectInc.c_str(), (isPbPb?"PbPb":"PP"))
  		      ));
-      
+
       // combine the three PDFs
       ws.factory(Form("SUM::%s(%s*%s, %s)", Form("pdfCTAU1_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")), 
  		      Form("fDFSS_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),
@@ -795,6 +801,10 @@ bool addSignalCtauModel(RooWorkspace& ws, string object, CtauModel model, map<st
 {
   if (ws.pdf(Form("pdfCTAU_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) { 
     cout << Form("[WARNING] The %s Signal Ctau Model has already been implemented!", object.c_str()) << endl;
+    return true; 
+  }
+  if (ws.pdf(Form("pdfCTAUCOND_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) { 
+    cout << Form("[INFO] The %s Signal Ctau Conditional Model has already been implemented!", object.c_str()) << endl;
     return true; 
   }
 
@@ -1037,7 +1047,7 @@ bool ctauBkgHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, vector<doubl
   bool isPbPb=false;
   if (pdfName.find("PbPb")!=std::string::npos) isPbPb=true;
   RooHistPdf* pdf = new RooHistPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctau"), *((RooDataHist*)ws.data(dataName.c_str())));
-  //RooKeysPdf* pdf = new RooKeysPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctauErr"), *((RooDataSet*)ws.data(dataName.c_str())),RooKeysPdf::NoMirror, isPbPb?0.4:0.4);
+  //RooKeysPdf* pdf = new RooKeysPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctau"), *((RooDataSet*)ws.data(dataName.c_str())),RooKeysPdf::NoMirror, 0.4);
   if (pdf==NULL) { cout << "[ERROR] RooKeysPDF " << pdfName << " is NULL!" << endl; return false; }
   pdf->setNormRange("CtauFullWindow");
   ws.import(*pdf);

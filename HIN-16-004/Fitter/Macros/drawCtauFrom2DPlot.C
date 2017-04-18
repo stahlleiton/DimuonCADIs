@@ -99,18 +99,16 @@ void drawCtauFrom2DPlot(RooWorkspace& myws,   // Local workspace
                                          Normalization(normDSTot, RooAbsReal::NumEvent),
                                          LineColor(kGreen+3), Precision(1e-5), NumCPU(32)
                                          );
+  }  
+  if (incSS) { 
+    myws.data(dsSSName.c_str())->plotOn(frame, Name("dSS"), MarkerColor(kRed), LineColor(kRed), MarkerSize(1.2)); 
   }
+  myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
   myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PDFLINE"),
                                        ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(dsOSNameCut.c_str()), kTRUE),
                                        Normalization(normDSTot, RooAbsReal::NumEvent), 
                                        LineColor(kBlack), NumCPU(32)
                                        );
-  
-  
-  if (incSS) { 
-    myws.data(dsSSName.c_str())->plotOn(frame, Name("dSS"), MarkerColor(kRed), LineColor(kRed), MarkerSize(1.2)); 
-  }
-  myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
   
   
   // set the CMS style

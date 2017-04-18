@@ -219,7 +219,7 @@ bool fitCharmonia( const RooWorkspace&  inputWorkspace,  // Workspace with all t
    
     if ( !fitCharmoniaCtauMassModel( myws, inputWorkspace, cut, parIni, opt, outputDir, 
                                      DSTAG, isPbPb,
-                                     incJpsi, incPsi2S, useTotctauErrPdf, usectauBkgTemplate,
+                                     incJpsi, incPsi2S, useTotctauErrPdf, usectauBkgTemplate, useCtauRecoPdf,
                                      inputFitDir, numCores,
                                      setLogScale, incSS, binWidth
                                      ) 

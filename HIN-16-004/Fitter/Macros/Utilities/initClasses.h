@@ -315,7 +315,7 @@ bool isFitAlreadyFound(RooArgSet *newpars, string FileName, string pdfName)
 };
 
 
-bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bool isPbPb, bool cutSideBand=false)
+bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bool isPbPb, bool cutSideBand=false, bool loadNumberOfEvents=true)
 {
   if (gSystem->AccessPathName(FileName.c_str())) {
     cout << "[INFO] File " << FileName << " was not found!" << endl;
@@ -342,6 +342,7 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
     if ( name=="invMass" || name=="ctau" || name=="ctauErr" || name=="ctauRes" || name=="ctauNRes" || name=="ctauN" ||
          name=="ctauTrue" || name=="pt" || name=="cent" || 
          name=="rap" || name=="One" ) continue;
+    if ( !loadNumberOfEvents && name.find("N_")!=std::string::npos ) continue;
     if ( (DSTAG.find("MC")!=std::string::npos || cutSideBand) && (name.find("N_")!=std::string::npos) ) continue; 
     if (myws.var(name.c_str())) {
       print = print + Form("  %s: %.5f->%.5f ", name.c_str(), myws.var(name.c_str())->getValV(), ws->var(name.c_str())->getValV()) ;
@@ -369,6 +370,7 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
     if ( name=="invMass" || name=="ctau" || name=="ctauErr" || name=="ctauRes" || name=="ctauNRes" || name=="ctauN" ||
          name=="ctauTrue" || name=="pt" || name=="cent" || 
          name=="rap" || name=="One" ) continue;
+    if ( !loadNumberOfEvents && name.find("N_")!=std::string::npos ) continue;
     if ( (DSTAG.find("MC")!=std::string::npos || cutSideBand) && (name.find("N_")!=std::string::npos) ) continue; 
     if (myws.var(name.c_str())) { 
       printFun = printFun + Form("  %s: %.5f->%.5f  ", name.c_str(), myws.var(name.c_str())->getValV(), ws->function(name.c_str())->getValV()) ;
