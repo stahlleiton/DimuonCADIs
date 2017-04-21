@@ -32,10 +32,10 @@
 void bindingPlot()
 {
   
-  bool bSavePlots = true;
-  bool bDo502     = false;
-  bool bJustBeauty= false;
-  bool bJustCharm = false;
+  bool bSavePlots      = true;
+  bool bDo502          = false;
+  bool bJustBeauty     = false;
+  bool bJustCharm      = false;
 
   setTDRStyle();
     
@@ -154,10 +154,10 @@ void bindingPlot()
   TLegend *legCharm = new TLegend(0.2,0.58,0.7,0.785,NULL,"brNDC");
   legCharm->SetHeader("Prompt charmonia ");
   legCharm->AddEntry(gJpsi,"J/#psi       (arXiv:1610.00613)","P");
-  legCharm->AddEntry(gJpsi,"    p_{T}#in[6.5,30] GeV/c, |y| < 2.4, Cent. 0-5%","");
+  legCharm->AddEntry(gJpsi,"    p_{T}#in [6.5,30] GeV/c, |y| < 2.4, Cent. 0-5%","");
   // legCharm->AddEntry(gJpsi,"    arXiv:1610.00613","");
   legCharm->AddEntry(gPsiP,"#psi(2S)   (PRL 113, 2014)","P");
-  legCharm->AddEntry(gPsiP,"    p_{T}#in[6.5,30] GeV/c, |y| < 1.6","");
+  legCharm->AddEntry(gPsiP,"    p_{T}#in [6.5,30] GeV/c, |y| < 1.6","");
   // legCharm->AddEntry(gPsiP,"    PRL 113 (2014)","");
 
   legCharm->SetFillStyle(0);
@@ -172,12 +172,12 @@ void bindingPlot()
   legBeauty->SetHeader("Bottomonia");
   if(!bDo502)
     {
-      legBeauty->AddEntry(gUps3,"p_{T}#in[0,20] GeV/c, |y| < 2.4","");
+      legBeauty->AddEntry(gUps3,"p_{T}#in [0,20] GeV/c, |y| < 2.4","");
       legBeauty->AddEntry(gUps3,"arXiv:1611.01510","");
     }
   else
     {
-      legBeauty->AddEntry(gUps3,"p_{T}#in[0,30] GeV/c, |y| < 2.4, Cent. 0-100%","");
+      legBeauty->AddEntry(gUps3,"p_{T}#in [0,30] GeV/c, |y| < 2.4","");
       legBeauty->AddEntry(gUps3,"HIN-16-023","");
 
     }
@@ -193,15 +193,13 @@ void bindingPlot()
   legBeauty->SetTextSize(0.035);
   
    //------------------------------------- drawing
-
-  TF1 *f2 = new TF1("f2","1",0,1.2);
-  f2->SetLineWidth(1);
-  f2->SetLineColor(1);
-  f2->GetXaxis()->SetTitle("Binding energy [GeV]");
-  f2->GetYaxis()->SetTitle("R_{AA}");
-  f2->GetYaxis()->SetRangeUser(0.0,1.2);
-  f2->GetXaxis()->CenterTitle(kTRUE);
-  f2->GetYaxis()->CenterTitle(kTRUE);
+  TH1F *phAxis = new TH1F("phAxis",";Binding energy [GeV];R_{AA}",1,0,1.2);
+  phAxis->GetYaxis()->SetRangeUser(0.0,1.2);
+  phAxis->GetXaxis()->CenterTitle(kTRUE);
+  phAxis->GetYaxis()->CenterTitle(kTRUE);
+  TLine *line = new TLine(0.,1,1.2,1);
+  line->SetLineStyle(1);
+  line->SetLineWidth(1);
 
   // vs binding energy
   TLatex *what = new TLatex(0.1,1.1,"CMS");
@@ -209,7 +207,8 @@ void bindingPlot()
   what->SetTextSize(0.04);
   
   TCanvas *c1 = new TCanvas("c1","c1");
-  f2->Draw();
+  phAxis->Draw();
+  line->Draw();
   if(!bJustBeauty || (bJustCharm && !bDo502) )
     {
       gJpsi_sys->Draw("2");
@@ -281,13 +280,13 @@ void bindingPlot()
     {
       if(!bJustBeauty && !bJustCharm)
 	{
-	  c1->SaveAs(Form("raaVSdE_bDo502%d.pdf",bDo502));
-	  c1->SaveAs(Form("raaVSdE_bDo502%d.png",bDo502));
+	  c1->SaveAs(Form("figsQM17/raaVSdE_bDo502%d.pdf",bDo502));
+	  c1->SaveAs(Form("figsQM17/raaVSdE_bDo502%d.png",bDo502));
 	}
       else
 	{
-	  c1->SaveAs(Form("raaVSdE_bDo502%d_charm%d_beauty%d.pdf",bDo502,bJustCharm,bJustBeauty));
-	  c1->SaveAs(Form("raaVSdE_bDo502%d_charm%d_beauty%d.png",bDo502,bJustCharm,bJustBeauty));
+	  c1->SaveAs(Form("figsQM17/raaVSdE_bDo502%d_charm%d_beauty%d.pdf",bDo502,bJustCharm,bJustBeauty));
+	  c1->SaveAs(Form("figsQM17/raaVSdE_bDo502%d_charm%d_beauty%d.png",bDo502,bJustCharm,bJustBeauty));
 	}
     }
 

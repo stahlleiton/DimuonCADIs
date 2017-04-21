@@ -35,7 +35,7 @@
 
 #endif
 void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place where the input root files, with the histograms are
-                     bool bSavePlots      = true,
+                     bool bSavePlots      = false,
                      bool bDoSameYHighPt  = true
                      )
 {
@@ -107,14 +107,11 @@ void raaExpOpen_cent(const char* inputDir = "../macro_raa/outRoot", // the place
 
   TCanvas *pc = new TCanvas("pc","pc");
 
-  TF1 *f4 = new TF1("f4","1",0,400);
-  f4->SetLineWidth(1);
-  f4->GetXaxis()->SetTitle("<N_{part}>");
-  f4->GetYaxis()->SetTitle("R_{AA}");
-  f4->GetYaxis()->SetRangeUser(0.0,1.5);
-  f4->GetXaxis()->CenterTitle(kTRUE);
+  TH1F *phAxis = new TH1F("phAxis",";<N_{part}>;R_{AA}",10,0,400);
+  phAxis->GetYaxis()->SetRangeUser(0.0,1.5);
+  phAxis->GetXaxis()->CenterTitle(kTRUE);
  
-  f4->Draw();
+  phAxis->Draw();
   lumi->Draw();
   pc->Update();
 
