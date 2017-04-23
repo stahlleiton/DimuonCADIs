@@ -73,8 +73,9 @@ bool fitCharmoniaCtauResDataModel( RooWorkspace& myws,             // Local Work
       plotLabel = plotLabel + "_Bkg";
       setCtauErrFileName(FileName, (inputFitDir["CTAUERR"]=="" ? outputDir : inputFitDir["CTAUERR"]), "DATA", plotLabel, cut, isPbPb, fitSideBand);
       bool foundFit = false;
-      if ( loadCtauErrRange(myws, FileName, cut) ) { foundFit = true; }
+      if ( loadCtauErrRange(FileName, cut) ) { foundFit = true; }
       if (foundFit) { cout << "[INFO] The ctauErr fit was found and I'll load the ctau Error range used." << endl; }
+      else { cout << "[ERROR] The ctauErr fit was not found!" << endl; return false; }
     }
     setCtauErrCutParameters(cut);
   }

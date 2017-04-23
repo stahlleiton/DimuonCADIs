@@ -22,6 +22,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
                   bool incPrompt,       // Includes Prompt ctau model       
                   bool incNonPrompt,    // Includes Non-Prompt ctau model
                   // Select the fitting options
+                  bool useSPlot,        // If yes, then use SPlot ds, if no, use mass range one
                   bool plotPureSMC,     // Flag to indicate if we want to fit pure signal MC
                   // Select the drawing options
                   bool setLogScale,     // Draw plot with log scale
@@ -44,6 +45,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
 
   string pdfTotName  = Form("pdfCTAU_Tot_%s", (isPbPb?"PbPb":"PP"));
   string dsOSName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
+  if (useSPlot && (incBkg && !(incJpsi || incPsi2S))) dsOSName += "_BKG";
   if (plotPureSMC) dsOSName = Form("dOS_%s_%s_NoBkg", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   string dsOSNameCut = dsOSName+"_CTAUCUT";
   string hOSName = Form("dhCTAUERRTot_Tot_%s", (isPbPb?"PbPb":"PP"));
@@ -64,6 +66,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
     minRange = -4.0;
     maxRange = 7.0;
   }
+  Double_t numTot = myws.data(dsOSName.c_str())->sumEntries();
   Double_t outTot = myws.data(dsOSName.c_str())->numEntries();
   Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctau>%.6f || ctau<%.6f)", range[1], range[0]))->numEntries();
   int nBins = min(int( round((maxRange - minRange)/binWidth) ), 1000);
@@ -111,7 +114,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
     }
     else
     {
-      myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PDF"),  Normalization(outTot, RooAbsReal::NumEvent), NumCPU(32),
+      myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PDF"),  Normalization(numTot, RooAbsReal::NumEvent), NumCPU(32),
                                            LineColor(kBlack), Precision(1e-4)
                                            );
     }
@@ -420,7 +423,7 @@ void printCtauParameters(RooWorkspace myws, TPad* Pad, bool isPbPb, string pdfNa
     }
     // Print the parameter's results
     if(s1=="N"){ 
-      t->DrawLatex(0.69, 0.75-dy, Form((isWeighted?"%s = %.6f#pm%.6f ":"%s = %.0f#pm%.0f "), label.c_str(), it->getValV(), it->getError())); dy+=0.045; 
+      t->DrawLatex(0.69, 0.75-dy, Form("%s = %.0f#pm%.0f ", label.c_str(), it->getValV(), it->getError())); dy+=0.045; 
     }
     else if(s1=="b"){ 
       t->DrawLatex(0.69, 0.75-dy, Form("%s = %.4f#pm%.4f ", label.c_str(), it->getValV(), it->getError())); dy+=0.045; 

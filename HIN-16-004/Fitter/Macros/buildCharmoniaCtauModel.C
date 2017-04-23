@@ -38,7 +38,7 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
   // C r e a t e   m o d e l 
 
   bool fitMass = false;
-  if ( ws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP"))) ) { fitMass = true; } 
+  if ( ws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP"))) && incBkg && (incJpsi || incPsi2S) ) { fitMass = true; } 
 
   string pdfName     = "pdfCTAU";
   if (fitMass) { pdfName = "pdfCTAUMASS"; }
@@ -883,7 +883,7 @@ void setCtauDefaultParameters(map<string, string> &parIni, bool isPbPb, double n
     parIni[Form("b_Psi2S_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.12f,%.12f,%.12f]", Form("b_Psi2S_%s", (isPbPb?"PbPb":"PP")), 0.2, 0.0, 1.0);
   }
   if (parIni.count(Form("b_Bkg_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("b_Bkg_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("b_Bkg_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.12f,%.12f,%.12f]", Form("b_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.5, 0.0, 1.0);
+    parIni[Form("b_Bkg_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.12f,%.12f,%.12f]", Form("b_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.2, 0.0, 1.0);
   }
 
  // CTAU FIT PARAMETERS
