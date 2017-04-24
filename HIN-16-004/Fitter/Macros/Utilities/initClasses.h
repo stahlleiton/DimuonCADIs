@@ -253,6 +253,18 @@ void setFixedVarsToContantVars(RooWorkspace& ws)
 };
 
 
+template<typename T>
+T* clone(const T& s)
+{
+  RooArgSet* cloneSet = (RooArgSet*)RooArgSet(s,s.GetName()).snapshot(kTRUE);
+  if (!cloneSet) { cout << "[ERROR] Couldn't deep-clone " << s.GetName() << endl; return NULL; }
+  T* obj = (RooAbsPdf*)cloneSet->find(s.GetName());
+  if (!obj) { cout << "[ERROR] Couldn't deep-clone " << s.GetName() << endl; delete cloneSet; return NULL; }
+  obj->setOperMode(RooAbsArg::ADirty, kTRUE);
+  return obj;
+};
+
+
 bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2) {
   TIterator* parIt = pars1->createIterator(); 
   for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
