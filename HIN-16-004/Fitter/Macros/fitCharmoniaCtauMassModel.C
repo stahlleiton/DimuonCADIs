@@ -79,6 +79,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
     bool foundFit = false;
     if ( loadCtauErrRange(FileName, cut) ) { foundFit = true; }
     if (foundFit) { cout << "[INFO] The ctauErr fit was found and I'll load the ctau Error range used." << endl; }
+    else { cout << "[ERROR] The ctauErr fit was not found!" << endl; return false; }
   }
   setCtauErrCutParameters(cut);
   setCtauCutParameters(cut, incNonPrompt);
