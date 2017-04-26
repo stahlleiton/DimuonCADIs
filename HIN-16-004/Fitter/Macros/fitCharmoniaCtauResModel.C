@@ -159,7 +159,6 @@ bool fitCharmoniaCtauResModel( RooWorkspace& myws,             // Local Workspac
     return true;
   }
 
-  myws.Print("v");
   // Fit the Datasets
   if (skipFit==false) {
     bool isWeighted = myws.data(dsName.c_str())->isWeighted();
