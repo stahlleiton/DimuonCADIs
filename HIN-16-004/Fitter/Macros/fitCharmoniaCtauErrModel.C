@@ -126,15 +126,13 @@ bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspac
                                  setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
                                  ) 
          ) { return false; }
+    // Let's set all mass parameters to constant except the yields
     if (myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
       cout << "[INFO] Setting mass parameters to constant!" << endl;
       myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE); 
     } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
-    std::vector< std::string > objs = {"Bkg", "Jpsi", "Psi2S"}; std::map< std::string , double > dN;
-    // Let's fit again the mass with only the N parameters free, to account for possible ctau or ctauErr cuts in the input datasets
-    for (auto obj : objs) {
-      if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) setConstant( myws, Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), false);
-    }
+    std::vector< std::string > objs = {"Bkg", "Jpsi", "Psi2S"};
+    for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) setConstant( myws, Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), false); }
   }
 
   if (skipCtauErrPdf==false) {

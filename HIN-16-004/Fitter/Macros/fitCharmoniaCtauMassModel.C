@@ -126,19 +126,13 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
                                  setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
                                  ) 
          ) { return false; }
-    // Let's set all mass parameters to constant except the Number of Events
+    // Let's set all mass parameters to constant except the yields
     if (myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
       cout << "[INFO] Setting mass parameters to constant!" << endl;
       myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE); 
     } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
     std::vector< std::string > objs = {"Bkg", "Jpsi", "Psi2S"};
-    // Let's fit again the mass with only the N parameters free, to account for possible ctau or ctauErr cuts in the input datasets
-    for (auto obj : objs) {
-      if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"))))  setConstant( myws, Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), false);
-    }
-    std::cout << "[INFO] Fitting the mass distribution to update the number of events!" << std::endl;
-    RooFitResult* fitResult = myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(numCores), PrintLevel(-1), Save());
-    fitResult->Print("v");
+    for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"))))  setConstant( myws, Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), false); }
     // Let's constrain the Number of Signal events to the updated mass fit results
     RooArgSet pdfList = RooArgSet("ConstrainPdfList");
     for (auto obj : objs) {
@@ -248,7 +242,8 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
     string FileName = "";
     string plotLabel = Form("_CtauRes_%s", parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str());
     string DSTAG = Form("MCJPSIPR_%s", (isPbPb?"PbPb":"PP"));
-    if (inputFitDir["CTAURES"].find("NP")!=std::string::npos) DSTAG = Form("MCJPSINOPR_%s", (isPbPb?"PbPb":"PP")); 
+    if (inputFitDir["CTAURES"].find("nonPrompt")!=std::string::npos) DSTAG = Form("MCJPSINOPR_%s", (isPbPb?"PbPb":"PP"));
+    if (inputFitDir["CTAURES"].find("DataFits")!=std::string::npos) DSTAG = Form("DATA_%s", (isPbPb?"PbPb":"PP"));
     setCtauResFileName(FileName, (inputFitDir["CTAURES"]=="" ? outputDir : inputFitDir["CTAURES"]), DSTAG, plotLabel, cut, isPbPb);
     if (wantPureSMC) { plotLabel = plotLabel + "_NoBkg"; }
     bool found = false;

@@ -160,7 +160,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
     vector<string> dsNames = { dsName2Fit };
     bool createBkgDS = ( !isSPlotDSAlreadyFound(myws, FileName, dsNames, true) );
     if (createBkgDS) {
-      if (!myws.data((dsName+"_SPLOT").c_str())) {
+      if (true) { // Always load the mass results
         // Setting extra input information needed by each fitter
         string iMassFitDir = inputFitDir["MASS"];
         double ibWidth = binWidth["MASS"];
@@ -181,13 +181,13 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
                                      setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
                                      )
              ) { return false; }
+        // Let's set all mass parameters to constant except the yields
         if (myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
           cout << "[INFO] Setting mass parameters to constant!" << endl;
           myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
         } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
-        if (myws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))))   { setConstant( myws, Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")), false);   }
-        if (myws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))))  { setConstant( myws, Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP")), false);  }
-        if (myws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP")))) { setConstant( myws, Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")), false); }
+        std::vector< std::string > objs = {"Bkg", "Jpsi", "Psi2S"};
+        for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"))))  setConstant( myws, Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), false); }
       }
       if (importDS && !myws.data(dsName2Fit.c_str())) {
         if (!createBkgCtauDSUsingSPLOT(myws, dsName, parIni, cut)){ cout << "[ERROR] Creating the Bkg Ctau Templates using sPLOT failed" << endl; return false; }
@@ -232,7 +232,8 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
       string FileName = "";
       string plotLabel = Form("_CtauRes_%s", parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str());
       string DSTAG = Form("MCJPSIPR_%s", (isPbPb?"PbPb":"PP"));
-      if (inputFitDir["CTAURES"].find("NP")!=std::string::npos) DSTAG = Form("MCJPSINOPR_%s", (isPbPb?"PbPb":"PP"));
+      if (inputFitDir["CTAURES"].find("nonPrompt")!=std::string::npos) DSTAG = Form("MCJPSINOPR_%s", (isPbPb?"PbPb":"PP"));
+      if (inputFitDir["CTAURES"].find("DataFits")!=std::string::npos) DSTAG = Form("DATA_%s", (isPbPb?"PbPb":"PP"));
       setCtauResFileName(FileName, (inputFitDir["CTAURES"]=="" ? outputDir : inputFitDir["CTAURES"]), DSTAG, plotLabel, cut, isPbPb);
       if (wantPureSMC) { plotLabel = plotLabel + "_NoBkg"; }
       bool found = false;
@@ -554,12 +555,14 @@ bool createBkgCtauDSUsingSPLOT(RooWorkspace& ws, string dsName, map<string, stri
     RooAbsPdf* pdf = clone(*ws.pdf(pdfMassName.c_str()));
     RooStats::SPlot sData = RooStats::SPlot("sData","An SPlot", *data, pdf, yieldList);
     ws.import(*data, Rename((dsName+"_SPLOT").c_str()));
-    cout <<  "[INFO] Bkg yield -> Mass Fit: " << ws.var(Form("N_Bkg_%s_sw", (isPbPb?"PbPb":"PP")))->getVal() << " , sWeights: " << sData.GetYieldFromSWeight(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))) << std::endl;
+    cout <<  "[INFO] Bkg yield -> Mass Fit: " << ws.var(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")))->getVal() << " , sWeights: " << sData.GetYieldFromSWeight(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))) << std::endl;
+    if (!isCompatibleDataset(*data, *(RooDataSet*)ws.data(dsName.c_str()))){ cout << "[ERROR] sPlot and original Datasets are inconsistent!" << endl; return false; }
     delete data; delete pdf;
   }
   
   RooDataSet* dataw_Bkg  = new RooDataSet("TMP_BKG_DATA","TMP_BKG_DATA", (RooDataSet*)ws.data((dsName+"_SPLOT").c_str()), RooArgSet(*ws.var("invMass"), *ws.var("ctau"), *ws.var("ctauN"), *ws.var("ctauErr"), *ws.var(Form("N_Bkg_%s_sw", (isPbPb?"PbPb":"PP")))), 0, Form("N_Bkg_%s_sw", (isPbPb?"PbPb":"PP")));
   ws.import(*dataw_Bkg, Rename((dsName+"_BKG").c_str()));
+  cout <<  "[INFO] sPLOT_BKG_DS Events: " << ws.data((dsName+"_BKG").c_str())->sumEntries() << std::endl;
   delete dataw_Bkg;
   
   return true;
