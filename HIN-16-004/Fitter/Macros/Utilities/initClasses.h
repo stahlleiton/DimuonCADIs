@@ -253,6 +253,18 @@ void setFixedVarsToContantVars(RooWorkspace& ws)
 };
 
 
+template<typename T>
+T* clone(const T& s)
+{
+  RooArgSet* cloneSet = (RooArgSet*)RooArgSet(s,s.GetName()).snapshot(kTRUE);
+  if (!cloneSet) { cout << "[ERROR] Couldn't deep-clone " << s.GetName() << endl; return NULL; }
+  T* obj = (RooAbsPdf*)cloneSet->find(s.GetName());
+  if (!obj) { cout << "[ERROR] Couldn't deep-clone " << s.GetName() << endl; delete cloneSet; return NULL; }
+  obj->setOperMode(RooAbsArg::ADirty, kTRUE);
+  return obj;
+};
+
+
 bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2) {
   TIterator* parIt = pars1->createIterator(); 
   for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
@@ -400,17 +412,17 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
 };
 
 
-bool loadCtauErrRange(RooWorkspace& myws, string FileName, struct KinCuts& cut)
+bool loadCtauErrRange(string FileName, struct KinCuts& cut)
 {
   if (gSystem->AccessPathName(FileName.c_str())) {
-    cout << "[INFO] File " << FileName << " was not found!" << endl;
+    cout << "[ERROR] File " << FileName << " was not found!" << endl;
     return false; // File was not found
   }
   TFile *file = new TFile(FileName.c_str());
   if (!file) return false;
   RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
   if (!ws) {
-    cout << "[INFO] Workspace was not found in: " << FileName << endl;
+    cout << "[ERROR] Workspace was not found in: " << FileName << endl;
     file->Close(); delete file;
     return false;
   }
@@ -418,8 +430,40 @@ bool loadCtauErrRange(RooWorkspace& myws, string FileName, struct KinCuts& cut)
   if (ws->var("ctauErr")) {
     cut.dMuon.ctauErr.Min = ws->var("ctauErr")->getMin();
     cut.dMuon.ctauErr.Max = ws->var("ctauErr")->getMax();
-  } else { 
-    cout << Form("[WARNING] ctauErr was not found!") << endl;
+  } else {
+    cout << Form("[ERROR] ctauErr was not found!") << endl;
+    delete ws;
+    file->Close(); delete file;
+    return false;
+  }
+
+  delete ws;
+  file->Close(); delete file;
+  return true;
+};
+
+
+bool loadSPlotDS(RooWorkspace& myws, string FileName, string dsName)
+{
+  if (gSystem->AccessPathName(FileName.c_str())) {
+    cout << "[ERROR] File " << FileName << " was not found!" << endl;
+    return false; // File was not found
+  }
+  TFile *file = new TFile(FileName.c_str());
+  if (!file) return false;
+  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  if (!ws) {
+    cout << "[ERROR] Workspace was not found in: " << FileName << endl;
+    file->Close(); delete file;
+    return false;
+  }
+
+  if (ws->data(dsName.c_str())) {
+    myws.import(*ws->data(dsName.c_str()), Rename((dsName+"_INPUT").c_str()));
+    if (myws.data((dsName+"_INPUT").c_str())) { cout << "[INFO] RooDataset " << (dsName+"_INPUT") << " was imported!" << endl; }
+    else { cout << "[ERROR] Importing RooDataset " << (dsName+"_INPUT") << " failed!" << endl; }
+  } else {
+    cout << "[ERROR] RooDataset " << dsName << " was not found!" << endl;
     delete ws;
     file->Close(); delete file;
     return false;
@@ -462,7 +506,7 @@ int importDataset(RooWorkspace& myws, const RooWorkspace& inputWS, struct KinCut
   if (dataOS->sumEntries()==0){ 
     cout << "[ERROR] No events from dataset " <<  Form("dOS_%s", label.c_str()) << " passed the kinematic cuts!" << endl;
     return -1;
-  }  
+  }
   myws.import(*dataOS);
   delete dataOS;
   
@@ -478,6 +522,20 @@ int importDataset(RooWorkspace& myws, const RooWorkspace& inputWS, struct KinCut
     }
     myws.import(*dataSS);
     delete dataSS;
+  }
+
+  if (myws.data(Form("dOS_%s_SPLOT_INPUT", label.c_str()))){
+    RooDataSet* dataOS = (RooDataSet*)myws.data(Form("dOS_%s_SPLOT_INPUT", label.c_str()))->reduce(strCut.c_str());
+    if (dataOS) {
+      if (dataOS->sumEntries()==0){ cout << "[ERROR] No events from dataset " <<  Form("dOS_%s_SPLOT_INPUT", label.c_str()) << " passed the kinematic cuts!" << endl; }
+      else if (dataOS->sumEntries()!=myws.data(Form("dOS_%s", label.c_str()))->sumEntries()){ cout << "[ERROR] Datasets are inconsistent!" << endl; }
+      else {
+        myws.import(*dataOS, Rename(Form("dOS_%s_SPLOT", label.c_str())));
+        if (myws.data(Form("dOS_%s_SPLOT", label.c_str()))) { cout << "[INFO] RooDataset " << Form("dOS_%s_SPLOT", label.c_str()) << " was imported!" << endl; }
+        else { cout << "[ERROR] Importing RooDataset " << Form("dOS_%s_SPLOT", label.c_str()) << " failed!" << endl; }
+      }
+      delete dataOS;
+    }
   }
 
   // Set the range of each global parameter in the local roodataset

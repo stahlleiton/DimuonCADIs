@@ -13,6 +13,7 @@ void setCtauFileName(string& FileName, string outputDir, string TAG, string plot
 void setCtauGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label, double binWidth, bool fitCtauRes=false);
 void setCtauCutParameters(struct KinCuts& cut, bool incNonPrompt);
 bool isCtauBkgPdfAlreadyFound(RooWorkspace& myws, string FileName, string pdfName, bool loadCtauBkgPdf=false);
+bool createBkgCtauDSUsingSPLOT(RooWorkspace& ws, string dsName, map<string, string> parIni, struct KinCuts cut);
 
 
 bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
@@ -34,6 +35,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
                             bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
                             bool usectauBkgTemplate = false,// If yes use a template for Bkg ctau instead of the fitted Pdf
                             // Select the fitting options
+                            bool useSPlot      = true,      // If yes, then use SPlot technique, if no, use mass range
                             bool doFit         = true,      // Flag to indicate if we want to perform the fit
                             bool wantPureSMC   = false,     // Flag to indicate if we want to fit pure signal MC
                             bool loadFitResult = false,     // Load previous fit results
@@ -65,11 +67,12 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
   string fitType = "CTAU";
   if (isMC && incPrompt && !incNonPrompt) { fitType = "CTAURES"; }
   if (!isMC && fitSideBand) { fitType = "CTAUSB";  }
+  string label = ((DSTAG.find(COLL.c_str())!=std::string::npos) ? DSTAG.c_str() : Form("%s_%s", DSTAG.c_str(), COLL.c_str()));
 
   if (importDS) {
-    setCtauCutParameters(cut, incNonPrompt);
     setMassCutParameters(cut, incJpsi, incPsi2S, isMC, true);
-    if (usePerEventError && !usectauBkgTemplate) {
+    setCtauCutParameters(cut, incNonPrompt);
+    if (usePerEventError) {
       // check if we have already done the ctauErr fits. If yes, load their parameters
       string FileName = "";
       string pdfName = Form("pdfCTAUERR_Tot_%s", COLL.c_str());
@@ -81,11 +84,38 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
       plotLabel = plotLabel + "_Bkg";
       setCtauErrFileName(FileName, (inputFitDir["CTAUERR"]=="" ? outputDir : inputFitDir["CTAUERR"]), "DATA", plotLabel, cut, isPbPb, fitSideBand);
       bool foundFit = false;
-      if ( loadCtauErrRange(myws, FileName, cut) ) { foundFit = true; }
+      if ( loadCtauErrRange(FileName, cut) ) { foundFit = true; }
       if (foundFit) { cout << "[INFO] The ctauErr fit was found and I'll load the ctau Error range used." << endl; }
+      else { cout << "[ERROR] The ctauErr fit was not found!" << endl; return false; }
+      // Importing SPLOT DS from ctauErr results
+      string sPlotDSName = Form("dOS_%s_SPLOT", label.c_str());
+      if (useSPlot) { loadSPlotDS(myws, FileName, sPlotDSName); }
     }
     setCtauErrCutParameters(cut);
   }
+  // Import the local datasets
+  double numEntries = 1000000;
+  if (wantPureSMC) label = Form("%s_NoBkg", label.c_str());
+  string dsName = Form("dOS_%s", label.c_str());
+  if (importDS) {
+    if ( !(myws.data(dsName.c_str())) ) {
+      int importID = importDataset(myws, inputWorkspace, cut, label, (fitSideBand && !useSPlot));
+      if (importID<0) { return false; }
+      else if (importID==0) { doFit = false; }
+    }
+    numEntries = myws.data(dsName.c_str())->sumEntries(); if (numEntries<=0) { doFit = false; }
+  }
+  else if (doFit && !(myws.data(dsName.c_str()))) { cout << "[ERROR] No local dataset was found to perform the fit!" << endl; return false; }
+
+  if (importDS) { 
+    // Set global parameters
+    setCtauErrGlobalParameterRange(myws, parIni, cut, "", binWidth["CTAUERR"], true);
+    setCtauGlobalParameterRange(myws, parIni, cut, label, binWidth[fitType.c_str()], (fitType=="CTAURES"));
+  }
+
+  string dsName2Fit = dsName;
+  if (useSPlot && incBkg) dsName2Fit += "_BKG";
+  string dsName2FitCut = dsName2Fit+"_CTAUCUT";
 
   string plotLabel = "";
   map<string, bool> plotLabels = {{"JpsiNoPR", (incJpsi&&incNonPrompt)}, 
@@ -100,6 +130,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
     }
   }
   if (wantPureSMC) { plotLabel = plotLabel + "_NoBkg"; }
+  string pdfName = Form("pdfCTAU_Tot_%s", COLL.c_str());
 
   // check if we have already done this fit. If yes, do nothing and return true.
   string FileName = "";
@@ -113,7 +144,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
 
   if (usectauBkgTemplate)
   {
-    vector<string> pdfNames; pdfNames.push_back(Form("pdfCTAU_Bkg_%s", COLL.c_str()));
+    vector<string> pdfNames; pdfNames.push_back(Form("pdfCTAUCOND_Bkg_%s", COLL.c_str()));
     found = found && isPdfAlreadyFound(myws, FileName, pdfNames, loadFitResult);
     if (found) {
       if (loadFitResult) {
@@ -124,33 +155,49 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
       return true;
     }
   }
-  // Import the local datasets
-  double numEntries = 1000000;
-  string label = ((DSTAG.find(COLL.c_str())!=std::string::npos) ? DSTAG.c_str() : Form("%s_%s", DSTAG.c_str(), COLL.c_str()));
-  if (wantPureSMC) label = Form("%s_NoBkg", label.c_str());
-  string dsName = Form("dOS_%s", label.c_str());
-  if (importDS) {
-    if ( !(myws.data(dsName.c_str())) ) {
-      int importID = importDataset(myws, inputWorkspace, cut, label, fitSideBand);
-      if (importID<0) { return false; }
-      else if (importID==0) { doFit = false; }
-    }
-    numEntries = myws.data(dsName.c_str())->sumEntries(); if (numEntries<=0) { doFit = false; }
-  }
-  else if (doFit && !(myws.data(dsName.c_str()))) { cout << "[ERROR] No local dataset was found to perform the fit!" << endl; return false; }
 
-  if (importDS) { 
-    // Set global parameters
-    setCtauErrGlobalParameterRange(myws, parIni, cut, "", binWidth["CTAUERR"], true);
-    setCtauGlobalParameterRange(myws, parIni, cut, label, binWidth[fitType.c_str()], (fitType=="CTAURES"));
-    
-    RooDataSet* dataToFit = (RooDataSet*)(myws.data(dsName.c_str())->reduce(parIni["CtauRange_Cut"].c_str()))->Clone((dsName+"_CTAUCUT").c_str());
+  if (useSPlot) {
+    vector<string> dsNames = { dsName2Fit };
+    bool createBkgDS = ( !isSPlotDSAlreadyFound(myws, FileName, dsNames, true) );
+    if (createBkgDS) {
+      if (!myws.data((dsName+"_SPLOT").c_str())) {
+        // Setting extra input information needed by each fitter
+        string iMassFitDir = inputFitDir["MASS"];
+        double ibWidth = binWidth["MASS"];
+        bool loadMassFitResult = true;
+        bool doMassFit = false;
+        bool impDS = false;
+        bool getMeanPT = false;
+        bool zoomPsi = false;
+        const char* applyCorr = "";
+        bool doSimulFit = false;
+        bool cutCtau = false;
+        bool doConstrFit = false;
+      
+        if ( !fitCharmoniaMassModel( myws, inputWorkspace, cut, parIni, opt, outputDir,
+                                     DSTAG, isPbPb, impDS,
+                                     true, incPsi2S, true,
+                                     doMassFit, cutCtau, doConstrFit, doSimulFit, false, applyCorr, loadMassFitResult, iMassFitDir, numCores,
+                                     setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
+                                     )
+             ) { return false; }
+        if (myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
+          cout << "[INFO] Setting mass parameters to constant!" << endl;
+          myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
+        } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
+        if (myws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))))   { setConstant( myws, Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")), false);   }
+        if (myws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))))  { setConstant( myws, Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP")), false);  }
+        if (myws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP")))) { setConstant( myws, Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")), false); }
+      }
+      if (importDS && !myws.data(dsName2Fit.c_str())) {
+        if (!createBkgCtauDSUsingSPLOT(myws, dsName, parIni, cut)){ cout << "[ERROR] Creating the Bkg Ctau Templates using sPLOT failed" << endl; return false; }
+      }
+    }
+  }
+  if (importDS && !myws.data(dsName2FitCut.c_str())) {
+    RooDataSet* dataToFit = (RooDataSet*)(myws.data(dsName2Fit.c_str())->reduce(parIni["CtauRange_Cut"].c_str()))->Clone(dsName2FitCut.c_str());
     myws.import(*dataToFit);
   }
-  string dsNameCut = dsName+"_CTAUCUT";
-
-  // Define pdf and plot names
-  string pdfName = Form("pdfCTAU_Tot_%s", COLL.c_str());
   
   if (!loadFitResult) {
     // Set models based on initial parameters
@@ -177,7 +224,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
            ) { return false; }
     }
     // Build the Fit Model
-    if (!buildCharmoniaCtauModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsName, cut, isPbPb, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt, useTotctauErrPdf, usectauBkgTemplate, binWidth["CTAUSB"], numEntries))  { return false; }
+    if (!buildCharmoniaCtauModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsName2FitCut, cut, isPbPb, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt, useTotctauErrPdf, usectauBkgTemplate, binWidth["CTAUSB"], numEntries))  { return false; }
 
     //// LOAD CTAU RESOLUTION PDF
     if (fitSideBand && !usectauBkgTemplate) {
@@ -215,7 +262,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
         cout << "[INFO] Setting Prompt Background parameters to constant!" << endl;
         myws.pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("ctauErr")))->setAttribAll("Constant", kTRUE); 
       } else { cout << "[ERROR] Prompt Background PDF was not found!" << endl; return false; }
-      if (!setConstant(myws, Form("s1_CtauRes_%s", COLL.c_str()), false)) { return false; }
+      if (!setConstant(myws, Form("s1_CtauRes_%s", COLL.c_str()), true)) { return false; }
     }
 
     // save the initial values of the model we've just created
@@ -243,20 +290,20 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
   if (skipFit==false) {
     if (!usectauBkgTemplate)
     {
-      bool isWeighted = myws.data(dsName.c_str())->isWeighted();
-      RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), NumCPU(numCores), SumW2Error(isWeighted), Save());
+      bool isWeighted = myws.data(dsName2FitCut.c_str())->isWeighted();
+      RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName2FitCut.c_str()), Extended(kTRUE), NumCPU(numCores), Optimize(kFALSE), SumW2Error(isWeighted), Save());
       fitResult->Print("v");
       myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str()));
     }
     
     // Draw the mass plot
-    drawCtauPlot(myws, outputDir, opt, cut, parIni, plotLabel, DSTAG, isPbPb, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, wantPureSMC, setLogScale, incSS, binWidth[fitType.c_str()]);
+    drawCtauPlot(myws, outputDir, opt, cut, parIni, plotLabel, DSTAG, isPbPb, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, useSPlot, wantPureSMC, setLogScale, incSS, binWidth[fitType.c_str()]);
     // Save the results
     string FileName = ""; setCtauFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, fitSideBand, usectauBkgTemplate);
     myws.saveSnapshot(Form("%s_parFit", pdfName.c_str()),*newpars,kTRUE);
     saveWorkSpace(myws, Form("%sctau%s/%s/result", outputDir.c_str(), (fitSideBand?Form("SB%s",usectauBkgTemplate?"Temp":""):""), DSTAG.c_str()), FileName);
   }
-  
+
   return true;
 };
 
@@ -489,6 +536,33 @@ void setCtauCutParameters(struct KinCuts& cut, bool incNonPrompt)
   cout << "[INFO] Setting ctau range to min: " << cut.dMuon.ctau.Min << " and max " << cut.dMuon.ctau.Max << endl;
   
   return;
+};
+
+
+bool createBkgCtauDSUsingSPLOT(RooWorkspace& ws, string dsName, map<string, string>  parIni, struct KinCuts cut)
+{  
+  bool isPbPb = false;
+  if (dsName.find("PbPb")!=std::string::npos) { isPbPb = true; }
+  if (dsName.find("MC")!=std::string::npos)   { return false;  }  // Only accept data
+  
+  if (!ws.data((dsName+"_SPLOT").c_str())) {
+    string pdfMassName = Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP"));
+    RooArgList yieldList;
+    yieldList.add( *ws.var(Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))) );
+    yieldList.add( *ws.var(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))) ); // Always add background
+    RooDataSet* data = (RooDataSet*)ws.data(dsName.c_str())->Clone("TMP_DATA");
+    RooAbsPdf* pdf = clone(*ws.pdf(pdfMassName.c_str()));
+    RooStats::SPlot sData = RooStats::SPlot("sData","An SPlot", *data, pdf, yieldList);
+    ws.import(*data, Rename((dsName+"_SPLOT").c_str()));
+    cout <<  "[INFO] Bkg yield -> Mass Fit: " << ws.var(Form("N_Bkg_%s_sw", (isPbPb?"PbPb":"PP")))->getVal() << " , sWeights: " << sData.GetYieldFromSWeight(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))) << std::endl;
+    delete data; delete pdf;
+  }
+  
+  RooDataSet* dataw_Bkg  = new RooDataSet("TMP_BKG_DATA","TMP_BKG_DATA", (RooDataSet*)ws.data((dsName+"_SPLOT").c_str()), RooArgSet(*ws.var("invMass"), *ws.var("ctau"), *ws.var("ctauN"), *ws.var("ctauErr"), *ws.var(Form("N_Bkg_%s_sw", (isPbPb?"PbPb":"PP")))), 0, Form("N_Bkg_%s_sw", (isPbPb?"PbPb":"PP")));
+  ws.import(*dataw_Bkg, Rename((dsName+"_BKG").c_str()));
+  delete dataw_Bkg;
+  
+  return true;
 };
 
 

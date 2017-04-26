@@ -22,6 +22,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
                   bool incPrompt,       // Includes Prompt ctau model       
                   bool incNonPrompt,    // Includes Non-Prompt ctau model
                   // Select the fitting options
+                  bool useSPlot,        // If yes, then use SPlot ds, if no, use mass range one
                   bool plotPureSMC,     // Flag to indicate if we want to fit pure signal MC
                   // Select the drawing options
                   bool setLogScale,     // Draw plot with log scale
@@ -46,6 +47,9 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   string dsOSName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   if (plotPureSMC) dsOSName = Form("dOS_%s_%s_NoBkg", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   string dsOSNameCut = dsOSName+"_CTAUCUT";
+  string dsOSName2Fit = dsOSName;
+  if (useSPlot && incBkg) dsOSName2Fit += "_BKG";
+  string dsOSName2FitCut = dsOSName2Fit+"_CTAUCUT";
   string hOSName = Form("dhCTAUERRTot_Tot_%s", (isPbPb?"PbPb":"PP"));
   string hOSNameBkg  = Form("dhCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"));
   string hOSNameJpsi = Form("dhCTAUERR_Jpsi_%s", (isPbPb?"PbPb":"PP"));
@@ -64,15 +68,16 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
     minRange = -4.0;
     maxRange = 7.0;
   }
-  Double_t outTot = myws.data(dsOSName.c_str())->numEntries();
-  Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctau>%.6f || ctau<%.6f)", range[1], range[0]))->numEntries();
+  Double_t numTot = myws.data(dsOSName2Fit.c_str())->sumEntries();
+  Double_t outTot = myws.data(dsOSName2Fit.c_str())->numEntries();
+  Double_t outErr = myws.data(dsOSName2Fit.c_str())->reduce(Form("(ctau>%.6f || ctau<%.6f)", range[1], range[0]))->numEntries();
   int nBins = min(int( round((maxRange - minRange)/binWidth) ), 1000);
 
-  double normDSTot   = 1.0;  if (myws.data(dsOSNameCut.c_str()))  { normDSTot   = myws.data(dsOSName.c_str())->sumEntries()/myws.data(dsOSNameCut.c_str())->sumEntries();  }
-  double normJpsi  = 1.0;  if (myws.data(hOSNameJpsi.c_str()))  { normJpsi  = myws.data(dsOSName.c_str())->sumEntries()*normDSTot/myws.data(hOSNameJpsi.c_str())->sumEntries();  }
-  double normPsi2S = 1.0;  if (myws.data(hOSNamePsi2S.c_str())) { normPsi2S = myws.data(dsOSName.c_str())->sumEntries()*normDSTot/myws.data(hOSNamePsi2S.c_str())->sumEntries(); }
-  double normBkg   = 1.0;  if (myws.data(hOSNameBkg.c_str()))   { normBkg   = myws.data(dsOSName.c_str())->sumEntries()*normDSTot/myws.data(hOSNameBkg.c_str())->sumEntries();   }
-  double normTot   = 1.0;  if (myws.data(hOSName.c_str()))  { normTot   = myws.data(dsOSName.c_str())->sumEntries()*normDSTot/myws.data(hOSName.c_str())->sumEntries();  }
+  double normDSTot   = 1.0;  if (myws.data(dsOSName2FitCut.c_str()))  { normDSTot   = myws.data(dsOSName2Fit.c_str())->sumEntries()/myws.data(dsOSName2FitCut.c_str())->sumEntries();  }
+  double normJpsi  = 1.0;  if (myws.data(hOSNameJpsi.c_str()))  { normJpsi  = myws.data(dsOSName2Fit.c_str())->sumEntries()*normDSTot/myws.data(hOSNameJpsi.c_str())->sumEntries();  }
+  double normPsi2S = 1.0;  if (myws.data(hOSNamePsi2S.c_str())) { normPsi2S = myws.data(dsOSName2Fit.c_str())->sumEntries()*normDSTot/myws.data(hOSNamePsi2S.c_str())->sumEntries(); }
+  double normBkg   = 1.0;  if (myws.data(hOSNameBkg.c_str()))   { normBkg   = myws.data(dsOSName2Fit.c_str())->sumEntries()*normDSTot/myws.data(hOSNameBkg.c_str())->sumEntries();   }
+  double normTot   = 1.0;  if (myws.data(hOSName.c_str()))  { normTot   = myws.data(dsOSName2Fit.c_str())->sumEntries()*normDSTot/myws.data(hOSName.c_str())->sumEntries();  }
 
   // Create the main plot of the fit
   RooPlot*   frame = myws.var("ctau")->frame(Bins(nBins), Range(minRange, maxRange));
@@ -82,7 +87,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
 //  else frame = myws.var("ctau")->frame(Binning("TemplateBinning"),Range(minRange, maxRange));
   
   frame->updateNormVars(RooArgSet(*myws.var("invMass"), *myws.var("ctau"), *myws.var("ctauErr"))) ;
-  myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
+  myws.data(dsOSName2Fit.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
   
   if (incBkg && (!incJpsi && !incPsi2S)) {
     if (!usectauBkgTemplate)
@@ -91,7 +96,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
                                            ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(hOSNameBkg.c_str()), kTRUE),
                                            FillStyle(1001), FillColor(kAzure-9), VLines(), DrawOption("LCF"), Precision(1e-4)
                                            );
-      myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
+      myws.data(dsOSName2Fit.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
       if (myws.pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP")))) {myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("BKGPR"),Components(RooArgSet(*myws.pdf(Form("pdfCTAU_BkgPR_%s", (isPbPb?"PbPb":"PP"))))),
                                                                                                           ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(hOSNameBkg.c_str()), kTRUE),
                                                                                                           Normalization(normBkg, RooAbsReal::NumEvent),
@@ -111,7 +116,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
     }
     else
     {
-      myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PDF"),  Normalization(outTot, RooAbsReal::NumEvent), NumCPU(32),
+      myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PDF"),  Normalization(numTot, RooAbsReal::NumEvent), NumCPU(32),
                                            LineColor(kBlack), Precision(1e-4)
                                            );
     }
@@ -123,14 +128,14 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
         for (int i=1; i<5; i++) {
           if (myws.pdf(Form("pdfCTAURES%d_JpsiPR_%s", i,(isPbPb?"PbPb":"PP")))){
             myws.pdf(pdfTotName.c_str())->plotOn(frame,Name(Form("PDFJPSI%d",i)),Components(RooArgSet(*myws.pdf(Form("pdfCTAURES%d_JpsiPR_%s", i, (isPbPb?"PbPb":"PP"))))),
-                                                 ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(dsOSNameCut.c_str()), kTRUE),
+                                                 ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(dsOSName2FitCut.c_str()), kTRUE),
                                                  Normalization(normDSTot, RooAbsReal::NumEvent),
                                                  LineColor(COLOR[i-1]), Precision(1e-5), NumCPU(32)
                                                  );
           }
         }
         myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PDF"),Components(RooArgSet(*myws.pdf(Form("pdfCTAU_JpsiPR_%s", (isPbPb?"PbPb":"PP"))))),
-                                             ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(dsOSNameCut.c_str()), kTRUE),
+                                             ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(dsOSName2FitCut.c_str()), kTRUE),
                                              Normalization(normDSTot, RooAbsReal::NumEvent),
                                              LineColor(kBlack), Precision(1e-5), NumCPU(32)
                                              );
@@ -140,14 +145,14 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
         for (int i=1; i<5; i++) {
           if (myws.pdf(Form("pdfCTAURES%d_Psi2SPR_%s", i,(isPbPb?"PbPb":"PP")))){
             myws.pdf(pdfTotName.c_str())->plotOn(frame,Name(Form("PDFPSI2S%d",i)),Components(RooArgSet(*myws.pdf(Form("pdfCTAURES%d_Psi2SPR_%s", i, (isPbPb?"PbPb":"PP"))))),
-                                                 ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(dsOSNameCut.c_str()), kTRUE),
+                                                 ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(dsOSName2FitCut.c_str()), kTRUE),
                                                  Normalization(normDSTot, RooAbsReal::NumEvent),
                                                  LineColor(COLOR[i-1]), Precision(1e-5), NumCPU(32)
                                                  );
           }
         }
         myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PDF"),Components(RooArgSet(*myws.pdf(Form("pdfCTAU_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))))),
-                                             ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(dsOSNameCut.c_str()), kTRUE),
+                                             ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(dsOSName2FitCut.c_str()), kTRUE),
                                              Normalization(normDSTot, RooAbsReal::NumEvent),
                                              LineColor(kBlack), Precision(1e-5), NumCPU(32)
                                              );
@@ -174,7 +179,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   if (incSS) { 
     myws.data(dsSSName.c_str())->plotOn(frame, Name("dSS"), MarkerColor(kRed), LineColor(kRed), MarkerSize(1.2)); 
   }
-  myws.data(dsOSName.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
+  myws.data(dsOSName2Fit.c_str())->plotOn(frame, Name("dOS"), DataError(RooAbsData::SumW2), XErrorSize(0), MarkerColor(kBlack), LineColor(kBlack), MarkerSize(1.2));
   
   
   // set the CMS style
@@ -214,7 +219,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   frame->GetYaxis()->SetTitleSize(0.04);
   frame->GetYaxis()->SetTitleOffset(1.7);
   frame->GetYaxis()->SetTitleFont(42);
-  setCtauRange(myws, frame, dsOSNameCut, setLogScale, range, outErr);
+  setCtauRange(myws, frame, dsOSName2FitCut, setLogScale, range, outErr);
  
   cFig->cd();
   pad2->SetTopMargin(0.02);
@@ -311,7 +316,7 @@ void drawCtauPlot(RooWorkspace& myws,   // Local workspace
   frame2->Draw(); 
   
   // *** Print chi2/ndof 
-  if (!usectauBkgTemplate) printChi2(myws, pad2, frame, "ctau", dsOSName.c_str(), pdfTotName.c_str(), nBins);
+  if (!usectauBkgTemplate) printChi2(myws, pad2, frame, "ctau", dsOSName2Fit.c_str(), pdfTotName.c_str(), nBins);
   
   pline->Draw("same");
   pad2->Update();
@@ -420,7 +425,7 @@ void printCtauParameters(RooWorkspace myws, TPad* Pad, bool isPbPb, string pdfNa
     }
     // Print the parameter's results
     if(s1=="N"){ 
-      t->DrawLatex(0.69, 0.75-dy, Form((isWeighted?"%s = %.6f#pm%.6f ":"%s = %.0f#pm%.0f "), label.c_str(), it->getValV(), it->getError())); dy+=0.045; 
+      t->DrawLatex(0.69, 0.75-dy, Form("%s = %.0f#pm%.0f ", label.c_str(), it->getValV(), it->getError())); dy+=0.045; 
     }
     else if(s1=="b"){ 
       t->DrawLatex(0.69, 0.75-dy, Form("%s = %.4f#pm%.4f ", label.c_str(), it->getValV(), it->getError())); dy+=0.045; 

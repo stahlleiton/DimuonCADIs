@@ -73,8 +73,9 @@ bool fitCharmoniaCtauResDataModel( RooWorkspace& myws,             // Local Work
       plotLabel = plotLabel + "_Bkg";
       setCtauErrFileName(FileName, (inputFitDir["CTAUERR"]=="" ? outputDir : inputFitDir["CTAUERR"]), "DATA", plotLabel, cut, isPbPb, fitSideBand);
       bool foundFit = false;
-      if ( loadCtauErrRange(myws, FileName, cut) ) { foundFit = true; }
+      if ( loadCtauErrRange(FileName, cut) ) { foundFit = true; }
       if (foundFit) { cout << "[INFO] The ctauErr fit was found and I'll load the ctau Error range used." << endl; }
+      else { cout << "[ERROR] The ctauErr fit was not found!" << endl; return false; }
     }
     setCtauErrCutParameters(cut);
   }
@@ -327,7 +328,7 @@ bool createSignalCtauDSUsingSPLOT(RooWorkspace& ws, string dsName, map<string, s
   if (incPsi2S) { yieldList.add( *ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ); }
   yieldList.add( *ws.var(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))) ); // Always add background
   RooDataSet* data = (RooDataSet*)ws.data(dsName.c_str())->Clone("TMP_DATA");
-  RooAbsPdf* pdf = (RooAbsPdf*)ws.pdf(pdfMassName.c_str())->Clone("TMP_PDF");
+  RooAbsPdf* pdf = clone(*ws.pdf(pdfMassName.c_str()));
 
   if (useSPlot) {
     RooStats::SPlot sData = RooStats::SPlot("sData","An SPlot", *data, pdf, yieldList);

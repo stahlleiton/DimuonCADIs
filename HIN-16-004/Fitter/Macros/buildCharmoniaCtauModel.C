@@ -38,7 +38,7 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
   // C r e a t e   m o d e l 
 
   bool fitMass = false;
-  if ( ws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP"))) ) { fitMass = true; } 
+  if ( ws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP"))) && incBkg && (incJpsi || incPsi2S) ) { fitMass = true; } 
 
   string pdfName     = "pdfCTAU";
   if (fitMass) { pdfName = "pdfCTAUMASS"; }
@@ -334,15 +334,17 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     }
     else if (!fitMass)
     {
-      if (incPrompt && incNonPrompt ) { if( !createCtauBkgTemplate(ws, dsName, "pdfCTAUCOND", cut, incJpsi, incPsi2S, binWidth)) {cout << "[ERROR] Creating the Bkg Ctau Template failed" << endl; return false;}}
-      else {cout << "[ERROR] To create the Bkg Ctau Template we need to activate prompt and nonpromt Jpsi" << endl; return false;}
+      if (usectauBkgTemplate) {
+        if (incPrompt && incNonPrompt ) { if( !createCtauBkgTemplate(ws, dsName, "pdfCTAUCOND", cut, incJpsi, incPsi2S, binWidth)) {cout << "[ERROR] Creating the Bkg Ctau Template failed" << endl; return false;}}
+        else {cout << "[ERROR] To create the Bkg Ctau Template we need to activate prompt and nonpromt Jpsi" << endl; return false;}
+      }
       if ( !ws.pdf(Form("pdfCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"))) ) { return false; }
       RooProdPdf pdf(Form("pdfCTAU_Bkg_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form((useTotctauErrPdf?"pdfCTAUERRTot_Tot_%s":"pdfCTAUERR_Bkg_%s"), (isPbPb?"PbPb":"PP"))),
                      Conditional( *ws.pdf(Form("pdfCTAUCOND_Bkg_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
                        );
       ws.import(pdf);
     }
-    if ( ws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) ){
+    if ( fitMass && ws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) ){
       if (!usectauBkgTemplate) {
         ws.factory(Form("PROD::%s(%s, %s)", Form("pdfCTAUMASS_BkgPR_%s", (isPbPb?"PbPb":"PP")),
                         Form("%s_BkgPR_%s", (incCtauErrPDF ? "pdfCTAU" : "pdfCTAUCOND"), (isPbPb?"PbPb":"PP")),
@@ -883,7 +885,7 @@ void setCtauDefaultParameters(map<string, string> &parIni, bool isPbPb, double n
     parIni[Form("b_Psi2S_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.12f,%.12f,%.12f]", Form("b_Psi2S_%s", (isPbPb?"PbPb":"PP")), 0.2, 0.0, 1.0);
   }
   if (parIni.count(Form("b_Bkg_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("b_Bkg_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("b_Bkg_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.12f,%.12f,%.12f]", Form("b_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.5, 0.0, 1.0);
+    parIni[Form("b_Bkg_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.12f,%.12f,%.12f]", Form("b_Bkg_%s", (isPbPb?"PbPb":"PP")), 0.2, 0.0, 1.0);
   }
 
  // CTAU FIT PARAMETERS

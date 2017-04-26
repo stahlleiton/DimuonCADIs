@@ -168,14 +168,15 @@ bool fitCharmonia( const RooWorkspace&  inputWorkspace,  // Workspace with all t
     // Setting extra input information needed by each fitter
     bool loadFitResult = false;
     bool doFit = true;
-    bool importDS = true;
+    bool importDS = true;    
+    bool useSPlot = true;
 
     if ( !fitCharmoniaCtauModel( myws, inputWorkspace, cut, parIni, opt, outputDir, 
-                           DSTAG, isPbPb, importDS, 
-                           incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, useTotctauErrPdf, usectauBkgTemplate,
-                           doFit, wantPureSMC, loadFitResult, inputFitDir, numCores, 
-                           setLogScale, incSS, binWidth
-                           ) 
+                                 DSTAG, isPbPb, importDS, 
+                                 incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, useTotctauErrPdf, usectauBkgTemplate,
+                                 useSPlot, doFit, wantPureSMC, loadFitResult, inputFitDir, numCores, 
+                                 setLogScale, incSS, binWidth
+                                 ) 
          ) { return false; }
   }
 
@@ -200,8 +201,7 @@ bool fitCharmonia( const RooWorkspace&  inputWorkspace,  // Workspace with all t
     // Setting extra input information needed by each fitter
     bool loadFitResult = false;
     bool doFit = true;
-    bool importDS = true;
-    
+    bool importDS = true;    
     bool useSPlot = true;
 
     if ( !fitCharmoniaCtauResDataModel( myws, inputWorkspace, cut, parIni, opt, outputDir,
