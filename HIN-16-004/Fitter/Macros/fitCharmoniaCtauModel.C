@@ -132,7 +132,6 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
   if (wantPureSMC) { plotLabel = plotLabel + "_NoBkg"; }
   string pdfName = Form("pdfCTAU_Tot_%s", COLL.c_str());
 
-  // check if we have already done this fit. If yes, do nothing and return true.
   string FileName = "";
   setCtauFileName(FileName, (inputFitDir[fitType.c_str()]=="" ? outputDir : inputFitDir[fitType.c_str()]), DSTAG, plotLabel, cut, isPbPb, fitSideBand, usectauBkgTemplate);
   if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir[fitType.c_str()]!="") {
@@ -140,8 +139,9 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
     if (loadFitResult) return false;
     setCtauFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb, fitSideBand, usectauBkgTemplate);
   }
-  bool found =  true; bool skipFit = !doFit;
 
+  // check if we have already done this fit. If yes, do nothing and return true.
+  bool found =  true; bool skipFit = !doFit;
   if (usectauBkgTemplate)
   {
     vector<string> pdfNames; pdfNames.push_back(Form("pdfCTAUCOND_Bkg_%s", COLL.c_str()));
@@ -157,38 +157,42 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
   }
 
   if (useSPlot) {
+    // Check if we have already made the Background DataSet
     vector<string> dsNames = { dsName2Fit };
     bool createBkgDS = ( !isSPlotDSAlreadyFound(myws, FileName, dsNames, true) );
-    if (createBkgDS) {
-      if (true) { // Always load the mass results
-        // Setting extra input information needed by each fitter
-        string iMassFitDir = inputFitDir["MASS"];
-        double ibWidth = binWidth["MASS"];
-        bool loadMassFitResult = true;
-        bool doMassFit = false;
-        bool impDS = false;
-        bool getMeanPT = false;
-        bool zoomPsi = false;
-        const char* applyCorr = "";
-        bool doSimulFit = false;
-        bool cutCtau = false;
-        bool doConstrFit = false;
+    bool compDS = loadYields(myws, FileName, dsName, pdfName);
+    if (!compDS && (incJpsi || incPsi2S || incBkg)) {
+      // Setting extra input information needed by each fitter
+      string iMassFitDir = inputFitDir["MASS"];
+      double ibWidth = binWidth["MASS"];
+      bool loadMassFitResult = true;
+      bool doMassFit = false;
+      bool impDS = false;
+      bool getMeanPT = false;
+      bool zoomPsi = false;
+      const char* applyCorr = "";
+      bool doSimulFit = false;
+      bool cutCtau = false;
+      bool doConstrFit = false;
       
-        if ( !fitCharmoniaMassModel( myws, inputWorkspace, cut, parIni, opt, outputDir,
-                                     DSTAG, isPbPb, impDS,
-                                     true, incPsi2S, true,
-                                     doMassFit, cutCtau, doConstrFit, doSimulFit, false, applyCorr, loadMassFitResult, iMassFitDir, numCores,
-                                     setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
-                                     )
-             ) { return false; }
-        // Let's set all mass parameters to constant except the yields
-        if (myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
-          cout << "[INFO] Setting mass parameters to constant!" << endl;
-          myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
-        } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
-        std::vector< std::string > objs = {"Bkg", "Jpsi", "Psi2S"};
-        for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"))))  setConstant( myws, Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), false); }
-      }
+      if ( !fitCharmoniaMassModel( myws, inputWorkspace, cut, parIni, opt, outputDir,
+                                   DSTAG, isPbPb, impDS,
+                                   true, incPsi2S, true,
+                                   doMassFit, cutCtau, doConstrFit, doSimulFit, false, applyCorr, loadMassFitResult, iMassFitDir, numCores,
+                                   setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
+                                   )
+           ) { return false; }
+      // Let's set all mass parameters to constant except the yields
+      if (myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
+        cout << "[INFO] Setting mass parameters to constant!" << endl;
+        myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
+      } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
+      std::vector< std::string > objs = {"Bkg", "Jpsi", "Psi2S"};
+      for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"))))  setConstant( myws, Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), false); }
+      // Let's set the minimum value of the yields to zero
+      for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))->setMin(0.0); }
+    }
+    if (createBkgDS) {
       if (importDS && !myws.data(dsName2Fit.c_str())) {
         if (!createBkgCtauDSUsingSPLOT(myws, dsName, parIni, cut)){ cout << "[ERROR] Creating the Bkg Ctau Templates using sPLOT failed" << endl; return false; }
       }
@@ -196,7 +200,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
   }
   if (importDS && !myws.data(dsName2FitCut.c_str())) {
     RooDataSet* dataToFit = (RooDataSet*)(myws.data(dsName2Fit.c_str())->reduce(parIni["CtauRange_Cut"].c_str()))->Clone(dsName2FitCut.c_str());
-    myws.import(*dataToFit);
+    myws.import(*dataToFit, Rename(dsName2FitCut.c_str()));
   }
   
   if (!loadFitResult) {
@@ -206,6 +210,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
     {
       if (!setCtauModel(model, parIni, isPbPb, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt)) { return false; }
     }
+
     //// LOAD CTAU ERROR PDF
     if (usePerEventError) {
       // Setting extra input information needed by each fitter
@@ -223,6 +228,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
                                       )
            ) { return false; }
     }
+
     // Build the Fit Model
     if (!buildCharmoniaCtauModel(myws, (isPbPb ? model.PbPb : model.PP), parIni, dsName2FitCut, cut, isPbPb, incBkg, incJpsi, incPsi2S, incPrompt, incNonPrompt, useTotctauErrPdf, usectauBkgTemplate, binWidth["CTAUSB"], numEntries))  { return false; }
 
