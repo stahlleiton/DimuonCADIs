@@ -259,7 +259,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
         cout << "[ERROR] User Input File : " << FileName << " was not found!" << endl;
         return false;
       }
-      if ( !loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) {
+      if ( !loadPreviousFitResult(myws, FileName, DSTAG, isPbPb, false, false) ) {
         cout << "[ERROR] The ctau resolution fit results were not loaded!" << endl;
         return false;
       } else { 
@@ -284,7 +284,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
   {
     found = found && isFitAlreadyFound(newpars, FileName, pdfName.c_str());
     if (loadFitResult) {
-      if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) { skipFit = true; } else  { skipFit = false; }
+      if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb, false, false) ) { skipFit = true; } else  { skipFit = false; }
       if (skipFit) { cout << "[INFO] This ctau fit was already done, so I'll load the fit results." << endl; }
       myws.saveSnapshot(Form("%s_parLoad", pdfName.c_str()),*newpars,kTRUE);
     } else if (found) {
@@ -477,7 +477,7 @@ void setCtauGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni
   if (fitCtauRes) {
     TH1D* hTot = (TH1D*)myws.data(Form("dOS_%s", label.c_str()))->createHistogram("TMP", *myws.var("ctau"), Binning(nBins, ctauMin, ctauMax));
     vector<double> rangeCtau; 
-    getCtauErrRange(hTot, (int)(ceil(2)), rangeCtau);
+    getRange(hTot, (int)(ceil(2)), rangeCtau);
     hTot->Delete();
     ctauMin = rangeCtau[0];
     ctauMax = rangeCtau[1];

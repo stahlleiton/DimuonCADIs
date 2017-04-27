@@ -98,7 +98,7 @@ bool fitCharmoniaCtauTrueModel( RooWorkspace& myws,             // Local Workspa
   RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*myws.var("ctauTrue")));
   found = found && isFitAlreadyFound(newpars, FileName, pdfName.c_str());
   if (loadFitResult) {
-    if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) { skipFit = true; } else  { skipFit = false; }
+    if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb, false, false) ) { skipFit = true; } else  { skipFit = false; }
     if (skipFit) { cout << "[INFO] This ctauTrue fit was already done, so I'll load the fit results." << endl; }
     myws.saveSnapshot(Form("%s_parLoad", pdfName.c_str()),*newpars,kTRUE);
   } else if (found) {

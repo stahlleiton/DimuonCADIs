@@ -151,7 +151,7 @@ bool fitCharmoniaCtauResModel( RooWorkspace& myws,             // Local Workspac
   RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("ctauErr"), *myws.var("ctauNRes"), *myws.var("ctauRes")));
   found = found && isFitAlreadyFound(newpars, FileName, pdfName.c_str());
   if (loadFitResult) {
-    if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) { skipFit = true; } else  { skipFit = false; }
+    if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb, false, false) ) { skipFit = true; } else  { skipFit = false; }
     if (skipFit) { cout << "[INFO] This ctau fit was already done, so I'll load the fit results." << endl; }
     myws.saveSnapshot(Form("%s_parLoad", pdfName.c_str()),*newpars,kTRUE);
   } else if (found) {
@@ -212,7 +212,7 @@ void setCtauResGlobalParameterRange(RooWorkspace& myws, map<string, string>& par
   int nBins = min(int( round((ctauNResMax - ctauNResMin)/binWidth) ), 1000);
   TH1D* hTot = (TH1D*)myws.data(Form("dOS_%s", label.c_str()))->createHistogram("TMP", *myws.var("ctauNRes"), Binning(nBins, ctauNResMin, ctauNResMax));
   vector<double> rangeCtauNRes;
-  getCtauErrRange(hTot, (int)(ceil(2)), rangeCtauNRes);
+  getRange(hTot, (int)(ceil(2)), rangeCtauNRes);
   hTot->Delete();
   ctauNResMin = rangeCtauNRes[0];
   ctauNResMax = rangeCtauNRes[1];

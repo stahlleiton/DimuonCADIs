@@ -165,7 +165,7 @@ void setCtauErrGlobalParameterRange(RooWorkspace& myws, map<string, string>& par
     ctauErrMin -= 0.0001;  ctauErrMax += 0.0001;
     int nBins = min(int( round((ctauErrMax - ctauErrMin)/binWidth) ), 1000);
     TH1D* hTot = (TH1D*)myws.data(Form("dOS_%s", label.c_str()))->createHistogram("TMP", *myws.var("ctauErr"), Binning(nBins, ctauErrMin, ctauErrMax));
-    vector<double> rangeErr; getCtauErrRange(hTot, (int)(ceil(2)), rangeErr); // KEEP THIS NUMBER WITH 2, JUST KEEP IT LIKE THAT :D
+    vector<double> rangeErr; getRange(hTot, (int)(ceil(2)), rangeErr); // KEEP THIS NUMBER WITH 2, JUST KEEP IT LIKE THAT :D
     hTot->Delete();
     ctauErrMin = rangeErr[0];
     ctauErrMax = rangeErr[1];

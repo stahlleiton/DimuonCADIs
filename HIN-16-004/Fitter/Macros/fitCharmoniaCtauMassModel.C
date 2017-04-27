@@ -12,6 +12,7 @@
 #include "drawCtauMass2DPlot.C"
 
 void setCtauMassFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut, bool isPbPb);
+void setCtauMassGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label, double binWidth);
 
 
 bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspace
@@ -99,17 +100,45 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
   setMassGlobalParameterRange(myws, parIni, cut, incJpsi, incPsi2S, incBkg, false);
   setCtauErrGlobalParameterRange(myws, parIni, cut, "", binWidth["CTAUERR"], true);
   setCtauGlobalParameterRange(myws, parIni, cut, label, binWidth["CTAU"], false);
+  if (usectauBkgTemplate) setCtauMassGlobalParameterRange(myws, parIni, cut, label, binWidth["CTAU"]);
 
   // Cut the RooDataSet
-  RooDataSet* dataToFit = (RooDataSet*)(myws.data(dsName.c_str())->reduce(parIni["CtauRange_Cut"].c_str()))->Clone((dsName+"_CTAUCUT").c_str());
-  myws.import(*dataToFit); string dsNameCut = dsName+"_CTAUCUT";
+  string dsNameCut = dsName+"_CTAUCUT";
+  RooDataSet* dataToFit = (RooDataSet*)(myws.data(dsName.c_str())->reduce(parIni["CtauRange_Cut"].c_str()))->Clone(dsNameCut.c_str());
+  myws.import(*dataToFit, Rename(dsNameCut.c_str()));
+  double lostEvents = (myws.data(dsName.c_str())->numEntries()-myws.data(dsNameCut.c_str())->numEntries());
+  double lostPerc = lostEvents*100./(myws.data(dsName.c_str())->numEntries());
+  cout << "[INFO] After applying the cut: " << parIni["CtauRange_Cut"] << " , we lost " << lostEvents << " events ( " << lostPerc << " % ) " << endl;
+  
+  // Set models based on initial parameters
+  struct OniaModel model;
+  if (!setCtauModel(model, parIni, isPbPb, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt)) { return false; }
+
+  string plotLabel = "";
+  map<string, bool> plotLabels = {{"Jpsi",      (incJpsi)},
+                                  {"Psi2S",     (incPsi2S)},
+                                  {"Bkg",       (incBkg)},
+                                  {"JpsiNoPR",  (incJpsi&&incNonPrompt)}, 
+                                  {"Psi2SNoPR", (incPsi2S&&incNonPrompt)}, 
+                                  {"BkgNoPR",   (incBkg&&incNonPrompt)}, 
+                                  {"CtauRes",   (true)}};
+  for (map<string, bool>::iterator iter = plotLabels.begin(); iter!=plotLabels.end(); iter++) {
+    string obj = iter->first;
+    bool cond = iter->second;
+    if (cond && parIni.count(Form("Model_%s_%s", obj.c_str(), COLL.c_str()))>0) { 
+      plotLabel = plotLabel + Form("_%s_%s", obj.c_str(), parIni[Form("Model_%s_%s", obj.c_str(), COLL.c_str())].c_str()); 
+    }
+  }
+
+  string FileName = "";
+  setCtauMassFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
 
   //// LOAD MASS PDF
   if (fitMass) {
     // Setting extra input information needed by each fitter
     string iMassFitDir = inputFitDir["MASS"];
     double ibWidth = binWidth["MASS"];
-    bool loadMassFitResult = true;
+    uint loadMassFitResult = (loadYields(myws, FileName, dsName, pdfName) ? 2 : 1);
     bool doMassFit = true;
     bool importDS = false;
     bool getMeanPT = false;
@@ -126,6 +155,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
                                  setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
                                  ) 
          ) { return false; }
+
     // Let's set all mass parameters to constant except the yields
     if (myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
       cout << "[INFO] Setting mass parameters to constant!" << endl;
@@ -167,10 +197,6 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
                                     ) 
          ) { return false; }
   }
-
-  // Set models based on initial parameters
-  struct OniaModel model;
-  if (!setCtauModel(model, parIni, isPbPb, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt)) { return false; }
 
   //// LOAD CTAU SIDEBAND PDF
   if (fitCtau) {
@@ -350,25 +376,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
   myws.saveSnapshot((pdfName+"_parIni").c_str(),*params,kTRUE);
   delete params;
 
-  string plotLabel = "";
-  map<string, bool> plotLabels = {{"Jpsi",      (incJpsi)},
-                                  {"Psi2S",     (incPsi2S)},
-                                  {"Bkg",       (incBkg)},
-                                  {"JpsiNoPR",  (incJpsi&&incNonPrompt)}, 
-                                  {"Psi2SNoPR", (incPsi2S&&incNonPrompt)}, 
-                                  {"BkgNoPR",   (incBkg&&incNonPrompt)}, 
-                                  {"CtauRes",   (true)}};
-  for (map<string, bool>::iterator iter = plotLabels.begin(); iter!=plotLabels.end(); iter++) {
-    string obj = iter->first;
-    bool cond = iter->second;
-    if (cond && parIni.count(Form("Model_%s_%s", obj.c_str(), COLL.c_str()))>0) { 
-      plotLabel = plotLabel + Form("_%s_%s", obj.c_str(), parIni[Form("Model_%s_%s", obj.c_str(), COLL.c_str())].c_str()); 
-    }
-  }
-
   // check if we have already done this fit. If yes, do nothing and return true.
-  string FileName = "";
-  setCtauMassFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
   bool found =  true;
   RooArgSet *newpars = (RooArgSet*) myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("ctauErr"), *myws.var("invMass")));
   found = found && isFitAlreadyFound(newpars, FileName, pdfName.c_str());
@@ -402,5 +410,29 @@ void setCtauMassFileName(string& FileName, string outputDir, string TAG, string 
   return;
 };
 
+void setCtauMassGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label, double binWidth)
+{
+  Double_t ctauMax = cut.dMuon.ctau.Max , ctauMin = cut.dMuon.ctau.Min;
+  int nBins = min(int( round((ctauMax - ctauMin)/binWidth) ), 1000);
+  TH1D* hTot = (TH1D*)((RooDataSet*)myws.data(Form("dOS_%s", label.c_str()))->Clone("dTMP"))->createHistogram("hTMP", *myws.var("ctau"), Binning(nBins, ctauMin, ctauMax));
+  vector<double> rangeCtau;
+  getRange(hTot, 5, rangeCtau);
+  hTot->Delete();
+  ctauMin = rangeCtau[0];
+  ctauMax = rangeCtau[1];
+  if (ctauMin<cut.dMuon.ctau.Min) { ctauMin = cut.dMuon.ctau.Min; }
+  if (ctauMax>cut.dMuon.ctau.Max) { ctauMax = cut.dMuon.ctau.Max; }
+  if (ctauMin < -4.0) { ctauMin = -4.0; }
+  if (ctauMax >  6.0) { ctauMax =  6.0; }
+  cut.dMuon.ctau.Max = ctauMax;
+  cut.dMuon.ctau.Min = ctauMin;
+  cout << "[INFO] Updated Range from data: ctauMin: " << ctauMin << "  ctauMax: " << ctauMax << endl;
+  myws.var("ctau")->setRange("CtauWindow", ctauMin, ctauMax);
+  parIni["CtauRange_Cut"] = Form("(%.12f <= ctau && ctau < %.12f)", ctauMin, ctauMax);
+  myws.var("ctau")->setRange("CtauFullWindow", cut.dMuon.ctau.Min, cut.dMuon.ctau.Max);
+  myws.var("ctau")->setRange("FullWindow", cut.dMuon.ctau.Min, cut.dMuon.ctau.Max);
+
+  return;
+};
 
 #endif // #ifndef fitCharmoniaCtauMassModel_C
