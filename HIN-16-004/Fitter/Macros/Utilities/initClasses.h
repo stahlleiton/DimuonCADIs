@@ -274,6 +274,13 @@ bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2) {
     if (val != it->getVal()) return false;  // the parameter was found, but with a different value!
     if ( ((RooRealVar&)(*pars2)[it->GetName()]).getMin() != it->getMin() ) return false;  // the parameter has different lower limit
     if ( ((RooRealVar&)(*pars2)[it->GetName()]).getMax() != it->getMax() ) return false;  // the parameter has different upper limit
+    if (string(it->GetName()).find("N_")!=std::string::npos) {
+      if ( (((RooRealVar&)(*pars2)[it->GetName()]).getMin() != it->getMin()) && 
+           (((RooRealVar&)(*pars2)[it->GetName()]).getMin() != -2000000.0  ) && 
+           (((RooRealVar&)(*pars2)[it->GetName()]).getMin() != 0.0         ) ) return false;  // the parameter has different lower limit
+      if ( (((RooRealVar&)(*pars2)[it->GetName()]).getMax() != it->getMax()) &&
+           (((RooRealVar&)(*pars2)[it->GetName()]).getMax() != 2000000.0   ) ) return false;  // the parameter has different upper limit
+    }
   }
   return true;
 };
@@ -379,7 +386,7 @@ bool isFitAlreadyFound(RooArgSet *newpars, string FileName, string pdfName)
 };
 
 
-bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bool isPbPb, bool cutSideBand=false, bool loadNumberOfEvents=true, bool updateN=true)
+bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bool isPbPb, bool loadNumberOfEvents, bool updateN)
 {
   if (gSystem->AccessPathName(FileName.c_str())) {
     cout << "[INFO] File " << FileName << " was not found!" << endl;
@@ -407,7 +414,6 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
          name=="ctauTrue" || name=="pt" || name=="cent" || 
          name=="rap" || name=="One" ) continue;
     if ( !loadNumberOfEvents && name.find("N_")!=std::string::npos ) continue;
-    if ( (DSTAG.find("MC")!=std::string::npos || cutSideBand) && (name.find("N_")!=std::string::npos) ) continue; 
     if (myws.var(name.c_str())) {
       print = print + Form("  %s: %.5f->%.5f ", name.c_str(), myws.var(name.c_str())->getValV(), ws->var(name.c_str())->getValV()) ;
       myws.var(name.c_str())->setVal  ( ws->var(name.c_str())->getValV()  );
@@ -435,7 +441,6 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
          name=="ctauTrue" || name=="pt" || name=="cent" || 
          name=="rap" || name=="One" ) continue;
     if ( !loadNumberOfEvents && name.find("N_")!=std::string::npos ) continue;
-    if ( (DSTAG.find("MC")!=std::string::npos || cutSideBand) && (name.find("N_")!=std::string::npos) ) continue; 
     if (myws.var(name.c_str())) { 
       printFun = printFun + Form("  %s: %.5f->%.5f  ", name.c_str(), myws.var(name.c_str())->getValV(), ws->function(name.c_str())->getValV()) ;
       myws.var(name.c_str())->setVal  ( ws->function(name.c_str())->getValV()  );
@@ -460,15 +465,16 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
 
   if (updateN && myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
     string dsName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb ?"PbPb":"PP"));
-    cout << "[INFO] Checking if local dataset is compatible with Mass fit dataset!" << endl;
-    if (myws.data(dsName.c_str()) && ws->data(dsName.c_str()) && !isCompatibleDataset(*(RooDataSet*)myws.data(dsName.c_str()), *(RooDataSet*)ws->data(dsName.c_str()), false)) {
+    string dsNameCut = dsName+"_CTAUCUT"; if (!myws.data(dsNameCut.c_str())) dsNameCut = dsName;
+    cout << "[INFO] Checking if local dataset " << dsNameCut << " is compatible with Mass fit dataset " << dsName << " !" << endl;
+    if (myws.data(dsNameCut.c_str()) && ws->data(dsName.c_str()) && !isCompatibleDataset(*(RooDataSet*)myws.data(dsNameCut.c_str()), *(RooDataSet*)ws->data(dsName.c_str()), false)) {
       // Let's fit again the mass with only the N parameters free, to account for possible ctau or ctauErr cuts in the input datasets
       myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
       std::vector< std::string > objs = {"Bkg", "Jpsi", "Psi2S"}; std::map< std::string , double > dN;
       for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"))))  setConstant( myws, Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), false); }
       std::cout << "[INFO] Fitting the mass distribution to update the number of events!" << std::endl;
       for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) dN[obj] = myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))->getVal(); }
-      ((RooFitResult*)myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(32), PrintLevel(-1), Save()))->Print("v");
+      ((RooFitResult*)myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(32), PrintLevel(-1), Save()))->Print("v");
       for (auto obj : objs) {
         if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) cout << "[INFO] Change in " << Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"))
                                                                                << " : " << dN.at(obj) << " -> " 
@@ -785,7 +791,7 @@ void printChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, s
 };
 
 
-void getCtauErrRange(TH1* hist, int nMaxBins, vector<double>& rangeErr)
+void getRange(TH1* hist, int nMaxBins, vector<double>& rangeErr)
 {
   // 1) Find the bin with the maximum Y value
   int binMaximum = hist->GetMaximumBin();
@@ -819,8 +825,6 @@ void getCtauErrRange(TH1* hist, int nMaxBins, vector<double>& rangeErr)
   }
   rangeErr.push_back(binning[(firstBin>1)?1:0]);
   rangeErr.push_back(binning[nNewBins-1]);
-
-  cout << "[INFO] Ctau error range set to be: [ " <<  rangeErr[0] << ", " << rangeErr[1] << " ]" << endl;
 
   return;
 };
