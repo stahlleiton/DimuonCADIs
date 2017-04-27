@@ -88,6 +88,7 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
       numEntries = myws.data(dsName.c_str())->sumEntries(); if (numEntries<=0) { doFit = false; }
     }
     else if (doFit && !(myws.data(dsName.c_str()))) { cout << "[ERROR] No local dataset was found to perform the fit!" << endl; return false; }
+    if (myws.data(dsName.c_str())) numEntries = myws.data(dsName.c_str())->sumEntries();
 
     // Set global parameters
     setMassGlobalParameterRange(myws, parIni, cut, incJpsi, incPsi2S, incBkg, wantPureSMC);
@@ -123,6 +124,7 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
       numEntries = myws.data(dsName.c_str())->sumEntries(); if (numEntries<=0) { doFit = false; }
     }
     else if (doFit && !(myws.data(dsName.c_str()))) { cout << "[ERROR] No local dataset was found to perform the fit!" << endl; return false; }
+    if (myws.data(dsName.c_str())) numEntries = myws.data(dsName.c_str())->sumEntries();
       
     // Set global parameters
     setMassGlobalParameterRange(myws, parIni, cut, incJpsi, incPsi2S, incBkg, wantPureSMC);
