@@ -133,6 +133,8 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
     } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
     std::vector< std::string > objs = {"Bkg", "Jpsi", "Psi2S"};
     for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"))))  setConstant( myws, Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), false); }
+    // Let's set the minimum value of the yields to zero
+    for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))->setMin(0.0); }
     // Let's constrain the Number of Signal events to the updated mass fit results
     RooArgSet pdfList = RooArgSet("ConstrainPdfList");
     for (auto obj : objs) {
