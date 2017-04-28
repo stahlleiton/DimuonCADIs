@@ -12,7 +12,6 @@
 #include "drawCtauMass2DPlot.C"
 
 void setCtauMassFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut, bool isPbPb);
-void setCtauMassGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label, double binWidth);
 
 
 bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspace
@@ -99,8 +98,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
   // Set global parameters
   setMassGlobalParameterRange(myws, parIni, cut, incJpsi, incPsi2S, incBkg, false);
   setCtauErrGlobalParameterRange(myws, parIni, cut, "", binWidth["CTAUERR"], true);
-  setCtauGlobalParameterRange(myws, parIni, cut, label, binWidth["CTAU"], false);
-  if (usectauBkgTemplate) setCtauMassGlobalParameterRange(myws, parIni, cut, label, binWidth["CTAU"]);
+  setCtauGlobalParameterRange(myws, parIni, cut, label, binWidth["CTAU"], (usectauBkgTemplate&&!isPbPb));
 
   // Cut the RooDataSet
   string dsNameCut = dsName+"_CTAUCUT";
@@ -410,29 +408,5 @@ void setCtauMassFileName(string& FileName, string outputDir, string TAG, string 
   return;
 };
 
-void setCtauMassGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label, double binWidth)
-{
-  Double_t ctauMax = cut.dMuon.ctau.Max , ctauMin = cut.dMuon.ctau.Min;
-  int nBins = min(int( round((ctauMax - ctauMin)/binWidth) ), 1000);
-  TH1D* hTot = (TH1D*)((RooDataSet*)myws.data(Form("dOS_%s", label.c_str()))->Clone("dTMP"))->createHistogram("hTMP", *myws.var("ctau"), Binning(nBins, ctauMin, ctauMax));
-  vector<double> rangeCtau;
-  getRange(hTot, 5, rangeCtau);
-  hTot->Delete();
-  ctauMin = rangeCtau[0];
-  ctauMax = rangeCtau[1];
-  if (ctauMin<cut.dMuon.ctau.Min) { ctauMin = cut.dMuon.ctau.Min; }
-  if (ctauMax>cut.dMuon.ctau.Max) { ctauMax = cut.dMuon.ctau.Max; }
-  if (ctauMin < -4.0) { ctauMin = -4.0; }
-  if (ctauMax >  6.0) { ctauMax =  6.0; }
-  cut.dMuon.ctau.Max = ctauMax;
-  cut.dMuon.ctau.Min = ctauMin;
-  cout << "[INFO] Updated Range from data: ctauMin: " << ctauMin << "  ctauMax: " << ctauMax << endl;
-  myws.var("ctau")->setRange("CtauWindow", ctauMin, ctauMax);
-  parIni["CtauRange_Cut"] = Form("(%.12f <= ctau && ctau < %.12f)", ctauMin, ctauMax);
-  myws.var("ctau")->setRange("CtauFullWindow", cut.dMuon.ctau.Min, cut.dMuon.ctau.Max);
-  myws.var("ctau")->setRange("FullWindow", cut.dMuon.ctau.Min, cut.dMuon.ctau.Max);
-
-  return;
-};
 
 #endif // #ifndef fitCharmoniaCtauMassModel_C
