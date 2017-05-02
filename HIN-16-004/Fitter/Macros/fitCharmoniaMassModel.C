@@ -33,7 +33,7 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
                             bool doSimulFit  = false,      // Do simultaneous fit
                             bool wantPureSMC = false,      // Flag to indicate if we want to fit pure signal MC
                             const char* applyCorr ="",     // Flag to indicate if we want corrected dataset and which correction
-                            bool loadFitResult = false,    // Load previous fit results
+                            uint loadFitResult = false,    // Load previous fit results
                             string inputFitDir = "",       // Location of the fit results
                             int  numCores    = 2,          // Number of cores used for fitting
                             // Select the drawing options
@@ -88,6 +88,7 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
       numEntries = myws.data(dsName.c_str())->sumEntries(); if (numEntries<=0) { doFit = false; }
     }
     else if (doFit && !(myws.data(dsName.c_str()))) { cout << "[ERROR] No local dataset was found to perform the fit!" << endl; return false; }
+    if (myws.data(dsName.c_str())) numEntries = myws.data(dsName.c_str())->sumEntries();
 
     // Set global parameters
     setMassGlobalParameterRange(myws, parIni, cut, incJpsi, incPsi2S, incBkg, wantPureSMC);
@@ -123,6 +124,7 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
       numEntries = myws.data(dsName.c_str())->sumEntries(); if (numEntries<=0) { doFit = false; }
     }
     else if (doFit && !(myws.data(dsName.c_str()))) { cout << "[ERROR] No local dataset was found to perform the fit!" << endl; return false; }
+    if (myws.data(dsName.c_str())) numEntries = myws.data(dsName.c_str())->sumEntries();
       
     // Set global parameters
     setMassGlobalParameterRange(myws, parIni, cut, incJpsi, incPsi2S, incBkg, wantPureSMC);
@@ -165,8 +167,8 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
     myws.saveSnapshot("simPdf_parIni", *newpars, kTRUE);
     found = found && isFitAlreadyFound(newpars, FileName, "simPdf");
     if (loadFitResult) {
-      if ( loadPreviousFitResult(myws, FileName, DSTAG, false, cutSideBand) ) { skipFit = true; } else { skipFit = false; }
-      if ( loadPreviousFitResult(myws, FileName, DSTAG, true, cutSideBand)  ) { skipFit = true; } else { skipFit = false; }
+      if ( loadPreviousFitResult(myws, FileName, DSTAG, false, (!isMC && !cutSideBand && loadFitResult==1), loadFitResult==1) ) { skipFit = true; } else { skipFit = false; }
+      if ( loadPreviousFitResult(myws, FileName, DSTAG, true, (!isMC && !cutSideBand && loadFitResult==1), loadFitResult==1)  ) { skipFit = true; } else { skipFit = false; }
       if (skipFit) { cout << "[INFO] This simultaneous mass fit was already done, so I'll load the fit results." << endl; }
       myws.saveSnapshot("simPdf_parLoad", *newpars, kTRUE);
     } else if (found) {
@@ -214,9 +216,9 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
     RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(*(myws.var("invMass")));
     found = found && isFitAlreadyFound(newpars, FileName, pdfName.c_str());
     if (loadFitResult) {
-        if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb, cutSideBand) ) { skipFit = true; } else { skipFit = false; } 
-        if (skipFit) { cout << "[INFO] This mass fit was already done, so I'll load the fit results." << endl; }
-        myws.saveSnapshot(Form("%s_parLoad", pdfName.c_str()), *newpars, kTRUE);
+      if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb, (!isMC && !cutSideBand && loadFitResult==1), loadFitResult==1) ) { skipFit = true; } else { skipFit = false; } 
+      if (skipFit) { cout << "[INFO] This mass fit was already done, so I'll load the fit results." << endl; }
+      myws.saveSnapshot(Form("%s_parLoad", pdfName.c_str()), *newpars, kTRUE);
     } else if (found) {
       cout << "[INFO] This mass fit was already done, so I'll just go to the next one." << endl;
       return true;

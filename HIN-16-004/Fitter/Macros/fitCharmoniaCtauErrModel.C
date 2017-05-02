@@ -126,13 +126,13 @@ bool fitCharmoniaCtauErrModel( RooWorkspace& myws,             // Local Workspac
                                  setLogScale, incSS, zoomPsi, ibWidth, getMeanPT
                                  ) 
          ) { return false; }
+    // Let's set all mass parameters to constant except the yields
     if (myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
       cout << "[INFO] Setting mass parameters to constant!" << endl;
       myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE); 
     } else { cout << "[ERROR] Mass PDF was not found!" << endl; return false; }
-    if (myws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))))   { reNormMassVar(myws, "Bkg", isPbPb);   }
-    if (myws.pdf(Form("pdfMASS_Jpsi_%s", (isPbPb?"PbPb":"PP"))))  { reNormMassVar(myws, "Jpsi", isPbPb);  }
-    if (myws.pdf(Form("pdfMASS_Psi2S_%s", (isPbPb?"PbPb":"PP")))) { reNormMassVar(myws, "Psi2S", isPbPb); }
+    std::vector< std::string > objs = {"Bkg", "Jpsi", "Psi2S"};
+    for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) setConstant( myws, Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), false); }
   }
 
   if (skipCtauErrPdf==false) {
@@ -165,7 +165,7 @@ void setCtauErrGlobalParameterRange(RooWorkspace& myws, map<string, string>& par
     ctauErrMin -= 0.0001;  ctauErrMax += 0.0001;
     int nBins = min(int( round((ctauErrMax - ctauErrMin)/binWidth) ), 1000);
     TH1D* hTot = (TH1D*)myws.data(Form("dOS_%s", label.c_str()))->createHistogram("TMP", *myws.var("ctauErr"), Binning(nBins, ctauErrMin, ctauErrMax));
-    vector<double> rangeErr; getCtauErrRange(hTot, (int)(ceil(2)), rangeErr); // KEEP THIS NUMBER WITH 2, JUST KEEP IT LIKE THAT :D
+    vector<double> rangeErr; getRange(hTot, (int)(ceil(2)), rangeErr); // KEEP THIS NUMBER WITH 2, JUST KEEP IT LIKE THAT :D
     hTot->Delete();
     ctauErrMin = rangeErr[0];
     ctauErrMax = rangeErr[1];
@@ -213,17 +213,5 @@ void setCtauErrCutParameters(struct KinCuts& cut)
   return;
 };
 
-
-void reNormMassVar( RooWorkspace& myws, string obj, bool isPbPb)
-{
-  string pdfName = Form("pdfMASS_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"));
-  string varName = Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"));
-  if (obj=="Bkg") { ((RooChebychev*)myws.pdf(pdfName.c_str()))->selectNormalizationRange("InclusiveMassRange", kTRUE); }
-  double NormFactor = 1.0/(myws.pdf(pdfName.c_str())->createIntegral(*myws.var("invMass"), NormSet(*myws.var("invMass")), Range("InclusiveMassRange"))->getValV());
-  myws.var(varName.c_str())->setVal(myws.var(varName.c_str())->getValV());
-  if (myws.var(varName.c_str())) { myws.var(varName.c_str())->setConstant(kFALSE); }
-  //cout << "[INFO] NORM FACTOR FOR " << obj << " : " << NormFactor << endl;
-  return;
-};
 
 #endif // #ifndef fitCharmoniaCtauErrModel_C

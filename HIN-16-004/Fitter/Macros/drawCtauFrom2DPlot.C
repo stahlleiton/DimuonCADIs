@@ -49,8 +49,8 @@ void drawCtauFrom2DPlot(RooWorkspace& myws,   // Local workspace
   bool isWeighted = myws.data(dsOSName.c_str())->isWeighted();
   vector<double> range; range.push_back(cut.dMuon.ctau.Min); range.push_back(cut.dMuon.ctau.Max);
 
-  double minRange = -3.0;
-  double maxRange = 5.0;
+  double minRange = -4.0;
+  double maxRange = 7.0;
   Double_t outTot = myws.data(dsOSName.c_str())->numEntries();
   Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctau>%.6f || ctau<%.6f)", range[1], range[0]))->numEntries();
   int nBins = min(int( round((maxRange - minRange)/binWidth) ), 1000);
