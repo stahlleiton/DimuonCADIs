@@ -245,7 +245,7 @@ bool fitCharmoniaCtauModel( RooWorkspace& myws,             // Local Workspace
       string plotLabel = Form("_CtauRes_%s", parIni[Form("Model_CtauRes_%s", COLL.c_str())].c_str());
       string DSTAG = Form("MCJPSIPR_%s", (isPbPb?"PbPb":"PP"));
       if (inputFitDir["CTAURES"].find("nonPrompt")!=std::string::npos) DSTAG = Form("MCJPSINOPR_%s", (isPbPb?"PbPb":"PP"));
-      if (inputFitDir["CTAURES"].find("DataFits")!=std::string::npos) DSTAG = Form("DATA_%s", (isPbPb?"PbPb":"PP"));
+      if (inputFitDir["CTAURES"].find("DataFits")!=std::string::npos && inputFitDir["CTAURES"].find("MCFits")==std::string::npos) DSTAG = Form("DATA_%s", (isPbPb?"PbPb":"PP"));
       setCtauResFileName(FileName, (inputFitDir["CTAURES"]=="" ? outputDir : inputFitDir["CTAURES"]), DSTAG, plotLabel, cut, isPbPb);
       if (wantPureSMC) { plotLabel = plotLabel + "_NoBkg"; }
       bool found = false;
