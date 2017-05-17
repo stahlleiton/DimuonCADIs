@@ -69,12 +69,12 @@ void drawCtauFrom2DPlot(RooWorkspace& myws,   // Local workspace
   myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("PDF"),
                                        ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(dsOSNameCut.c_str()), kTRUE),
                                        Normalization(normDSTot, RooAbsReal::NumEvent),
-                                       FillStyle(1001), FillColor(kViolet+6), VLines(), DrawOption("LCF"), NumCPU(32), LineColor(kBlack)
+                                       FillStyle(1001), FillColor(kViolet+6), VLines(), DrawOption("LF"), NumCPU(32), LineColor(kBlack)
                                        );
   myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("BKG"),Components(RooArgSet( *myws.pdf(Form("pdfCTAUMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) )),
                                        ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(dsOSName.c_str()), kTRUE),
                                        Normalization(normDSTot, RooAbsReal::NumEvent),
-                                       FillStyle(1001), FillColor(kAzure-9), VLines(), DrawOption("LCF"), NumCPU(32)
+                                       FillStyle(1001), FillColor(kAzure-9), VLines(), DrawOption("LF"), NumCPU(32)
                                        );
   if (incJpsi) {
     myws.pdf(pdfTotName.c_str())->plotOn(frame,Name("JPSIPR"),Components(RooArgSet( *myws.pdf(Form("pdfCTAUMASS_JpsiPR_%s", (isPbPb?"PbPb":"PP"))) )),
