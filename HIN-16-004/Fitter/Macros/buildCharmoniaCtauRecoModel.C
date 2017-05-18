@@ -56,7 +56,7 @@ bool createCtauRecoTemplate(RooWorkspace& ws, string dsName, string pdfType, str
   
   bool isPbPb = false;
   if (dsName.find("PbPb")!=std::string::npos) { isPbPb = true; }
-  if (dsName.find("MC")==std::string::npos)   { return false;  }  // Only accept data
+  if (dsName.find("MC")==std::string::npos)   { std::cout << "[ERROR] Ctau Reco templates can not be build using data!" << std::endl; return false;  }  // Only accept MC
   
   // create weighted data sets
   double ctauRecoMax = cut.dMuon.ctauTrue.Max, ctauRecoMin = cut.dMuon.ctauTrue.Min;
@@ -98,7 +98,7 @@ bool ctauHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, vector<double> 
   bool isPbPb=false;
   if (pdfName.find("PbPb")!=std::string::npos) isPbPb=true;
   RooHistPdf* pdf = new RooHistPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctau"), *((RooDataHist*)ws.data(dataName.c_str())));
-  //RooKeysPdf* pdf = new RooKeysPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctauErr"), *((RooDataSet*)ws.data(dataName.c_str())),RooKeysPdf::NoMirror, isPbPb?0.4:0.4);
+  //RooKeysPdf* pdf = new RooKeysPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctau"), *((RooDataSet*)ws.data(dataName.c_str())),RooKeysPdf::NoMirror, 0.4);
   if (pdf==NULL) { cout << "[ERROR] RooKeysPDF " << pdfName << " is NULL!" << endl; return false; }
   pdf->setNormRange("CtauRecoWindow");
   ws.import(*pdf);

@@ -46,8 +46,7 @@ void drawMassFrom2DPlot(RooWorkspace& myws,   // Local workspace
   string pdfPsi2SPRName  = Form("pdfCTAUMASS_Psi2SPR_%s", (isPbPb?"PbPb":"PP"));
   string pdfPsi2SNoPRName  = Form("pdfCTAUMASS_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"));
   string dsOSName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
-  dsOSName = dsOSName+"_CTAUCUT";
-  string dsOSNameCut = dsOSName;
+  string dsOSNameCut = dsOSName+"_CTAUCUT";
   string dsSSName = Form("dSS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
 
   bool isWeighted = myws.data(dsOSName.c_str())->isWeighted();

@@ -2,7 +2,7 @@
 #include "Macros/tree2DataSet.C"
 #include "Macros/fitCharmonia.C"
 
-bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool fitRes, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores);
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool fitRes, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doConstrFit, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores);
 
 bool parseFile(string FileName, vector< map<string, string> >& data);
 bool parseString(string input, string delimiter, vector<double>& output);
@@ -12,37 +12,38 @@ void findSubDir(vector<string>& dirlist, string dirname);
 bool existDir(string dir);
 bool readFile(string FileName, vector< vector<string> >& content, const int nCol=-1, int nRow=-1);
 bool getInputFileNames(const string InputTrees, map<string, vector<string> >& InputFileCollection);
-bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, string>& parIni, bool isPbPb);
-bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vector< map<string, string> >&  parIniVector, bool isPbPb);
+bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, string>& parIni, bool isPbPb, bool doConstrFit);
+bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vector< map<string, string> >&  parIniVector, bool isPbPb, bool doConstrFit);
 
 
 void fitter(
             const string workDirName="Test", // Working directoryi
             bool useExtFiles  = true, // Use external fit files as input
-            bool useExtDS     = true, // Use external data/mc DataSets
+            bool useExtDS     = false, // Use external data/mc DataSets
             bool usePeriPD    = false, // If yes, use the PERIPHERAL PD provided by the user
             // Select the type of datasets to fit
             bool fitData      = true,        // Fits Data datasets
             bool fitMC        = false,         // Fits MC datasets
             bool fitPbPb      = true,         // Fits PbPb datasets
             bool fitPP        = true,        // Fits PP datasets
-            bool fitMass      = false,       // Fits invariant mass distribution
-            bool fitCtau      = false,       // Fits ctau distribution
+            bool fitMass      = true,       // Fits invariant mass distribution
+            bool fitCtau      = true,       // Fits ctau distribution
             bool fitCtauTrue  = false,         // Fits ctau true MC distribution
             bool fitCtauReco  = false,      // Fit ctau reco MC distribution
             bool doCtauErrPDF = false,         // If yes, it builds the Ctau Error PDFs from data
-            bool fitRes       = true,         // If yes fits the resolution from Data or MC
+            bool fitRes       = false,         // If yes fits the resolution from Data or MC
             // Select the type of object to fit
             bool incJpsi      = true,          // Includes Jpsi model
             bool incPsi2S     = false,         // Includes Psi(2S) model
-            bool incBkg       = false,         // Includes Background model
+            bool incBkg       = true,         // Includes Background model
             bool incPrompt    = true,         // Includes Prompt ctau model
             bool incNonPrompt = true,          // Includes Non Prompt ctau model 
             // Select the fitting options
             bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
-            bool usectauBkgTemplate = false,// If yes use a template for Bkg ctau instead of the fitted Pdf
+            bool usectauBkgTemplate = true,// If yes use a template for Bkg ctau instead of the fitted Pdf
             bool useCtauRecoPdf = false,     // If yes use the ctauReco PDF (template) instead of ctauTrue one
             bool cutCtau      = false,        // Apply prompt ctau cuts
+            bool doConstrFit   = false,        // Do constrained fit
             bool doSimulFit   = false,        // Do simultaneous fit
             bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
             const char* applyCorr  = "",     // Apply weight to data for correction (Acceptance & Ef , l_J/psi eff...). No correction if empty variable.
@@ -63,32 +64,40 @@ void fitter(
 	 |-> DataSet : Contain all the datasets (MC and Data)
   */
 
+
+  gROOT->ProcessLine(".L ./Macros/Utilities/RooExtCBShape.cxx+");
+
   map<string, double> binWidth;
   binWidth["MASS"]     = 0.025;
   binWidth["CTAU"]     = 0.100;
   binWidth["CTAUERR"]  = 0.0025;
   binWidth["CTAUTRUE"] = 0.025;
-  binWidth["CTAURECO"] = 0.025;
+  binWidth["CTAURECO"] = 0.100;
   binWidth["CTAURES"]  = 0.25;
   binWidth["CTAUSB"]   = 0.100;
 
+  if (workDirName.find("Peri")!=std::string::npos) { usePeriPD = true; }
+
   map<string, string> inputFitDir;
-  inputFitDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/") + workDirName + "/";
-  inputFitDir["CTAUERR"]  = string("/afs/cern.ch/user/a/anstahll/work/public/RAAFITS/NOMINAL/") + (usePeriPD ? "DataFitsPeri/" :  "DataFitsCent/");
-  inputFitDir["CTAUTRUE"] = string("/afs/cern.ch/user/v/vabdulla/public/PbPb2015/DataFits/");
-  inputFitDir["CTAURECO"] = string("");
-  // inputFitDir["CTAURES"]  = string("/home/llr/cms/abdullah/RAA/DimuonCADIs/HIN-16-004/Fitter/Output/") + (usePeriPD ? "DataFitsPeri/" :  "DataFitsCent/");
-  inputFitDir["CTAURES"]  = string("");//string("/afs/cern.ch/user/v/vabdulla/public/PbPb2015/") + (usePeriPD ? "DataFitsPeri_NP/" :  "DataFitsCent_NP/");
-  inputFitDir["CTAUSB"]   = string("/home/llr/cms/stahl/RAA_Analysis/NORMAL/DimuonCADIs/HIN-16-004/Fitter/Output/") + workDirName + "/";
+  inputFitDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/") + (usePeriPD ? "DataFitsMassPeri_nominal/" :  "DataFitsMassCent_nominal/");
+  inputFitDir["CTAUERR"]  = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/") + (usePeriPD ? "DataFitsPeri_ctauErr_nominal/" :  "DataFitsCent_ctauErr_nominal/");
+  inputFitDir["CTAUTRUE"] = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/") + (usePeriPD ? "MCFitsPeri_nonPrompt_ctauTrue/" :  "MCFitsCent_nonPrompt_ctauTrue/");
+  inputFitDir["CTAURECO"] = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/") + (usePeriPD ? "MCFitsPeri_nonPrompt_ctauReco/" :  "MCFitsCent_nonPrompt_ctauReco/");
+  inputFitDir["CTAURES"]  = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/") + (usePeriPD ? "DataFitsPeri_ctauRes_nominalErr/" :  "DataFitsCent_ctauRes_nominalErr/");
+  //inputFitDir["CTAURES"]  = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/") + (usePeriPD ? "MCFitsPeri_prompt_ctauRes/" :  "MCFitsCent_prompt_ctauRes/");
+  //inputFitDir["CTAURES"]  = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/") + (usePeriPD ? "MCFitsPeri_nonPrompt_ctauRes/" :  "MCFitsCent_nonPrompt_ctauRes/");
+  //inputFitDir["CTAUSB"]   = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/") + (usePeriPD ? "DataFitsPeri_ctauBkg_dataCTauRes/" : "DataFitsCent_ctauBkg_dataCTauRes/");
+  inputFitDir["CTAUSB"]   = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/") + (usePeriPD ? "DataFitsPeri_ctauBkg/" : "DataFitsCent_ctauBkg/");
+  //inputFitDir["CTAUSB"]   = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/") + (usePeriPD ? "DataFitsPeri_ctauBkg_nonPromptCTauRes/" : "DataFitsCent_ctauBkg_nonPromptCTauRes/");
   
   map<string, string> inputInitialFilesDir;
-  inputInitialFilesDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/") + workDirName + "/";
-  inputInitialFilesDir["CTAUTRUE"] = "";
-  inputInitialFilesDir["CTAURECO"] = "";
-  inputInitialFilesDir["CTAURES"]  = string("/afs/cern.ch/user/v/vabdulla/public/PbPb2015/Input/") + (usePeriPD ? "DataFitsPeri/" :  "DataFitsCent/");
-  inputInitialFilesDir["CTAUSB"]   = "";
-  inputInitialFilesDir["CTAU"]     = "";
-  inputInitialFilesDir["FILES"]    = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/") + (usePeriPD ? "DataFitsPeri/" :  "DataFitsCent/");
+  inputInitialFilesDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/") + (usePeriPD ? "DataFitsMassPeri_nominal/" :  "DataFitsMassCent_nominal/");
+  inputInitialFilesDir["CTAUTRUE"] = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/") + (usePeriPD ? "MCFitsPeri_nonPrompt_ctauTrue/" :  "MCFitsCent_nonPrompt_ctauTrue/");
+  inputInitialFilesDir["CTAURECO"] = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/") + (usePeriPD ? "MCFitsPeri_nonPrompt_ctauReco/" :  "MCFitsCent_nonPrompt_ctauReco/");
+  inputInitialFilesDir["CTAURES"]  = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/") + (usePeriPD ? "MCFitsPeri_prompt_ctauRes/" :  "MCFitsCent_prompt_ctauRes/");
+  inputInitialFilesDir["CTAUSB"]   = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/") + (usePeriPD ? "DataFitsPeri_ctauBkg/" :  "DataFitsCent_ctauBkg/");
+  inputInitialFilesDir["CTAU"]     = string("");//string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/") + (usePeriPD ? "DataFitsPeri_2D_nominal/" :  "DataFitsCent_2D_nominal/");
+  inputInitialFilesDir["FILES"]    = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/") + (usePeriPD ? "DataFitsMassPeri_nominal/" :  "DataFitsMassCent_nominal/");
 
   map<string, string> inputDataSet;
   inputDataSet["DOUBLEMUON"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSets/";
@@ -105,7 +114,7 @@ void fitter(
   if (fitRes || fitTest) { inputFitDir["CTAURES"] = ""; inputInitialFilesDir["CTAURES"] = ""; }
   if ((fitCtau && fitData && incBkg && !incJpsi) || fitTest) { inputFitDir["CTAUSB"] = ""; inputInitialFilesDir["CTAUSB"] = ""; }
 
-  if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, fitCtauReco, fitRes, doCtauErrPDF, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores)) { return; }
+  if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, fitCtauReco, fitRes, doCtauErrPDF, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doConstrFit, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores)) { return; }
 
   map< string, vector<string> > DIR;
   if(!iniWorkEnv(DIR, workDirName)){ return; }
@@ -143,7 +152,7 @@ void fitter(
     Output: Collection of RooDataSets splitted by tag name, including OS and SS dimuons.
   */
   
-  const string InputTrees = inputInitialFilesDir["FILES"] + "InputTrees.txt";
+  const string InputTrees = (useExtDS ? inputInitialFilesDir["FILES"] : DIR["input"][0]) + "InputTrees.txt";
   map<string, vector<string> > InputFileCollection;
   if(!getInputFileNames(InputTrees, InputFileCollection)){ return; }
   
@@ -236,7 +245,7 @@ void fitter(
     {"MASS", 
      {
        {"BKG",   ((fitMass  && incBkg) || (fitCtau || doCtauErrPDF || (fitRes && fitData)))}, 
-       {"JPSI",  ((fitMass && incJpsi) || (fitCtau || doCtauErrPDF || (fitRes && fitData))) && incJpsi}, 
+       {"JPSI",  (((fitMass && incJpsi) || (fitCtau || doCtauErrPDF || (fitRes && fitData))) && incJpsi) || (fitCtau && incBkg)}, 
        {"PSI2S", ((fitMass && incPsi2S) || (fitCtau || doCtauErrPDF || (fitRes && fitData))) && incPsi2S}
      }
     },
@@ -245,8 +254,8 @@ void fitter(
        {"BKG",   fitCtau && incBkg && incNonPrompt}, 
        {"JPSI",  fitCtau && incJpsi && incNonPrompt},
        {"PSI2S", fitCtau && incPsi2S && incNonPrompt},
-       {"RES",   fitRes},
-       {"TRUE",  fitCtauTrue},
+       {"RES",   (fitCtau || fitRes)},
+       {"TRUE",  (fitCtauTrue || fitCtauReco)},
      }
     }
   };
@@ -275,7 +284,7 @@ void fitter(
               if (VAR->first=="CTAU" && PAR->first=="JPSI" && inputInitialFilesDirs[j]["CTAU"]!=""    ) { dir = inputInitialFilesDirs[j]["CTAU"];     }
               string name3 = name2 + COL->first + ".csv";
               InputFile = (dir + name3);
-              if (!addParameters(InputFile, cutVector, parIniVector, true)) { return; }
+              if (!addParameters(InputFile, cutVector, parIniVector, true, doConstrFit)) { return; }
             }
           }
         }
@@ -339,6 +348,7 @@ void fitter(
                                  usectauBkgTemplate,// If yes use a template for Bkg ctau instead of the fitted Pdf
                                  useCtauRecoPdf,  // If yes use the ctauReco PDF (template) instead of ctauTrue one
                                  cutCtau,         // Apply prompt ctau cuts
+                                 doConstrFit,     // Do constrained fit
                                  doSimulFit,      // Do simultaneous fitC
                                  wantPureSMC,     // Flag to indicate if we want to fit pure signal MC
                                  inputFitDirs[index], // Map of user-defined directory paths of previous fit results
@@ -383,6 +393,7 @@ void fitter(
                                             usectauBkgTemplate,// If yes use a template for Bkg ctau instead of the fitted Pdf
                                             useCtauRecoPdf,  // If yes use the ctauReco PDF (template) instead of ctauTrue one
                                             cutCtau,         // Apply prompt ctau cuts
+                                            doConstrFit,     // Do constrained fit
                                             doSimulFit,      // Do simultaneous fit
                                             wantPureSMC,           // Flag to indicate if we want to fit pure signal MC
                                             inputFitDirs[index],// Map of user-defined directory paths of previous fit results
@@ -409,7 +420,7 @@ void fitter(
 };
   
 
-bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vector< map<string, string> >&  parIniVector, bool isPbPb)
+bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vector< map<string, string> >&  parIniVector, bool isPbPb, bool doConstrFit)
 {
   vector< map<string, string> >  data;
   if(!parseFile(InputFile, data)) { return false; }
@@ -417,7 +428,7 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
   if (cutVector.size()==0) {
     for(vector< map<string, string> >::iterator row=data.begin(); row!=data.end(); ++row) {
       struct KinCuts cut; map<string, string> parIni;
-      if(!setParameters(*row, cut, parIni, isPbPb)) { return false; }
+      if(!setParameters(*row, cut, parIni, isPbPb, doConstrFit)) { return false; }
       cutVector.push_back(cut);  parIniVector.push_back(parIni);
     }
   }
@@ -425,7 +436,7 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
     if (data.size()!=cutVector.size()) { cout << "[ERROR] The initial parameters in file " << InputFile << " are not consistent with previous files!" << endl; return false; }
     for (unsigned int i=0; i<data.size(); i++) {
       struct KinCuts cut;
-      if (!setParameters(data.at(i), cut, parIniVector.at(i), isPbPb)) { return false; };
+      if (!setParameters(data.at(i), cut, parIniVector.at(i), isPbPb, doConstrFit)) { return false; };
       if (!isEqualKinCuts(cut, cutVector.at(i), isPbPb)) { cout << "[ERROR] The bins in file " << InputFile << " are not consistent with previous files!" << endl; return false; }
     }
   }
@@ -434,7 +445,7 @@ bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vecto
 };
 
 
-bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, string>& parIni, bool isPbPb)
+bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, string>& parIni, bool isPbPb, bool doConstrFit)
 {
 
   // set initial parameters
@@ -619,10 +630,14 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
           cout << "[ERROR] Initial parameter " << col->first << " has incorrect number of values, it has: " << v.size() << endl; return false;
         } 
 	// everything seems alright, then proceed to save the values
-	if (v.size()==1) { 
-	  // if only one value is given i.e. [ num ], consider it a constant value
-	  parIni[col->first] = Form("%s[ %.6f, %.6f, %.6f]", col->first.c_str(), v.at(0), v.at(0), v.at(0));
-	} else {
+	if (v.size()==1)
+  {
+	  // if only one value is given i.e. [ num ], consider it a constant value if doConstrFit = false. If doConstrFit = true, the parameter range will be +- 100% of the value
+    if (doConstrFit) parIni[col->first] = Form("%s[ %.6f, %.6f, %.6f]", col->first.c_str(), v.at(0), v.at(0) - abs(v.at(0)), v.at(0) + abs(v.at(0)));
+	  else parIni[col->first] = Form("%s[ %.6f, %.6f, %.6f]", col->first.c_str(), v.at(0), v.at(0), v.at(0));
+	}
+  else
+  {
 	  parIni[col->first] = col->first + col->second;
 	}
       } else {
@@ -802,12 +817,21 @@ bool existDir(string dir)
 };
 
 
-bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool fitRes, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores)
+bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool fitRes, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doConstrFit, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores)
 { 
   cout << "[INFO] Checking user settings " << endl;
 
   if (!fitMass && !fitCtau && !fitCtauTrue && !doCtauErrPDF && !fitCtauReco && !fitRes) {
     cout << "[ERROR] At least one distribution has to be selected for fitting, please select either Mass, CtauTrue, CtauErr, Ctau, CtauN or CtauReco!" << endl; return false;
+  }
+  if (fitCtau && fitRes) {
+    cout << "[ERROR] We can not fit Ctau and CtauRes at the same time, please fix your input settings!" << endl; return false;
+  }
+  if (doConstrFit && (fitCtau || fitCtauTrue || fitCtauReco|| fitRes)) {
+    cout << "[ERROR] Constrained fits only implemented for invariant mass!" << endl; return false;
+  }
+  if (doConstrFit && doSimulFit) {
+    cout << "[ERROR] Constrained fits not implemented with simultaneous fits!" << endl; return false;
   }
   if (fitCtauTrue && fitData) {
     cout << "[ERROR] We can not fit the truth ctau distribution on data, please select only MC!" << endl; return false;

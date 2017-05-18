@@ -14,7 +14,7 @@ bool setCtauResModel( struct OniaModel& model, map<string, string>&  parIni, boo
 
 
 bool fitCharmoniaCtauResModel( RooWorkspace& myws,             // Local Workspace
-                               RooWorkspace& inputWorkspace,   // Workspace with all the input RooDatasets
+                               const RooWorkspace& inputWorkspace,   // Workspace with all the input RooDatasets
                                struct KinCuts& cut,            // Variable containing all kinematic cuts
                                map<string, string>&  parIni,   // Variable containing all initial parameters
                                struct InputOpt& opt,           // Variable with run information (kept for legacy purpose)
@@ -71,8 +71,9 @@ bool fitCharmoniaCtauResModel( RooWorkspace& myws,             // Local Workspac
       plotLabel = plotLabel + "_Bkg";
       setCtauErrFileName(FileName, (inputFitDir["CTAUERR"]=="" ? outputDir : inputFitDir["CTAUERR"]), "DATA", plotLabel, cut, isPbPb, fitSideBand);
       bool foundFit = false;
-      if ( loadCtauErrRange(myws, FileName, cut) ) { foundFit = true; }
+      if ( loadCtauErrRange(FileName, cut) ) { foundFit = true; }
       if (foundFit) { cout << "[INFO] The ctauErr fit was found and I'll load the ctau Error range used." << endl; }
+      else { cout << "[ERROR] The ctauErr fit was not found!" << endl; return false; }
     }
     setCtauErrCutParameters(cut);
   }
@@ -150,7 +151,7 @@ bool fitCharmoniaCtauResModel( RooWorkspace& myws,             // Local Workspac
   RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*myws.var("ctau"), *myws.var("ctauErr"), *myws.var("ctauNRes"), *myws.var("ctauRes")));
   found = found && isFitAlreadyFound(newpars, FileName, pdfName.c_str());
   if (loadFitResult) {
-    if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) { skipFit = true; } else  { skipFit = false; }
+    if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb, false, false) ) { skipFit = true; } else  { skipFit = false; }
     if (skipFit) { cout << "[INFO] This ctau fit was already done, so I'll load the fit results." << endl; }
     myws.saveSnapshot(Form("%s_parLoad", pdfName.c_str()),*newpars,kTRUE);
   } else if (found) {
@@ -161,7 +162,7 @@ bool fitCharmoniaCtauResModel( RooWorkspace& myws,             // Local Workspac
   // Fit the Datasets
   if (skipFit==false) {
     bool isWeighted = myws.data(dsName.c_str())->isWeighted();
-    RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), NumCPU(numCores), ConditionalObservables(*myws.var("ctauErr")), SumW2Error(isWeighted), Save());
+    RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), NumCPU(numCores), SumW2Error(isWeighted), Save());
     fitResult->Print("v");
     myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str()));
     // Draw the mass plot
@@ -211,7 +212,7 @@ void setCtauResGlobalParameterRange(RooWorkspace& myws, map<string, string>& par
   int nBins = min(int( round((ctauNResMax - ctauNResMin)/binWidth) ), 1000);
   TH1D* hTot = (TH1D*)myws.data(Form("dOS_%s", label.c_str()))->createHistogram("TMP", *myws.var("ctauNRes"), Binning(nBins, ctauNResMin, ctauNResMax));
   vector<double> rangeCtauNRes;
-  getCtauErrRange(hTot, (int)(ceil(2)), rangeCtauNRes);
+  getRange(hTot, (int)(ceil(2)), rangeCtauNRes);
   hTot->Delete();
   ctauNResMin = rangeCtauNRes[0];
   ctauNResMax = rangeCtauNRes[1];

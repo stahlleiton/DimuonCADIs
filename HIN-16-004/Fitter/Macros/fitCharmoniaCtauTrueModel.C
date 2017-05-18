@@ -12,7 +12,7 @@ void setCtauTrueCutParameters(struct KinCuts& cut);
 
 
 bool fitCharmoniaCtauTrueModel( RooWorkspace& myws,             // Local Workspace
-                                RooWorkspace& inputWorkspace,   // Workspace with all the input RooDatasets
+                                const RooWorkspace& inputWorkspace,   // Workspace with all the input RooDatasets
                                 struct KinCuts& cut,            // Variable containing all kinematic cuts
                                 map<string, string>&  parIni,   // Variable containing all initial parameters
                                 struct InputOpt& opt,           // Variable with run information (kept for legacy purpose)
@@ -98,7 +98,7 @@ bool fitCharmoniaCtauTrueModel( RooWorkspace& myws,             // Local Workspa
   RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(RooArgSet(*myws.var("ctauTrue")));
   found = found && isFitAlreadyFound(newpars, FileName, pdfName.c_str());
   if (loadFitResult) {
-    if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb) ) { skipFit = true; } else  { skipFit = false; }
+    if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb, false, false) ) { skipFit = true; } else  { skipFit = false; }
     if (skipFit) { cout << "[INFO] This ctauTrue fit was already done, so I'll load the fit results." << endl; }
     myws.saveSnapshot(Form("%s_parLoad", pdfName.c_str()),*newpars,kTRUE);
   } else if (found) {

@@ -186,8 +186,9 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         }
         
         theTree->GetEntry(jentry);
-        normF += theTree->GetWeight()*getNColl(Centrality,!isPbPb);
-      }
+       // normF += theTree->GetWeight()*getNColl(Centrality,!isPbPb);
+        normF += theTree->GetWeight();  
+    }
       
       normF = nentries/normF;
     }
@@ -236,7 +237,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
 
         if (applyWeight){
           double w = theTree->GetWeight();
-          if (isMC && isPbPb) w = w*getNColl(Centrality,!isPbPb)*normF;
+          if (isMC && isPbPb) w = w*normF;//*getNColl(Centrality,!isPbPb)*normF;
           weight->setVal(w);
         }
         else if (applyWeight_Corr)
@@ -249,7 +250,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         if (
             ( RecoQQ::areMuonsInAcceptance2015(iQQ) ) &&  // 2015 Global Muon Acceptance Cuts
             ( RecoQQ::passQualityCuts2015(iQQ)      ) &&  // 2015 Soft Global Muon Quality Cuts
-            ( isPbPb ? (RecoQQ::isTriggerMatch(iQQ,triggerIndex_PbPb) || (usePeriPD ? false : RecoQQ::isTriggerMatch(iQQ,HI::HLT_HIL1DoubleMu0_2HF_v1))) :
+            ( isPbPb ? (RecoQQ::isTriggerMatch(iQQ,triggerIndex_PbPb) || (usePeriPD ? RecoQQ::isTriggerMatch(iQQ,HI::HLT_HIL1DoubleMu0_2HF0_Cent30100_v1) : (RecoQQ::isTriggerMatch(iQQ,HI::HLT_HIL1DoubleMu0_2HF_v1) || RecoQQ::isTriggerMatch(iQQ,HI::HLT_HIL1DoubleMu0_2HF0_v1)))) :
               RecoQQ::isTriggerMatch(iQQ, triggerIndex_PP) )     // if PbPb && !periPD then (HLT_HIL1DoubleMu0_v1 || HLT_HIL1DoubleMu0_2HF_v1)
             )
         {

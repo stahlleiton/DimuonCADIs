@@ -13,7 +13,7 @@ void setMassCutParameters(struct KinCuts& cut, bool incJpsi, bool incPsi2S, bool
 
 
 bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
-                            RooWorkspace& inputWorkspace,  // Workspace with all the input RooDatasets
+                            const RooWorkspace& inputWorkspace,  // Workspace with all the input RooDatasets
                             struct KinCuts& cut,           // Variable containing all kinematic cuts
                             map<string, string>&  parIni,  // Variable containing all initial parameters
                             struct InputOpt& opt,          // Variable with run information (kept for legacy purpose)
@@ -29,10 +29,11 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
                             // Select the fitting options
                             bool doFit       = true,       // Flag to indicate if we want to perform the fit
                             bool cutCtau     = false,      // Apply prompt ctau cuts
+                            bool doConstrFit   = false,    // Do constrained fit
                             bool doSimulFit  = false,      // Do simultaneous fit
                             bool wantPureSMC = false,      // Flag to indicate if we want to fit pure signal MC
                             const char* applyCorr ="",     // Flag to indicate if we want corrected dataset and which correction
-                            bool loadFitResult = false,    // Load previous fit results
+                            uint loadFitResult = false,    // Load previous fit results
                             string inputFitDir = "",       // Location of the fit results
                             int  numCores    = 2,          // Number of cores used for fitting
                             // Select the drawing options
@@ -87,12 +88,13 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
       numEntries = myws.data(dsName.c_str())->sumEntries(); if (numEntries<=0) { doFit = false; }
     }
     else if (doFit && !(myws.data(dsName.c_str()))) { cout << "[ERROR] No local dataset was found to perform the fit!" << endl; return false; }
+    if (myws.data(dsName.c_str())) numEntries = myws.data(dsName.c_str())->sumEntries();
 
     // Set global parameters
     setMassGlobalParameterRange(myws, parIni, cut, incJpsi, incPsi2S, incBkg, wantPureSMC);
 
     // Build the Fit Model
-    if (!buildCharmoniaMassModel(myws, model.PP, parIni, false, doSimulFit, incBkg, incJpsi, incPsi2S, numEntries))  { return false; }
+    if (!buildCharmoniaMassModel(myws, model.PP, parIni, false, doConstrFit, doSimulFit, incBkg, incJpsi, incPsi2S, numEntries))  { return false; }
 
     // Define plot names
     if (incJpsi)  { plotLabelPP += Form("_Jpsi_%s", parIni["Model_Jpsi_PP"].c_str());   } 
@@ -122,12 +124,13 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
       numEntries = myws.data(dsName.c_str())->sumEntries(); if (numEntries<=0) { doFit = false; }
     }
     else if (doFit && !(myws.data(dsName.c_str()))) { cout << "[ERROR] No local dataset was found to perform the fit!" << endl; return false; }
+    if (myws.data(dsName.c_str())) numEntries = myws.data(dsName.c_str())->sumEntries();
       
     // Set global parameters
     setMassGlobalParameterRange(myws, parIni, cut, incJpsi, incPsi2S, incBkg, wantPureSMC);
 
     // Build the Fit Model
-    if (!buildCharmoniaMassModel(myws, model.PbPb, parIni, true, doSimulFit, incBkg, incJpsi, incPsi2S, numEntries))  { return false; }
+    if (!buildCharmoniaMassModel(myws, model.PbPb, parIni, true, doConstrFit, doSimulFit, incBkg, incJpsi, incPsi2S, numEntries))  { return false; }
 
     // Define plot names
     if (incJpsi)  { plotLabelPbPb += Form("_Jpsi_%s", parIni["Model_Jpsi_PbPb"].c_str());   } 
@@ -164,8 +167,8 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
     myws.saveSnapshot("simPdf_parIni", *newpars, kTRUE);
     found = found && isFitAlreadyFound(newpars, FileName, "simPdf");
     if (loadFitResult) {
-      if ( loadPreviousFitResult(myws, FileName, DSTAG, false, cutSideBand) ) { skipFit = true; } else { skipFit = false; }
-      if ( loadPreviousFitResult(myws, FileName, DSTAG, true, cutSideBand)  ) { skipFit = true; } else { skipFit = false; }
+      if ( loadPreviousFitResult(myws, FileName, DSTAG, false, (!isMC && !cutSideBand && loadFitResult==1), loadFitResult==1) ) { skipFit = true; } else { skipFit = false; }
+      if ( loadPreviousFitResult(myws, FileName, DSTAG, true, (!isMC && !cutSideBand && loadFitResult==1), loadFitResult==1)  ) { skipFit = true; } else { skipFit = false; }
       if (skipFit) { cout << "[INFO] This simultaneous mass fit was already done, so I'll load the fit results." << endl; }
       myws.saveSnapshot("simPdf_parLoad", *newpars, kTRUE);
     } else if (found) {
@@ -213,9 +216,9 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
     RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(*(myws.var("invMass")));
     found = found && isFitAlreadyFound(newpars, FileName, pdfName.c_str());
     if (loadFitResult) {
-        if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb, cutSideBand) ) { skipFit = true; } else { skipFit = false; } 
-        if (skipFit) { cout << "[INFO] This mass fit was already done, so I'll load the fit results." << endl; }
-        myws.saveSnapshot(Form("%s_parLoad", pdfName.c_str()), *newpars, kTRUE);
+      if ( loadPreviousFitResult(myws, FileName, DSTAG, isPbPb, (!isMC && !cutSideBand && loadFitResult==1), loadFitResult==1) ) { skipFit = true; } else { skipFit = false; } 
+      if (skipFit) { cout << "[INFO] This mass fit was already done, so I'll load the fit results." << endl; }
+      myws.saveSnapshot(Form("%s_parLoad", pdfName.c_str()), *newpars, kTRUE);
     } else if (found) {
       cout << "[INFO] This mass fit was already done, so I'll just go to the next one." << endl;
       return true;
@@ -224,7 +227,24 @@ bool fitCharmoniaMassModel( RooWorkspace& myws,            // Local Workspace
     // Fit the Datasets
     if (skipFit==false) {
       bool isWeighted = myws.data(dsName.c_str())->isWeighted();
-      RooFitResult* fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(isWeighted), Range(cutSideBand ? parIni["BkgMassRange_FULL_Label"].c_str() : "MassWindow"), NumCPU(numCores), Save());
+      RooFitResult* fitResult(0x0);
+      if (doConstrFit)
+      {
+        cout << "[INFO] Performing constrained fit" << endl;
+        
+        if (isPbPb) {
+          cout << "[INFO] Constrained variables: alpha, n, ratio of sigmas" << endl;
+          fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(isWeighted), Range(cutSideBand ? parIni["BkgMassRange_FULL_Label"].c_str() : "MassWindow"), ExternalConstraints(RooArgSet(*(myws.pdf("sigmaAlphaConstr")),*(myws.pdf("sigmaNConstr")),*(myws.pdf("sigmaRSigmaConstr")))), NumCPU(numCores), Save());
+        }
+        else {
+          cout << "[INFO] Constrained variables: alpha, n, ratio of sigmas" << endl;
+          fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(isWeighted), Range(cutSideBand ? parIni["BkgMassRange_FULL_Label"].c_str() : "MassWindow"), ExternalConstraints(RooArgSet(*(myws.pdf("sigmaAlphaConstr")),*(myws.pdf("sigmaNConstr")))), NumCPU(numCores), Save());
+        }
+      }
+      else
+      {
+       fitResult = myws.pdf(pdfName.c_str())->fitTo(*myws.data(dsName.c_str()), Extended(kTRUE), SumW2Error(isWeighted), Range(cutSideBand ? parIni["BkgMassRange_FULL_Label"].c_str() : "MassWindow"), NumCPU(numCores), Save());
+      }
       fitResult->Print("v"); 
       myws.import(*fitResult, Form("fitResult_%s", pdfName.c_str())); 
       // Create the output files
@@ -407,8 +427,8 @@ void setMassCutParameters(struct KinCuts& cut, bool incJpsi, bool incPsi2S, bool
     // Default mass values, means that the user did not specify a mass range
     if ( incJpsi && !incPsi2S) {
       if (isMC && !useForCtauFits){
-        cut.dMuon.M.Min = 2.2;
-        cut.dMuon.M.Max = 4.0;
+        cut.dMuon.M.Min = 2.6;
+        cut.dMuon.M.Max = 3.5;
       } else {
         cut.dMuon.M.Min = 2.6;
         cut.dMuon.M.Max = 3.5;

@@ -103,10 +103,10 @@ void plotPt(const char* workDirName, const char* varname, int iplot, const char*
 
    addTag = addTagBase + Form("_%i",iplot);
 
-   TFile *f = new TFile(treeFileName(workDirName,DSTag));
+   TFile *f = new TFile(treeFileName(workDirName,DSTag,"","mass"));
    if (!f || !f->IsOpen()) {
       results2tree(workDirName,DSTag);
-      f = new TFile(treeFileName(workDirName,DSTag));
+      f = new TFile(treeFileName(workDirName,DSTag,"","mass"));
       if (!f) return;
    }
    TTree *tr = (TTree*) f->Get("fitresults");
@@ -169,10 +169,10 @@ void plotCent(const char* workDirName, const char* varname, int iplot, const cha
 
    addTag = addTagBase + Form("_%i",iplot);
 
-   TFile *f = new TFile(treeFileName(workDirName,DSTag));
+   TFile *f = new TFile(treeFileName(workDirName,DSTag,"","mass"));
    if (!f || !f->IsOpen()) {
       results2tree(workDirName,DSTag);
-      f = new TFile(treeFileName(workDirName,DSTag));
+      f = new TFile(treeFileName(workDirName,DSTag,"","mass"));
       if (!f) return;
    }
    TTree *tr = (TTree*) f->Get("fitresults");
@@ -216,10 +216,10 @@ void plotRap(const char* workDirName, const char* varname, const char* collTag, 
    theCats.push_back(anabin(0,2.4,6.5,50,0,200));
    addTag = addTagBase;
 
-   TFile *f = new TFile(treeFileName(workDirName,DSTag));
+   TFile *f = new TFile(treeFileName(workDirName,DSTag,"","mass"));
    if (!f || !f->IsOpen()) {
       results2tree(workDirName,DSTag);
-      f = new TFile(treeFileName(workDirName,DSTag));
+      f = new TFile(treeFileName(workDirName,DSTag,"","mass"));
       if (!f) return;
    }
    TTree *tr = (TTree*) f->Get("fitresults");
@@ -259,11 +259,11 @@ void plotRap(const char* workDirName, const char* varname, const char* collTag, 
 
 void plotAll(const char* workDirName, const char* varname, const char* collTag, bool plotErr, const char* DSTag, bool doSig) {
    plotPt(workDirName, varname, 0, collTag, plotErr, DSTag, doSig);
-   plotPt(workDirName, varname, 1, collTag, plotErr, DSTag, doSig);
+   plotPt(workDirName, varname, 1, "PbPb", plotErr, DSTag, doSig);
    plotPt(workDirName, varname, 2, collTag, plotErr, DSTag, doSig);
-   plotCent(workDirName, varname, 0, collTag, plotErr, DSTag, doSig);
-   plotCent(workDirName, varname, 1, collTag, plotErr, DSTag, doSig);
-   plotCent(workDirName, varname, 2, collTag, plotErr, DSTag, doSig);
+   plotCent(workDirName, varname, 0, "PbPb", plotErr, DSTag, doSig);
+   plotCent(workDirName, varname, 1, "PbPb", plotErr, DSTag, doSig);
+   plotCent(workDirName, varname, 2, "PbPb", plotErr, DSTag, doSig);
    plotRap(workDirName, varname, collTag, plotErr, DSTag, doSig);
 }
 
@@ -347,7 +347,7 @@ TGraphErrors* plotVar(TTree *tr, const char* varname, anabin theBin, string xaxi
 
       anabin trbin(ymin, ymax, ptmin, ptmax, centmin, centmax);
       // special case of PP and centrality
-      if (collTag=="PP" && xaxis=="cent") trbin = anabin(ymin, ymax, ptmin, ptmax, centmin, -centmax);
+      if (collTag=="PP" /*&& xaxis=="cent"*/) trbin = anabin(ymin, ymax, ptmin, ptmax, 0, 200);
       // general case
       if (!binok(theBin, xaxis, trbin, false)) continue;
       if (string(collSystem) != collTag) continue;

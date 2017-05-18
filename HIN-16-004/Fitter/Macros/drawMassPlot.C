@@ -93,32 +93,32 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
         if (incBkg) {
            if ( myws.pdf(Form("pdfMASS2_Jpsi_%s", (isPbPb?"PbPb":"PP"))) ) {
               myws.pdf(pdfName.c_str())->plotOn(frame,Name("JPSI1"), Components(RooArgSet(*myws.pdf(Form("pdfMASS1_Jpsi_%s", (isPbPb?"PbPb":"PP"))),*myws.pdf(Form("pdfMASSTot_Bkg_%s", (isPbPb?"PbPb":"PP"))))),
-                    Normalization(norm, RooAbsReal::NumEvent), NormRange("MassWindow"),
+                    Normalization(norm, RooAbsReal::NumEvent), Range(cut.dMuon.M.Min, cut.dMuon.M.Max), NormRange("MassWindow"),
                     LineColor(kGreen+3), LineStyle(1), Precision(1e-4)
                     );
               myws.pdf(pdfName.c_str())->plotOn(frame,Name("JPSI2"),Components(RooArgSet(*myws.pdf(Form("pdfMASS2_Jpsi_%s", (isPbPb?"PbPb":"PP"))),*myws.pdf(Form("pdfMASSTot_Bkg_%s", (isPbPb?"PbPb":"PP"))))),
-                    Normalization(norm, RooAbsReal::NumEvent), NormRange("MassWindow"), 
+                    Normalization(norm, RooAbsReal::NumEvent), Range(cut.dMuon.M.Min, cut.dMuon.M.Max), NormRange("MassWindow"),
                     LineColor(kOrange+2), LineStyle(1), Precision(1e-4)
                     );
            } else {
               myws.pdf(pdfName.c_str())->plotOn(frame,Name("JPSI1"),Components(RooArgSet(*myws.pdf(Form("pdfMASSTot_Jpsi_%s", (isPbPb?"PbPb":"PP"))),*myws.pdf(Form("pdfMASSTot_Bkg_%s", (isPbPb?"PbPb":"PP"))))),
-                    Normalization(norm, RooAbsReal::NumEvent), NormRange("MassWindow"), 
+                    Normalization(norm, RooAbsReal::NumEvent), Range(cut.dMuon.M.Min, cut.dMuon.M.Max), NormRange("MassWindow"),
                     LineColor(kGreen+3), LineStyle(1), Precision(1e-4)
                     );
            }
         } else {
            if ( myws.pdf(Form("pdfMASS2_Jpsi_%s", (isPbPb?"PbPb":"PP"))) ) {
               myws.pdf(pdfName.c_str())->plotOn(frame,Name("JPSI1"),Components(RooArgSet(*myws.pdf(Form("pdfMASS1_Jpsi_%s", (isPbPb?"PbPb":"PP"))))),
-                    Normalization(norm, RooAbsReal::NumEvent), NormRange("MassWindow"),
+                    Normalization(norm, RooAbsReal::NumEvent), Range(cut.dMuon.M.Min, cut.dMuon.M.Max), NormRange("MassWindow"),
                     LineColor(kGreen+3), LineStyle(1), Precision(1e-4)
                     );
               myws.pdf(pdfName.c_str())->plotOn(frame,Name("JPSI2"),Components(RooArgSet(*myws.pdf(Form("pdfMASS2_Jpsi_%s", (isPbPb?"PbPb":"PP"))))),
-                    Normalization(norm, RooAbsReal::NumEvent), NormRange("MassWindow"),
+                    Normalization(norm, RooAbsReal::NumEvent), Range(cut.dMuon.M.Min, cut.dMuon.M.Max), NormRange("MassWindow"),
                     LineColor(kOrange+2), LineStyle(1), Precision(1e-4)
                     );
            } else {
               myws.pdf(pdfName.c_str())->plotOn(frame,Name("JPSI1"),Components(RooArgSet(*myws.pdf(Form("pdfMASSTot_Jpsi_%s", (isPbPb?"PbPb":"PP"))))),
-                    Normalization(norm, RooAbsReal::NumEvent), NormRange("MassWindow"), 
+                    Normalization(norm, RooAbsReal::NumEvent), Range(cut.dMuon.M.Min, cut.dMuon.M.Max), NormRange("MassWindow"),
                     LineColor(kGreen+3), LineStyle(1), Precision(1e-4)
                     );
            }
@@ -144,16 +144,16 @@ void drawMassPlot(RooWorkspace& myws,   // Local workspace
         } else {
            if ( myws.pdf(Form("pdfMASS2_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ) {
               myws.pdf(pdfName.c_str())->plotOn(frame,Name("PSI2S1"),Components(RooArgSet(*myws.pdf(Form("pdfMASS1_Psi2S_%s", (isPbPb?"PbPb":"PP"))))),
-                    Normalization(norm, RooAbsReal::NumEvent), NormRange("MassWindow"), 
+                    Normalization(norm, RooAbsReal::NumEvent), Range(cut.dMuon.M.Min, cut.dMuon.M.Max), NormRange("MassWindow"),
                     LineColor(kGreen+3), LineStyle(1), Precision(1e-4)
                     );
               myws.pdf(pdfName.c_str())->plotOn(frame,Name("PSI2S2"),Components(RooArgSet(*myws.pdf(Form("pdfMASS2_Psi2S_%s", (isPbPb?"PbPb":"PP"))))),
-                    Normalization(norm, RooAbsReal::NumEvent), NormRange("MassWindow"), 
+                    Normalization(norm, RooAbsReal::NumEvent), Range(cut.dMuon.M.Min, cut.dMuon.M.Max), NormRange("MassWindow"),
                     LineColor(kOrange+2), LineStyle(1), Precision(1e-4)
                     );
            } else {
               myws.pdf(pdfName.c_str())->plotOn(frame,Name("PSI2S1"),Components(RooArgSet(*myws.pdf(Form("pdfMASSTot_Psi2S_%s", (isPbPb?"PbPb":"PP"))))),
-                    Normalization(norm, RooAbsReal::NumEvent), NormRange("MassWindow"), 
+                    Normalization(norm, RooAbsReal::NumEvent), Range(cut.dMuon.M.Min, cut.dMuon.M.Max), NormRange("MassWindow"),
                     LineColor(kGreen+3), LineStyle(1), Precision(1e-4)
                     );
            }

@@ -27,27 +27,36 @@ void drawCtauResPlot(RooWorkspace& myws,   // Local workspace
 
   if (DSTAG.find("_")!=std::string::npos) DSTAG.erase(DSTAG.find("_"));
 
+  bool isMC = false;
+  bool isNPrompt = false;
+  if (DSTAG.find("MC")!=std::string::npos)
+  {
+    isMC = true;
+    if(DSTAG.find("NOPR")!=std::string::npos) isNPrompt = true;
+  }
+
   string dsOSName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   if (plotPureSMC) dsOSName = Form("dOS_%s_%s_NoBkg", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   string dsOSNameCut = dsOSName+"_CTAUNRESCUT";
   string dsSSName = Form("dSS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
 
   bool isWeighted = myws.data(dsOSName.c_str())->isWeighted();
-  bool isMC = (DSTAG.find("MC")!=std::string::npos);
-  bool incJpsi = (DSTAG.find("JPSI")!=std::string::npos);
+  bool incJpsi = (dsOSName.find("JPSI")!=std::string::npos);
+  bool incPsi2S = (dsOSName.find("PSI2S")!=std::string::npos);
   bool incNonPrompt = (DSTAG.find("NOPR")!=std::string::npos);
   vector<double> range; range.push_back(cut.dMuon.ctauNRes.Min); range.push_back(cut.dMuon.ctauNRes.Max);
 
   string pdfType  = "pdfCTAUNRES";
   string varName = "ctauNRes";
   string pdfTotName  = Form("%s_Tot_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"));
-  string obj = (incJpsi?"Jpsi":"Psi2S");
-  obj += (incNonPrompt?"NoPR":"PR");
+  string obj = "";
+  if (incJpsi) obj = "Jpsi";
+  if (incPsi2S) obj = "Psi2S";
 
   double minRange = -10.0;
   double maxRange = 10.0;
-  Double_t outTot = myws.data(dsOSName.c_str())->sumEntries();
-  Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctauNRes>%.6f || ctauNRes<%.6f)", range[1], range[0]))->sumEntries();
+  Double_t outTot = myws.data(dsOSName.c_str())->numEntries();
+  Double_t outErr = myws.data(dsOSName.c_str())->reduce(Form("(ctauNRes>%.6f || ctauNRes<%.6f)", range[1], range[0]))->numEntries();
   int nBins = min(int( round((maxRange - minRange)/binWidth) ), 1000);
   int COLOR[] = { kGreen+3, kRed+2, kBlue+2, kViolet-5};
 
@@ -150,8 +159,9 @@ void drawCtauResPlot(RooWorkspace& myws,   // Local workspace
   // Drawing the Legend
   double ymin = 0.7202;
   if (incSS)  { ymin = 0.7202; } else { ymin = 0.7452; }
+  const char* dataName = isMC ? "MC data" : "Data";
   TLegend* leg = new TLegend(0.5175, ymin, 0.7180, 0.8809); leg->SetTextSize(0.03);
-  leg->AddEntry(frame->findObject("dOS"), (incSS?"Opposite Charge":"Data"),"pe");
+  leg->AddEntry(frame->findObject("dOS"), (incSS?"Opposite Charge":dataName),"pe");
   if (incSS) { leg->AddEntry(frame->findObject("dSS"),"Same Charge","pe"); }
   if(frame->findObject("PDF")) { leg->AddEntry(frame->findObject("PDF"),"Total fit","l"); }
   for (int i=1; i<nGauss; i++) {
@@ -176,7 +186,17 @@ void drawCtauResPlot(RooWorkspace& myws,   // Local workspace
   }
   
   //CMS_lumi(pad1, isPbPb ? 105 : 104, 33, label);
-  CMS_lumi(pad1, isPbPb ? 108 : 107, 33, "");
+  int fc = isMC ? -1 : 1;
+  TString lumiLabel("");
+  if (isMC)
+  {
+    if (isNPrompt) lumiLabel += "nonprompt";
+    else lumiLabel += "prompt";
+    
+    if (incJpsi) lumiLabel += " J/#psi";
+    else lumiLabel += " #psi(2S)";
+  }
+  CMS_lumi(pad1, isPbPb ? fc*108 : fc*107, 33, lumiLabel.Data());
   gStyle->SetTitleFontSize(0.05);
   
   pad1->Update();

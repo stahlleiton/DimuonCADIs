@@ -66,8 +66,8 @@ void results2tree(
    // collision system
    Char_t collSystem[8];
    // goodness of fit
-   float nll, chi2, chi2_invMass, chi2_ctau, chi2prob_invMass, chi2prob_ctau, normchi2_invMass,normchi2_ctau; 
-   int npar, nparbkg, ndof_invMass, ndof_ctau;
+   float nll, chi2, chi2_invMass, chi2_ctau, chi2prob, chi2prob_invMass, chi2prob_ctau, normchi2, normchi2_invMass,normchi2_ctau;
+   int npar, nparbkg, ndof,ndof_invMass, ndof_ctau;
    // parameters to store: make it a vector
    vector<poi> thePois;
    TString thePoiNamesStr(thePoiNames);
@@ -89,7 +89,7 @@ void results2tree(
    tr->Branch("bkgName",bkgName,"bkgName/C");
    tr->Branch("collSystem",collSystem,"collSystem/C");
    tr->Branch("nll",&nll,"nll/F");
-   // tr->Branch("chi2",&chi2,"chi2/F");
+    tr->Branch("chi2",&chi2,"chi2/F");
    tr->Branch("chi2_invMass",&chi2_invMass,"chi2_invMass/F");
    tr->Branch("chi2prob_invMass",&chi2prob_invMass,"chi2prob_invMass/F");
    tr->Branch("normchi2_invMass",&normchi2_invMass,"normchi2_invMass/F");
@@ -100,11 +100,11 @@ void results2tree(
    tr->Branch("normchi2_ctau",&normchi2_ctau,"normchi2_ctau/F");
    tr->Branch("chi2prob_ctau",&chi2prob_ctau,"chi2prob_ctau/F");
    tr->Branch("ndof_ctau",&ndof_ctau,"ndof_ctau/I");
-   // tr->Branch("chi2prob",&chi2prob,"chi2prob/F");
-   // tr->Branch("normchi2",&normchi2,"normchi2/F");
+    tr->Branch("chi2prob",&chi2prob,"chi2prob/F");
+    tr->Branch("normchi2",&normchi2,"normchi2/F");
    tr->Branch("npar",&npar,"npar/I");
    tr->Branch("nparbkg",&nparbkg,"nparbkg/I");
-   // tr->Branch("ndof",&ndof,"ndof/I");
+    tr->Branch("ndof",&ndof,"ndof/I");
 
    for (vector<poi>::iterator it=thePois.begin(); it!=thePois.end(); it++) {
       tr->Branch(Form("%s_val",it->name),&(it->val),Form("%s_val/F",it->name));
@@ -149,7 +149,7 @@ void results2tree(
          if (catchjpsi) {strcpy(jpsiName, t.Data()); catchjpsi=false;}
          if (catchbkg) {strcpy(bkgName, t.Data()); catchbkg=false;}
          if (catchtype) {modelType = t; catchtype=false;}
-         if (t=="Jpsi") catchjpsi=true;
+         if ((t=="Jpsi") || t=="CtauRes") catchjpsi=true;
          if (t=="Bkg") catchbkg=true;
          if (t.EndsWith("FIT")) catchtype=true;
       }
@@ -169,7 +169,7 @@ void results2tree(
       chi2_ctau=0; ndof_ctau=0;
       if (f && ws) {
          // get the model for nll and npar
-         RooAbsPdf *model = pdfFromWS(ws, Form("_%s",collSystem), Form("pdf%s_Tot",modelType.Data()));
+        RooAbsPdf *model = (strcmp(modelType.Data(),"CTAURES")) ? pdfFromWS(ws, Form("_%s",collSystem), Form("pdf%s_Tot",modelType.Data())) : pdfFromWS(ws, Form("_%s",collSystem), "pdfCTAUNRES_Tot");
 
          RooAbsPdf *model_bkg = pdfFromWS(ws, Form("_%s",collSystem), Form("pdf%s_Bkg",modelType.Data()));
          const char* token = (strcmp(DSTag,"DATA") && wantPureSMC) ? Form("_%s_NoBkg",collSystem) : Form("_%s",collSystem);
@@ -181,8 +181,15 @@ void results2tree(
                npar = model->getParameters(dat)->selectByAttrib("Constant",kFALSE)->getSize();
 
                // compute the chi2 and the ndof
-               // RooRealVar *chi2var = ws->var("chi2");
-               // RooRealVar *ndofvar = ws->var("ndof");
+                RooRealVar *chi2var = ws->var("chi2");
+                RooRealVar *ndofvar = ws->var("ndof");
+              if (chi2var && ndofvar) {
+                chi2 = chi2var->getVal();
+                ndof = ndofvar->getVal();
+                normchi2 = chi2/ndof;
+                chi2prob = TMath::Prob(chi2,ndof);
+              }
+              
                RooRealVar *chi2var_invMass = ws->var("chi2_invMass");
                RooRealVar *ndofvar_invMass = ws->var("ndof_invMass");
                RooRealVar *chi2var_ctau = ws->var("chi2_ctau");

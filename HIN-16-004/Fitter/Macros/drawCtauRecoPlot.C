@@ -31,6 +31,14 @@ void drawCtauRecoPlot(RooWorkspace& myws,   // Local workspace
 
   if (DSTAG.find("_")!=std::string::npos) DSTAG.erase(DSTAG.find("_"));
 
+  bool isMC = false;
+  bool isNPrompt = false;
+  if (DSTAG.find("MC")!=std::string::npos)
+  {
+    isMC = true;
+    if(DSTAG.find("NOPR")!=std::string::npos) isNPrompt = true;
+  }
+
   string dsOSName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   string dsSSName = Form("dSS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
   string pdfName  = "pdfCTAU";
@@ -109,8 +117,9 @@ void drawCtauRecoPlot(RooWorkspace& myws,   // Local workspace
   double ymin = 0.7802;
   if (incPsi2S && incJpsi && incSS)  { ymin = 0.7202; } 
   if (incPsi2S && incJpsi && !incSS) { ymin = 0.7452; }
+  const char* dataName = isMC ? "MC data" : "Data";
   TLegend* leg = new TLegend(0.5175, ymin, 0.7180, 0.8809); leg->SetTextSize(0.03);
-  if (frame->findObject("dOS")) { leg->AddEntry(frame->findObject("dOS"), (incSS?"Opposite Charge":"Data"),"pe"); }
+  if (frame->findObject("dOS")) { leg->AddEntry(frame->findObject("dOS"), (incSS?"Opposite Charge":dataName),"pe"); }
   if (incSS) { leg->AddEntry(frame->findObject("dSS"),"Same Charge","pe"); }
   if(frame->findObject("PDF")) { leg->AddEntry(frame->findObject("PDF"),"Total fit","l"); }
   leg->Draw("same");
@@ -132,7 +141,18 @@ void drawCtauRecoPlot(RooWorkspace& myws,   // Local workspace
   }
   
   //CMS_lumi(pad1, isPbPb ? 105 : 104, 33, label);
-  CMS_lumi(pad1, isPbPb ? 108 : 107, 33, "");
+  int fc = isMC ? -1 : 1;
+  TString lumiLabel("");
+  if (isMC)
+  {
+    if (isNPrompt) lumiLabel += "nonprompt";
+    else lumiLabel += "prompt";
+    
+    if (incJpsi) lumiLabel += " J/#psi";
+    else lumiLabel += " #psi(2S)";
+  }
+  CMS_lumi(pad1, isPbPb ? fc*108 : fc*107, 33, lumiLabel.Data());
+  //CMS_lumi(pad1, isPbPb ? 108 : 107, 33, "");
   gStyle->SetTitleFontSize(0.05);
   
   pad1->Update();
