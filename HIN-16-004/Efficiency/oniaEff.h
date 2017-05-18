@@ -25,7 +25,7 @@ public :
     
    enum tnpTypes {
      noTnPSFs = 0,
-     trg = 1,
+     trg = 1, // nominal
      trg__muid__sta = 2,
      trg__muid = 3,
      trg__sta = 4,
@@ -300,7 +300,7 @@ public :
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
-   virtual void     Loop(const char* fname, bool ispbpb=false, int tnptype=0);
+   virtual void     Loop(const char* fname, bool ispbpb=false, int tnptype=0, bool isacc=false);
 //   virtual void     LoopVary(const char* fname, bool ispbpb=false, int tnptype=0);
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1);

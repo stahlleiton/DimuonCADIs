@@ -6,6 +6,7 @@
 #include "TPad.h"
 #include "TLegend.h"
 #include "TSystem.h"
+#include "TMath.h"
 
 #include "../Fitter/Macros/CMS/CMS_lumi.C"
 #include "../Fitter/Macros/CMS/tdrstyle.C"
@@ -41,6 +42,7 @@ public:
   int nbins_4rap;
   int nbins_3cent;
   bool ispbpb;
+  bool isacc;
 
   // Input file
   TFile *finput;
@@ -62,7 +64,7 @@ public:
   TH1F *hden_rap;
   TGraphAsymmErrors *heff_rap;
 
-  drawingEff(string fname, bool ispbpb);
+  drawingEff(string fname, bool ispbpb, bool isacc);
   ~drawingEff();
   void loadHisto();
   void getEfficiency();
@@ -108,9 +110,10 @@ drawingEff::~drawingEff(){
   delete finput;
 }
 
-drawingEff::drawingEff(string fname, bool ispbpb_){
+drawingEff::drawingEff(string fname, bool ispbpb_, bool isacc_=false){
   finput = new TFile(fname.c_str());
   ispbpb = ispbpb_;
+  isacc = isacc_;
 
   float bins_4rap_[] = {0, 0.6, 1.2, 1.8, 2.4};
   float bins_3cent_[] = {0, 10, 30, 100};
@@ -125,20 +128,10 @@ drawingEff::drawingEff(string fname, bool ispbpb_){
 }
 
 void drawingEff::checkUnderFlow(TH1 *hnum, TH1 *hden){
-
-//  cout << "\ncheckUnderFlow: " << hnum->GetName() << " " << hden->GetName() << endl;
   for (int j=0; j<=hnum->GetNbinsX()+1; j++) {
     double num0 = hnum->GetBinContent(j);
     double den0 = hden->GetBinContent(j);
     
-    // prints bincontent for cross-check!
-//    if (num0>den0) {
-//      cout << "Bin " << j << ": "
-//           << hnum->GetBinContent(j) << " " << hden->GetBinContent(j) << " " 
-//           << hnum->GetBinContent(j) / hden->GetBinContent(j)
-//           << endl;
-//    }
-
     // If underflow bin has more entries in numerator than denominator, set it to 0
     if ((j==0 && num0>den0) || (j==hnum->GetNbinsX()+1 && num0>den0)) {
       hnum->SetBinContent(j,0);
@@ -146,16 +139,7 @@ void drawingEff::checkUnderFlow(TH1 *hnum, TH1 *hden){
       hnum->SetBinError(j,0);
       hden->SetBinError(j,0);
     }
-    
-//    if (num0>den0) {
-//      cout << "Bin " << j << ": "
-//           << hnum->GetBinContent(j) << " " << hden->GetBinContent(j) << " " 
-//           << hnum->GetBinContent(j) / hden->GetBinContent(j)
-//           << endl;
-//    }
-
   }
-
 }
 
 void drawingEff::loadHisto(){
@@ -260,6 +244,7 @@ void drawingEff::getEfficiency(){
     heff_cent_rap[i]->GetYaxis()->SetTitle(hnum_cent_rap[i]->GetYaxis()->GetTitle());
     heff_cent_rap[i]->GetXaxis()->SetRangeUser(0,100);
     SetHistStyle(heff_cent_rap[i],i,i,0,1.3);
+    if (isacc) heff_cent_rap[i]->GetYaxis()->SetTitle("Acceptance");
   }
   
   for (int i=0; i<nbins_4rap+1; i++) {
@@ -288,6 +273,7 @@ void drawingEff::getEfficiency(){
     heff_pt_rap[i]->GetYaxis()->SetTitle(hnum_pt_rap[i]->GetYaxis()->GetTitle());
     heff_pt_rap[i]->GetXaxis()->SetRangeUser(0,50);
     SetHistStyle(heff_pt_rap[i],i,i,0,1.3);
+    if (isacc) heff_pt_rap[i]->GetYaxis()->SetTitle("Acceptance");
   }
  
   for (int i=0; i<(ispbpb?nbins_3cent:1); i++) {
@@ -316,6 +302,7 @@ void drawingEff::getEfficiency(){
     heff_pt_cent[i]->GetYaxis()->SetTitle(hnum_pt_cent[i]->GetYaxis()->GetTitle());
     heff_pt_cent[i]->GetXaxis()->SetRangeUser(0,50);
     SetHistStyle(heff_pt_cent[i],i,i,0,1.3);
+    if (isacc) heff_pt_cent[i]->GetYaxis()->SetTitle("Acceptance");
   }
 
   heff_rap = new TGraphAsymmErrors(hnum_rap,hden_rap,"n");
@@ -341,6 +328,7 @@ void drawingEff::getEfficiency(){
   heff_rap->GetYaxis()->SetTitle(hnum_rap->GetYaxis()->GetTitle());
   heff_rap->GetXaxis()->SetRangeUser(0,2.4);
   SetHistStyle(heff_rap,0,0,0,1.3);
+  if (isacc) heff_rap->GetYaxis()->SetTitle("Acceptance");
 }
 
 void drawingEff::drawHisto(vector<string> *outname){
@@ -446,10 +434,10 @@ void drawingEff::drawHisto(vector<string> *outname){
 ////////////////////////////////////////////////////////////////
 ////// Draw eff plots in different kinematic regions
 ////////////////////////////////////////////////////////////////
-void plotEffs() {
+void plotEffs(bool isacc=true) {
 
   string dir = "figs";
-  string subdir = "trg__sta";
+  string subdir = "nominal";
 
   gSystem->mkdir(dir.c_str(),kTRUE);
   gSystem->mkdir(Form("%s/%s",dir.c_str(),subdir.c_str()),kTRUE);
@@ -457,7 +445,7 @@ void plotEffs() {
   vector<string> latex;
   latex.push_back("prompt J/#psi (pp)");
   latex.push_back(Form("%s/%s/jpsi_pp",dir.c_str(),subdir.c_str()));
-  drawingEff fjpsi_pp(Form("files/%s/histos_jpsi_pp.root",subdir.c_str()),false);
+  drawingEff fjpsi_pp(Form("files/%s/histos_jpsi_pp.root",subdir.c_str()),false,isacc);
   fjpsi_pp.loadHisto();
   fjpsi_pp.getEfficiency();
   fjpsi_pp.drawHisto(&latex);
@@ -465,15 +453,17 @@ void plotEffs() {
   latex.clear();
   latex.push_back("nonprompt J/#psi (pp)");
   latex.push_back(Form("%s/%s/npjpsi_pp",dir.c_str(),subdir.c_str()));
-  drawingEff fnpjpsi_pp(Form("files/%s/histos_npjpsi_pp.root",subdir.c_str()),false);
+  drawingEff fnpjpsi_pp(Form("files/%s/histos_npjpsi_pp.root",subdir.c_str()),false,isacc);
   fnpjpsi_pp.loadHisto();
   fnpjpsi_pp.getEfficiency();
   fnpjpsi_pp.drawHisto(&latex);
 
+  if (isacc) return;
+
   latex.clear();
   latex.push_back("prompt J/#psi (PbPb)");
   latex.push_back(Form("%s/%s/jpsi_pbpb",dir.c_str(),subdir.c_str()));
-  drawingEff fjpsi_pbpb(Form("files/%s/histos_jpsi_pbpb.root",subdir.c_str()),true);
+  drawingEff fjpsi_pbpb(Form("files/%s/histos_jpsi_pbpb.root",subdir.c_str()),true,isacc);
   fjpsi_pbpb.loadHisto();
   fjpsi_pbpb.getEfficiency();
   fjpsi_pbpb.drawHisto(&latex);
@@ -481,7 +471,7 @@ void plotEffs() {
   latex.clear();
   latex.push_back("nonprompt J/#psi (PbPb)");
   latex.push_back(Form("%s/%s/npjpsi_pbpb",dir.c_str(),subdir.c_str()));
-  drawingEff fnpjpsi_pbpb(Form("files/%s/histos_npjpsi_pbpb.root",subdir.c_str()),true);
+  drawingEff fnpjpsi_pbpb(Form("files/%s/histos_npjpsi_pbpb.root",subdir.c_str()),true,isacc);
   fnpjpsi_pbpb.loadHisto();
   fnpjpsi_pbpb.getEfficiency();
   fnpjpsi_pbpb.drawHisto(&latex);
