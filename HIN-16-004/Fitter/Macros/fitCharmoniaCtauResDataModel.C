@@ -264,7 +264,7 @@ void setCtauResDataGlobalParameterRange(RooWorkspace& myws, map<string, string>&
   int nBins = min(int( round((ctauNMax - ctauNMin)/binWidth) ), 1000);
   TH1D* hTot = (TH1D*)myws.data(dsName.c_str())->createHistogram("TMP", *myws.var("ctauN"), Binning(nBins, ctauNMin, ctauNMax));
   vector<double> rangeCtauN;
-  getRange(hTot, (int)(ceil(3)), rangeCtauN);
+  getRange(hTot, (int)(ceil(5)), rangeCtauN);
   hTot->Delete();
   ctauNMin = rangeCtauN[0];
   if (ctauNMin<-10.0){ ctauNMin = -10.0; }
