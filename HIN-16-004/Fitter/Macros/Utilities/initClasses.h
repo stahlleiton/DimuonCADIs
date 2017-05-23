@@ -25,6 +25,9 @@
 #include "TFrame.h"
 #include "TAxis.h"
 #include "TLegend.h"
+#include "TString.h"
+#include "TObjArray.h"
+#include "TObjString.h"
 
 #include "RooBinning.h"
 #include "RooNumIntConfig.h"
