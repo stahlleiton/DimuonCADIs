@@ -15,11 +15,11 @@
 
 using namespace std;
 
-#ifndef poiname_check
-#define poiname_check
-const char* poiname = "N_Jpsi";
-// const char* poiname = "eff";
-#endif
+//#ifndef poiname_check
+//#define poiname_check
+//const char* poiname = "N_Jpsi";
+//// const char* poiname = "eff";
+//#endif
 
 //////////////////
 // DECLARATIONS //
@@ -41,13 +41,14 @@ void printTex(map<anabin, vector<double> > mapvals,
 // MAIN FUNCTION //
 ///////////////////
 
-void results2syst(const char* workDirNames, const char* systFileName, const char* systHeader, int method, const char* collTag="", bool relativeSyst=false) {
+void results2syst(const char* workDirNames, const char* systFileName, const char* systHeader, int method, const char* collTag="", bool relativeSyst=true, const char* poiname = "N_Jpsi", bool is16004 = false) {
 // workDirNames: of the form "dir1,dir2,dir3,..."
 // systFileName: "syst_blabla.csv" (do NOT specify the full path, it will be assigned automatically to Systematics/csv/)
 // systHeader:   this will be the header of the systematics file. A few words describing what this systematic is.
 // method:       0 -> RMS, 1 -> max difference to the first work dir (= nominal)
 // collTag:      can be "PP", "PbPb" or "" (for the ratio PbPb/PP)
 // relativeSyst: does the uncertainty scale with the central value? (false -> no, true -> yes)
+// poiname: it can be N_Jpsi, b_Jpsi, eff, effnp, acc, accnp
 
    map<anabin, vector<double> > mapvals, mapchi2;
    map<anabin, vector<int> > mapndof;
@@ -56,7 +57,9 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
    vector<string> vnames;
    TString workDirName; Int_t from = 0;
    int cnt=0;
-   set<anabin> thebins = allbins();
+   set<anabin> thebins;
+   if (is16004) thebins = allbins16004();
+   else thebins = allbins();
 
    while (workDirNamesStr.Tokenize(workDirName, from , ",")) {
       vnames.push_back(workDirName.Data());
