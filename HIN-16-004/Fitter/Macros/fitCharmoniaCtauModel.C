@@ -10,7 +10,7 @@
 
 bool setCtauModel( struct OniaModel& model, map<string, string>&  parIni, bool isPbPb, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt );
 void setCtauFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut, bool isPbPb, bool fitSideBand, bool usectauBkgTemplate);
-void setCtauGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label, double binWidth, bool fitCtauRes=false);
+void setCtauGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label, double binWidth, bool fitCtauRes=false, bool is2DFit=false);
 void setCtauCutParameters(struct KinCuts& cut, bool incNonPrompt);
 bool isCtauBkgPdfAlreadyFound(RooWorkspace& myws, string FileName, string pdfName, bool loadCtauBkgPdf=false);
 bool createCtauDSUsingSPLOT(RooWorkspace& ws, string dsName, map<string, string>  parIni, struct KinCuts cut, bool incJpsi, bool incPsi2S, bool incBkg);
@@ -478,8 +478,9 @@ bool setCtauModel( struct OniaModel& model, map<string, string>&  parIni, bool i
 };
 
 
-void setCtauGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label, double binWidth, bool optimizeRange)
+void setCtauGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label, double binWidth, bool optimizeRange, bool is2DFit)
 {
+  bool isPbPb = (label.find("PbPb")!=std::string::npos);
   Double_t ctauMax; Double_t ctauMin;
   myws.data(Form("dOS_%s", label.c_str()))->getRange(*myws.var("ctau"), ctauMin, ctauMax);
   ctauMin -= 0.00001;  ctauMax += 0.00001;
@@ -495,6 +496,16 @@ void setCtauGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni
     if (ctauMin < -4.0) { ctauMin = -4.0; }
     ctauMax =  7.0;
   }
+  else if (!is2DFit && parIni.count(Form("ctauCut_%s",isPbPb?"PbPb":"PP"))>0 && parIni[Form("ctauCut_%s",isPbPb?"PbPb":"PP")]!="") {
+    parIni[Form("ctauCut_%s",isPbPb?"PbPb":"PP")].erase(parIni[Form("ctauCut_%s",isPbPb?"PbPb":"PP")].find("["), string("[").length());
+    parIni[Form("ctauCut_%s",isPbPb?"PbPb":"PP")].erase(parIni[Form("ctauCut_%s",isPbPb?"PbPb":"PP")].find("]"), string("]").length());
+    TString sctauCut(parIni[Form("ctauCut_%s",isPbPb?"PbPb":"PP")].c_str());
+    TObjArray* actauCut = sctauCut.Tokenize(",");    
+    ctauMin = (static_cast<TObjString*>(actauCut->At(0)))->GetString().Atof();
+    ctauMax = (static_cast<TObjString*>(actauCut->At(1)))->GetString().Atof();
+    delete actauCut;
+  }
+
   cout << "[INFO] Range from data: ctauMin: " << ctauMin << "  ctauMax: " << ctauMax << endl;
   myws.var("ctau")->setRange("CtauWindow", ctauMin, ctauMax);
   parIni["CtauRange_Cut"]   = Form("(%.12f <= ctau && ctau < %.12f)", ctauMin, ctauMax);

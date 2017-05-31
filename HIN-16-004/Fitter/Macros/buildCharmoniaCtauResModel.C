@@ -326,16 +326,16 @@ void setCtauResDefaultParameters(map<string, string> &parIni, bool isPbPb, doubl
     parIni[Form("ctau4_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("ctau4_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.0, -1.0, 1.0);
   }
   if (parIni.count(Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") { 
-    parIni[Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.0, 0.01, 2.0);
+    parIni[Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("s1_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.0, 0.01, 4.0);
   }
   if (parIni.count(Form("rS21_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("rS21_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
-      parIni[Form("rS21_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rS21_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.5, 1.0, 5.0);
+      parIni[Form("rS21_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rS21_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.5, 1.0, 10.0);
   }
   if (parIni.count(Form("rS32_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("rS32_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
-      parIni[Form("rS32_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rS32_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.5, 1.0, 5.0);
+      parIni[Form("rS32_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rS32_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.5, 1.0, 10.0);
   }
   if (parIni.count(Form("rS43_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("rS43_CtauRes_%s", (isPbPb?"PbPb":"PP"))]=="") {
-      parIni[Form("rS43_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rS43_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.5, 1.0, 5.0);
+      parIni[Form("rS43_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.4f,%.4f,%.4f]", Form("rS43_CtauRes_%s", (isPbPb?"PbPb":"PP")), 1.5, 1.0, 10.0);
   }
   if (parIni.count(Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP")))==0) {
     parIni[Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{%s,%s})", Form("s2_CtauRes_%s", (isPbPb?"PbPb":"PP")),
