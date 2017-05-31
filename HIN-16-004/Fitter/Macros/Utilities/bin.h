@@ -39,30 +39,37 @@ class anabin : public tuple<binF,binF,binI> {
       }
 };
 
+set<anabin> allbins16004() {
+  set<anabin> ans;
+
+  // HIN-16-004
+  ans.insert(anabin(0,1.6,6.5,30,0,200));
+  ans.insert(anabin(0,1.6,6.5,30,0,20));
+  ans.insert(anabin(0,1.6,6.5,30,20,40));
+  ans.insert(anabin(0,1.6,6.5,30,40,60));
+  ans.insert(anabin(0,1.6,6.5,30,60,80));
+  ans.insert(anabin(0,1.6,6.5,30,80,100));
+  ans.insert(anabin(0,1.6,6.5,30,100,200));
+  ans.insert(anabin(0,1.6,6.5,9,0,200));
+  ans.insert(anabin(0,1.6,9,12,0,200));
+  ans.insert(anabin(0,1.6,12,15,0,200));
+  ans.insert(anabin(0,1.6,15,20,0,200));
+  ans.insert(anabin(0,1.6,20,30,0,200));
+  ans.insert(anabin(1.6,2.4,3,30,0,200));
+  ans.insert(anabin(1.6,2.4,3,30,0,40));
+  ans.insert(anabin(1.6,2.4,3,30,40,80));
+  ans.insert(anabin(1.6,2.4,3,30,80,200));
+  ans.insert(anabin(1.6,2.4,3,6.5,0,200));
+  ans.insert(anabin(1.6,2.4,6.5,12,0,200));
+  ans.insert(anabin(1.6,2.4,12,30,0,200));
+  // all integrated
+  ans.insert(anabin(0,2.4,6.5,50,0,200));
+  
+  return ans;
+}
+
 set<anabin> allbins() {
    set<anabin> ans;
-   // HIN-16-004
-   ans.insert(anabin(0,1.6,6.5,30,0,200));
-   ans.insert(anabin(0,1.6,6.5,30,0,20));
-   ans.insert(anabin(0,1.6,6.5,30,20,40));
-   ans.insert(anabin(0,1.6,6.5,30,40,60));
-   ans.insert(anabin(0,1.6,6.5,30,60,80));
-   ans.insert(anabin(0,1.6,6.5,30,80,100));
-   ans.insert(anabin(0,1.6,6.5,30,100,200));
-   ans.insert(anabin(0,1.6,6.5,9,0,200));
-   ans.insert(anabin(0,1.6,9,12,0,200));
-   ans.insert(anabin(0,1.6,12,15,0,200));
-   ans.insert(anabin(0,1.6,15,20,0,200));
-   ans.insert(anabin(0,1.6,20,30,0,200));
-   ans.insert(anabin(1.6,2.4,3,30,0,200));
-   ans.insert(anabin(1.6,2.4,3,30,0,40));
-   ans.insert(anabin(1.6,2.4,3,30,40,80));
-   ans.insert(anabin(1.6,2.4,3,30,80,200));
-   ans.insert(anabin(1.6,2.4,3,6.5,0,200));
-   ans.insert(anabin(1.6,2.4,6.5,12,0,200));
-   ans.insert(anabin(1.6,2.4,12,30,0,200));
-   // all integrated
-   ans.insert(anabin(0,2.4,6.5,50,0,200));
 
    // centrality dependence
    // thinner binning (for jpsi RAA only)
