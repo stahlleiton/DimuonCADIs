@@ -98,7 +98,7 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
   // Set global parameters
   setMassGlobalParameterRange(myws, parIni, cut, incJpsi, incPsi2S, incBkg, false);
   setCtauErrGlobalParameterRange(myws, parIni, cut, "", binWidth["CTAUERR"], true);
-  setCtauGlobalParameterRange(myws, parIni, cut, label, binWidth["CTAU"], (usectauBkgTemplate&&!isPbPb));
+  setCtauGlobalParameterRange(myws, parIni, cut, label, binWidth["CTAU"], (usectauBkgTemplate&&!isPbPb),true);
 
   // Cut the RooDataSet
   string dsNameCut = dsName+"_CTAUCUT";
