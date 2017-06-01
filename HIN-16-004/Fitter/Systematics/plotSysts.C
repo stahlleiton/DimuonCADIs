@@ -3,7 +3,7 @@
 
 #include "TString.h"
 
-TString spoiname("BJpsi"); // It can be NJpsi or BJpsi
+TString spoiname("NJpsi"); // It can be NJpsi or BJpsi
 bool bins16004=false;
 
 // DECLARATIONS
@@ -148,6 +148,7 @@ void plotSysts(anabin thebin, string xaxis, string collTag, bool plotGlobalSysts
       } else if (xaxis=="rap") {
         low= it->rapbin().low();
         high = it->rapbin().high();
+        if ((low==0 && high<=0.61 && high>=0.59 ) || (low>=0.59 && low<=0.61 && high>=1.19 && high <=1.21) || (low>=1.19 && low<=1.21 && high>=1.79 && high <=1.81) || (low>=1.79 && low<=1.81 && high>=2.39 && high <=2.41)) continue;
       } else {
         low= it->centbin().low()/2;
         high = it->centbin().high()/2;
