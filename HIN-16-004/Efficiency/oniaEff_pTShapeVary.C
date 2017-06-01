@@ -256,7 +256,7 @@ void oniaEff_pTShapeVary::LoopVary(const char* fname, bool ispbpb, const int tnp
 
           double weight = ispbpb ? fChain->GetWeight()*findNcoll(Centrality) : 1.;
           
-          if (tnptype == tnpTypes::trg_ptWeighting) {
+          if (tnptype == trg_ptWeighting) {
             TF1 *curve;
             if (genrap>=0 && genrap<0.6)        curve = (TF1*) wFunctions[0]->At(a);
             else if (genrap>=0.6 && genrap<1.2) curve = (TF1*) wFunctions[1]->At(a);
@@ -409,7 +409,7 @@ void oniaEff_pTShapeVary::LoopVary(const char* fname, bool ispbpb, const int tnp
 
         double tnp_weight = 1.0;
         double ptweight = 1.0;
-        if (tnptype == tnpTypes::trg_ptWeighting) {
+        if (tnptype == trg_ptWeighting) {
           if (ispbpb) { 
             // nominal scale factor on single muons
             tnp_weight = tnp_weight_trg_pbpb(recMuPlpt, recMuPlEta, 0) * tnp_weight_trg_pbpb(recMuMipt, recMuMiEta, 0);
@@ -426,11 +426,11 @@ void oniaEff_pTShapeVary::LoopVary(const char* fname, bool ispbpb, const int tnp
           ptweight = curve->Eval(recopt);
         }
         
-        if (tnptype != tnpTypes::noTnPSFs) {
+        if (tnptype != noTnPSFs) {
           // tnp scale factors applied only when it's requested
           weight = weight*tnp_weight;
         }
-        if (tnptype == tnpTypes::trg_ptWeighting) {
+        if (tnptype == trg_ptWeighting) {
           weight = weight*ptweight ;
 //          cout << "\t\t" << recorap << "  " << recopt << endl;
 //          cout << "\t\t" << weight << "  " << tnp_weight << "  " << ptweight << endl;
