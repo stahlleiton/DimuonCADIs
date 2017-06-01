@@ -41,7 +41,7 @@ void printTex(map<anabin, vector<double> > mapvals,
 // MAIN FUNCTION //
 ///////////////////
 
-void results2syst(const char* workDirNames, const char* systFileName, const char* systHeader, int method, const char* collTag="", bool relativeSyst=true, const char* poiname = "N_Jpsi", bool is16004 = false) {
+void results2syst(const char* workDirNames, const char* systFileName, const char* systHeader, int method, const char* collTag="", bool relativeSyst=true, const char* poiname = "N_Jpsi", bool testChi2 = true, bool is16004 = false) {
 // workDirNames: of the form "dir1,dir2,dir3,..."
 // systFileName: "syst_blabla.csv" (do NOT specify the full path, it will be assigned automatically to Systematics/csv/)
 // systHeader:   this will be the header of the systematics file. A few words describing what this systematic is.
@@ -80,7 +80,7 @@ void results2syst(const char* workDirNames, const char* systFileName, const char
          double ndof = poiFromBin(workDirName.Data(),collTag,"ndof_invMass",trbin);
 
          // in the case of a really bad chi2, print a warning -- except if we are looking at efficiencies
-         if (!(TString(poiname).Contains("eff")) && (ndof==-999 || TMath::Prob(chi2,ndof)<1e-10)) {
+         if (!(TString(poiname).Contains("eff")) && (ndof==-999 || TMath::Prob(chi2,ndof)<1e-10) && testChi2) {
             double ymin = trbin.rapbin().low();
             double ymax = trbin.rapbin().high();
             double ptmin = trbin.ptbin().low();
