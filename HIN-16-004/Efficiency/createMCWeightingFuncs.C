@@ -37,37 +37,41 @@ void customiseLegend(TLegend& legend)
   legend.SetFillStyle(1001);
 }
 
-void createAll(){
-  createMCWeightingFuncs("Distributions_data_prompt/cPP_pt_rap0006_cent0100.root", "Distributions_mc_prompt/cPP_pt_rap0006_cent0100.root","JPsi","PP","006","prompt");
-  createMCWeightingFuncs("Distributions_data_prompt/cPbPb_pt_rap0006_cent0100.root", "Distributions_mc_prompt/cPbPb_pt_rap0006_cent0100.root","JPsi","PbPb","006","prompt");
-  
-  createMCWeightingFuncs("Distributions_data_prompt/cPP_pt_rap0612_cent0100.root", "Distributions_mc_prompt/cPP_pt_rap0612_cent0100.root","JPsi","PP","0612","prompt");
-  createMCWeightingFuncs("Distributions_data_prompt/cPbPb_pt_rap0612_cent0100.root", "Distributions_mc_prompt/cPbPb_pt_rap0612_cent0100.root","JPsi","PbPb","0612","prompt");
-  
-  createMCWeightingFuncs("Distributions_data_prompt/cPP_pt_rap1218_cent0100.root", "Distributions_mc_prompt/cPP_pt_rap1218_cent0100.root","JPsi","PP","1218","prompt");
-  createMCWeightingFuncs("Distributions_data_prompt/cPbPb_pt_rap1218_cent0100.root", "Distributions_mc_prompt/cPbPb_pt_rap1218_cent0100.root","JPsi","PbPb","1218","prompt");
-  
-  createMCWeightingFuncs("Distributions_data_prompt/cPP_pt_rap1824_cent0100.root", "Distributions_mc_prompt/cPP_pt_rap1824_cent0100.root","JPsi","PP","1824","prompt");
-  createMCWeightingFuncs("Distributions_data_prompt/cPbPb_pt_rap1824_cent0100.root", "Distributions_mc_prompt/cPbPb_pt_rap1824_cent0100.root","JPsi","PbPb","1824","prompt");
-  
-  createMCWeightingFuncs("Distributions_data_prompt/cPP_pt_rap0024_cent0100.root", "Distributions_mc_prompt/cPP_pt_rap0024_cent0100.root","JPsi","PP","024","prompt");
-  createMCWeightingFuncs("Distributions_data_prompt/cPbPb_pt_rap0024_cent0100.root", "Distributions_mc_prompt/cPbPb_pt_rap0024_cent0100.root","JPsi","PbPb","024","prompt");
-  
-  
-//  createMCWeightingFuncs("Distributions_data_nonprompt/cPP_pt_rap0006_cent0100.root", "Distributions_mc_nonprompt/cPP_pt_rap0006_cent0100.root","JPsi","PP","006","nonprompt");
-//  createMCWeightingFuncs("Distributions_data_nonprompt/cPbPb_pt_rap0006_cent0100.root", "Distributions_mc_nonprompt/cPbPb_pt_rap0006_cent0100.root","JPsi","PbPb","006","nonprompt");
-//  
-//  createMCWeightingFuncs("Distributions_data_nonprompt/cPP_pt_rap0612_cent0100.root", "Distributions_mc_nonprompt/cPP_pt_rap0612_cent0100.root","JPsi","PP","0612","nonprompt");
-//  createMCWeightingFuncs("Distributions_data_nonprompt/cPbPb_pt_rap0612_cent0100.root", "Distributions_mc_nonprompt/cPbPb_pt_rap0612_cent0100.root","JPsi","PbPb","0612","nonprompt");
-//  
-//  createMCWeightingFuncs("Distributions_data_nonprompt/cPP_pt_rap1218_cent0100.root", "Distributions_mc_nonprompt/cPP_pt_rap1218_cent0100.root","JPsi","PP","1218","nonprompt");
-//  createMCWeightingFuncs("Distributions_data_nonprompt/cPbPb_pt_rap1218_cent0100.root", "Distributions_mc_nonprompt/cPbPb_pt_rap1218_cent0100.root","JPsi","PbPb","1218","nonprompt");
-//  
-//  createMCWeightingFuncs("Distributions_data_nonprompt/cPP_pt_rap1824_cent0100.root", "Distributions_mc_nonprompt/cPP_pt_rap1824_cent0100.root","JPsi","PP","1824","nonprompt");
-//  createMCWeightingFuncs("Distributions_data_nonprompt/cPbPb_pt_rap1824_cent0100.root", "Distributions_mc_nonprompt/cPbPb_pt_rap1824_cent0100.root","JPsi","PbPb","1824","nonprompt");
-//  
-//  createMCWeightingFuncs("Distributions_data_nonprompt/cPP_pt_rap0024_cent0100.root", "Distributions_mc_nonprompt/cPP_pt_rap0024_cent0100.root","JPsi","PP","024","nonprompt");
-//  createMCWeightingFuncs("Distributions_data_nonprompt/cPbPb_pt_rap0024_cent0100.root", "Distributions_mc_nonprompt/cPbPb_pt_rap0024_cent0100.root","JPsi","PbPb","024","nonprompt");
+void createAll(bool isPrompt=true){
+  if (isPrompt)
+  {
+    createMCWeightingFuncs("Distributions_data_prompt/cPP_pt_rap0006_cent0100.root", "Distributions_mc_prompt/cPP_pt_rap0006_cent0100.root","JPsi","PP","006","prompt");
+    createMCWeightingFuncs("Distributions_data_prompt/cPbPb_pt_rap0006_cent0100.root", "Distributions_mc_prompt/cPbPb_pt_rap0006_cent0100.root","JPsi","PbPb","006","prompt");
+    
+    createMCWeightingFuncs("Distributions_data_prompt/cPP_pt_rap0612_cent0100.root", "Distributions_mc_prompt/cPP_pt_rap0612_cent0100.root","JPsi","PP","0612","prompt");
+    createMCWeightingFuncs("Distributions_data_prompt/cPbPb_pt_rap0612_cent0100.root", "Distributions_mc_prompt/cPbPb_pt_rap0612_cent0100.root","JPsi","PbPb","0612","prompt");
+    
+    createMCWeightingFuncs("Distributions_data_prompt/cPP_pt_rap1218_cent0100.root", "Distributions_mc_prompt/cPP_pt_rap1218_cent0100.root","JPsi","PP","1218","prompt");
+    createMCWeightingFuncs("Distributions_data_prompt/cPbPb_pt_rap1218_cent0100.root", "Distributions_mc_prompt/cPbPb_pt_rap1218_cent0100.root","JPsi","PbPb","1218","prompt");
+    
+    createMCWeightingFuncs("Distributions_data_prompt/cPP_pt_rap1824_cent0100.root", "Distributions_mc_prompt/cPP_pt_rap1824_cent0100.root","JPsi","PP","1824","prompt");
+    createMCWeightingFuncs("Distributions_data_prompt/cPbPb_pt_rap1824_cent0100.root", "Distributions_mc_prompt/cPbPb_pt_rap1824_cent0100.root","JPsi","PbPb","1824","prompt");
+    
+//    createMCWeightingFuncs("Distributions_data_prompt/cPP_pt_rap0024_cent0100.root", "Distributions_mc_prompt/cPP_pt_rap0024_cent0100.root","JPsi","PP","024","prompt");
+//    createMCWeightingFuncs("Distributions_data_prompt/cPbPb_pt_rap0024_cent0100.root", "Distributions_mc_prompt/cPbPb_pt_rap0024_cent0100.root","JPsi","PbPb","024","prompt");
+  }
+  else
+  {
+    createMCWeightingFuncs("Distributions_data_nonprompt/cPP_pt_rap0006_cent0100.root", "Distributions_mc_nonprompt/cPP_pt_rap0006_cent0100.root","JPsi","PP","006","nonprompt");
+    createMCWeightingFuncs("Distributions_data_nonprompt/cPbPb_pt_rap0006_cent0100.root", "Distributions_mc_nonprompt/cPbPb_pt_rap0006_cent0100.root","JPsi","PbPb","006","nonprompt");
+    
+    createMCWeightingFuncs("Distributions_data_nonprompt/cPP_pt_rap0612_cent0100.root", "Distributions_mc_nonprompt/cPP_pt_rap0612_cent0100.root","JPsi","PP","0612","nonprompt");
+    createMCWeightingFuncs("Distributions_data_nonprompt/cPbPb_pt_rap0612_cent0100.root", "Distributions_mc_nonprompt/cPbPb_pt_rap0612_cent0100.root","JPsi","PbPb","0612","nonprompt");
+    
+    createMCWeightingFuncs("Distributions_data_nonprompt/cPP_pt_rap1218_cent0100.root", "Distributions_mc_nonprompt/cPP_pt_rap1218_cent0100.root","JPsi","PP","1218","nonprompt");
+    createMCWeightingFuncs("Distributions_data_nonprompt/cPbPb_pt_rap1218_cent0100.root", "Distributions_mc_nonprompt/cPbPb_pt_rap1218_cent0100.root","JPsi","PbPb","1218","nonprompt");
+    
+    createMCWeightingFuncs("Distributions_data_nonprompt/cPP_pt_rap1824_cent0100.root", "Distributions_mc_nonprompt/cPP_pt_rap1824_cent0100.root","JPsi","PP","1824","nonprompt");
+    createMCWeightingFuncs("Distributions_data_nonprompt/cPbPb_pt_rap1824_cent0100.root", "Distributions_mc_nonprompt/cPbPb_pt_rap1824_cent0100.root","JPsi","PbPb","1824","nonprompt");
+    
+//    createMCWeightingFuncs("Distributions_data_nonprompt/cPP_pt_rap0024_cent0100.root", "Distributions_mc_nonprompt/cPP_pt_rap0024_cent0100.root","JPsi","PP","024","nonprompt");
+//    createMCWeightingFuncs("Distributions_data_nonprompt/cPbPb_pt_rap0024_cent0100.root", "Distributions_mc_nonprompt/cPbPb_pt_rap0024_cent0100.root","JPsi","PbPb","024","nonprompt");
+  }
 }
 
 
@@ -134,7 +138,7 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
 //  cout << nPoints << " ; " << xAxis[nPoints] << endl;
   
   TH1D* histoDataClone = new TH1D(Form("hdistrData_%s_%s_nominal",partName,collName),"",nPoints,xAxis);
-  histoDataClone->Sumw2(kTRUE);
+//  histoDataClone->Sumw2(kTRUE);
   for (int i = 0; i<nPoints ; i++)
   {
     histoDataClone->SetBinContent(i+1,y[i]);
@@ -143,7 +147,12 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
 
   // Normalise the initial DATA and MC distributions
   Double_t norm = 1./histoDataClone->Integral();
-  histoDataClone->Scale(norm); // Normalise histo to 1
+//  histoDataClone->Scale(norm); // Normalise histo to 1
+  for (int i = 0; i<nPoints ; i++) // Normalise histo to 1
+  {
+    histoDataClone->SetBinContent(i+1,histoDataClone->GetBinContent(i+1)*norm);
+    histoDataClone->SetBinError(i+1,histoDataClone->GetBinError(i+1)*norm);
+  }
   histoDataClone->SetLineColor(1);
   histoDataClone->SetMarkerColor(1);
   histoDataClone->SetStats(0);
@@ -170,7 +179,7 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
 //  cout << xAxisMC[nPointsMC] << endl;
   
   TH1D* histoMCClone = new TH1D(Form("hdistrMC_%s_%s_nominal",partName,collName),"",nPointsMC,xAxisMC);
-  histoMCClone->Sumw2(kTRUE);
+//  histoMCClone->Sumw2(kTRUE);
   for (int i = 0; i<nPointsMC ; i++)
   {
     histoMCClone->SetBinContent(i+1,yMC[i]);
@@ -178,7 +187,12 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
   }
 
   norm = 1./histoMCClone->Integral();
-  histoMCClone->Scale(norm); // Normalise histo to 1
+//  histoMCClone->Scale(norm); // Normalise histo to 1
+  for (int i = 0; i<nPointsMC ; i++) // Normalise histo to 1
+  {
+    histoMCClone->SetBinContent(i+1,histoMCClone->GetBinContent(i+1)*norm);
+    histoMCClone->SetBinError(i+1,histoMCClone->GetBinError(i+1)*norm);
+  }
   histoMCClone->SetLineColor(4);
   histoMCClone->SetMarkerColor(4);
   histoMCClone->SetStats(0);
@@ -198,22 +212,31 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
       Double_t newYield = histoDataClone->GetBinContent(i);
       Double_t newError = histoDataClone->GetBinError(i);
       
-      TF1* fRand = new TF1("fRand","TMath::Gaus(x,[0],[1],1)",newYield-6.*newError,newYield+6.*newError); // Function to randomise yields in each bin
-      fRand->SetNpx(10000);
-      fRand->SetParameter(0,newYield);
-      fRand->SetParameter(1,newError);
-
-      newYield = fRand->GetRandom();
-      if (newYield<0.) newYield = 0.;
-      
+//      if (i != nBins) // This is done to not randomise the last pt bin, which has already a big statistical uncertainty on the data/mc ratio
+//      {
+        TF1* fRand = new TF1("fRand","TMath::Gaus(x,[0],[1],1)",newYield-6.*newError,newYield+6.*newError); // Function to randomise yields in each bin
+        fRand->SetNpx(10000);
+        fRand->SetParameter(0,newYield);
+        fRand->SetParameter(1,newError);
+        
+        newYield = fRand->GetRandom();
+        while (newYield<=0.) {newYield = fRand->GetRandom();} // This introduces a bias, but avoid to have 0, so infinite data/mc ratios
+//      }
       histoDataClone2->SetBinContent(i,newYield);
       histoDataClone2->SetBinError(i,newError);
+      
       histoDataClone2->SetLineColor(2);
       histoDataClone2->SetMarkerColor(2);
+      
     }
     
     norm = 1./histoDataClone->Integral();
-    histoDataClone->Scale(norm); // Normalise randomised histo to 1
+    for (Int_t i=1; i<=nBins ; i++) // Normalise histo to 1
+    {
+      histoMCClone->SetBinContent(i,histoMCClone->GetBinContent(i)*norm);
+      histoMCClone->SetBinError(i,histoMCClone->GetBinError(i)*norm);
+    }
+//    histoDataClone->Scale(norm); // Normalise randomised histo to 1
     aDataHistos->Add(histoDataClone2);
   }
   
@@ -225,7 +248,14 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
   while ( (histoDataClone = static_cast<TH1D*>(nextHisto())) )
   {
     histoDataClone2 = static_cast<TH1D*>(histoDataClone->Clone(nh == 0 ? Form("hratio_%s_%s_nominal",partName,collName) : Form("hratio_%s_%s_n%d",partName,collName,nh-1)));
-    histoDataClone2->Divide(histoMCClone);
+    Int_t nBins = histoDataClone2->GetNbinsX();
+    for (Int_t i=1; i<=nBins ; i++) // Divide Data/MC
+    {
+      double dataY = histoDataClone2->GetBinContent(i);
+      histoDataClone2->SetBinContent(i,dataY/histoMCClone->GetBinContent(i));
+      histoDataClone2->SetBinError(i,histoDataClone2->GetBinContent(i)*TMath::Sqrt(TMath::Power(histoDataClone2->GetBinError(i)/dataY,2.)));
+    }
+//    histoDataClone2->Divide(histoMCClone);
     histoDataClone2->SetLineColor(nh==0 ? 1 : 2);
     histoDataClone2->SetMarkerColor(nh==0 ? 1 : 2);
     histoDataClone2->GetXaxis()->SetTitle("p_{T}");
@@ -233,10 +263,11 @@ void createMCWeightingFuncs(const char* fileData, const char* fileMC, const char
     
     TString fName(nh==0 ? "wFunction_nominal" : Form("wFunction_n%d",nh-1));
     TF1* fWeight(0x0);
-    if (polOrder==1) fWeight= new TF1(fName.Data(),Pol1,0.,50.,2);
-    else if (polOrder==2) fWeight= new TF1(fName.Data(),Pol2,0.,50.,3);
+    if (polOrder==1) fWeight= new TF1(fName.Data(),Pol1,6.5,50.,2);
+    else if (polOrder==2) fWeight= new TF1(fName.Data(),Pol2,6.5,50.,3);
+    else if (polOrder==3) fWeight= new TF1(fName.Data(),Pol3,6.5,50.,4);
     fWeight->SetLineColor(nh==0 ? 1 : 2);
-    histoDataClone2->Fit(fWeight,"N");
+    histoDataClone2->Fit(fWeight,"IN");
     
     aFunctions->Add(fWeight);
     aRatios->Add(histoDataClone2);

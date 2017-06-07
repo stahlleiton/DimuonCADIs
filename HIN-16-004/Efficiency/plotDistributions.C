@@ -37,7 +37,7 @@ const char* poiname       = "N_Jpsi";
 bool  fiterrors     = true;  // statistical errors are from the fit
 bool  doprompt      = true;  // prompt Jpsi
 bool  dononprompt   = false;  // nonprompt Jpsi
-string nameTag_base = "_data";    // can put here e.g. "_data", "_mc", ...
+string nameTag_base = "_mc";    // can put here e.g. "_data", "_mc", ...
 
 //////////////////
 // DECLARATIONS //
@@ -101,7 +101,7 @@ void plotRap(string workDirName) {
   string xaxis = "rap";
   vector<anabin> theCats;
   
-  theCats.push_back(anabin(0,2.4,6.5,30,0,200));
+  theCats.push_back(anabin(0,2.4,6.5,50,0,200));
   
   plot(theCats,xaxis,workDirName);
 };
@@ -133,13 +133,18 @@ void plot(vector<anabin> thecats, string xaxis, string outputDir) {
   
   TString sampleName(isData ? "DATA" : (doprompt? "MCJPSIPR" : "MCJPSINOPR"));
   TFile *f = new TFile(treeFileName(outputDir.c_str(),sampleName.Data(),"../Fitter"));
-  if (!f || !f->IsOpen()) {
+  if (f) cout << "Using file : " << f->GetName() << endl;
+  else{
+    cout << "[ERROR] file not found" << endl;
+    return;
+  }
+  /*if (!f || !f->IsOpen()) {
     results2tree(outputDir.c_str(),sampleName.Data(),"../Fitter");
     f = new TFile(treeFileName(outputDir.c_str(),sampleName.Data(),"../Fitter"));
     if (!f) return;
-  }
+  }*/
   TTree *tr = (TTree*) f->Get("fitresults");
-  if (!tr) return;
+  if (!tr) {cout << "{ERROR] Tree not dound in file " << f->GetName() << endl; return;}
   
   map<anabin, distr_input> theVars_inputs;
   
