@@ -23,6 +23,7 @@ class oniaEff_TnPToyStudy : public oniaEff {
     virtual ~oniaEff_TnPToyStudy();
     virtual const char* GetHistName(TH1F *h, const char *token);
     virtual void LoopVary(const char *fname, bool ispbpb, const int tnptype);
+    vector<TObjArray*> ReadFileWeight(bool ispbpb);
 
 };
 
@@ -46,6 +47,31 @@ const char * oniaEff_TnPToyStudy::GetHistName(TH1F* h, const char *_token) {
   return histnamebase.c_str();
 }
 
+vector<TObjArray*> oniaEff_TnPToyStudy::ReadFileWeight(bool ispbpb) {
+   string wfilePbPb[] = {"weights_JPsi_PbPb_006_prompt.root","weights_JPsi_PbPb_0612_prompt.root","weights_JPsi_PbPb_1218_prompt.root","weights_JPsi_PbPb_1824_prompt.root"};
+   string wfilePP[] = {"weights_JPsi_PP_006_prompt.root","weights_JPsi_PP_0612_prompt.root","weights_JPsi_PP_1218_prompt.root","weights_JPsi_PP_1824_prompt.root"};
+   const int nidxf = sizeof(wfilePbPb)/sizeof(string);
+   
+   TFile *fweight[nidxf];
+   vector<TObjArray*> objarr;
+   
+   for (int idxf=0; idxf<nidxf; idxf++) {
+     if (ispbpb)
+       fweight[idxf] = new TFile(Form("weightFunctDataMC/%s",wfilePbPb[idxf].c_str()));
+     else
+       fweight[idxf] = new TFile(Form("weightFunctDataMC/%s",wfilePP[idxf].c_str()));
+     
+     TObjArray *objtmp = (TObjArray*)fweight[idxf]->Get("wFunctions");
+     TObjArray *obj = (TObjArray*)objtmp->Clone(Form("%s_copy",objtmp->GetName()));
+     objarr.push_back(obj);
+   }
+
+   for (int idxf=0; idxf<nidxf; idxf++) {
+     fweight[idxf]->Close();
+   }
+
+   return objarr;
+}  
 
 void oniaEff_TnPToyStudy::LoopVary(const char* fname, bool ispbpb, const int tnptype)
 {
@@ -77,6 +103,9 @@ void oniaEff_TnPToyStudy::LoopVary(const char* fname, bool ispbpb, const int tnp
 //by  b_branchname->GetEntry(ientry); //read only this branch
    if (fChain == 0) return;
 
+   // Load pt weighting curves from external files
+   vector<TObjArray *> wFunctions = ReadFileWeight(ispbpb);
+   
    TFile *f = new TFile(fname, "RECREATE");
    f->cd();
 
@@ -222,10 +251,20 @@ void oniaEff_TnPToyStudy::LoopVary(const char* fname, bool ispbpb, const int tnp
       
       
       if(isgenok) {
+        // Apply Data/MC pT ratio as a weight
+        TF1 *curve;
+        if (genrap>=0 && genrap<0.6)        curve = (TF1*) wFunctions[0]->At(0);
+        else if (genrap>=0.6 && genrap<1.2) curve = (TF1*) wFunctions[1]->At(0);
+        else if (genrap>=1.2 && genrap<1.8) curve = (TF1*) wFunctions[2]->At(0);
+        else if (genrap>=1.8 && genrap<2.4) curve = (TF1*) wFunctions[3]->At(0);
+        double ptweight = curve->Eval(genpt);
+      
         for (int a=0; a<100; a++) {
           
           double weight = ispbpb ? fChain->GetWeight()*findNcoll(Centrality) : 1.;
           
+          weight = weight*ptweight;
+
           // temporary histograms to be added to TObjArray 
           TH1F *den_cent_rap[nbins_4rap+2];
           TH1F *den_pt_rap[nbins_4rap+1];
@@ -372,16 +411,16 @@ void oniaEff_TnPToyStudy::LoopVary(const char* fname, bool ispbpb, const int tnp
         }
 
         if (ispbpb) { 
-          if (tnptype == tnpTypes::trg_toy) { // toy variations, stat. only
+          if (tnptype == trg_toy) { // toy variations, stat. only
             tnp_weight = tnp_weight_trg_pbpb(recMuPlpt, recMuPlEta, a+1) * tnp_weight_trg_pbpb(recMuMipt, recMuMiEta, a+1);
           }
         } else { //pp
-          if (tnptype == tnpTypes::trg_toy) { // toy variations, stat. only
+          if (tnptype == trg_toy) { // toy variations, stat. only
             tnp_weight = tnp_weight_trg_pp(recMuPlpt, recMuPlEta, a+1) * tnp_weight_trg_pp(recMuMipt, recMuMiEta, a+1);
           }
         }
         
-        if (tnptype != tnpTypes::noTnPSFs) {
+        if (tnptype != noTnPSFs) {
           // tnp scale factors applied only when it's requested
           weight = weight*tnp_weight;
         }

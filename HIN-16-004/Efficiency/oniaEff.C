@@ -69,9 +69,9 @@ vector<TObjArray*> oniaEff::ReadFileWeight(bool ispbpb) {
    
    for (int idxf=0; idxf<nidxf; idxf++) {
      if (ispbpb)
-       fweight[idxf] = new TFile(Form("weightFunctDataMC/%s",wfilePbPb[idxf].c_str()));
+       fweight[idxf] = new TFile(Form("weightFunctDataMC_noRlast_pol2/%s",wfilePbPb[idxf].c_str()));
      else
-       fweight[idxf] = new TFile(Form("weightFunctDataMC/%s",wfilePP[idxf].c_str()));
+       fweight[idxf] = new TFile(Form("weightFunctDataMC_noRlast_pol2/%s",wfilePP[idxf].c_str()));
      
      TObjArray *objtmp = (TObjArray*)fweight[idxf]->Get("wFunctions");
      TObjArray *obj = (TObjArray*)objtmp->Clone(Form("%s_copy",objtmp->GetName()));
@@ -211,7 +211,7 @@ void oniaEff::Loop(const char* fname, bool ispbpb, const int tnptype, const bool
         if (!gen_inbin) isgenok=false;
       }
       
-      double weight = ispbpb ? fChain->GetWeight()*findNcoll(Centrality) : 1.;
+      double weight = (ispbpb && !isacc) ? fChain->GetWeight()*findNcoll(Centrality) : 1.;
       
       // Apply Data/MC pT ratio as a weight
       TF1 *curve;
