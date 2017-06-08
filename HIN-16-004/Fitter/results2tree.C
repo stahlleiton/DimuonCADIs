@@ -25,7 +25,8 @@ using namespace RooFit;
 struct poi {
   Char_t name[64];
   float val;
-  float err;
+  float errH;
+  float errL;
   float parIni_mass;
   float parIni_mass_err;
   float parLoad_mass;
@@ -107,7 +108,8 @@ void results2tree(
   
   for (vector<poi>::iterator it=thePois.begin(); it!=thePois.end(); it++) {
     tr->Branch(Form("%s_val",it->name),&(it->val),Form("%s_val/F",it->name));
-    tr->Branch(Form("%s_err",it->name),&(it->err),Form("%s_err/F",it->name));
+    tr->Branch(Form("%s_errL",it->name),&(it->errL),Form("%s_errL/F",it->name));
+    tr->Branch(Form("%s_errH",it->name),&(it->errH),Form("%s_errH/F",it->name));
     tr->Branch(Form("%s_min",it->name),&(it->min),Form("%s_min/F",it->name));
     tr->Branch(Form("%s_max",it->name),&(it->max),Form("%s_max/F",it->name));
     tr->Branch(Form("%s_parIni_mass",it->name),&(it->parIni_mass),Form("%s_parIni_mass/F",it->name));
@@ -235,7 +237,8 @@ void results2tree(
         RooRealVar *thevar_parIni_ctaumass = pdfCTAUMASS_Tot_parIni ? (RooRealVar*) pdfCTAUMASS_Tot_parIni->find(Form("%s_%s",itpoi->name,collSystem)) : 0;
         RooRealVar *thevar_parFit_ctaumass = pdfCTAUMASS_Tot_parFit ? (RooRealVar*) pdfCTAUMASS_Tot_parFit->find(Form("%s_%s",itpoi->name,collSystem)) : 0;
         itpoi->val = thevar ? thevar->getVal() : 0;
-        itpoi->err = thevar ? thevar->getError() : 0;
+        itpoi->errL = thevar ? thevar->getError() : 0;
+        itpoi->errH = itpoi->errL;
         itpoi->min = thevar ? thevar->getMin() : 0;
         itpoi->max = thevar ? thevar->getMax() : 0;
         itpoi->parIni_mass = thevar_parIni_mass ? thevar_parIni_mass->getVal() : 0;
@@ -263,7 +266,8 @@ void results2tree(
           RooRealVar *thevar2 = poiFromWS(ws, Form("_%s",collSystem), var2name);
           if (fr) {
             itpoi->val = fr->correlation(Form("%s_%s",var1name.Data(),collSystem),Form("%s_%s",var2name.Data(),collSystem));
-            itpoi->err = thevar1 && thevar2 ? itpoi->val * thevar1->getError() * thevar2->getError() : 0;
+            itpoi->errL = thevar1 && thevar2 ? itpoi->val * thevar1->getError() * thevar2->getError() : 0;
+            itpoi->errH = itpoi->errL;
           }
         }
         else if (TString(itpoi->name).Contains("eff")) {
@@ -306,7 +310,8 @@ void results2tree(
             thebin.print();
             cout << hnumname << " not found!" << endl;
             itpoi->val = 0;
-            itpoi->err = 0;
+            itpoi->errL = 0;
+            itpoi->errH = itpoi->errL;
             continue;
           }
           
@@ -325,7 +330,8 @@ void results2tree(
           }
           double efficiency = (denval>0) ? numval / denval : 0;
           itpoi->val = efficiency;
-          itpoi->err = (numval>0 && denval>0) ? efficiency*sqrt(pow(numerr/numval,2)+pow(denerr/denval,2)) : 0;
+          itpoi->errL = (numval>0 && denval>0) ? efficiency*sqrt(pow(numerr/numval,2)+pow(denerr/denval,2)) : 0;
+          itpoi->errH = itpoi->errL;
           delete feff;
         }
         else if (TString(itpoi->name).Contains("acc")) {
@@ -368,11 +374,13 @@ void results2tree(
             thebin.print();
             cout << hnumname << " not found!" << endl;
             itpoi->val = 0;
-            itpoi->err = 0;
+            itpoi->errL = 0;
+            itpoi->errH = itpoi->errL;
             continue;
           }
           
           double numval, numerr, denval, denerr;
+//          int ibin = hnum->FindBin(5.); //FIXME: temporary fix to take always the first centrality bin
           int ibin = hnum->FindBin((thebin.centbin().low()+thebin.centbin().high())/4.);
           if (tag1 == "pt") ibin = hnum->FindBin((thebin.ptbin().low()+thebin.ptbin().high())/2.);
           if (tag1 == "rap") ibin = hnum->FindBin((thebin.rapbin().low()+thebin.rapbin().high())/2.);
@@ -387,41 +395,49 @@ void results2tree(
           }
           double efficiency = (denval>0) ? numval / denval : 0;
           itpoi->val = efficiency;
-          itpoi->err = (numval>0 && denval>0) ? efficiency*sqrt(pow(numerr/numval,2)+pow(denerr/denval,2)) : 0;
+          itpoi->errL = (numval>0 && denval>0) ? efficiency*sqrt(pow(numerr/numval,2)+pow(denerr/denval,2)) : 0;
+          itpoi->errH = itpoi->errL;
           delete feff;
         }
         else if (TString(itpoi->name)=="lumi") {
           // luminosity and Ncoll
           if (isPP) {
             itpoi->val = lumipp;
-            itpoi->err = 0.023; // from LUM-16-001
+            itpoi->errL = 0.023; // from LUM-16-001
+            itpoi->errH = itpoi->errL;
           } else {
             if (thebin.centbin().low()>=60) itpoi->val = lumipbpb_peri;
             else itpoi->val = lumipbpb_ABCD;
-            itpoi->err = 0; // FIXME
+            itpoi->errL = 0; // FIXME
+            itpoi->errH = itpoi->errL;
           }
         }
         else if (TString(itpoi->name)=="ncoll") {
           if (isPP) {
             itpoi->val=1;
-            itpoi->err=0;
+            itpoi->errL=0;
+            itpoi->errH = itpoi->errL;
           } else {
             itpoi->val = HI::findNcollAverage(thebin.centbin().low(),thebin.centbin().high());
-            itpoi->err = 0; //FIXME
+            itpoi->errL = 0; //FIXME
+            itpoi->errH = itpoi->errL;
           }
         }
         else if (TString(itpoi->name)=="npart") {
           if (isPP) {
             itpoi->val=2;
-            itpoi->err=0;
+            itpoi->errL=0;
+            itpoi->errH = itpoi->errL;
           } else {
             itpoi->val = HI::findNpartAverage(thebin.centbin().low(),thebin.centbin().high());
-            itpoi->err = 0; //FIXME
+            itpoi->errL = 0; //FIXME
+            itpoi->errH = itpoi->errL;
           }
         }
         if (TString(itpoi->name)=="taa") {
           itpoi->val=HI::findTaaAverage(thebin.centbin().low(),thebin.centbin().high());
-          itpoi->err=HI::findTaaAverage_err(thebin.centbin().low(),thebin.centbin().high());
+          itpoi->errL=HI::findTaaAverage_err_low(thebin.centbin().low(),thebin.centbin().high());
+          itpoi->errH = HI::findTaaAverage_err_high(thebin.centbin().low(),thebin.centbin().high());
         }
         
       }
@@ -434,7 +450,8 @@ void results2tree(
     } else {
       for (vector<poi>::iterator itpoi=thePois.begin(); itpoi!=thePois.end(); itpoi++) {
         itpoi->val = 0;
-        itpoi->err = 0;
+        itpoi->errL = 0;
+        itpoi->errH = itpoi->errL;
       }
     }
     
