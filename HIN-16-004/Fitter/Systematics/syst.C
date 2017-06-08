@@ -93,26 +93,27 @@ map<anabin, syst> combineSyst(vector< map<anabin, syst> > theSysts, string name)
    return ans;
 };
 
-map<anabin, syst> readSyst_all(const char* collSystem, const char* poiname, const char* prependPath, bool doPrintTex, const char* texName) {
+map<anabin, syst> readSyst_all(const char* collSystem, const char* poiname, const char* nameTag, const char* prependPath, bool doPrintTex, const char* texName) {
    // poiname = NJpsi or BJpsi
    TString spoiname(poiname);
    TString sprependPath(prependPath);
+   TString snameTag(nameTag);
   
    vector<TString> filelist;
   
-   filelist.push_back(Form("%sSystematics/csv/syst_%s_PbPb_massBkg.csv",sprependPath.Data(),spoiname.Data()));
-   filelist.push_back(Form("%sSystematics/csv/syst_%s_PbPb_massSig.csv",sprependPath.Data(),spoiname.Data()));
-   filelist.push_back(Form("%sSystematics/csv/syst_%s_PbPb_ctauErr.csv",sprependPath.Data(),spoiname.Data()));
-   filelist.push_back(Form("%sSystematics/csv/syst_%s_PbPb_ctauTrue.csv",sprependPath.Data(),spoiname.Data()));
-   filelist.push_back(Form("%sSystematics/csv/syst_%s_PbPb_ctauRes.csv",sprependPath.Data(),spoiname.Data()));
-   filelist.push_back(Form("%sSystematics/csv/syst_%s_PbPb_ctauBkg.csv",sprependPath.Data(),spoiname.Data()));
+   filelist.push_back(Form("%sSystematics/csv/syst_%s_%s_PbPb_massBkg.csv",sprependPath.Data(),snameTag.Data(),spoiname.Data()));
+   filelist.push_back(Form("%sSystematics/csv/syst_%s_%s_PbPb_massSig.csv",sprependPath.Data(),snameTag.Data(),spoiname.Data()));
+   filelist.push_back(Form("%sSystematics/csv/syst_%s_%s_PbPb_ctauErr.csv",sprependPath.Data(),snameTag.Data(),spoiname.Data()));
+   filelist.push_back(Form("%sSystematics/csv/syst_%s_%s_PbPb_ctauTrue.csv",sprependPath.Data(),snameTag.Data(),spoiname.Data()));
+   filelist.push_back(Form("%sSystematics/csv/syst_%s_%s_PbPb_ctauRes.csv",sprependPath.Data(),snameTag.Data(),spoiname.Data()));
+   filelist.push_back(Form("%sSystematics/csv/syst_%s_%s_PbPb_ctauBkg.csv",sprependPath.Data(),snameTag.Data(),spoiname.Data()));
   
-   filelist.push_back(Form("%sSystematics/csv/syst_%s_PP_massBkg.csv",sprependPath.Data(),spoiname.Data()));
-   filelist.push_back(Form("%sSystematics/csv/syst_%s_PP_massSig.csv",sprependPath.Data(),spoiname.Data()));
-   filelist.push_back(Form("%sSystematics/csv/syst_%s_PP_ctauErr.csv",sprependPath.Data(),spoiname.Data()));
-   filelist.push_back(Form("%sSystematics/csv/syst_%s_PP_ctauTrue.csv",sprependPath.Data(),spoiname.Data()));
-   filelist.push_back(Form("%sSystematics/csv/syst_%s_PP_ctauRes.csv",sprependPath.Data(),spoiname.Data()));
-   filelist.push_back(Form("%sSystematics/csv/syst_%s_PP_ctauBkg.csv",sprependPath.Data(),spoiname.Data()));
+   filelist.push_back(Form("%sSystematics/csv/syst_%s_%s_PP_massBkg.csv",sprependPath.Data(),snameTag.Data(),spoiname.Data()));
+   filelist.push_back(Form("%sSystematics/csv/syst_%s_%s_PP_massSig.csv",sprependPath.Data(),snameTag.Data(),spoiname.Data()));
+   filelist.push_back(Form("%sSystematics/csv/syst_%s_%s_PP_ctauErr.csv",sprependPath.Data(),snameTag.Data(),spoiname.Data()));
+   filelist.push_back(Form("%sSystematics/csv/syst_%s_%s_PP_ctauTrue.csv",sprependPath.Data(),snameTag.Data(),spoiname.Data()));
+   filelist.push_back(Form("%sSystematics/csv/syst_%s_%s_PP_ctauRes.csv",sprependPath.Data(),snameTag.Data(),spoiname.Data()));
+   filelist.push_back(Form("%sSystematics/csv/syst_%s_%s_PP_ctauBkg.csv",sprependPath.Data(),snameTag.Data(),spoiname.Data()));
   
 //   filelist.push_back("Systematics/csv/syst_PbPb_fulltnp.csv"); // temporary!! to be updated
 //   filelist.push_back("Systematics/csv/syst_PP_fulltnp.csv"); // temporary!! to be updated
