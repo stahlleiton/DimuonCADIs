@@ -167,12 +167,12 @@ bool fitCharmoniaCtauMassModel( RooWorkspace& myws,             // Local Workspa
     RooArgSet pdfList = RooArgSet("ConstrainPdfList");
     for (auto obj : objs) {
       if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"))))  {
-      myws.factory(Form("Gaussian::%s_Gauss(%s,%s_Mean[%f],%s_Sigma[%f])", Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), 
-                        Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), myws.var(Form("N_%s_%s", obj.c_str(), isPbPb?"PbPb":"PP"))->getValV(), 
-                        Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")) , myws.var(Form("N_%s_%s", obj.c_str(), isPbPb?"PbPb":"PP"))->getError()));
-      pdfList.add(*myws.pdf(Form("N_%s_%s_Gauss", obj.c_str(), (isPbPb?"PbPb":"PP"))), kFALSE);
-      std::cout << "[INFO] Constraining N_" << obj << " with Mean : " << myws.var(Form("N_%s_%s_Mean", obj.c_str(), (isPbPb?"PbPb":"PP")))->getVal() 
-                << " and Sigma: " << myws.var(Form("N_%s_%s_Sigma", obj.c_str(), (isPbPb?"PbPb":"PP")))->getVal() << std::endl;
+        myws.factory(Form("Gaussian::%s_Gauss(%s,%s_Mean[%f],%s_Sigma[%f])", Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")),
+                          Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), myws.var(Form("N_%s_%s", obj.c_str(), isPbPb?"PbPb":"PP"))->getValV(),
+                          Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")) , 3.0*myws.var(Form("N_%s_%s", obj.c_str(), isPbPb?"PbPb":"PP"))->getError()));
+        pdfList.add(*myws.pdf(Form("N_%s_%s_Gauss", obj.c_str(), (isPbPb?"PbPb":"PP"))), kFALSE);
+        std::cout << "[INFO] Constraining N_" << obj << " with Mean : " << myws.var(Form("N_%s_%s_Mean", obj.c_str(), (isPbPb?"PbPb":"PP")))->getVal()
+                  << " and Sigma: " << 3.0*myws.var(Form("N_%s_%s_Sigma", obj.c_str(), (isPbPb?"PbPb":"PP")))->getVal() << std::endl;
       }
     }
     myws.defineSet("ConstrainPdfList", pdfList);
