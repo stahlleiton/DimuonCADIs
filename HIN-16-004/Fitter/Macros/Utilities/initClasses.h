@@ -473,17 +473,29 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
     if (myws.data(dsNameCut.c_str()) && ws->data(dsName.c_str()) && !isCompatibleDataset(*(RooDataSet*)myws.data(dsNameCut.c_str()), *(RooDataSet*)ws->data(dsName.c_str()), false)) {
       // Let's fit again the mass with only the N parameters free, to account for possible ctau or ctauErr cuts in the input datasets
       myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
-      std::vector< std::string > objs = {"Bkg", "Jpsi", "Psi2S"}; std::map< std::string , double > dN;
+      std::vector< std::string > objs = {"Bkg", "Jpsi", "Psi2S"}; std::map< std::string , double > dN_Old , dN_New, dNErr_Old;
       for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"))))  setConstant( myws, Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), false); }
       std::cout << "[INFO] Fitting the mass distribution to update the number of events!" << std::endl;
-      for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) dN[obj] = myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))->getVal(); }
-      ((RooFitResult*)myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(32), PrintLevel(-1), Save()))->Print("v");
-      for (auto obj : objs) {
-        if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) cout << "[INFO] Change in " << Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"))
-                                                                               << " : " << dN.at(obj) << " -> " 
-                                                                               << myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))->getVal()
-                                                                               << endl;
+      for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) {
+          dN_Old[obj]    = myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))->getVal();
+          dNErr_Old[obj] = myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))->getError();
+        }
       }
+      ((RooFitResult*)myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(32), PrintLevel(-1), Save()))->Print("v");
+      for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) { dN_New[obj]    = myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))->getVal(); } }
+      bool update = true; for (auto obj : objs) {  if (dN_Old.count(obj)>0 && (dN_New.at(obj) > dN_Old.at(obj))) { update = false; } }
+      if (update) {
+        for (auto obj : objs) {
+          if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) cout << "[INFO] Change in " << Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"))
+                                                                                 << " : " << dN_Old.at(obj) << " -> " << dN_New.at(obj) << endl;
+        }
+      }
+      else {
+        for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) { myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))->setVal(dN_Old.at(obj)); } }
+        cout << "[WARNING] Number of Re-Fitted events is larger than in mass fits, setting the N parameter values to its results from mass fits!" << endl;
+      }
+      // Set the re-fitted N errors to their values from the mass fits
+      for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) { myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))->setError(dNErr_Old.at(obj)); } }
       myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kFALSE);
     }
   }
