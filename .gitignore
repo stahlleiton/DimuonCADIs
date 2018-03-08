@@ -42,6 +42,6 @@ Thumbs.db
 
 # Others #
 ##########
-*.pdf
-*.png
-*.root
+#*.pdf
+#*.png
+#*.root
