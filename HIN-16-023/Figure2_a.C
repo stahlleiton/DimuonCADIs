@@ -1,9 +1,10 @@
-#include "TROOT.h"
+#include "tdrstyle.C"
 #include "TSystem.h"
 void Figure2_a()
 {
 //=========Macro generated from canvas: c1/c1
 //=========  (Mon Sep 17 15:36:17 2018) by ROOT version 6.14/04
+   setTDRStyle();
    TCanvas *c1 = new TCanvas("c1", "c1",0,0,600,600);
   gPad->SetLeftMargin(0.23);
   gPad->SetBottomMargin(0.16);
@@ -394,10 +395,8 @@ void Figure2_a()
    leg->SetTextSize(0.04);
    leg->SetLineColor(1);
    leg->SetLineStyle(1);
-   leg->SetLineWidth(1);
-   leg->SetFillColor(0);
-   leg->SetFillStyle(4000);
-   TLegendEntry *entry=leg->AddEntry(gre1,"#varUpsilon(1S)","lp");
+   leg->SetFillStyle(0);
+   TLegendEntry *entry=leg->AddEntry(gre1," #varUpsilon(1S)","lp");
    //TLegendEntry *entry=leg->AddEntry("gCrossSection_pt_PP_0"," #varUpsilon(1S)","lp");
 
    ci = TColor::GetColor("#990033");
@@ -410,7 +409,7 @@ void Figure2_a()
    entry->SetMarkerStyle(20);
    entry->SetMarkerSize(1.5);
    entry->SetTextFont(42);
-   entry=leg->AddEntry(gre2,"#varUpsilon(2S)","lp");
+   entry=leg->AddEntry(gre2," #varUpsilon(2S)","lp");
    //entry=leg->AddEntry("gCrossSection_pt_PP_1"," #varUpsilon(2S)","lp");
 
    ci = TColor::GetColor("#3333cc");
@@ -423,7 +422,7 @@ void Figure2_a()
    entry->SetMarkerStyle(21);
    entry->SetMarkerSize(1.5);
    entry->SetTextFont(42);
-   entry=leg->AddEntry(gre3,"#varUpsilon(3S)","lp");
+   entry=leg->AddEntry(gre3," #varUpsilon(3S)","lp");
    //entry=leg->AddEntry("gCrossSection_pt_PP_2"," #varUpsilon(3S)","lp");
 
    ci = TColor::GetColor("#009900");
