@@ -110,8 +110,8 @@ bool isEqualKinCuts(struct KinCuts cutA, struct KinCuts cutB, bool isPbPb)
   bool cond = true;
 
   if (isPbPb) {
-    cond = cond && (cutA.Centrality.Start    == cutB.Centrality.Start);
-    cond = cond && (cutA.Centrality.End      == cutB.Centrality.End);
+    cond = cond && (cutA.Centrality.Start  == cutB.Centrality.Start);
+    cond = cond && (cutA.Centrality.End    == cutB.Centrality.End);
   }
   cond = cond && (cutA.sMuon.Pt.Min        == cutB.sMuon.Pt.Min);
   cond = cond && (cutA.sMuon.Pt.Max        == cutB.sMuon.Pt.Max);
@@ -241,14 +241,22 @@ typedef struct OniaModel {
 } OniaModel;
 
 
+bool existDir(const string& dir)
+{
+  bool exist = false;
+  void * dirp = gSystem->OpenDirectory(dir.c_str());
+  if (dirp){
+    gSystem->FreeDirectory(dirp);
+    exist = true;
+  }
+  return exist;
+};
 
-
-#include <boost/algorithm/string/replace.hpp>
 
 void setFixedVarsToContantVars(RooWorkspace& ws)
 {
-  RooArgSet listVar = ws.allVars();
-  TIterator* parIt = listVar.createIterator();
+  auto listVar = ws.allVars();
+  auto parIt = std::unique_ptr<TIterator>(listVar.createIterator());
   for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
     if ( it->getMin()==it->getMax() && !it->isConstant() ) {
       cout << "[INFO] Setting " << it->GetName() << " constant!" << endl;
@@ -270,28 +278,29 @@ T* clone(const T& s)
 };
 
 
-bool compareSnapshots(RooArgSet *pars1, const RooArgSet *pars2) {
-  TIterator* parIt = pars1->createIterator(); 
+bool compareSnapshots(const RooArgSet& pars1, const RooArgSet& pars2) {
+  auto parIt = std::unique_ptr<TIterator>(pars1.createIterator());
   for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
-    double val = pars2->getRealValue(it->GetName(),-1e99);
-    if ( strcmp(it->GetName(),"ctauErr")==0 || strcmp(it->GetName(),"ctau")==0 || strcmp(it->GetName(),"ctauTrue")==0 || strcmp(it->GetName(),"ctauRes")==0 || strcmp(it->GetName(),"ctauNRes")==0 || strcmp(it->GetName(),"ctauN")==0 ) continue;
-    if (val==-1e99) return false;          // the parameter was not found!
+    double val = pars2.getRealValue(it->GetName(),-1e99);
+    const std::string name = it->GetName();
+    if ( (name=="ctauErr") || (name=="ctau") || (name=="ctauTrue") || (name=="ctauRes") || (name=="ctauNRes") || (name=="ctauN") ) continue;
+    if (val==-1e99) return false;           // the parameter was not found!
     if (val != it->getVal()) return false;  // the parameter was found, but with a different value!
-    if ( ((RooRealVar&)(*pars2)[it->GetName()]).getMin() != it->getMin() ) return false;  // the parameter has different lower limit
-    if ( ((RooRealVar&)(*pars2)[it->GetName()]).getMax() != it->getMax() ) return false;  // the parameter has different upper limit
-    if (string(it->GetName()).find("N_")!=std::string::npos) {
-      if ( (((RooRealVar&)(*pars2)[it->GetName()]).getMin() != it->getMin()) && 
-           (((RooRealVar&)(*pars2)[it->GetName()]).getMin() != -2000000.0  ) && 
-           (((RooRealVar&)(*pars2)[it->GetName()]).getMin() != 0.0         ) ) return false;  // the parameter has different lower limit
-      if ( (((RooRealVar&)(*pars2)[it->GetName()]).getMax() != it->getMax()) &&
-           (((RooRealVar&)(*pars2)[it->GetName()]).getMax() != 2000000.0   ) ) return false;  // the parameter has different upper limit
+    if ( ((RooRealVar&)pars2[it->GetName()]).getMin() != it->getMin() ) return false;  // the parameter has different lower limit
+    if ( ((RooRealVar&)pars2[it->GetName()]).getMax() != it->getMax() ) return false;  // the parameter has different upper limit
+    if (name.find("N_")!=std::string::npos) {
+      if ( (((RooRealVar&)pars2[it->GetName()]).getMin() != it->getMin()) && 
+           (((RooRealVar&)pars2[it->GetName()]).getMin() != -2000000.0  ) && 
+           (((RooRealVar&)pars2[it->GetName()]).getMin() != 0.0         ) ) return false;  // the parameter has different lower limit
+      if ( (((RooRealVar&)pars2[it->GetName()]).getMax() != it->getMax()) &&
+           (((RooRealVar&)pars2[it->GetName()]).getMax() != 2000000.0   ) ) return false;  // the parameter has different upper limit
     }
   }
   return true;
 };
 
 
-bool setConstant( RooWorkspace& myws, string parName, bool CONST)
+bool setConstant(RooWorkspace& myws, const string& parName, const bool CONST)
 {
   if (myws.var(parName.c_str())) { 
     myws.var(parName.c_str())->setConstant(CONST);
@@ -301,39 +310,36 @@ bool setConstant( RooWorkspace& myws, string parName, bool CONST)
     cout << "[ERROR] Parameter " << parName << " was not found!" << endl;
     return false;
   }
-
   return true;
 };
 
 
-bool saveWorkSpace(RooWorkspace& myws, string outputDir, string FileName)
+bool saveWorkSpace(RooWorkspace& myws, const string& outputDir, const string& fileName)
 {
   // Save the workspace
   gSystem->mkdir(outputDir.c_str(), kTRUE);
-  cout << FileName << endl;
-  TFile *file =  new TFile(FileName.c_str(), "RECREATE");
-  if (!file) {
-    file->Close(); delete file;
+  cout << fileName << endl;
+  auto file = std::unique_ptr<TFile>(new TFile(fileName.c_str(), "RECREATE"));
+  if (!file || !file->IsOpen() || file->IsZombie()) {
     cout << "[ERROR] Output root file with fit results could not be created!" << endl; return false; 
   } else {
-    file->cd();    
+    file->cd();
     myws.Write("workspace"); 
-    file->Write(); file->Close(); delete file;
+    file->Write(); file->Close();
   }
   return true;
 };
 
 
-bool isCompatibleDataset(const RooDataSet& ds, const RooDataSet& ref, bool checkRange=true)
+bool isCompatibleDataset(const RooDataSet& ds, const RooDataSet& ref, const bool checkRange=true)
 {
   // Check that the DataSets have the same number of events
-  if (ds.numEntries()!=ref.numEntries()){ cout << "[ERROR] DataSets " << ds.GetName() << " and " << ref.GetName() << " don't have the same number of events!" << endl; return false; }
+  if (ds.numEntries()!=ref.numEntries()){ cout << "[ERROR] DataSets " << ds.GetName() << " (" << ds.numEntries() << ") and " << ref.GetName() << " (" << ref.numEntries() << ") don't have the same number of events!" << endl; return false; }
   if (ds.sumEntries()!=ref.sumEntries()){ cout << "[ERROR] DataSets " << ds.GetName() << " and " << ref.GetName() << " don't have the same sum of weights!" << endl; return false; }
   // Check that the input DataSet have the same variables and distributions as the reference
   const RooArgSet* listVar = ref.get();
-  TIterator* parIt = listVar->createIterator();
+  std::unique_ptr<TIterator> parIt = std::unique_ptr<TIterator>(listVar->createIterator());
   for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
-    string name = it->GetName();
     if ( ds.get()->find(it->GetName()) == NULL ) { cout << "[ERROR] DataSet " << ds.GetName() << " does not contain the variable " << it->GetName() << " !" << endl; return false; }
     if (checkRange) {
       if ( it->getMin() != ((RooRealVar*)ds.get()->find(it->GetName()))->getMin() ) { cout << "[ERROR] " << it->GetName() << " Min Range disaggrement : "
@@ -361,60 +367,50 @@ bool isCompatibleDataset(const RooDataSet& ds, const RooDataSet& ref, bool check
 };
 
 
-bool isFitAlreadyFound(RooArgSet *newpars, string FileName, string pdfName) 
+bool isFitAlreadyFound(const RooArgSet& newpars, const string& fileName, const string& pdfName) 
 {
-  if (gSystem->AccessPathName(FileName.c_str())) {
-    cout << "[INFO] FileName: " << FileName << " was not found" << endl;
+  std::cout << "[INFO] Checking if fit was already done!" << std::endl;
+  if (gSystem->AccessPathName(fileName.c_str())) {
+    std::cout << "[INFO] FileName: " << fileName << " was not found" << std::endl;
     return false; // File was not found
   }
-  TFile *file = new TFile(FileName.c_str());
-  if (!file) return false;  
-  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  auto file = std::unique_ptr<TFile>(TFile::Open(fileName.c_str()));
+  if (!file || !file->IsOpen() || file->IsZombie()) return false;
+  auto ws = (RooWorkspace*)file->Get("workspace");
   if (!ws) {
-    cout << "[INFO] Workspace was not found" << endl;
-    file->Close(); delete file;
+    std::cout << "[INFO] Workspace was not found" << std::endl;
     return false;
   }
-  string snapShotName = Form("%s_parIni", pdfName.c_str());
-  const RooArgSet *params = ws->getSnapshot(snapShotName.c_str());
+  const auto params = ws->getSnapshot(Form("%s_parIni", pdfName.c_str()));
   if (!params) {
-    cout << "[INFO] Snapshot parIni was not found" << endl;
-    delete ws;
-    file->Close(); delete file;
+    std::cout << "[INFO] Snapshot of initial parameters was not found!" << std::endl;
     return false;
   }
-  bool result = compareSnapshots(newpars, params);
-  delete ws;
-  file->Close(); delete file; 
-
+  const bool result = compareSnapshots(newpars, *params);
   return result;
 };
 
 
-bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bool isPbPb, bool loadNumberOfEvents, bool updateN)
+bool loadPreviousFitResult(RooWorkspace& myws, const string& fileName, string DSTAG, const bool& isPbPb, const bool& loadNumberOfEvents, const bool& updateN)
 {
-  if (gSystem->AccessPathName(FileName.c_str())) {
-    cout << "[INFO] File " << FileName << " was not found!" << endl;
+  if (gSystem->AccessPathName(fileName.c_str())) {
+    cout << "[INFO] File " << fileName << " was not found!" << endl;
     return false; // File was not found
   }
-  TFile *file = new TFile(FileName.c_str());
-  if (!file) return false;
-
-  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  auto file = std::unique_ptr<TFile>(TFile::Open(fileName.c_str()));
+  if (!file || !file->IsOpen() || file->IsZombie()) return false;
+  auto ws = (RooWorkspace*)file->Get("workspace");
   if (!ws) {
-    cout << "[INFO] Workspace was not found in: " << FileName << endl;
-    file->Close(); delete file;
+    cout << "[INFO] Workspace was not found in: " << fileName << endl;
     return false;
   }
-
   if (DSTAG.find("_")!=std::string::npos) DSTAG.erase(DSTAG.find("_"));
-
-  cout <<  "[INFO] Loading variables and functions from: " << FileName << endl;
-  RooArgSet listVar = ws->allVars();
-  TIterator* parIt = listVar.createIterator();
+  cout <<  "[INFO] Loading variables and functions from: " << fileName << endl;
+  auto listVar = ws->allVars();
+  std::unique_ptr<TIterator> parIt = std::unique_ptr<TIterator>(listVar.createIterator());
   string print = "[INFO] Variables loaded: ";
   for (RooRealVar* it = (RooRealVar*)parIt->Next(); it!=NULL; it = (RooRealVar*)parIt->Next() ) {
-    string name = it->GetName();
+    const string& name = it->GetName();
     if ( name=="invMass" || name=="ctau" || name=="ctauErr" || name=="ctauRes" || name=="ctauNRes" || name=="ctauN" ||
          name=="ctauTrue" || name=="pt" || name=="cent" || 
          name=="rap" || name=="One" ) continue;
@@ -437,11 +433,11 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
     }
   }
   cout << print << endl;
-  RooArgSet listFun = ws->allFunctions();
-  TIterator* parFunIt = listFun.createIterator();
+  auto listFun = ws->allFunctions();
+  std::unique_ptr<TIterator> parFunIt = std::unique_ptr<TIterator>(listFun.createIterator());
   string printFun = "[INFO] Functions loaded: ";
   for (RooRealVar* it = (RooRealVar*)parFunIt->Next(); it!=NULL; it = (RooRealVar*)parFunIt->Next() ) {
-    string name = it->GetName();
+    const string& name = it->GetName();
     if ( name=="invMass" || name=="ctau" || name=="ctauErr" || name=="ctauRes" || name=="ctauNRes" || name=="ctauN" ||
          name=="ctauTrue" || name=="pt" || name=="cent" || 
          name=="rap" || name=="One" ) continue;
@@ -451,13 +447,13 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
       myws.var(name.c_str())->setVal  ( ws->function(name.c_str())->getValV()  );
       myws.var(name.c_str())->setError( 0.0 );
     } else {
-      Double_t MassRatio = (Mass.Psi2S/Mass.JPsi);
-      string reName = name.c_str();
-      boost::replace_all(reName, "Jpsi", "Psi2S");
+      const double massRatio = (Mass.Psi2S/Mass.JPsi);
+      string reName = name;
+      if (reName.find("Jpsi")!=std::string::npos) { reName.replace(reName.find("Jpsi"), string("Jpsi").length(), "Psi2S"); }
       if (myws.var(reName.c_str())) {
-        Double_t value = 0.0;
-        if ( (reName==Form("sigma1_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ) { value = ws->var(name.c_str())->getValV() * MassRatio; }
-        else if ( (reName==Form("m_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ) { value = ws->var(name.c_str())->getValV() * MassRatio; }
+        double value = 0.0;
+        if ( (reName==Form("sigma1_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ) { value = ws->var(name.c_str())->getValV() * massRatio; }
+        else if ( (reName==Form("m_Psi2S_%s", (isPbPb?"PbPb":"PP"))) ) { value = ws->var(name.c_str())->getValV() * massRatio; }
         else { value = ws->var(name.c_str())->getValV(); }
         printFun = printFun + Form("  %s: %.5f->%.5f  ", reName.c_str(), myws.var(reName.c_str())->getValV(), value) ;
         myws.var(reName.c_str())->setVal  ( value );
@@ -467,24 +463,25 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
   }
   setFixedVarsToContantVars(myws);
   cout << printFun << endl;
-
   if (updateN && myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))) {
-    string dsName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb ?"PbPb":"PP"));
+    const string dsName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb ?"PbPb":"PP"));
     string dsNameCut = dsName+"_CTAUCUT"; if (!myws.data(dsNameCut.c_str())) dsNameCut = dsName;
     cout << "[INFO] Checking if local dataset " << dsNameCut << " is compatible with Mass fit dataset " << dsName << " !" << endl;
     if (myws.data(dsNameCut.c_str()) && ws->data(dsName.c_str()) && !isCompatibleDataset(*(RooDataSet*)myws.data(dsNameCut.c_str()), *(RooDataSet*)ws->data(dsName.c_str()), false)) {
       // Let's fit again the mass with only the N parameters free, to account for possible ctau or ctauErr cuts in the input datasets
-      myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kTRUE);
+      auto par = std::unique_ptr<RooArgSet>(myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass"))));
+      par->setAttribAll("Constant", kTRUE);
       std::vector< std::string > objs = {"Bkg", "Jpsi", "Psi2S"}; std::map< std::string , double > dN_Old , dN_New, dNErr_Old;
-      for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"))))  setConstant( myws, Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), false); }
+      for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) setConstant( myws, Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")), false); }
       std::cout << "[INFO] Fitting the mass distribution to update the number of events!" << std::endl;
       for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) {
           dN_Old[obj]    = myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))->getVal();
           dNErr_Old[obj] = myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))->getError();
         }
       }
-      ((RooFitResult*)myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(32), PrintLevel(-1), Save()))->Print("v");
-      for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) { dN_New[obj]    = myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))->getVal(); } }
+      auto fitRes = std::unique_ptr<RooFitResult>(myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->fitTo(*myws.data(dsNameCut.c_str()), Extended(kTRUE), Range("MassWindow"), NumCPU(32), PrintLevel(-1), Save()));
+      fitRes->Print("v");
+      for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) { dN_New[obj] = myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))->getVal(); } }
       bool update = true; for (auto obj : objs) {  if (dN_Old.count(obj)>0 && ((dN_New.at(obj) - dN_Old.at(obj))>dNErr_Old.at(obj))) { update = false; } }
       if (update) {
         for (auto obj : objs) {
@@ -498,67 +495,60 @@ bool loadPreviousFitResult(RooWorkspace& myws, string FileName, string DSTAG, bo
       }
       // Set the re-fitted N errors to their values from the mass fits
       for (auto obj : objs) { if (myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))) { myws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))->setError(dNErr_Old.at(obj)); } }
-      myws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP")))->getParameters(RooArgSet(*myws.var("invMass")))->setAttribAll("Constant", kFALSE);
+      par->setAttribAll("Constant", kFALSE);
     }
   }
-
-  delete ws;
-  file->Close(); delete file;
   return true;
 };
 
 
-bool loadCtauErrRange(string FileName, struct KinCuts& cut)
+bool loadCtauErrRange(const string& fileName, struct KinCuts& cut)
 {
-  if (gSystem->AccessPathName(FileName.c_str())) {
-    cout << "[ERROR] File " << FileName << " was not found!" << endl;
+  if (gSystem->AccessPathName(fileName.c_str())) {
+    cout << "[ERROR] File " << fileName << " was not found!" << endl;
     return false; // File was not found
   }
-  TFile *file = new TFile(FileName.c_str());
-  if (!file) return false;
-  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  auto file = std::unique_ptr<TFile>(TFile::Open(fileName.c_str()));
+  if (!file || !file->IsOpen() || file->IsZombie()) return false;
+  auto ws = (RooWorkspace*)file->Get("workspace");
   if (!ws) {
-    cout << "[ERROR] Workspace was not found in: " << FileName << endl;
-    file->Close(); delete file;
+    cout << "[ERROR] Workspace was not found in: " << fileName << endl;
+    file->Close();
     return false;
   }
-
   if (ws->var("ctauErr")) {
     cut.dMuon.ctauErr.Min = ws->var("ctauErr")->getMin();
     cut.dMuon.ctauErr.Max = ws->var("ctauErr")->getMax();
   } else {
     cout << Form("[ERROR] ctauErr was not found!") << endl;
-    delete ws;
-    file->Close(); delete file;
     return false;
   }
-
-  delete ws;
-  file->Close(); delete file;
   return true;
 };
 
 
-bool loadYields(RooWorkspace& myws, string FileName, string dsName, string pdfName)
+bool loadYields(RooWorkspace& myws, const string& fileName, const string& dsName, const string& pdfName)
 {
-  if (gSystem->AccessPathName(FileName.c_str())) {
-    cout << "[INFO] File " << FileName << " was not found!" << endl;
+  if (gSystem->AccessPathName(fileName.c_str())) {
+    cout << "[INFO] File " << fileName << " was not found!" << endl;
     return false; // File was not found
   }
-  TFile *file = new TFile(FileName.c_str());
-  if (!file) return false;
-  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  auto file = std::unique_ptr<TFile>(TFile::Open(fileName.c_str()));
+  if (!file || !file->IsOpen() || file->IsZombie()) return false;
+  auto ws = (RooWorkspace*)file->Get("workspace");
   if (!ws) {
-    cout << "[INFO] Workspace was not found in: " << FileName << endl;
-    file->Close(); delete file;
+    cout << "[INFO] Workspace was not found in: " << fileName << endl;
     return false;
   }
-
   bool compDS = true;
   if (ws->data(dsName.c_str()) && myws.data(dsName.c_str())) {
     if (isCompatibleDataset(*(RooDataSet*)myws.data(dsName.c_str()), *(RooDataSet*)ws->data(dsName.c_str()))) {
-      bool isPbPb = true; if (FileName.find("_PP_")!=std::string::npos) isPbPb = false;
-      const RooArgSet *params = ws->getSnapshot(Form("%s_parIni", pdfName.c_str()));
+      bool isPbPb = true; if (fileName.find("_PP_")!=std::string::npos) isPbPb = false;
+      const auto params = ws->getSnapshot(Form("%s_parIni", pdfName.c_str()));
+      if (!params) {
+        cout << "[INFO] Snapshot " << pdfName << "_parIni was not found!" << endl;
+        return false;
+      }
       std::vector< std::string > objs = {"Bkg", "Jpsi", "Psi2S"};
       for (auto obj : objs) {
         string name = Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP"));
@@ -578,46 +568,36 @@ bool loadYields(RooWorkspace& myws, string FileName, string dsName, string pdfNa
     else { cout << "[INFO] RooDatasets used to extract the Yields are not compatible!" << endl; compDS = false; }
   }
   else { cout << "[INFO] RooDatasets used to extract the Yields were not found!" << endl; compDS = false; }
-
-  delete ws;
-  file->Close(); delete file;
   return compDS;
 };
 
 
-bool loadSPlotDS(RooWorkspace& myws, string FileName, string dsName)
+bool loadSPlotDS(RooWorkspace& myws, const string& fileName, const string& dsName)
 {
-  if (gSystem->AccessPathName(FileName.c_str())) {
-    cout << "[ERROR] File " << FileName << " was not found!" << endl;
+  if (gSystem->AccessPathName(fileName.c_str())) {
+    cout << "[ERROR] File " << fileName << " was not found!" << endl;
     return false; // File was not found
   }
-  TFile *file = new TFile(FileName.c_str());
-  if (!file) return false;
-  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  auto file = std::unique_ptr<TFile>(TFile::Open(fileName.c_str()));
+  if (!file || !file->IsOpen() || file->IsZombie()) return false;
+  auto ws = (RooWorkspace*)file->Get("workspace");
   if (!ws) {
-    cout << "[ERROR] Workspace was not found in: " << FileName << endl;
-    file->Close(); delete file;
+    cout << "[ERROR] Workspace was not found in: " << fileName << endl;
     return false;
   }
-
   if (ws->data(dsName.c_str())) {
     myws.import(*ws->data(dsName.c_str()), Rename((dsName+"_INPUT").c_str()));
     if (myws.data((dsName+"_INPUT").c_str())) { cout << "[INFO] RooDataset " << (dsName+"_INPUT") << " was imported!" << endl; }
     else { cout << "[ERROR] Importing RooDataset " << (dsName+"_INPUT") << " failed!" << endl; }
   } else {
     cout << "[ERROR] RooDataset " << dsName << " was not found!" << endl;
-    delete ws;
-    file->Close(); delete file;
     return false;
   }
-
-  delete ws;
-  file->Close(); delete file;
   return true;
 };
 
 
-int importDataset(RooWorkspace& myws, const RooWorkspace& inputWS, struct KinCuts cut, string label, bool cutSideBand=false)
+int importDataset(RooWorkspace& myws, const RooWorkspace& inputWS, const struct KinCuts& cut, const string& label, const bool cutSideBand=false)
 {
   string indMuonMass    = Form("(%.6f < invMass && invMass < %.6f)",       cut.dMuon.M.Min,       cut.dMuon.M.Max);
   if (cutSideBand) {
@@ -644,13 +624,12 @@ int importDataset(RooWorkspace& myws, const RooWorkspace& inputWS, struct KinCut
     return -1;
   }
   cout << "[INFO] Importing local RooDataSet with cuts: " << strCut << endl;
-  RooDataSet* dataOS = (RooDataSet*)inputWS.data(Form("dOS_%s", label.c_str()))->reduce(strCut.c_str());
-  if (dataOS->sumEntries()==0){ 
+  auto dataOS = std::unique_ptr<RooDataSet>((RooDataSet*)inputWS.data(Form("dOS_%s", label.c_str()))->reduce(strCut.c_str()));
+  if (!dataOS || dataOS->sumEntries()==0){ 
     cout << "[ERROR] No events from dataset " <<  Form("dOS_%s", label.c_str()) << " passed the kinematic cuts!" << endl;
     return -1;
   }
   myws.import(*dataOS);
-  delete dataOS;
   
   if (label.find("NoBkg")==std::string::npos && label.find("AccEff")==std::string::npos && label.find("lJpsiEff")==std::string::npos) // Don't try to find SS dataset if label contais NoBkg or correction
   {
@@ -658,12 +637,11 @@ int importDataset(RooWorkspace& myws, const RooWorkspace& inputWS, struct KinCut
       cout << "[ERROR] The dataset " <<  Form("dSS_%s", label.c_str()) << " was not found!" << endl;
       return -1;
     }
-    RooDataSet* dataSS = (RooDataSet*)inputWS.data(Form("dSS_%s", label.c_str()))->reduce(strCut.c_str());
-    if (dataSS->sumEntries()==0){
+    auto dataSS = std::unique_ptr<RooDataSet>((RooDataSet*)inputWS.data(Form("dSS_%s", label.c_str()))->reduce(strCut.c_str()));
+    if (!dataSS || dataSS->sumEntries()==0){
       cout << "[WARNING] No events from dataset " <<  Form("dSS_%s", label.c_str()) << " passed the kinematic cuts!" << endl;
     }
     myws.import(*dataSS);
-    delete dataSS;
   }
 
   // Set the range of each global parameter in the local roodataset
@@ -694,7 +672,7 @@ int importDataset(RooWorkspace& myws, const RooWorkspace& inputWS, struct KinCut
   }
 
   if (myws.data(Form("dOS_%s_SPLOT_INPUT", label.c_str()))){
-    RooDataSet* dataOS = (RooDataSet*)myws.data(Form("dOS_%s_SPLOT_INPUT", label.c_str()))->reduce(strCut.c_str()); 
+    auto dataOS = std::unique_ptr<RooDataSet>((RooDataSet*)myws.data(Form("dOS_%s_SPLOT_INPUT", label.c_str()))->reduce(strCut.c_str()));
     if (dataOS) {
       // Set the range of each global parameter in the local roodataset
       const RooArgSet* rowOS = dataOS->get();
@@ -723,14 +701,13 @@ int importDataset(RooWorkspace& myws, const RooWorkspace& inputWS, struct KinCut
         ((RooRealVar*)rowOS->find("ctauN"))->setMax(cut.dMuon.ctauN.Max);
       }
       if (dataOS->sumEntries()==0){ cout << "[ERROR] No events from dataset " <<  Form("dOS_%s_SPLOT_INPUT", label.c_str()) << " passed the kinematic cuts!" << endl; }
-      else if (!isCompatibleDataset(*dataOS, *(RooDataSet*)myws.data(Form("dOS_%s", label.c_str())))){ cout << "[ERROR] sPlot and Original Datasets are inconsistent!" << endl; delete dataOS; return -1; }
+      else if (!isCompatibleDataset(*dataOS, *(RooDataSet*)myws.data(Form("dOS_%s", label.c_str())))){ cout << "[ERROR] sPlot and Original Datasets are inconsistent!" << endl; return -1; }
       else {
         myws.import(*dataOS, Rename(Form("dOS_%s_SPLOT", label.c_str())));
         if (myws.data(Form("dOS_%s_SPLOT", label.c_str()))) { cout << "[INFO] RooDataset " << Form("dOS_%s_SPLOT", label.c_str()) << " was imported!" << endl; }
-        else { cout << "[ERROR] Importing RooDataset " << Form("dOS_%s_SPLOT", label.c_str()) << " failed!" << endl; delete dataOS; return -1; }
+        else { cout << "[ERROR] Importing RooDataset " << Form("dOS_%s_SPLOT", label.c_str()) << " failed!" << endl; return -1; }
         cout << "[INFO] SPlotDS Events: " << dataOS->sumEntries() << " , origDS Events: " << myws.data(Form("dOS_%s", label.c_str()))->sumEntries() << std::endl;
       }
-      delete dataOS;
     }
   }
 
@@ -775,15 +752,17 @@ int importDataset(RooWorkspace& myws, const RooWorkspace& inputWS, struct KinCut
 };
 
 
-void printChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, string dataLabel, string pdfLabel, int nBins, bool useDefaultName=true)
+void printChi2(RooWorkspace& myws, TPad& pad, const RooPlot& frame, const string varLabel, const string& dataLabel, const string& pdfLabel, const int& nBins, const bool useDefaultName=true)
 {
   double chi2=0; unsigned int ndof=0;
-  Pad->cd();
-  TLatex *t = new TLatex(); t->SetNDC(); t->SetTextSize(0.1); 
-  unsigned int nFitPar = myws.pdf(pdfLabel.c_str())->getParameters(*myws.data(dataLabel.c_str()))->selectByAttrib("Constant",kFALSE)->getSize();
-  TH1* hdatact = myws.data(dataLabel.c_str())->createHistogram("hdatact", *myws.var(varLabel.c_str()), Binning(frame->GetNbinsX(),frame->GetXaxis()->GetXmin(),frame->GetXaxis()->GetXmax()));
-//  RooHist *hpull = frame->pullHist("hdatact",pdfLabel.c_str(), true);
-  RooHist *hpull = frame->pullHist(0,0, true);
+  pad.cd();
+  TLatex t = TLatex(); t.SetNDC(); t.SetTextSize(0.1);
+  auto par = std::unique_ptr<RooArgSet>(myws.pdf(pdfLabel.c_str())->getParameters(*myws.data(dataLabel.c_str())));
+  auto params = std::unique_ptr<RooAbsCollection>(par->selectByAttrib("Constant",kFALSE));
+  const unsigned int nFitPar = params->getSize();
+  auto hdatact = std::unique_ptr<TH1>(myws.data(dataLabel.c_str())->createHistogram("hdatact", *myws.var(varLabel.c_str()), Binning(frame.GetNbinsX(),frame.GetXaxis()->GetXmin(),frame.GetXaxis()->GetXmax())));
+  //  RooHist *hpull = frame.pullHist("hdatact",pdfLabel.c_str(), true);
+  auto hpull = std::unique_ptr<RooHist>(frame.pullHist(0,0, true));
   double* ypulls = hpull->GetY();
   unsigned int nFullBins = 0;
   for (int i = 0; i < nBins; i++) {
@@ -793,7 +772,7 @@ void printChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, s
     }
   }
   ndof = nFullBins - nFitPar;
-  t->DrawLatex(0.7, 0.85, Form("#chi^{2}/ndof = %.0f / %d ", chi2, ndof));
+  t.DrawLatex(0.7, 0.85, Form("#chi^{2}/ndof = %.0f / %d ", chi2, ndof));
   if (useDefaultName) {
     RooRealVar chi2Var("chi2","chi2",chi2);
     RooRealVar ndofVar("ndof","ndof",ndof);
@@ -803,30 +782,28 @@ void printChi2(RooWorkspace& myws, TPad* Pad, RooPlot* frame, string varLabel, s
     RooRealVar ndofVar((string("ndof_")+varLabel).c_str(),(string("ndof_")+varLabel).c_str(),ndof);
     myws.import(chi2Var); myws.import(ndofVar);
   }
-  delete hdatact; 
-  delete hpull;
 };
 
 
-void getRange(TH1* hist, int nMaxBins, vector<double>& rangeErr)
+void getRange(vector<double>& rangeErr, const TH1& hist, const int nMaxBins)
 {
   // 1) Find the bin with the maximum Y value
-  int binMaximum = hist->GetMaximumBin();
+  const int binMaximum = hist.GetMaximumBin();
   // 2) Loop backward and find the first bin
   int binWithContent = -1;
   int firstBin = 1;
   for (int i=binMaximum; i>0; i--) {
-    if (hist->GetBinContent(i)>0.0) {
-      if ( binWithContent>0 && ((binWithContent-i) > nMaxBins) && hist->GetBinContent(i)<5.0 ) { firstBin = binWithContent; break; }
+    if (hist.GetBinContent(i)>0.0) {
+      if ( binWithContent>0 && ((binWithContent-i) > nMaxBins) && hist.GetBinContent(i)<5.0 ) { firstBin = binWithContent; break; }
       else { binWithContent = i; }
     }
   }
   // 3) Loop forward and find the last bin
   binWithContent = -1;
-  int lastBin = hist->GetNbinsX();
-  for (int i=binMaximum; i<hist->GetNbinsX(); i++) {
-    if (hist->GetBinContent(i)>0.0) {
-      if ( binWithContent>0 && ((i - binWithContent) > nMaxBins) && hist->GetBinContent(i)<5.0 ) { lastBin = binWithContent+1; break; }
+  int lastBin = hist.GetNbinsX();
+  for (int i=binMaximum; i<hist.GetNbinsX(); i++) {
+    if (hist.GetBinContent(i)>0.0) {
+      if ( binWithContent>0 && ((i - binWithContent) > nMaxBins) && hist.GetBinContent(i)<5.0 ) { lastBin = binWithContent+1; break; }
       else { binWithContent = i; }
     }
   }
@@ -834,40 +811,36 @@ void getRange(TH1* hist, int nMaxBins, vector<double>& rangeErr)
   int startBin = ( (firstBin>1) ? (firstBin-1) : firstBin );
   const int nNewBins = lastBin - startBin + 1;
   double binning[nNewBins+1];
-  binning[0] = hist->GetXaxis()->GetXmin();
-  binning[nNewBins] = hist->GetXaxis()->GetXmax();
+  binning[0] = hist.GetXaxis()->GetXmin();
+  binning[nNewBins] = hist.GetXaxis()->GetXmax();
   for (int i=1; i<nNewBins; i++) {
     int iBin = startBin + i;
-    binning[i] = hist->GetBinLowEdge(iBin); 
+    binning[i] = hist.GetBinLowEdge(iBin); 
   }
   rangeErr.push_back(binning[(firstBin>1)?1:0]);
   rangeErr.push_back(binning[nNewBins-1]);
-
   return;
 };
 
 
-bool isSPlotDSAlreadyFound(RooWorkspace& myws, string FileName, vector<string> dsNames, bool loadDS)
+bool isSPlotDSAlreadyFound(RooWorkspace& myws, const string& fileName, const vector<string>& dsNames, const bool& loadDS)
 {
-  if (gSystem->AccessPathName(FileName.c_str())) {
-    cout << "[INFO] Results not found for: " << FileName << endl;
+  if (gSystem->AccessPathName(fileName.c_str())) {
+    cout << "[INFO] Results not found for: " << fileName << endl;
     return false; // File was not found
   }
-  TFile *file = new TFile(FileName.c_str());
-  if (!file) return false;
-
-  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  auto file = std::unique_ptr<TFile>(TFile::Open(fileName.c_str()));
+  if (!file || !file->IsOpen() || file->IsZombie()) return false;
+  auto ws = (RooWorkspace*)file->Get("workspace");
   if (!ws) {
-    cout << "[INFO] Workspace not found in: " << FileName << endl;
-    file->Close(); delete file;
+    cout << "[INFO] Workspace not found in: " << fileName << endl;
     return false;
   }
-
   bool found = true;
   for (unsigned int i=0; i<dsNames.size(); i++) {
-    string dsName = dsNames.at(i);
+    const string& dsName = dsNames.at(i);
     if ( !(ws->data(dsName.c_str())) ) {
-      cout << "[INFO] " << dsName << " was not found in: " << FileName << endl; found = false;
+      cout << "[INFO] " << dsName << " was not found in: " << fileName << endl; found = false;
     }
     if (loadDS && found) {
       myws.import(*(ws->data(dsName.c_str())));
@@ -875,36 +848,30 @@ bool isSPlotDSAlreadyFound(RooWorkspace& myws, string FileName, vector<string> d
       else {  cout << "[ERROR] sPlot DataSet " << dsName << " import failed!" << endl; found = false; }
     }
   }
-  
-  delete ws;
-  file->Close(); delete file;
-
   return found;
 };
 
-bool isPdfAlreadyFound(RooWorkspace& myws, string FileName, vector<string> pdfNames, bool loadCtauErrPdf)
+
+bool isPdfAlreadyFound(RooWorkspace& myws, const string& fileName, const vector<string>& pdfNames, const bool loadCtauErrPdf)
 {
-  if (gSystem->AccessPathName(FileName.c_str())) {
-    cout << "[INFO] Results not found for: " << FileName << endl;
+  if (gSystem->AccessPathName(fileName.c_str())) {
+    cout << "[INFO] Results not found for: " << fileName << endl;
     return false; // File was not found
   }
-  TFile *file = new TFile(FileName.c_str());
-  if (!file) return false;
-
-  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  auto file = std::unique_ptr<TFile>(TFile::Open(fileName.c_str()));
+  if (!file || !file->IsOpen() || file->IsZombie()) return false;
+  auto ws = (RooWorkspace*) file->Get("workspace");
   if (!ws) {
-    cout << "[INFO] Workspace not found in: " << FileName << endl;
-    file->Close(); delete file;
+    cout << "[INFO] Workspace not found in: " << fileName << endl;
     return false;
   }
-
   bool found = true;
   for (unsigned int i=0; i<pdfNames.size(); i++) {
-    string pdfName = pdfNames.at(i);
+    const string& pdfName = pdfNames.at(i);
     string dataName = pdfName;
-    dataName.replace(dataName.find("pdf"), string("pdf").length(), "dh");
+    if (dataName.find("pdf")!=std::string::npos) { dataName.replace(dataName.find("pdf"), string("pdf").length(), "dh"); }
     if ( !(ws->pdf(pdfName.c_str())) ) {
-      cout << "[INFO] " << pdfName << " was not found in: " << FileName << endl; found = false;
+      cout << "[INFO] " << pdfName << " was not found in: " << fileName << endl; found = false;
     }
     if (loadCtauErrPdf && found) {
       myws.import(*(ws->pdf(pdfName.c_str())));
@@ -914,10 +881,6 @@ bool isPdfAlreadyFound(RooWorkspace& myws, string FileName, vector<string> pdfNa
       if (myws.data(dataName.c_str())) { cout << "[INFO] DataHist " << dataName << " succesfully imported!" << endl; }
     }
   }
-  
-  delete ws;
-  file->Close(); delete file;
-
   return found;
 };
 

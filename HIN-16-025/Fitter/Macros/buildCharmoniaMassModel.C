@@ -1,25 +1,24 @@
-
 #ifndef buildCharmoniaMassModel_C
 #define buildCharmoniaMassModel_C
 
 #include "Utilities/initClasses.h"
 #include "Utilities/RooExtCBShape.h"
 
-void fixMassParPsi2StoJpsi(map<string, string>& parIni, bool isPbPb);
-void fixPbPbtoPP(map<string, string>& parIni);
-void setMassDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries);
-bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<string,string> parIni, bool isPbPb); 
-bool addBackgroundMassModel(RooWorkspace& ws, string object, MassModel model, map<string,string> parIni, bool isPbPb);
+void fixMassParPsi2StoJpsi    ( map<string, string>& parIni, const bool& isPbPb );
+void setMassDefaultParameters ( map<string, string>& parIni, const bool& isPbPb, const double& numEntries );
+bool addSignalMassModel       ( RooWorkspace& ws, const string& object, const MassModel& model, map<string,string> parIni, const bool& isPbPb ); 
+bool addBackgroundMassModel   ( RooWorkspace& ws, const string& object, const MassModel& model, map<string,string> parIni, const bool& isPbPb );
 
 
-bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<string, string>  parIni, 
-                             bool isPbPb,                 // Determine if we are working with PbPb (True) or PP (False)
-                             bool doConstrFit,            // Do constrained fit
-                             bool doSimulFit,             // Do simultaneous fit
-                             bool incBkg,                 // Include background model
-                             bool incJpsi,                // Include Jpsi model
-                             bool incPsi2S,               // Include Psi(2S) model
-                             double  numEntries = 300000. // Number of entries in the dataset
+bool buildCharmoniaMassModel(RooWorkspace& ws, const struct CharmModel& model, map<string, string>  parIni, 
+                             const bool& isPbPb,          // Determine if we are working with PbPb (True) or PP (False)
+                             const bool& doConstrFit,     // Do constrained fit
+                             const bool& doSimulFit,      // Do simultaneous fit
+                             const bool& incBkg,          // Include background model
+                             const bool& incJpsi,         // Include Jpsi model
+                             const bool& incPsi2S,        // Include Psi(2S) model
+                             const double& numEntries,    // Number of entries in the dataset
+                             const bool  useRatio = false // Use Ps2S/Jpsi ratio
                              )
 {
 
@@ -35,9 +34,6 @@ bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<stri
   if (incPsi2S && incJpsi) {
     if (doSimulFit && isPbPb) {
 
-      // Fix mean, alpha and n parameters in PbPb to PP values 
-      // fixPbPbtoPP(parIni);
-
       // create parameters related to the double ratio
       ws.factory( parIni["RFrac2Svs1S_PbPbvsPP"].c_str() );                     // Double Ratio
       ws.factory( parIni[Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))].c_str() );    // Number of Jpsi in PbPb
@@ -50,7 +46,7 @@ bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<stri
 		      )); 
       ws.var("RFrac2Svs1S_PbPbvsPP")->setConstant(kFALSE);
 
-    } else {
+    } else if (useRatio) {
 
       // create parameters related to the double ratio
       ws.factory( parIni[Form("RFrac2Svs1S_%s", (isPbPb?"PbPb":"PP"))].c_str() );
@@ -62,6 +58,12 @@ bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<stri
 		      Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP")) 
 		      )); 
       ws.var(Form("RFrac2Svs1S_%s", (isPbPb?"PbPb":"PP")))->setConstant(kFALSE);
+
+    } else {
+
+      // create parameters related to the double ratio
+      ws.factory( parIni[Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))].c_str() );
+      ws.factory( parIni[Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))].c_str() );
 
     }
     
@@ -99,28 +101,28 @@ bool buildCharmoniaMassModel(RooWorkspace& ws, struct CharmModel model, map<stri
   }
   
   // Total PDF
-  string pdfType = "pdfMASS";
-  string pdfName = Form("%s_Tot_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"));
+  const string pdfType = "pdfMASS";
+  const string pdfName = Form("%s_Tot_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"));
 
   RooArgList pdfList;
   if (incJpsi) { pdfList.add( *ws.pdf(Form("%sTot_Jpsi_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"))) );  }
   if (incPsi2S){ pdfList.add( *ws.pdf(Form("%sTot_Psi2S_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"))) ); }
   if (incBkg)  { pdfList.add( *ws.pdf(Form("%sTot_Bkg_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"))) );   }
   if (!incJpsi && !incPsi2S && !incBkg) { cout << "[ERROR] User did not include any model, please fix your input settings!" << endl; return false; }
-  RooAbsPdf *themodel = new RooAddPdf(pdfName.c_str(), pdfName.c_str(), pdfList );
+  auto themodel = std::unique_ptr<RooAddPdf>(new RooAddPdf(pdfName.c_str(), pdfName.c_str(), pdfList));
   ws.import(*themodel);
   ws.pdf(pdfName.c_str())->setNormRange("MassWindow");
 
   setFixedVarsToContantVars(ws);
 
   // save the initial values of the model we've just created
-  RooArgSet* params = (RooArgSet*) themodel->getParameters(RooArgSet(*ws.var("invMass")));
+  auto params = std::unique_ptr<RooArgSet>(themodel->getParameters(RooArgSet(*ws.var("invMass"))));
   ws.saveSnapshot((pdfName+"_parIni").c_str(),*params,kTRUE);
   
   return true;
 };
 
-bool addBackgroundMassModel(RooWorkspace& ws, string object, MassModel model, map<string,string> parIni, bool isPbPb) 
+bool addBackgroundMassModel(RooWorkspace& ws, const string& object, const MassModel& model, map<string,string> parIni, const bool& isPbPb)
 {
   cout << Form("[INFO] Implementing %s Background Mass Model", object.c_str()) << endl;
 
@@ -589,12 +591,12 @@ bool addBackgroundMassModel(RooWorkspace& ws, string object, MassModel model, ma
 };
 
 
-bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<string,string> parIni, bool isPbPb) 
+bool addSignalMassModel(RooWorkspace& ws, const string& object, const MassModel& model, map<string,string> parIni, const bool& isPbPb)
 {
   cout << Form("[INFO] Implementing %s Mass Model", object.c_str()) << endl;
   
-  std::string lb = Form("_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"));
-  RooAbsPdf* pdf = NULL;
+  const std::string lb = Form("_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"));
+  std::unique_ptr<RooAbsPdf> pdf;
 
   // Import the Yield parameter
   if (!ws.var(Form("N_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) { ws.factory(parIni[Form("N_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str()); }
@@ -727,15 +729,15 @@ bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<st
       ws.factory( parIni[Form("n2_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))].c_str() );
 
       // create the PDF
-      pdf = new RooExtCBShape(("pdfMASS"+lb).c_str(), ("pdfMASS"+lb).c_str(),
-                              *ws.var("invMass"),
-                              *ws.var(("m"+lb).c_str()),
-                              *ws.var(("sigma1"+lb).c_str()),
-                              *ws.var(("alpha"+lb).c_str()),
-                              *ws.var(("n"+lb).c_str()),
-                              *ws.var(("alpha2"+lb).c_str()),
-                              *ws.var(("n2"+lb).c_str())
-                              );
+      pdf.reset(new RooExtCBShape(("pdfMASS"+lb).c_str(), ("pdfMASS"+lb).c_str(),
+                                  *ws.var("invMass"),
+                                  *ws.var(("m"+lb).c_str()),
+                                  *ws.var(("sigma1"+lb).c_str()),
+                                  *ws.var(("alpha"+lb).c_str()),
+                                  *ws.var(("n"+lb).c_str()),
+                                  *ws.var(("alpha2"+lb).c_str()),
+                                  *ws.var(("n2"+lb).c_str())
+                                  ));
       if (pdf) { ws.import(*pdf); }
       ws.factory(Form("RooExtendPdf::%s(%s,%s)", Form("pdfMASSTot_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),
                       Form("pdfMASS_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")),
@@ -856,24 +858,10 @@ bool addSignalMassModel(RooWorkspace& ws, string object, MassModel model, map<st
   return true;
 };
 
-void fixPbPbtoPP(map<string, string>& parIni)
-{
-  //parIni["m_Jpsi_PbPb"]  = Form("RooFormulaVar::%s('@0',{%s})", "m_Jpsi_PbPb", "m_Jpsi_PP");
-  //parIni["sigma1_Jpsi_PbPb"]  = Form("RooFormulaVar::%s('@0',{%s})", "sigma1_Jpsi_PbPb", "sigma1_JpsiPP");
-  //parIni["sigma1_Psi2S_PbPb"] = Form("RooFormulaVar::%s('@0',{%s})", "sigma1_Psi2S_PbPb", "sigma1_Psi2SPP");
-  // if (parIni.count("rSigma21_Jpsi_PbPb")!=0 && parIni.count("rSigma21_Jpsi_PP")!=0) {
-  //   parIni["sigma2_Jpsi_PbPb"] = Form("RooFormulaVar::%s('@0*@1',{%s,%s})", "sigma2_Jpsi_PbPb", "sigma1_Jpsi_PbPb", "rSigma21_Jpsi_PP");
-  // }
-  // parIni["alpha_Jpsi_PbPb"]  = Form("RooFormulaVar::%s('@0',{%s})", "alpha_Jpsi_PbPb", "alpha_Jpsi_PP");
-  // parIni["n_Jpsi_PbPb"] = Form("RooFormulaVar::%s('@0',{%s})", "n_Jpsi_PbPb", "n_Jpsi_PP");
-  //parIni["f_Jpsi_PbPb"] = Form("RooFormulaVar::%s('@0',{%s})", "f_Jpsi_PbPb", "f_Jpsi_PP");
-  //parIni["f_Psi2S_PbPb"] = Form("RooFormulaVar::%s('@0',{%s})", "f_Psi2S_PbPb", "f_Jpsi_PP");  
-};
-
-void fixMassParPsi2StoJpsi(map<string, string>& parIni, bool isPbPb)
+void fixMassParPsi2StoJpsi(map<string, string>& parIni, const bool& isPbPb)
 {
   cout << "[INFO] Constraining Psi(2S) parameters to Jpsi using PDF Mass Ratio" << endl;
-  Double_t MassRatio = (Mass.Psi2S/Mass.JPsi);
+  const double MassRatio = (Mass.Psi2S/Mass.JPsi);
   parIni[Form("m_Psi2S_%s", (isPbPb?"PbPb":"PP"))]      = Form("RooFormulaVar::%s('@0*@1',{MassRatio[%.6f],%s})", Form("m_Psi2S_%s", (isPbPb?"PbPb":"PP")), MassRatio, Form("m_Jpsi_%s", (isPbPb?"PbPb":"PP") ));
   parIni[Form("sigma1_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{MassRatio,%s})", Form("sigma1_Psi2S_%s", (isPbPb?"PbPb":"PP")), Form("sigma1_Jpsi_%s", (isPbPb?"PbPb":"PP") ));
   parIni[Form("sigma2_Psi2S_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0*@1',{MassRatio,%s})", Form("sigma2_Psi2S_%s", (isPbPb?"PbPb":"PP")), Form("sigma2_Jpsi_%s", (isPbPb?"PbPb":"PP") ));
@@ -884,7 +872,7 @@ void fixMassParPsi2StoJpsi(map<string, string>& parIni, bool isPbPb)
   parIni[Form("f_Psi2S_%s", (isPbPb?"PbPb":"PP"))]      = Form("RooFormulaVar::%s('@0',{%s})", Form("f_Psi2S_%s", (isPbPb?"PbPb":"PP")), Form("f_Jpsi_%s", (isPbPb?"PbPb":"PP")));
 };
 
-void setMassDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries)
+void setMassDefaultParameters(map<string, string>& parIni, const bool& isPbPb, const double& numEntries)
 {
 
   cout << "[INFO] Setting user undefined initial parameters to their default values" << endl;

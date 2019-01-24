@@ -3,25 +3,26 @@
 
 #include "Utilities/initClasses.h"
 
-void setCtauResDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries);
-void setCtauResMeanToZero(map<string, string> &parIni, bool isPbPb);
-bool defineCtauResModel(RooWorkspace& ws, string pdfType, string object, string varName, CtauModel model, map<string,string> parIni, bool isPbPb, bool usePerEventError=true);
+void setCtauResDefaultParameters ( map<string, string>& parIni, const bool& isPbPb, const double& numEntries );
+void setCtauResMeanToZero        ( map<string, string>& parIni, const bool& isPbPb );
+bool defineCtauResModel          ( RooWorkspace& ws, const string& pdfType, const string& object, const string& varName, const CtauModel& model,
+                                   map<string,string> parIni, const bool& isPbPb, const bool usePerEventError=true );
 
 
-bool buildCharmoniaCtauResModel(RooWorkspace& ws, struct CharmModel model, map<string, string>  parIni, string dsName, 
-                                string varName,              // Variable name
-                                string pdfType,              // Pdf Type Name
-                                bool isPbPb,                 // Determine if we are working with PbPb (True) or PP (False)
-                                bool usePerEventError,       // Determine if we use the perEventError technique
-                                bool useTotctauErrPdf,       // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
-                                double  numEntries = 300000. // Number of entries in the dataset
+bool buildCharmoniaCtauResModel(RooWorkspace& ws, const struct CharmModel& model, map<string, string>  parIni, const string& dsName, 
+                                const string& varName,        // Variable name
+                                const string& pdfType,        // Pdf Type Name
+                                const bool& isPbPb,           // Determine if we are working with PbPb (True) or PP (False)
+                                const bool& usePerEventError, // Determine if we use the perEventError technique
+                                const bool& useTotctauErrPdf, // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
+                                const double& numEntries      // Number of entries in the dataset
                                 )
 {
 
-  bool isMC = (dsName.find("MC")!=std::string::npos);
-  bool incNonPrompt = (dsName.find("NOPR")!=std::string::npos);
-  bool incJpsi = (dsName.find("JPSI")!=std::string::npos);
-  bool incPsi2S = (dsName.find("PSI2S")!=std::string::npos);
+  const bool isMC = (dsName.find("MC")!=std::string::npos);
+  const bool incNonPrompt = (dsName.find("NOPR")!=std::string::npos);
+  const bool incJpsi = (dsName.find("JPSI")!=std::string::npos);
+  const bool incPsi2S = (dsName.find("PSI2S")!=std::string::npos);
 
   string obj = "Bkg";
   if (incJpsi) obj = "Jpsi";
@@ -63,10 +64,10 @@ bool buildCharmoniaCtauResModel(RooWorkspace& ws, struct CharmModel model, map<s
                   ));
   
   // Total PDF
-  RooAbsPdf *themodel = themodel = new RooAddPdf(Form("%s_Tot_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP")),
-                                                 *ws.pdf(Form("%s_%s_%s", pdfType.c_str(), obj.c_str(), (isPbPb?"PbPb":"PP"))),
-                                                 *ws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))
-                                                 );
+  auto themodel = std::unique_ptr<RooAddPdf>(new RooAddPdf(Form("%s_Tot_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP")),
+                                                           *ws.pdf(Form("%s_%s_%s", pdfType.c_str(), obj.c_str(), (isPbPb?"PbPb":"PP"))),
+                                                           *ws.var(Form("N_%s_%s", obj.c_str(), (isPbPb?"PbPb":"PP")))
+                                                           ));
   ws.import(*themodel);
   setFixedVarsToContantVars(ws);
   
@@ -74,7 +75,8 @@ bool buildCharmoniaCtauResModel(RooWorkspace& ws, struct CharmModel model, map<s
 };
 
 
-bool defineCtauResModel(RooWorkspace& ws, string pdfType, string object, string varName, CtauModel model, map<string,string> parIni, bool isPbPb, bool usePerEventError)
+bool defineCtauResModel(RooWorkspace& ws, const string& pdfType, const string& object, const string& varName, const CtauModel& model,
+                        map<string,string> parIni, const bool& isPbPb, const bool usePerEventError)
 {
 
   if (ws.pdf(Form("%s_%s_%s", pdfType.c_str(), object.c_str(), (isPbPb?"PbPb":"PP")))) { 
@@ -291,7 +293,7 @@ bool defineCtauResModel(RooWorkspace& ws, string pdfType, string object, string 
 };
 
 
-void setCtauResDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries)
+void setCtauResDefaultParameters(map<string, string> &parIni, const bool& isPbPb, const double& numEntries)
 {
   // DEFAULT RANGE OF NUMBER OF EVENTS
   if (parIni.count(Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))]=="") { 
@@ -368,13 +370,12 @@ void setCtauResDefaultParameters(map<string, string> &parIni, bool isPbPb, doubl
 };
 
 
-void setCtauResMeanToZero(map<string, string> &parIni, bool isPbPb)
+void setCtauResMeanToZero(map<string, string> &parIni, const bool& isPbPb)
 {
   parIni[Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("ctau1_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.0, 0.0, 0.0);
   parIni[Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("ctau2_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.0, 0.0, 0.0);
   parIni[Form("ctau3_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("ctau3_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.0, 0.0, 0.0);
   parIni[Form("ctau4_CtauRes_%s", (isPbPb?"PbPb":"PP"))] = Form("%s[%.12f,%.12f,%.12f]", Form("ctau4_CtauRes_%s", (isPbPb?"PbPb":"PP")), 0.0, 0.0, 0.0);
-
   return;
 };
 

@@ -4,39 +4,37 @@
 #include "Utilities/initClasses.h"
 
 
-void drawCtauMass2DPlot(RooWorkspace& myws,   // Local workspace
-                        string outputDir,     // Output directory
-                        struct KinCuts cut,   // Variable with current kinematic cuts
-                        string plotLabel,     // The label used to define the output file name
+void drawCtauMass2DPlot(RooWorkspace& myws,          // Local workspace
+                        const string& outputDir,     // Output directory
+                        const struct KinCuts& cut,   // Variable with current kinematic cuts
+                        const string& plotLabel,     // The label used to define the output file name
                         // Select the type of datasets to fit
-                        string DSTAG,         // Specifies the type of datasets: i.e, DATA, MCJPSINP, ...
-                        bool isPbPb,          // Define if it is PbPb (True) or PP (False)\
+                              string DSTAG,          // Specifies the type of datasets: i.e, DATA, MCJPSINP, ...
+                        const bool& isPbPb,          // Define if it is PbPb (True) or PP (False)\
                         // Select the drawing options
-                        map<string, double> binWidth={} // User-defined Location of the fit results
-                        ) 
+                        const map<string, double>& binWidth={} // User-defined Location of the fit results
+                        )
 {
 
   gStyle->SetOptStat(0);
 
   if (DSTAG.find("_")!=std::string::npos) DSTAG.erase(DSTAG.find("_"));
 
-  double minRangeCtau = -0.5;
-  double maxRangeCtau = 2.0;
-  int nBinsCtau = min(int( round((maxRangeCtau - minRangeCtau)/binWidth["CTAU"]*2) ), 1000);
-  //  myws.var("ctau")->setBin(nBinsCtau, Binning(nBinsCtau, minRangeCtau, maxRangeCtau));
+  const double minRangeCtau = -0.5;
+  const double maxRangeCtau = 2.0;
+  const int nBinsCtau = min(int( round((maxRangeCtau - minRangeCtau)/binWidth.at("CTAU")*2) ), 1000);
 
-  double minRangeMass = cut.dMuon.M.Min;
-  double maxRangeMass = cut.dMuon.M.Max;
-  int nBinsMass = min(int( round((maxRangeMass - minRangeMass)/binWidth["MASS"]) ), 1000);
-  //  myws.var("invMass")->setBin(nBinsCtau, Binning(nBinsCtau, minRangeCtau, maxRangeCtau));
-  string pdfTotName  = Form("pdfCTAUMASS_Tot_%s", (isPbPb?"PbPb":"PP"));
-  TH1* hPDF = ((RooAbsReal*)myws.pdf(pdfTotName.c_str()))->createHistogram("PDF 2D",*myws.var("ctau"), Extended(kTRUE), Binning(nBinsCtau, minRangeCtau, maxRangeCtau), YVar(*myws.var("invMass"), Binning(nBinsMass, minRangeMass, maxRangeMass)));
+  const double minRangeMass = cut.dMuon.M.Min;
+  const double maxRangeMass = cut.dMuon.M.Max;
+  const int nBinsMass = min(int( round((maxRangeMass - minRangeMass)/binWidth.at("MASS")) ), 1000);
+  const string pdfTotName  = Form("pdfCTAUMASS_Tot_%s", (isPbPb?"PbPb":"PP"));
+  auto hPDF = std::unique_ptr<TH1>(((RooAbsReal*)myws.pdf(pdfTotName.c_str()))->createHistogram("PDF 2D",*myws.var("ctau"), Extended(kTRUE), Binning(nBinsCtau, minRangeCtau, maxRangeCtau), YVar(*myws.var("invMass"), Binning(nBinsMass, minRangeMass, maxRangeMass))));
 
-  string dsOSName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
-  TH1* hDATA = ((RooDataSet*)myws.data(dsOSName.c_str()))->createHistogram("DATA 2D",*myws.var("ctau"), Binning(nBinsCtau, minRangeCtau, maxRangeCtau), YVar(*myws.var("invMass"), Binning(nBinsMass, minRangeMass, maxRangeMass)));
+  const string dsOSName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
+  auto hDATA = std::unique_ptr<TH1>(((RooDataSet*)myws.data(dsOSName.c_str()))->createHistogram("DATA 2D",*myws.var("ctau"), Binning(nBinsCtau, minRangeCtau, maxRangeCtau), YVar(*myws.var("invMass"), Binning(nBinsMass, minRangeMass, maxRangeMass))));
   
   // Create the main canvas
-  TCanvas *cFigPDF   = new TCanvas(Form("cCtauMassPDF_%s", (isPbPb?"PbPb":"PP")), "cCtauMassPDF",2000,2000);
+  auto cFigPDF = std::unique_ptr<TCanvas>(new TCanvas(Form("cCtauMassPDF_%s", (isPbPb?"PbPb":"PP")), "cCtauMassPDF",2000,2000));
   cFigPDF->cd();
 
   hPDF->GetYaxis()->CenterTitle(kTRUE);
@@ -65,7 +63,7 @@ void drawCtauMass2DPlot(RooWorkspace& myws,   // Local workspace
   cFigPDF->Close();
 
   // Create the main canvas
-  TCanvas *cFigDATA   = new TCanvas(Form("cCtauMassPDF_%s", (isPbPb?"PbPb":"PP")), "cCtauMassPDF",2000,2000);
+  auto cFigDATA = std::unique_ptr<TCanvas>(new TCanvas(Form("cCtauMassPDF_%s", (isPbPb?"PbPb":"PP")), "cCtauMassPDF",2000,2000));
   cFigDATA->cd();
 
   hDATA->GetYaxis()->CenterTitle(kTRUE);
@@ -92,10 +90,6 @@ void drawCtauMass2DPlot(RooWorkspace& myws,   // Local workspace
 
   cFigDATA->Clear();
   cFigDATA->Close();
-  
-  delete hPDF;
-  delete hDATA;
-
 };
 
 

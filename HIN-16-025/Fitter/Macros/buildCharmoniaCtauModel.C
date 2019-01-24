@@ -3,28 +3,28 @@
 
 #include "Utilities/initClasses.h"
 
-void fixCtauParPsi2StoJpsi(map<string, string>& parIni, bool isPbPb);
-void setCtauDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries);
-bool defineCtauResolModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb); 
-bool addSignalCtauModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb); 
-bool addBackgroundCtauModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb);
-bool createCtauBkgTemplate(RooWorkspace& ws, string dsName, string pdfType, struct KinCuts cut, bool incJpsi, bool incPsi2S, double binWidth);
-bool ctauBkgHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, string dsName, vector<double> range, bool useDataSet=true);
-TH1* rebinctauBkghist(RooWorkspace& ws, TH1 *hist, double xmin=1e99, double xmax=-1e99);
-void findRangeFromPlot(vector<double>& range, struct KinCuts cut, double binWidth);
+void fixCtauParPsi2StoJpsi    ( map<string, string>& parIni, const bool& isPbPb );
+void setCtauDefaultParameters ( map<string, string>& parIni, const bool& isPbPb, const double& numEntries );
+bool defineCtauResolModel     ( RooWorkspace& ws, const string& object, const CtauModel& model, map<string,string> parIni, const bool& isPbPb );
+bool addSignalCtauModel       ( RooWorkspace& ws, const string& object, const CtauModel& model, map<string,string> parIni, const bool& isPbPb );
+bool addBackgroundCtauModel   ( RooWorkspace& ws, const string& object, const CtauModel& model, map<string,string> parIni, const bool& isPbPb );
+bool createCtauBkgTemplate    ( RooWorkspace& ws, const string& dsName, const string& pdfType, struct KinCuts cut, bool incJpsi, bool incPsi2S, double binWidth );
+bool ctauBkgHistToPdf         ( RooWorkspace& ws, TH1D& hist, const string& pdfName, const string& dsName, const vector<double>& range, const bool useDataSet=true );
+TH1* rebinctauBkghist         ( RooWorkspace& ws, const TH1& hist, const double xmin=1e99, const double xmax=-1e99 );
+void findRangeFromPlot        ( vector<double>& range, const struct KinCuts& cut, const double& binWidth );
 
-bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<string, string>  parIni, string dsName,
-                             struct KinCuts cut,          // Variable containing all kinematic cuts
-                             bool isPbPb,                 // Determine if we are working with PbPb (True) or PP (False)
-                             bool incBkg,                 // Include background model
-                             bool incJpsi,                // Include Jpsi model
-                             bool incPsi2S,               // Include Psi(2S) model
-                             bool incPrompt,              // Include Prompt models
-                             bool incNonPrompt,           // Include NonPrompt models
-                             bool useTotctauErrPdf,       // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
-                             bool usectauBkgTemplate,     // If yes use a template for Bkg ctau instead of the fitted Pdf
-                             double  binWidth,            // Bin width
-                             double  numEntries = 300000. // Number of entries in the dataset
+bool buildCharmoniaCtauModel(RooWorkspace& ws, const struct CharmModel& model, map<string, string> parIni, const string& dsName,
+                             const struct KinCuts& cut,      // Variable containing all kinematic cuts
+                             const bool& isPbPb,             // Determine if we are working with PbPb (True) or PP (False)
+                             const bool& incBkg,             // Include background model
+                             const bool& incJpsi,            // Include Jpsi model
+                             const bool& incPsi2S,           // Include Psi(2S) model
+                             const bool& incPrompt,          // Include Prompt models
+                             const bool& incNonPrompt,       // Include NonPrompt models
+                             const bool& useTotctauErrPdf,   // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
+                             const bool& usectauBkgTemplate, // If yes use a template for Bkg ctau instead of the fitted Pdf
+                             const double& binWidth,         // Bin width
+                             const double&  numEntries       // Number of entries in the dataset
                              )
 {
   // If the initial parameters are empty, set defaul parameter values
@@ -40,10 +40,10 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
   bool fitMass = false;
   if ( ws.pdf(Form("pdfMASS_Tot_%s", (isPbPb?"PbPb":"PP"))) && incBkg && (incJpsi || incPsi2S) ) { fitMass = true; } 
 
-  string pdfName     = "pdfCTAU";
+  string pdfName = "pdfCTAU";
   if (fitMass) { pdfName = "pdfCTAUMASS"; }
-  bool isMC = (dsName.find("MC")!=std::string::npos);
-  bool incCtauErrPDF = true;
+  const bool isMC = (dsName.find("MC")!=std::string::npos);
+  const bool incCtauErrPDF = true;
   
   
   if (incJpsi) {
@@ -57,8 +57,8 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     if (incPrompt && !incNonPrompt) {
       if (incCtauErrPDF) {
         RooProdPdf pdfJpsi(Form("pdfCTAU_JpsiPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form((useTotctauErrPdf?"pdfCTAUERRTot_Tot_%s":"pdfCTAUERR_Jpsi_%s"), (isPbPb?"PbPb":"PP"))),
-                       Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
-                       ); 
+                           Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
+                           );
         ws.import(pdfJpsi);
       } else {
         ws.factory(Form("SUM::%s(%s)", Form("pdfCTAU_JpsiPR_%s", (isPbPb?"PbPb":"PP")),
@@ -79,8 +79,8 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     if (!incPrompt && incNonPrompt) {
       if (incCtauErrPDF) {
         RooProdPdf pdfJpsi(Form("pdfCTAU_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form((useTotctauErrPdf?"pdfCTAUERRTot_Tot_%s":"pdfCTAUERR_Jpsi_%s"), (isPbPb?"PbPb":"PP"))),
-                       Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
-                       ); 
+                           Conditional( *ws.pdf(Form("pdfCTAUCOND_JpsiNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
+                           );
         ws.import(pdfJpsi);
       } else {
         ws.factory(Form("SUM::%s(%s)", Form("pdfCTAU_JpsiNoPR_%s", (isPbPb?"PbPb":"PP")),
@@ -164,8 +164,8 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     if (incPrompt && !incNonPrompt) {
       if (incCtauErrPDF) {
         RooProdPdf pdfPsi2S(Form("pdfCTAU_Psi2SPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form((useTotctauErrPdf?"pdfCTAUERRTot_Tot_%s":"pdfCTAUERR_Psi2S_%s"), (isPbPb?"PbPb":"PP"))),
-                       Conditional( *ws.pdf(Form("pdfCTAUCOND_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
-                       ); 
+                            Conditional( *ws.pdf(Form("pdfCTAUCOND_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
+                            );
         ws.import(pdfPsi2S);
       } else {
         ws.factory(Form("SUM::%s(%s)", Form("pdfCTAU_Psi2SPR_%s", (isPbPb?"PbPb":"PP")),
@@ -186,8 +186,8 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     if (!incPrompt && incNonPrompt) {
       if (incCtauErrPDF) {
         RooProdPdf pdfPsi2S(Form("pdfCTAU_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form((useTotctauErrPdf?"pdfCTAUERRTot_Tot_%s":"pdfCTAUERR_Psi2S_%s"), (isPbPb?"PbPb":"PP"))),
-                       Conditional( *ws.pdf(Form("pdfCTAUCOND_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
-                       ); 
+                            Conditional( *ws.pdf(Form("pdfCTAUCOND_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
+                            );
         ws.import(pdfPsi2S);
       } else {
         ws.factory(Form("SUM::%s(%s)", Form("pdfCTAU_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")),
@@ -208,12 +208,12 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
     if (incPrompt && incNonPrompt) {
       if (incCtauErrPDF) {
         RooProdPdf pdfPsi2SPR(Form("pdfCTAU_Psi2SPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form((useTotctauErrPdf?"pdfCTAUERRTot_Tot_%s":"pdfCTAUERR_Psi2S_%s"), (isPbPb?"PbPb":"PP"))),
-                       Conditional( *ws.pdf(Form("pdfCTAUCOND_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
-                       ); 
+                              Conditional( *ws.pdf(Form("pdfCTAUCOND_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
+                              );
         ws.import(pdfPsi2SPR);
         RooProdPdf pdfPsi2SNoPR(Form("pdfCTAU_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form((useTotctauErrPdf?"pdfCTAUERRTot_Tot_%s":"pdfCTAUERR_Psi2S_%s"), (isPbPb?"PbPb":"PP"))),
-                       Conditional( *ws.pdf(Form("pdfCTAUCOND_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
-                       ); 
+                                Conditional( *ws.pdf(Form("pdfCTAUCOND_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
+                                );
         ws.import(pdfPsi2SNoPR);
       } else {
         ws.factory(Form("SUM::%s(%s)", Form("pdfCTAU_Psi2SPR_%s", (isPbPb?"PbPb":"PP")),
@@ -341,7 +341,7 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
       if ( !ws.pdf(Form("pdfCTAUERR_Bkg_%s", (isPbPb?"PbPb":"PP"))) ) { return false; }
       RooProdPdf pdf(Form("pdfCTAU_Bkg_%s", (isPbPb?"PbPb":"PP")), "", *ws.pdf(Form((useTotctauErrPdf?"pdfCTAUERRTot_Tot_%s":"pdfCTAUERR_Bkg_%s"), (isPbPb?"PbPb":"PP"))),
                      Conditional( *ws.pdf(Form("pdfCTAUCOND_Bkg_%s", (isPbPb?"PbPb":"PP"))), RooArgList(*ws.var("ctau")) )
-                       );
+                     );
       ws.import(pdf);
     }
     if ( fitMass && ws.pdf(Form("pdfMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))) ){
@@ -378,113 +378,110 @@ bool buildCharmoniaCtauModel(RooWorkspace& ws, struct CharmModel model, map<stri
                     ));
   }
   
-
   // Total PDF
-  RooAbsPdf *themodel = NULL;
+  std::unique_ptr<RooAbsPdf> themodel;
   string tag = "";
   if (incPrompt  && !incNonPrompt) { tag = "PR"; }
   if (!incPrompt && incNonPrompt)  { tag = "NoPR";   }
 
   if (incJpsi && incPsi2S && incBkg) {
-    themodel = new RooAddPdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), 
-                             RooArgList( 
-                                        *ws.pdf(Form("%s_Jpsi%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP"))), 
-                                        *ws.pdf(Form("%s_Psi2S%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP"))), 
-                                        *ws.pdf(Form("%s_Bkg%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP"))) 
-                                         ),
-                             RooArgList( 
-                                        *ws.var(Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))), 
-                                        (ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")))?*ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))):*ws.function(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")))),
-                                        *ws.var(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))) 
-                                         )
-                             );
+    themodel.reset(new RooAddPdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), 
+                                 RooArgList( 
+                                            *ws.pdf(Form("%s_Jpsi%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP"))), 
+                                            *ws.pdf(Form("%s_Psi2S%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP"))), 
+                                            *ws.pdf(Form("%s_Bkg%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP"))) 
+                                             ),
+                                 RooArgList( 
+                                            *ws.var(Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))), 
+                                            (ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")))?*ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))):*ws.function(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")))),
+                                            *ws.var(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP"))) 
+                                             )
+                                 ));
   }
   if (incJpsi && incPsi2S && !incBkg) {
-    themodel = new RooAddPdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), 
-                             RooArgList( 
-                                        *ws.pdf(Form("%s_Jpsi%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP"))), 
-                                        *ws.pdf(Form("%s_Psi2S%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP")))
-                                         ),
-                             RooArgList( 
-                                        *ws.var(Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))),
-                                        (ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")))?*ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))):*ws.function(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))))
-                                         )
-                             );
+    themodel.reset(new RooAddPdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), 
+                                 RooArgList( 
+                                            *ws.pdf(Form("%s_Jpsi%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP"))), 
+                                            *ws.pdf(Form("%s_Psi2S%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP")))
+                                             ),
+                                 RooArgList( 
+                                            *ws.var(Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))),
+                                            (ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")))?*ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))):*ws.function(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))))
+                                             )
+                                 ));
   }
   if (incJpsi && !incPsi2S && incBkg) {
-    themodel = new RooAddPdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), 
-                             RooArgList( 
-                                        *ws.pdf(Form("%s_Jpsi%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP"))), 
-                                        *ws.pdf(Form("%s_Bkg%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP")))
-                                         ),
-                             RooArgList( 
-                                        *ws.var(Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))), 
-                                        *ws.var(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")))
-                                         )
-                             );
+    themodel.reset(new RooAddPdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), 
+                                 RooArgList( 
+                                            *ws.pdf(Form("%s_Jpsi%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP"))), 
+                                            *ws.pdf(Form("%s_Bkg%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP")))
+                                             ),
+                                 RooArgList( 
+                                            *ws.var(Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))), 
+                                            *ws.var(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")))
+                                             )
+                                 ));
   }
   if (!incJpsi && incPsi2S && incBkg) {
-    themodel = new RooAddPdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), 
-                             RooArgList( 
-                                        *ws.pdf(Form("%s_Psi2S%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP"))), 
-                                        *ws.pdf(Form("%s_Bkg%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP")))
-                                         ),
-                             RooArgList( 
-                                        (ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")))?*ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))):*ws.function(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")))),
-                                        *ws.var(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")))
-                                         )
-                             );
+    themodel.reset(new RooAddPdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), 
+                                 RooArgList( 
+                                            *ws.pdf(Form("%s_Psi2S%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP"))), 
+                                            *ws.pdf(Form("%s_Bkg%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP")))
+                                             ),
+                                 RooArgList( 
+                                            (ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")))?*ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))):*ws.function(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")))),
+                                            *ws.var(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")))
+                                             )
+                                 ));
   }
   if (incJpsi && !incPsi2S && !incBkg) {
-    themodel = new RooAddPdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), 
-                             RooArgList( 
-                                        *ws.pdf(Form("%s_Jpsi%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP")))
-                                         ),
-                             RooArgList( 
-                                        *ws.var(Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP")))
-                                         )
-                             );
+    themodel.reset(new RooAddPdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), 
+                                 RooArgList( 
+                                            *ws.pdf(Form("%s_Jpsi%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP")))
+                                             ),
+                                 RooArgList( 
+                                            *ws.var(Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP")))
+                                             )
+                                 ));
   }
   if (!incJpsi && incPsi2S && !incBkg) {
-    themodel = new RooAddPdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), 
-                             RooArgList( 
-                                        *ws.pdf(Form("%s_Psi2S%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP")))
-                                         ),
-                             RooArgList( 
-                                        (ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")))?*ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))):*ws.function(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))))
-                                         )
-                             );
+    themodel.reset(new RooAddPdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), 
+                                 RooArgList( 
+                                            *ws.pdf(Form("%s_Psi2S%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP")))
+                                             ),
+                                 RooArgList( 
+                                            (ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")))?*ws.var(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))):*ws.function(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))))
+                                             )
+                                 ));
   }
   if (!incJpsi && !incPsi2S && incBkg) {
-    themodel = new RooAddPdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), 
-                             RooArgList( 
-                                        *ws.pdf(Form("%s_Bkg%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP")))
-                                         ),
-                             RooArgList( 
-                                        *ws.var(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")))
-                                         )
-                             );
+    themodel.reset(new RooAddPdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")), 
+                                 RooArgList( 
+                                            *ws.pdf(Form("%s_Bkg%s_%s", pdfName.c_str(), tag.c_str(), (isPbPb?"PbPb":"PP")))
+                                             ),
+                                 RooArgList( 
+                                            *ws.var(Form("N_Bkg_%s", (isPbPb?"PbPb":"PP")))
+                                             )
+                                 ));
   }
   if (!incJpsi && !incPsi2S && !incBkg) {
     cout << "[ERROR] User did not include any model, please fix your input settings!" << endl; return false;
   }
   ws.import(*themodel);
-  //ws.pdf(Form("%s_Tot_%s", pdfName.c_str(), (isPbPb?"PbPb":"PP")))->setNormRange("CtauWindow");
   
   return true;
 };
 
 
-void fixCtauParPsi2StoJpsi(map<string, string>& parIni, bool isPbPb)
+void fixCtauParPsi2StoJpsi(map<string, string>& parIni, const bool& isPbPb)
 {
   cout << "[INFO] Constraining Psi(2S) parameters to Jpsi" << endl;
   parIni[Form("sigmaMC_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))] = Form("RooFormulaVar::%s('@0',{%s})", Form("sigmaMC_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP")), Form("sigmaMC_JpsiNoPR_%s", (isPbPb?"PbPb":"PP") ));
   parIni[Form("lambdaDSS_Psi2SNoPR_PbPb")] = Form("RooFormulaVar::%s('@0',{%s})", Form("lambdaDSS_Psi2SNoPR_PbPb"), Form("lambdaDSS_JpsiNoPR_PbPb"));
-  //parIni[Form("b_Psi2S_PbPb")] = Form("RooFormulaVar::%s('@0',{%s})", Form("b_Psi2S_PbPb"), Form("b_Jpsi_PbPb"));
 };
 
 
-bool defineCtauResolModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb)
+bool defineCtauResolModel(RooWorkspace& ws, const string& object, const CtauModel& model, map<string,string> parIni, const bool& isPbPb)
 { 
   if (ws.pdf(Form("pdfCTAURES_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) { 
     cout << Form("[WARNING] The %s Ctau Resolution Model has already been implemented!", object.c_str()) << endl;
@@ -495,9 +492,9 @@ bool defineCtauResolModel(RooWorkspace& ws, string object, CtauModel model, map<
     return true; 
   }
 
-  string pdfType = "pdfCTAURES";
-  string varName = "ctau";
-  bool usePerEventError = true;
+  const string pdfType = "pdfCTAURES";
+  const string varName = "ctau";
+  const bool usePerEventError = true;
 
   cout << Form("[INFO] Implementing %s Ctau Resolution Model", object.c_str()) << endl;
   
@@ -708,15 +705,15 @@ bool defineCtauResolModel(RooWorkspace& ws, string object, CtauModel model, map<
 };
 
 
-bool addBackgroundCtauModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb) 
+bool addBackgroundCtauModel(RooWorkspace& ws, const string& object, const CtauModel& model, map<string,string> parIni, const bool& isPbPb) 
 {
-  if (ws.pdf(Form("pdfCTAU_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) { 
+  if (ws.pdf(Form("pdfCTAU_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) {
     cout << Form("[WARNING] The %s Background Ctau Model has already been implemented!", object.c_str()) << endl;
-    return true; 
+    return true;
   }
-  if (ws.pdf(Form("pdfCTAUCOND_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) { 
+  if (ws.pdf(Form("pdfCTAUCOND_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) {
     cout << Form("[INFO] The %s Background Ctau Conditional Model has already been implemented!", object.c_str()) << endl;
-    return true; 
+    return true;
   }
 
   cout << Form("[INFO] Implementing %s Background Ctau Model", object.c_str()) << endl;
@@ -862,7 +859,7 @@ bool addBackgroundCtauModel(RooWorkspace& ws, string object, CtauModel model, ma
 };
 
 
-bool addSignalCtauModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb) 
+bool addSignalCtauModel(RooWorkspace& ws, const string& object, const CtauModel& model, map<string,string> parIni, const bool& isPbPb) 
 {
   if (ws.pdf(Form("pdfCTAU_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) { 
     cout << Form("[WARNING] The %s Signal Ctau Model has already been implemented!", object.c_str()) << endl;
@@ -879,11 +876,11 @@ bool addSignalCtauModel(RooWorkspace& ws, string object, CtauModel model, map<st
   if (objectInc.find("NoPR")!=std::string::npos) { objectInc.erase(objectInc.find("NoPR"), objectInc.length()); }
   if (objectInc.find("PR")!=std::string::npos)   { objectInc.erase(objectInc.find("PR"), objectInc.length());   } 
 
-  switch(model) 
-    {  
-    case (CtauModel::SingleSidedDecay): 
+  switch(model)
+    {
+    case (CtauModel::SingleSidedDecay):
 
-      if (!( 
+      if (!(
             parIni.count(Form("lambdaDSS_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP"))) 
              )) { 
  	cout << Form("[ERROR] Initial parameters where not found for %s Signal Single Sided Decay Ctau Model in %s", object.c_str(), (isPbPb?"PbPb":"PP")) << endl; return false; 
@@ -926,7 +923,7 @@ bool addSignalCtauModel(RooWorkspace& ws, string object, CtauModel model, map<st
 };
   
 
-void setCtauDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries)
+void setCtauDefaultParameters(map<string, string> &parIni, const bool& isPbPb, const double& numEntries)
 {
 
   cout << "[INFO] Setting user undefined initial parameters to their default values" << endl;
@@ -1068,7 +1065,7 @@ void setCtauDefaultParameters(map<string, string> &parIni, bool isPbPb, double n
 };
 
 
-bool createCtauBkgTemplate(RooWorkspace& ws, string dsName, string pdfType, struct KinCuts cut, bool incJpsi, bool incPsi2S, double binWidth)
+bool createCtauBkgTemplate(RooWorkspace& ws, const string& dsName, const string& pdfType, const struct KinCuts& cut, const bool& incJpsi, const bool& incPsi2S, const double& binWidth)
 {
   string hType = pdfType;
   hType.replace(hType.find("pdf"), string("pdf").length(), "h");
@@ -1082,17 +1079,16 @@ bool createCtauBkgTemplate(RooWorkspace& ws, string dsName, string pdfType, stru
   findRangeFromPlot(range,cut,binWidth);
   
   double ctauMax = range[1], ctauMin = range[0];
-  int nBins = min(int( round((ctauMax - ctauMin)/binWidth) ), 1000);
+  const int nBins = min(int( round((ctauMax - ctauMin)/binWidth) ), 1000);
   
-  TH1D* hTot = (TH1D*)ws.data(dsName.c_str())->createHistogram(Form("%s_Bkg_%s", hType.c_str(), (isPbPb?"PbPb":"PP")), *ws.var("ctau"), Binning(nBins, ctauMin, ctauMax));
-  RooDataHist* dataHist = new RooDataHist("tmp", "", *ws.var("ctau"), hTot); delete dataHist; // KEEP THIS LINE, IT IS A FIX FOR ROOKEYS
-  if ( !ctauBkgHistToPdf(ws, hTot, Form("%s_Bkg_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP")), dsName, range)) { return false; }
-  hTot->Delete();
+  auto hTot = std::unique_ptr<TH1D>((TH1D*)ws.data(dsName.c_str())->createHistogram(Form("%s_Bkg_%s", hType.c_str(), (isPbPb?"PbPb":"PP")), *ws.var("ctau"), Binning(nBins, ctauMin, ctauMax)));
+  auto dataHist = new RooDataHist("tmp", "", *ws.var("ctau"), hTot.get()); delete dataHist; // KEEP THIS LINE, IT IS A FIX FOR ROOKEYS
+  if ( !ctauBkgHistToPdf(ws, *hTot, Form("%s_Bkg_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP")), dsName, range)) { return false; }
 
   return true;
 };
 
-bool ctauBkgHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, string dsName, vector<double> range, bool useDataSet)
+bool ctauBkgHistToPdf(RooWorkspace& ws, TH1D& hist, const string& pdfName, const string& dsName, const vector<double>& range, const bool useDataSet)
 {
   if (ws.pdf(pdfName.c_str())) {
     cout << Form("[INFO] The %s Template has already been created!", pdfName.c_str()) << endl;
@@ -1103,43 +1099,39 @@ bool ctauBkgHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, string dsNam
   
   if (useDataSet) {
     if (ws.data(dsName.c_str())==NULL) { cout << "[ERROR] DataSet " << dsName << " for Bkg Template was not found!" << endl; return false; }
-    RooKeysPdf* pdf = new RooKeysPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctau"), *((RooDataSet*)ws.data(dsName.c_str())), RooKeysPdf::MirrorAsymBoth);
+    auto pdf = std::unique_ptr<RooKeysPdf>(new RooKeysPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctau"), *((RooDataSet*)ws.data(dsName.c_str())), RooKeysPdf::MirrorAsymBoth));
     pdf->setNormRange("CtauFullWindow");
     ws.import(*pdf);
-    delete pdf;
   }
   else {
     // Cleaning the input histogram
     // 1) Remove the Under and Overflow bins
-    hist->ClearUnderflowAndOverflow();
+    hist.ClearUnderflowAndOverflow();
     // 2) Set negative bin content to zero
-    for (int i=0; i<=hist->GetNbinsX(); i++) { if (hist->GetBinContent(i)<0) { hist->SetBinContent(i, 0.0000000001); } }
+    for (int i=0; i<=hist.GetNbinsX(); i++) { if (hist.GetBinContent(i)<0) { hist.SetBinContent(i, 0.0000000001); } }
     // 3) Reduce the range of histogram and rebin it
-    TH1* hClean = rebinctauBkghist(ws, hist, range[0], range[1]);
+    auto hClean = std::unique_ptr<TH1>(rebinctauBkghist(ws, hist, range[0], range[1]));
     // 4) Create the RooDataHist for the Template
     string dataName = pdfName;
     dataName.replace(dataName.find("pdf"), string("pdf").length(), "dh");
-    RooDataHist* dataHist = new RooDataHist(dataName.c_str(), "", *ws.var("ctau"), hClean);
+    auto dataHist = std::unique_ptr<RooDataHist>(new RooDataHist(dataName.c_str(), "", *ws.var("ctau"), hClean.get()));
     if (dataHist==NULL) { cout << "[ERROR] DataHist used to create " << pdfName << " failed!" << endl; return false; }
     if (dataHist->sumEntries()==0) { cout << "[ERROR] DataHist used to create " << pdfName << " is empty!" << endl; return false; }
     if (fabs(dataHist->sumEntries()-hClean->GetSumOfWeights())>0.001) { cout << "[ERROR] DataHist used to create " << pdfName << "  " << " is invalid!  " << endl; return false; }
     ws.import(*dataHist);
     // 4) Make the Template
-    RooHistPdf* pdf = new RooHistPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctau"), *((RooDataHist*)ws.data(dataName.c_str())));
-    //RooKeysPdf* pdf = new RooKeysPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctau"), *((RooDataSet*)ws.data(dataName.c_str())),RooKeysPdf::NoMirror, 0.4)
+    auto pdf = std::unique_ptr<RooHistPdf>(new RooHistPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctau"), *((RooDataHist*)ws.data(dataName.c_str()))));
     pdf->setNormRange("CtauFullWindow");
     ws.import(*pdf);
-    delete pdf;
-    delete dataHist;
   }
   
   return true;
 };
 
 
-TH1* rebinctauBkghist(RooWorkspace& ws, TH1 *hist, double xmin, double xmax)
+TH1* rebinctauBkghist(RooWorkspace& ws, const TH1& hist, const double xmin, const double xmax)
 {
-  TH1 *hcopy = (TH1*) hist->Clone("hcopy");
+  auto hcopy = std::unique_ptr<TH1>((TH1*) hist.Clone("hcopy"));
   
   // range of the new hist
   int imin = hcopy->FindBin(xmin);
@@ -1169,24 +1161,10 @@ TH1* rebinctauBkghist(RooWorkspace& ws, TH1 *hist, double xmin, double xmax)
   if (xmax > newbins[newbins.size()-2]) newbins[newbins.size()-1] = xmax;
   
   TH1 *ans = hcopy->Rebin(newbins.size()-1,"hnew",newbins.data());
-  
-// //Functionality not working yet
-//  vector<double> fullBins;
-//  fullBins.push_back(-3.0); //hardcoded
-//  for (int i=0 ; i < (int)newbins.size() ; i++)
-//  {
-//    fullBins.push_back(newbins[i]);
-//  }
-//  fullBins.push_back(5.0);//hardcoded
-//  
-//  RooBinning* tempBin = new RooBinning(fullBins.size()-1,fullBins.data(),"TemplateBinning");
-//  ws.import(*tempBin);
-  
-  delete hcopy;
   return ans;
 };
 
-void findRangeFromPlot(vector<double>& range, struct KinCuts cut, double binWidth)
+void findRangeFromPlot(vector<double>& range, const struct KinCuts& cut, const double& binWidth)
 {
   double minRange = -4.0; //hardcoded (must be the same as in drawCtauPlot.C)
   double maxRange = 7.0;
@@ -1218,5 +1196,6 @@ void findRangeFromPlot(vector<double>& range, struct KinCuts cut, double binWidt
   
   return;
 };
+
 
 #endif // #ifndef buildCharmoniaCtauModel_C

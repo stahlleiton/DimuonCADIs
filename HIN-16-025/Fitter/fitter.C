@@ -2,56 +2,61 @@
 #include "Macros/tree2DataSet.C"
 #include "Macros/fitCharmonia.C"
 
-bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool fitRes, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doConstrFit, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores);
+bool checkSettings ( const bool& fitData,     const bool& fitMC,        const bool& fitPbPb,      const bool& fitPP,
+                     const bool& fitMass,     const bool& fitCtau,      const bool& fitCtauTrue,  const bool& fitCtauReco,
+                     const bool& fitRes,      const bool& doCtauErrPDF, const bool& incJpsi,      const bool& incPsi2S,
+                     const bool& incBkg,      const bool& incPrompt,    const bool& incNonPrompt, const bool& cutCtau,
+                     const bool& doConstrFit, const bool& doSimulFit,   const bool& wantPureSMC,  const string& applyCorr,
+                     const bool& setLogScale, const bool& zoomPsi,      const bool& incSS,        const int& numCores );
 
-bool parseFile(string FileName, vector< map<string, string> >& data);
-bool parseString(string input, string delimiter, vector<double>& output);
-
-bool iniWorkEnv( map< string, vector<string> >& DIR, const string workDirName);
-void findSubDir(vector<string>& dirlist, string dirname);
-bool existDir(string dir);
-bool readFile(string FileName, vector< vector<string> >& content, const int nCol=-1, int nRow=-1);
-bool getInputFileNames(const string InputTrees, map<string, vector<string> >& InputFileCollection);
-bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, string>& parIni, bool isPbPb, bool doConstrFit);
-bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vector< map<string, string> >&  parIniVector, bool isPbPb, bool doConstrFit);
+bool parseFile   ( vector< map<string, string> >& data, const string& fileName   );
+bool parseString ( vector<double>& output, string input, const string& delimiter );
+bool iniWorkEnv  ( map< string, vector<string> >& DIR, const string& workDirName );
+void findSubDir  ( vector<string>& dirlist, const string& dirname);
+bool readFile    ( vector< vector<string> >& content, const string& fileName, const int nCol=-1, int nRow=-1 );
+bool getInputFileNames ( map<string, vector<string> >& inputFileCollection, const string& inputTrees );
+bool setParameters ( struct KinCuts& cut, map<string, string>& parIni, const map<string, string>& row, const bool& isPbPb, const bool& doConstrFit );
+bool addParameters ( vector< struct KinCuts >& cutVector, vector< map<string, string> >& parIniVector, const string& inputFile, const bool& isPbPb, const bool& doConstrFit );
 
 
 void fitter(
-            const string workDirName="Test", // Working directoryi
-            bool useExtFiles  = true, // Use external fit files as input
-            bool useExtDS     = false, // Use external data/mc DataSets
-            bool usePeriPD    = false, // If yes, use the PERIPHERAL PD provided by the user
+            const string workDirName="Test", // Working directory
+            const bool useExtFiles  = false, // Use external fit files as input
+            const bool useExtDS     = false, // Use external data/mc DataSets
+                  bool usePeriPD    = false, // If yes, use the PERIPHERAL PD provided by the user
             // Select the type of datasets to fit
-            bool fitData      = true,        // Fits Data datasets
-            bool fitMC        = false,         // Fits MC datasets
-            bool fitPbPb      = true,         // Fits PbPb datasets
-            bool fitPP        = true,        // Fits PP datasets
-            bool fitMass      = true,       // Fits invariant mass distribution
-            bool fitCtau      = true,       // Fits ctau distribution
-            bool fitCtauTrue  = false,         // Fits ctau true MC distribution
-            bool fitCtauReco  = false,      // Fit ctau reco MC distribution
-            bool doCtauErrPDF = false,         // If yes, it builds the Ctau Error PDFs from data
-            bool fitRes       = false,         // If yes fits the resolution from Data or MC
+            const bool fitData      = true,        // Fits Data datasets
+            const bool fitMC        = false,         // Fits MC datasets
+            const bool fitPbPb      = true,         // Fits PbPb datasets
+            const bool fitPP        = true,        // Fits PP datasets
+            const bool fitMass      = true,       // Fits invariant mass distribution
+            const bool fitCtau      = true,       // Fits ctau distribution
+            const bool fitCtauTrue  = false,         // Fits ctau true MC distribution
+            const bool fitCtauReco  = false,      // Fit ctau reco MC distribution
+            const bool doCtauErrPDF = false,         // If yes, it builds the Ctau Error PDFs from data
+            const bool fitRes       = false,         // If yes fits the resolution from Data or MC
             // Select the type of object to fit
-            bool incJpsi      = true,          // Includes Jpsi model
-            bool incPsi2S     = false,         // Includes Psi(2S) model
-            bool incBkg       = true,         // Includes Background model
-            bool incPrompt    = true,         // Includes Prompt ctau model
-            bool incNonPrompt = true,          // Includes Non Prompt ctau model 
+                  bool incJpsi      = false,          // Includes Jpsi model
+                  bool incPsi2S     = true,         // Includes Psi(2S) model
+            const bool incBkg       = true,         // Includes Background model
+                  bool incPrompt    = true,         // Includes Prompt ctau model
+                  bool incNonPrompt = true,          // Includes Non Prompt ctau model 
             // Select the fitting options
-            bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
-            bool usectauBkgTemplate = true,// If yes use a template for Bkg ctau instead of the fitted Pdf
-            bool useCtauRecoPdf = false,     // If yes use the ctauReco PDF (template) instead of ctauTrue one
-            bool cutCtau      = false,        // Apply prompt ctau cuts
-            bool doConstrFit   = false,        // Do constrained fit
-            bool doSimulFit   = false,        // Do simultaneous fit
-            bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
-            const char* applyCorr  = "",     // Apply weight to data for correction (Acceptance & Ef , l_J/psi eff...). No correction if empty variable.
-            int  numCores     = 32,           // Number of cores used for fitting
+            const bool useTotctauErrPdf = false,  // If yes use the total ctauErr PDF instead of Jpsi and bkg ones
+            const bool usectauBkgTemplate = false,// If yes use a template for Bkg ctau instead of the fitted Pdf
+            const bool useCtauRecoPdf = false,     // If yes use the ctauReco PDF (template) instead of ctauTrue one
+            const bool cutCtau      = false,        // Apply prompt ctau cuts
+            const bool doConstrFit  = false,        // Do constrained fit
+            const bool doSimulFit   = false,        // Do simultaneous fit
+            const bool doJpsi       = false,         // Flag to indicate if we want to perform fits for Jpsi analysis
+            const bool doPsi2S      = true,        // Flag to indicate if we want to perform fits for Psi2S analysis
+            const bool wantPureSMC  = false,        // Flag to indicate if we want to fit pure signal MC
+            const string applyCorr  = "",     // Apply weight to data for correction (Acceptance & Ef , l_J/psi eff...). No correction if empty variable.
+            const int  numCores     = 32,           // Number of cores used for fitting
             // Select the drawing options
-            bool  setLogScale  = true,         // Draw plot with log scale
-            bool  incSS        = false,        // Include Same Sign data
-            bool  zoomPsi      = false         // Zoom Psi(2S) peak on extra pad
+            const bool  setLogScale = true,         // Draw plot with log scale
+            const bool  incSS       = false,        // Include Same Sign data
+            const bool  zoomPsi     = false         // Zoom Psi(2S) peak on extra pad
             )
 {
   // -------------------------------------------------------------------------------
@@ -79,54 +84,21 @@ void fitter(
   if (workDirName.find("Peri")!=std::string::npos) { usePeriPD = true; }
 
   map<string, string> inputFitDir;
-  inputFitDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_polBkg_nominal/" : "DataFitsMassCent_2CB_polBkg_nominal/");
-  //inputFitDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_polBkg_minvRange/" : "DataFitsMassCent_2CB_polBkg_minvRange/");
-  //inputFitDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_polBkg_LLR10/" : "DataFitsMassCent_2CB_polBkg_LLR10/");
-  //inputFitDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_polBkg_LLR25/" : "DataFitsMassCent_2CB_polBkg_LLR25/");
-  //inputFitDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_polBkg_constrained/" : "DataFitsMassCent_2CB_polBkg_constrained/");
-  //inputFitDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_expBkg/" : "DataFitsMassCent_2CB_expBkg/");
-  //inputFitDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/MassFits/") + (usePeriPD ? "DataFitsMassPeri_CBG_polBkg/" : "DataFitsMassCent_CBG_polBkg/");
-  
+  inputFitDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_polBkg_nominal/" : "DataFitsMassCent_2CB_polBkg_nominal/");  
   inputFitDir["CTAUERR"]  = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/CtauErrFits/") + (usePeriPD ? "DataFitsPeri_ctauErr_nominal/" :  "DataFitsCent_ctauErr_nominal/");
   inputFitDir["CTAUTRUE"] = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/CtauTrueFits/") + (usePeriPD ? "MCFitsPeri_nonPrompt_ctauTrue/" :  "MCFitsCent_nonPrompt_ctauTrue/");
   inputFitDir["CTAURECO"] = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/CtauRecoFits/") + (usePeriPD ? "MCFitsPeri_nonPrompt_ctauReco/" :  "MCFitsCent_nonPrompt_ctauReco/");
-  
   inputFitDir["CTAURES"]  = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/CtauResFits/") + (usePeriPD ? "DataFitsPeri_ctauRes_nominalErr/" :  "DataFitsCent_ctauRes_nominalErr/");
-  //inputFitDir["CTAURES"]  = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/CtauResFits/") + (usePeriPD ? "MCFitsPeri_prompt_ctauRes/" :  "MCFitsCent_prompt_ctauRes/");
-  //inputFitDir["CTAURES"]  = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/CtauResFits/") + (usePeriPD ? "MCFitsPeri_nonPrompt_ctauRes/" :  "MCFitsCent_nonPrompt_ctauRes/");  
-  
   inputFitDir["CTAUSB"]   = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/CtauBkgFits/") + (usePeriPD ? "DataFitsPeri_ctauBkg_dataCTauRes/" : "DataFitsCent_ctauBkg_dataCTauRes/");
-  //inputFitDir["CTAUSB"]   = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/CtauBkgFits/") + (usePeriPD ? "DataFitsPeri_ctauBkg_promptCTauRes/" : "DataFitsCent_ctauBkg_promptCTauRes/");
-  //inputFitDir["CTAUSB"]   = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Output/CtauBkgFits/") + (usePeriPD ? "DataFitsPeri_ctauBkg_nonPromptCTauRes/" : "DataFitsCent_ctauBkg_nonPromptCTauRes/");  
 
   map<string, string> inputInitialFilesDir;
-  inputInitialFilesDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_polBkg_nominal/" :  "DataFitsMassCent_2CB_polBkg_nominal/");
-  //inputInitialFilesDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_polBkg_minvRange/" : "DataFitsMassCent_2CB_polBkg_minvRange/");
-  //inputInitialFilesDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_polBkg_LLR10/" : "DataFitsMassCent_2CB_polBkg_LLR10/");
-  //inputInitialFilesDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_polBkg_LLR25/" : "DataFitsMassCent_2CB_polBkg_LLR25/");
-  //inputInitialFilesDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_polBkg_constrained/" : "DataFitsMassCent_2CB_polBkg_constrained/");
-  //inputInitialFilesDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_expBkg/" : "DataFitsMassCent_2CB_expBkg/");
-  //inputInitialFilesDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/MassFits/") + (usePeriPD ? "DataFitsMassPeri_CBG_polBkg/" : "DataFitsMassCent_CBG_polBkg/");
-  
+  inputInitialFilesDir["MASS"]     = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_polBkg_nominal/" :  "DataFitsMassCent_2CB_polBkg_nominal/");  
   inputInitialFilesDir["CTAUTRUE"] = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/CtauTrueFits/") + (usePeriPD ? "MCFitsPeri_nonPrompt_ctauTrue/" :  "MCFitsCent_nonPrompt_ctauTrue/");
-  //inputInitialFilesDir["CTAUTRUE"] = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/CtauTrueFits/") + (usePeriPD ? "MCFitsPeri_nonPrompt_ctauTrue_minvRange/" :  "MCFitsCent_nonPrompt_ctauTrue_minvRange/");  
-
   inputInitialFilesDir["CTAURECO"] = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/CtauRecoFits/") + (usePeriPD ? "MCFitsPeri_nonPrompt_ctauReco/" :  "MCFitsCent_nonPrompt_ctauReco/");
-  //inputInitialFilesDir["CTAURECO"] = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/CtauRecoFits/") + (usePeriPD ? "MCFitsPeri_nonPrompt_ctauReco_minvRange/" :  "MCFitsCent_nonPrompt_ctauReco_minvRange/");  
-
   inputInitialFilesDir["CTAURES"]  = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/CtauResFits/") + (usePeriPD ? "DataFitsPeri_ctauRes_nominalErr/" :  "DataFitsCent_ctauRes_nominalErr/");
-  //inputInitialFilesDir["CTAURES"]  = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/CtauResFits/") + (usePeriPD ? "MCFitsPeri_prompt_ctauRes/" :  "MCFitsCent_prompt_ctauRes/");
-  //inputInitialFilesDir["CTAURES"]  = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/CtauResFits/") + (usePeriPD ? "MCFitsPeri_nonPrompt_ctauRes/" :  "MCFitsCent_nonPrompt_ctauRes/");  
-  //inputInitialFilesDir["CTAURES"]  = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/CtauResFits/") + (usePeriPD ? "DataFitsPeri_ctauRes_nominalErr_minvRange/" :  "DataFitsCent_ctauRes_nominalErr_minvRange/");  
-
   inputInitialFilesDir["CTAUSB"]   = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/CtauBkgFits/") + (usePeriPD ? "DataFitsPeri_ctauBkg_dataCTauRes/" :  "DataFitsCent_ctauBkg_dataCTauRes/");
-  //inputInitialFilesDir["CTAUSB"]   = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/CtauBkgFits/") + (usePeriPD ? "DataFitsPeri_ctauBkg_promptCTauRes/" : "DataFitsCent_ctauBkg_promptCTauRes/");
-  //inputInitialFilesDir["CTAUSB"]   = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/CtauBkgFits/") + (usePeriPD ? "DataFitsPeri_ctauBkg_nonPromptCTauRes/" : "DataFitsCent_ctauBkg_nonPromptCTauRes/");
-  //inputInitialFilesDir["CTAUSB"]   = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/CtauBkgFits/") + (usePeriPD ? "DataFitsPeri_ctauBkg_dataCTauRes_minvRange/" :  "DataFitsCent_ctauBkg_dataCTauRes_minvRange/");  
-
-  inputInitialFilesDir["CTAU"]     = string("");//string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/") + (usePeriPD ? "DataFitsPeri_2D_nominal/" :  "DataFitsCent_2D_nominal/");
-  inputInitialFilesDir["FILES"]    = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_polBkg_nominal/" : "DataFitsMassCent_2CB_polBkg_nominal/");
-  
+  inputInitialFilesDir["CTAU"]     = string("");
+  inputInitialFilesDir["FILES"]    = string("/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/Input/MassFits/") + (usePeriPD ? "DataFitsMassPeri_2CB_polBkg_nominal/" : "DataFitsMassCent_2CB_polBkg_nominal/");  
   
   map<string, string> inputDataSet;
   inputDataSet["DOUBLEMUON"] = "/afs/cern.ch/work/j/jmartinb/public/JpsiRAA/DataSets/";
@@ -135,13 +107,13 @@ void fitter(
 
   if (workDirName.find("Peri")!=std::string::npos) { usePeriPD = true; }
 
-  bool fitTest = (workDirName=="Test");
+  const bool fitTest = (workDirName=="Test");
   if (doCtauErrPDF || fitTest) { inputFitDir["CTAUERR"] = ""; inputInitialFilesDir["CTAUERR"] = "";}
   if ((fitMass && !fitCtau) || fitTest) { inputFitDir["MASS"] = ""; inputInitialFilesDir["MASS"] = "";}
   if (fitCtauTrue || fitTest) { inputFitDir["CTAUTRUE"] = ""; inputInitialFilesDir["CTAUTRUE"] = ""; }
   if (fitCtauReco || fitTest) { inputFitDir["CTAURECO"] = ""; inputInitialFilesDir["CTAURECO"] = ""; }
   if (fitRes || fitTest) { inputFitDir["CTAURES"] = ""; inputInitialFilesDir["CTAURES"] = ""; }
-  if ((fitCtau && fitData && incBkg && !incJpsi) || fitTest) { inputFitDir["CTAUSB"] = ""; inputInitialFilesDir["CTAUSB"] = ""; }
+  if ((fitCtau && fitData && incBkg && !incJpsi && !incPsi2S) || fitTest) { inputFitDir["CTAUSB"] = ""; inputInitialFilesDir["CTAUSB"] = ""; }
 
   if (!checkSettings(fitData, fitMC, fitPbPb, fitPP, fitMass, fitCtau, fitCtauTrue, fitCtauReco, fitRes, doCtauErrPDF, incJpsi, incPsi2S, incBkg, incPrompt, incNonPrompt, cutCtau, doConstrFit, doSimulFit, wantPureSMC, applyCorr, setLogScale, zoomPsi, incSS, numCores)) { return; }
 
@@ -150,26 +122,26 @@ void fitter(
 
   vector< map<string, string> > inputFitDirs;
   inputFitDirs.push_back(inputFitDir);
-  for(uint i=1; i<DIR["input"].size(); i++) {
+  for(uint i=1; i<DIR.at("input").size(); i++) {
     inputFitDirs.push_back(inputFitDir);
-    for(map<string, string>::iterator iter=inputFitDirs[i].begin(); iter!=inputFitDirs[i].end(); iter++) {
-      string key = iter->first;
-      if (inputFitDirs[i][key]!="") {
-        inputFitDirs[i][key] = DIR["input"][i];
-        inputFitDirs[i][key].replace(inputFitDirs[i][key].find(DIR["input"][0]), DIR["input"][0].length(), inputFitDirs[0][key]);
+    for(auto const& elem : inputFitDirs[i]) {
+      const string& key = elem.first;
+      if (inputFitDirs[i].at(key)!="") {
+        inputFitDirs[i].at(key) = DIR.at("input")[i];
+        inputFitDirs[i].at(key).replace(inputFitDirs[i].at(key).find(DIR.at("input")[0]), DIR.at("input")[0].length(), inputFitDirs[0].at(key));
       }
     }
   }
 
   vector< map<string, string> > inputInitialFilesDirs;
   inputInitialFilesDirs.push_back(inputInitialFilesDir);
-  for(uint i=1; i<DIR["input"].size(); i++) {
+  for(uint i=1; i<DIR.at("input").size(); i++) {
     inputInitialFilesDirs.push_back(inputInitialFilesDir);
-    for(map<string, string>::iterator iter=inputInitialFilesDirs[i].begin(); iter!=inputInitialFilesDirs[i].end(); iter++) {
-      string key = iter->first;
-      if (inputInitialFilesDirs[i][key]!="") {
-        inputInitialFilesDirs[i][key] = DIR["input"][i];
-        inputInitialFilesDirs[i][key].replace(inputInitialFilesDirs[i][key].find(DIR["input"][0]), DIR["input"][0].length(), inputInitialFilesDirs[0][key]);
+    for(auto const& elem : inputInitialFilesDirs[i]) {
+      const string& key = elem.first;
+      if (inputInitialFilesDirs[i].at(key)!="") {
+        inputInitialFilesDirs[i].at(key) = DIR.at("input")[i];
+        inputInitialFilesDirs[i].at(key).replace(inputInitialFilesDirs[i].at(key).find(DIR.at("input")[0]), DIR.at("input")[0].length(), inputInitialFilesDirs[0].at(key));
       }
     }
   }
@@ -181,55 +153,55 @@ void fitter(
     Output: Collection of RooDataSets splitted by tag name, including OS and SS dimuons.
   */
   
-  const string InputTrees = (useExtDS ? inputInitialFilesDir["FILES"] : DIR["input"][0]) + "InputTrees.txt";
-  map<string, vector<string> > InputFileCollection;
-  if(!getInputFileNames(InputTrees, InputFileCollection)){ return; }
+  const string inputTrees = (useExtDS ? inputInitialFilesDir.at("FILES") : DIR.at("input")[0]) + "InputTrees.txt";
+  map<string, vector<string> > inputFileCollection;
+  if(!getInputFileNames(inputFileCollection, inputTrees)){ return; }
   
-  TObjArray* aDSTAG = new TObjArray(); // Array to store the different tags in the list of trees
+  auto aDSTAG = std::unique_ptr<TObjArray>(new TObjArray()); // Array to store the different tags in the list of trees
   aDSTAG->SetOwner(true);
-  map<string, RooWorkspace> Workspace;
+  map<string, RooWorkspace> workspace;
   
-  for(map<string, vector<string> >::iterator FileCollection=InputFileCollection.begin(); FileCollection!=InputFileCollection.end(); ++FileCollection) {
+  for(auto const fileCollection : inputFileCollection) {
     // Get the file tag which has the following format: DSTAG_COLL , i.e. DATA_PP 
-    string FILETAG = FileCollection->first;  
-    string DSTAG   = FILETAG;
+    const string& FILETAG = fileCollection.first;  
+    string DSTAG = FILETAG;
     if (FILETAG.size()) {
       if (doSimulFit) DSTAG.erase(DSTAG.find("_")); // if doSimulFit=true the workspace will be labeled symply as DSTAG, otherwise as DSTAG_COLL (to have PP and PbPb separated ws)
     } else {
       cout << "[ERROR] FILETAG is empty!" << endl;
     }
     // Extract the filenames
-    vector<string> InputFileNames = FileCollection->second; 
-    string         OutputFileName;
+    const vector<string>& inputFileNames = fileCollection.second; 
+    string outputFileName;
     // If we have data, check if the user wants to fit data
-    bool checkData = (fitCtau && fitMC && (existDir(inputFitDirs[inputFitDirs.size()-1]["CTAUERR"]+"ctauErr/")==false) );
+    bool checkData = (fitCtau && fitMC && (existDir(inputFitDirs[inputFitDirs.size()-1].at("CTAUERR")+"ctauErr/")==false) );
     if ( (FILETAG.find("DATA")!=std::string::npos) && (fitData==true || checkData==true) ) {
       if ( (FILETAG.find("PP")!=std::string::npos)   && !fitPP   ) continue; // If we find PP, check if the user wants PP
       if ( (FILETAG.find("PbPb")!=std::string::npos) && !fitPbPb ) continue; // If we find PbPb, check if the user wants PbPb
-      string dir = DIR["dataset"][0];
+      string dir = DIR.at("dataset")[0];
       
       bool isPbPb = false, isPeriPD = false;
       if (FILETAG.find("PbPb")!=std::string::npos) { isPbPb = true; }
-      if (InputFileNames[0].find("HIOniaPeripheral30100")!=std::string::npos) { isPeriPD = true; }
+      if (inputFileNames[0].find("HIOniaPeripheral30100")!=std::string::npos) { isPeriPD = true; }
       
       if (isPbPb && usePeriPD && !isPeriPD){
         cout << "[ERROR] Requested to use Peripheral PD but InputTress.txt does not contain the corresponding trees" << endl;
         return;
       }
       
-      if (useExtDS==true && usePeriPD==true  && inputDataSet["PERIPHERAL"]!="" && (existDir(inputDataSet["PERIPHERAL"])==true)) { dir = inputDataSet["PERIPHERAL"]; }
-      if (useExtDS==true && usePeriPD==false && inputDataSet["DOUBLEMUON"]!="" && (existDir(inputDataSet["DOUBLEMUON"])==true)) { dir = inputDataSet["DOUBLEMUON"]; }
-      if(strcmp(applyCorr,"")){
-        OutputFileName = dir + "DATASET_" + FILETAG + "_" + string(applyCorr) + (isPbPb?(isPeriPD?"_PERI":"_CENT"):"") + ".root";
-        if(gSystem->AccessPathName(OutputFileName.c_str())) { OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + "_" + string(applyCorr) + ".root"; }
-        if(!tree2DataSet(Workspace[Form("%s_%s",DSTAG.c_str(),applyCorr)], InputFileNames, FILETAG, OutputFileName)){ return; }
+      if (useExtDS==true && usePeriPD==true  && inputDataSet["PERIPHERAL"]!="" && (existDir(inputDataSet.at("PERIPHERAL"))==true)) { dir = inputDataSet.at("PERIPHERAL"); }
+      if (useExtDS==true && usePeriPD==false && inputDataSet["DOUBLEMUON"]!="" && (existDir(inputDataSet.at("DOUBLEMUON"))==true)) { dir = inputDataSet.at("DOUBLEMUON"); }
+      if(applyCorr!=""){
+        outputFileName = dir + "DATASET_" + FILETAG + "_" + applyCorr + (isPbPb?(isPeriPD?"_PERI":"_CENT"):"") + ".root";
+        if(gSystem->AccessPathName(outputFileName.c_str())) { outputFileName = DIR.at("dataset")[0] + "DATASET_" + FILETAG + "_" + applyCorr + ".root"; }
+        if(!tree2DataSet(workspace[Form("%s_%s",DSTAG.c_str(),applyCorr.c_str())], inputFileNames, FILETAG, outputFileName)){ return; }
       }
       else {
-        OutputFileName = dir + "DATASET_" + FILETAG + (isPbPb?(isPeriPD?"_PERI":"_CENT"):"") + ".root";
-        if(gSystem->AccessPathName(OutputFileName.c_str())) { OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + (isPbPb?(isPeriPD?"_PERI":"_CENT"):"") + ".root"; }
+        outputFileName = dir + "DATASET_" + FILETAG + (isPbPb?(isPeriPD?"_PERI":"_CENT"):"") + ".root";
+        if(gSystem->AccessPathName(outputFileName.c_str())) { outputFileName = DIR.at("dataset")[0] + "DATASET_" + FILETAG + (isPbPb?(isPeriPD?"_PERI":"_CENT"):"") + ".root"; }
         string NAMETAG = DSTAG;
         if (checkData) { NAMETAG = string("MC")+(incJpsi?"JPSI":"PSI2S")+(incNonPrompt?"NOPR":"PR")+"_"+(fitPP?"PP":"PbPb"); }
-        if(!tree2DataSet(Workspace[NAMETAG], InputFileNames, FILETAG, OutputFileName)){ return; }
+        if(!tree2DataSet(workspace[NAMETAG], inputFileNames, FILETAG, outputFileName)){ return; }
       }
       if (fitData && !aDSTAG->FindObject(DSTAG.c_str())) aDSTAG->Add(new TObjString(DSTAG.c_str()));
     }
@@ -242,20 +214,20 @@ void fitter(
       if ( (FILETAG.find("PSI2S")!=std::string::npos) && !incPsi2S  ) continue; // If we find Psi2S MC, check if the user wants to include Psi2S
       if ( (FILETAG.find("NOPR")!=std::string::npos) ) { if (!incNonPrompt) continue; } // If we find Non-Prompt MC, check if the user wants to include Non-Prompt
       else if ( (FILETAG.find("PR")!=std::string::npos) && !incPrompt ) continue; // If we find Prompt MC, check if the user wants to include Prompt
-      string dir = DIR["dataset"][0];
-      if (useExtDS==true && inputDataSet["MONTECARLO"]!="" && (existDir(inputDataSet["MONTECARLO"])==true)) { dir = inputDataSet["MONTECARLO"]; }
-      OutputFileName = dir + "DATASET_" + FILETAG + ".root";
-      if(gSystem->AccessPathName(OutputFileName.c_str())) { OutputFileName = DIR["dataset"][0] + "DATASET_" + FILETAG + ".root"; }
-      if(!tree2DataSet(Workspace[DSTAG], InputFileNames, FILETAG, OutputFileName)){ return; }
+      string dir = DIR.at("dataset")[0];
+      if (useExtDS==true && inputDataSet["MONTECARLO"]!="" && (existDir(inputDataSet.at("MONTECARLO"))==true)) { dir = inputDataSet.at("MONTECARLO"); }
+      outputFileName = dir + "DATASET_" + FILETAG + ".root";
+      if(gSystem->AccessPathName(outputFileName.c_str())) { outputFileName = DIR.at("dataset")[0] + "DATASET_" + FILETAG + ".root"; }
+      if(!tree2DataSet(workspace[DSTAG], inputFileNames, FILETAG, outputFileName)){ return; }
       if (fitMC && !aDSTAG->FindObject(DSTAG.c_str())) aDSTAG->Add(new TObjString(DSTAG.c_str()));
       if (wantPureSMC)
 	{
-	  OutputFileName = dir + "DATASET_" + FILETAG + "_PureS" + ".root";
-	  if(!tree2DataSet(Workspace[Form("%s_PureS",DSTAG.c_str())], InputFileNames, FILETAG, OutputFileName)){ return; }
+	  outputFileName = dir + "DATASET_" + FILETAG + "_PureS" + ".root";
+	  if(!tree2DataSet(workspace[Form("%s_PureS",DSTAG.c_str())], inputFileNames, FILETAG, outputFileName)){ return; }
 	}
     }
   }
-  if (Workspace.size()==0) {
+  if (workspace.size()==0) {
     cout << "[ERROR] No onia tree files were found matching the user's input settings!" << endl; return;
   }
 
@@ -266,19 +238,19 @@ void fitter(
     Output: two vectors with one entry per kinematic bin filled with the cuts and initial parameters
   */
   
-  string InputFile;
+  string inputFile;
   vector< vector< struct KinCuts > >       cutVectors;
   vector< vector< map<string, string> > >  parIniVectors;
  
-  map<string, map<string, bool>> VARMAP = {
+  const map<string, map<string, bool>> VARMAP = {
     {"MASS", 
      {
        {"BKG",   ((fitMass  && incBkg) || (fitCtau || doCtauErrPDF || (fitRes && fitData)))}, 
-       {"JPSI",  (((fitMass && incJpsi) || (fitCtau || doCtauErrPDF || (fitRes && fitData))) && incJpsi) || (fitCtau && incBkg)}, 
-       {"PSI2S", ((fitMass && incPsi2S) || (fitCtau || doCtauErrPDF || (fitRes && fitData))) && incPsi2S}
+       {"JPSI",  (((fitMass && incJpsi) || (fitCtau || doCtauErrPDF || (fitRes && fitData))) && incJpsi) || (fitCtau && incBkg)},
+       {"PSI2S", (((fitMass && incPsi2S) || (fitCtau || doCtauErrPDF || (fitRes && fitData))) && incPsi2S) || (fitCtau && incBkg)}
      }
     },
-    {"CTAU", 
+    {"CTAU",
      {
        {"BKG",   fitCtau && incBkg && incNonPrompt}, 
        {"JPSI",  fitCtau && incJpsi && incNonPrompt},
@@ -288,32 +260,29 @@ void fitter(
      }
     }
   };
-  map<string, bool> COLMAP = {{"PbPb", fitPbPb}, {"PP", fitPP}};
+  const map<string, bool> COLMAP = {{"PbPb", fitPbPb}, {"PP", fitPP}};
  
-  typedef map<string, map<string, bool>>::iterator var_type;
-  typedef map<string, bool>::iterator it_type;
-  for(uint j = 0; j < DIR["input"].size(); j++) {
-    if (DIR["input"].size()>1 && j==0) continue; // First entry is always the main input directory
+  for(uint j = 0; j < DIR.at("input").size(); j++) {
+    if (DIR.at("input").size()>1 && j==0) continue; // First entry is always the main input directory
     vector< struct KinCuts >       cutVector;
     vector< map<string, string> >  parIniVector;
-    for(var_type VAR = VARMAP.begin(); VAR != VARMAP.end(); VAR++) {
-      map<string, bool> PARMAP = VAR->second;
-      string name1 = "InitialParam_" + VAR->first + "_";
-      for(it_type PAR = PARMAP.begin(); PAR != PARMAP.end(); PAR++) {
-        if (PAR->second) {
-          string name2 = name1 + PAR->first + "_";
-          for(it_type COL = COLMAP.begin(); COL != COLMAP.end(); COL++) {
-            if(COL->second) {
-              string dir = DIR["input"][j];
-              if (VAR->first=="MASS" && inputInitialFilesDirs[j]["MASS"]!="") { dir = inputInitialFilesDirs[j]["MASS"]; }
-              if (VAR->first=="CTAU" && PAR->first=="TRUE" && inputInitialFilesDirs[j]["CTAUTRUE"]!="") { dir = inputInitialFilesDirs[j]["CTAUTRUE"]; }
-              if (VAR->first=="CTAU" && PAR->first=="RECO" && inputInitialFilesDirs[j]["CTAURECO"]!="") { dir = inputInitialFilesDirs[j]["CTAURECO"]; }
-              if (VAR->first=="CTAU" && PAR->first=="RES"  && inputInitialFilesDirs[j]["CTAURES"]!="" ) { dir = inputInitialFilesDirs[j]["CTAURES"];  }
-              if (VAR->first=="CTAU" && PAR->first=="BKG"  && inputInitialFilesDirs[j]["CTAUSB"]!=""  ) { dir = inputInitialFilesDirs[j]["CTAUSB"];   }
-              if (VAR->first=="CTAU" && PAR->first=="JPSI" && inputInitialFilesDirs[j]["CTAU"]!=""    ) { dir = inputInitialFilesDirs[j]["CTAU"];     }
-              string name3 = name2 + COL->first + ".csv";
-              InputFile = (dir + name3);
-              if (!addParameters(InputFile, cutVector, parIniVector, true, doConstrFit)) { return; }
+    for(auto const& VAR : VARMAP) {
+      const string name1 = "InitialParam_" + VAR.first + "_";
+      for(auto const& PAR : VAR.second) {
+        if (PAR.second) {
+          const string name2 = name1 + PAR.first + "_";
+          for(auto const& COL : COLMAP) {
+            if(COL.second) {
+              string dir = DIR.at("input")[j];
+              if (VAR.first=="MASS" && inputInitialFilesDirs[j]["MASS"]!="") { dir = inputInitialFilesDirs[j].at("MASS"); }
+              if (VAR.first=="CTAU" && PAR.first=="TRUE" && inputInitialFilesDirs[j]["CTAUTRUE"]!="") { dir = inputInitialFilesDirs[j].at("CTAUTRUE"); }
+              if (VAR.first=="CTAU" && PAR.first=="RECO" && inputInitialFilesDirs[j]["CTAURECO"]!="") { dir = inputInitialFilesDirs[j].at("CTAURECO"); }
+              if (VAR.first=="CTAU" && PAR.first=="RES"  && inputInitialFilesDirs[j]["CTAURES"]!="" ) { dir = inputInitialFilesDirs[j].at("CTAURES");  }
+              if (VAR.first=="CTAU" && PAR.first=="BKG"  && inputInitialFilesDirs[j]["CTAUSB"]!=""  ) { dir = inputInitialFilesDirs[j].at("CTAUSB");   }
+              if (VAR.first=="CTAU" && PAR.first=="JPSI" && inputInitialFilesDirs[j]["CTAU"]!=""    ) { dir = inputInitialFilesDirs[j].at("CTAU");     }
+              string name3 = name2 + COL.first + ".csv";
+              inputFile = (dir + name3);
+              if (!addParameters(cutVector, parIniVector, inputFile, true, doConstrFit)) { return; }
             }
           }
         }
@@ -333,32 +302,32 @@ void fitter(
               -> Plots (png, pdf and root format) of each fit.
 	      -> The local workspace used for each fit.
   */
-  TIter nextDSTAG(aDSTAG);
+  TIter nextDSTAG(aDSTAG.get());
   for(uint j = 0; j < cutVectors.size(); j++) {
-    int index = ( DIR["output"].size()>1 ? j+1 : j ); // First entry is always the main output directory
-    string outputDir = DIR["output"][index];
+    const int index = ( DIR.at("output").size()>1 ? j+1 : j ); // First entry is always the main output directory
+    const string& outputDir = DIR.at("output")[index];
 
     for (unsigned int i=0; i < cutVectors[j].size(); i++) {
       nextDSTAG.Reset();
       TObjString* soDSTAG(0x0);
       while ( (soDSTAG = static_cast<TObjString*>(nextDSTAG.Next())) )
         {
-          TString DSTAG = (TString)(soDSTAG->GetString());
-          if ( fitMass && fitCtau && !DSTAG.Contains("DATA") ) continue;
+          const string DSTAG = ((TString)(soDSTAG->GetString())).Data();
+          if ( fitMass && fitCtau && DSTAG.find("DATA")==std::string::npos ) continue;
 
-          TString wsName = "";
-          if (DSTAG.Contains("MC") && wantPureSMC) wsName = Form("%s_PureS",DSTAG.Data());
-          else if (DSTAG.Contains("DATA") && strcmp(applyCorr,"")) wsName = Form("%s_%s",DSTAG.Data(),applyCorr);
+          string wsName = "";
+          if (DSTAG.find("MC")!=std::string::npos && wantPureSMC) wsName = Form("%s_PureS",DSTAG.c_str());
+          else if (DSTAG.find("DATA")!=std::string::npos && applyCorr!="") wsName = Form("%s_%s",DSTAG.c_str(),applyCorr.c_str());
           else wsName = DSTAG;
           
-          if (Workspace.count(wsName.Data())>0) {
+          if (workspace.count(wsName)>0) {
             
             // DATA/MC datasets were loaded
             if (doSimulFit) {
               // If do simultaneous fits, then just fits once
-              if (!fitCharmonia( Workspace[DSTAG.Data()], cutVectors[j].at(i), parIniVectors[j].at(i), outputDir,
+              if (!fitCharmonia( workspace.at(DSTAG), cutVectors[j].at(i), parIniVectors[j].at(i), outputDir,
                                  // Select the type of datasets to fit
-                                 DSTAG.Data(),
+                                 DSTAG,
                                  false,           // dummy flag when fitting simultaneously since both PP and PbPb are used
                                  // Select the type of object to fit
                                  fitMass,         // Fit mass distribution
@@ -379,6 +348,8 @@ void fitter(
                                  cutCtau,         // Apply prompt ctau cuts
                                  doConstrFit,     // Do constrained fit
                                  doSimulFit,      // Do simultaneous fitC
+                                 doJpsi,          // Flag to indicate if we want to perform fits for Jpsi analysis
+                                 doPsi2S,         // Flag to indicate if we want to perform fits for Psi2S analysis
                                  wantPureSMC,     // Flag to indicate if we want to fit pure signal MC
                                  inputFitDirs[index], // Map of user-defined directory paths of previous fit results
                                  applyCorr,       // Flag to indicate if we want corrected dataset and which correction
@@ -393,17 +364,17 @@ void fitter(
                   ) { return; }
             } else {
               // If don't want simultaneous fits, then fit PbPb or PP separately
-              if ( DSTAG.Contains("MCJPSIPR")    ) { incJpsi = true;  incPsi2S = false; incPrompt = true;  incNonPrompt = false; }
-              if ( DSTAG.Contains("MCJPSINOPR")  ) { incJpsi = true;  incPsi2S = false; incPrompt = false; incNonPrompt = true;  }
-              if ( DSTAG.Contains("MCPSI2SPR")   ) { incJpsi = false; incPsi2S = true;  incPrompt = true;  incNonPrompt = false; }
-              if ( DSTAG.Contains("MCPSI2SNOPR") ) { incJpsi = false; incPsi2S = true;  incPrompt = false; incNonPrompt = true;  }
+              if ( DSTAG.find("MCJPSIPR")!=std::string::npos    ) { incJpsi = true;  incPsi2S = false; incPrompt = true;  incNonPrompt = false; }
+              if ( DSTAG.find("MCJPSINOPR")!=std::string::npos  ) { incJpsi = true;  incPsi2S = false; incPrompt = false; incNonPrompt = true;  }
+              if ( DSTAG.find("MCPSI2SPR")!=std::string::npos   ) { incJpsi = false; incPsi2S = true;  incPrompt = true;  incNonPrompt = false; }
+              if ( DSTAG.find("MCPSI2SNOPR")!=std::string::npos ) { incJpsi = false; incPsi2S = true;  incPrompt = false; incNonPrompt = true;  }
               
               bool isPbPb = true, proceed = false;
-              if (fitPbPb && DSTAG.Contains("PbPb")) { isPbPb = true;  proceed = true; }
-              if (fitPP   && DSTAG.Contains("PP"))   { isPbPb = false; proceed = true; }
-              if (proceed && !fitCharmonia( Workspace[wsName.Data()], cutVectors[j].at(i), parIniVectors[j].at(i), outputDir,
+              if (fitPbPb && DSTAG.find("PbPb")!=std::string::npos) { isPbPb = true;  proceed = true; }
+              if (fitPP   && DSTAG.find("PP")!=std::string::npos)   { isPbPb = false; proceed = true; }
+              if (proceed && !fitCharmonia( workspace.at(wsName), cutVectors[j].at(i), parIniVectors[j].at(i), outputDir,
                                             // Select the type of datasets to fit
-                                            DSTAG.Data(),
+                                            DSTAG,
                                             isPbPb,          // In this case we are fitting PbPb
                                             // Select the type of object to fit
                                             fitMass,         // Fit mass distribution
@@ -424,6 +395,8 @@ void fitter(
                                             cutCtau,         // Apply prompt ctau cuts
                                             doConstrFit,     // Do constrained fit
                                             doSimulFit,      // Do simultaneous fit
+                                            doJpsi,          // Flag to indicate if we want to perform fits for Jpsi analysis
+                                            doPsi2S,         // Flag to indicate if we want to perform fits for Psi2S analysis
                                             wantPureSMC,           // Flag to indicate if we want to fit pure signal MC
                                             inputFitDirs[index],// Map of user-defined directory paths of previous fit results
                                             applyCorr,       // Flag to indicate if we want corrected dataset and which correction
@@ -438,45 +411,40 @@ void fitter(
                   ) { return; }
             }
           } else {
-            cout << "[ERROR] The workspace for " << wsName.Data() << " was not found!" << endl; return;
+            cout << "[ERROR] The workspace for " << wsName << " was not found!" << endl; return;
           }
         }
     }
   }
-
-  aDSTAG->Delete();
-  delete aDSTAG;
 };
-  
 
-bool addParameters(string InputFile,  vector< struct KinCuts >& cutVector, vector< map<string, string> >&  parIniVector, bool isPbPb, bool doConstrFit)
+
+bool addParameters(vector< struct KinCuts >& cutVector, vector< map<string, string> >& parIniVector, const string& inputFile, const bool& isPbPb, const bool& doConstrFit)
 {
-  vector< map<string, string> >  data;
-  if(!parseFile(InputFile, data)) { return false; }
-  
+  vector< map<string, string> > data;
+  if(!parseFile(data, inputFile)) { return false; }
   if (cutVector.size()==0) {
-    for(vector< map<string, string> >::iterator row=data.begin(); row!=data.end(); ++row) {
+    for(auto const& row : data) {
       struct KinCuts cut; map<string, string> parIni;
-      if(!setParameters(*row, cut, parIni, isPbPb, doConstrFit)) { return false; }
+      if(!setParameters(cut, parIni, row, isPbPb, doConstrFit)) { return false; }
       cutVector.push_back(cut);  parIniVector.push_back(parIni);
     }
   }
   else {
-    if (data.size()!=cutVector.size()) { cout << "[ERROR] The initial parameters in file " << InputFile << " are not consistent with previous files!" << endl; return false; }
+    if (data.size()!=cutVector.size()) { cout << data.size() << "  " << cutVector.size() << endl; return false; }
+    if (data.size()!=cutVector.size()) { cout << "[ERROR] The initial parameters in file " << inputFile << " are not consistent with previous files!" << endl; return false; }
     for (unsigned int i=0; i<data.size(); i++) {
       struct KinCuts cut;
-      if (!setParameters(data.at(i), cut, parIniVector.at(i), isPbPb, doConstrFit)) { return false; };
-      if (!isEqualKinCuts(cut, cutVector.at(i), isPbPb)) { cout << "[ERROR] The bins in file " << InputFile << " are not consistent with previous files!" << endl; return false; }
+      if (!setParameters(cut, parIniVector.at(i), data.at(i), isPbPb, doConstrFit)) { return false; };
+      if (!isEqualKinCuts(cut, cutVector.at(i), isPbPb)) { cout << "[ERROR] The bins in file " << inputFile << " are not consistent with previous files!" << endl; return false; }
     }
   }
-
   return true;
 };
 
 
-bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, string>& parIni, bool isPbPb, bool doConstrFit)
+bool setParameters(struct KinCuts& cut, map<string, string>& parIni, const map<string, string>& row, const bool& isPbPb, const bool& doConstrFit)
 {
-
   // set initial parameters
   cut.sMuon.Pt.Min  =  0.0;
   cut.sMuon.Pt.Max  = 100000.0;
@@ -503,41 +471,40 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
   cut.dMuon.Pt.Max  =  1000.0;
   cut.Centrality.Start = 0;
   cut.Centrality.End = 200;
-
   // set parameters from file
-  for(map<string, string>::iterator col=row.begin(); col!=row.end(); ++col) {
-    string label = col->first;
+  for(auto const& col : row) {
+    const string& label = col.first;
     if (label=="rap") {
-      if (col->second=="" || col->second.find("-")==std::string::npos) {
-        cout << "[ERROR] Input column 'rap' has invalid value: " << col->second << endl; return false;
-      }  
-      std::vector<double> v; 
-      if(!parseString(col->second, "-", v)) { return false; }
+      if (col.second=="" || col.second.find("-")==std::string::npos) {
+        cout << "[ERROR] Input column 'rap' has invalid value: " << col.second << endl; return false;
+      }
+      std::vector<double> v;
+      if(!parseString(v, col.second, "-")) { return false; }
       if (v.size()!=2) {
         cout << "[ERROR] Input column 'rap' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
-      }  
-      cut.dMuon.AbsRap.Min = v.at(0); 
-      cut.dMuon.AbsRap.Max = v.at(1);
-    } 
-    else if (label=="pt"){
-      if (col->second=="" || col->second.find("-")==std::string::npos) {
-        cout << "[ERROR] Input column 'pt' has invalid value: " << col->second << endl; return false;
       }
-      std::vector<double> v; 
-      if(!parseString(col->second, "-", v)) { return false; }
+      cut.dMuon.AbsRap.Min = v.at(0);
+      cut.dMuon.AbsRap.Max = v.at(1);
+    }
+    else if (label=="pt"){
+      if (col.second=="" || col.second.find("-")==std::string::npos) {
+        cout << "[ERROR] Input column 'pt' has invalid value: " << col.second << endl; return false;
+      }
+      std::vector<double> v;
+      if(!parseString(v, col.second, "-")) { return false; }
       if (v.size()!=2) {
         cout << "[ERROR] Input column 'pt' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
-      }  
+      }
       cut.dMuon.Pt.Min = v.at(0); 
       cut.dMuon.Pt.Max = v.at(1);
     } 
     else if (label=="cent"){
       if (isPbPb) {
-        if (col->second=="" || col->second.find("-")==std::string::npos) {
-          cout << "[ERROR] Input column 'cent' has invalid value: " << col->second << endl; return false;
+        if (col.second=="" || col.second.find("-")==std::string::npos) {
+          cout << "[ERROR] Input column 'cent' has invalid value: " << col.second << endl; return false;
         }
         std::vector<double> v;
-        if(!parseString(col->second, "-", v)) { return false; }
+        if(!parseString(v, col.second, "-")) { return false; }
         if (v.size()!=2) {
           cout << "[ERROR] Input column 'cent' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
         }
@@ -546,11 +513,11 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
       }
     } 
     else if (label=="mass"){
-      if (col->second=="" || col->second.find("-")==std::string::npos) {
-        cout << "[ERROR] Input column 'mass' has invalid value: " << col->second << endl; return false;
+      if (col.second=="" || col.second.find("-")==std::string::npos) {
+        cout << "[ERROR] Input column 'mass' has invalid value: " << col.second << endl; return false;
       }
       std::vector<double> v; 
-      if(!parseString(col->second, "-", v)) { return false; }
+      if(!parseString(v, col.second, "-")) { return false; }
       if (v.size()!=2) {
         cout << "[ERROR] Input column 'mass' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
       }  
@@ -558,11 +525,11 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
       cut.dMuon.M.Max = v.at(1);
     } 
     else if (label=="ctau"){
-      if (col->second=="" || col->second.find("->")!=std::string::npos) {
-        cout << "[ERROR] Input column 'ctau' has invalid value: " << col->second << endl; return false;
+      if (col.second=="" || col.second.find("->")!=std::string::npos) {
+        cout << "[ERROR] Input column 'ctau' has invalid value: " << col.second << endl; return false;
       }
       std::vector<double> v; 
-      if(!parseString(col->second, "->", v)) { return false; }
+      if(!parseString(v, col.second, "->")) { return false; }
       if (v.size()!=2) {
         cout << "[ERROR] Input column 'ctau' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
       }  
@@ -570,11 +537,11 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
       cut.dMuon.ctau.Max = v.at(1);
     }  
     else if (label=="ctauErr"){
-      if (col->second=="" || col->second.find("-")!=std::string::npos) {
-        cout << "[ERROR] Input column 'ctauErr' has invalid value: " << col->second << endl; return false;
+      if (col.second=="" || col.second.find("-")!=std::string::npos) {
+        cout << "[ERROR] Input column 'ctauErr' has invalid value: " << col.second << endl; return false;
       }
       std::vector<double> v; 
-      if(!parseString(col->second, "-", v)) { return false; }
+      if(!parseString(v, col.second, "-")) { return false; }
       if (v.size()!=2) {
         cout << "[ERROR] Input column 'ctauErr' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
       }  
@@ -582,11 +549,11 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
       cut.dMuon.ctauErr.Max = v.at(1);
     }
     else if (label=="ctauTrue"){
-      if (col->second=="" || col->second.find("->")!=std::string::npos) {
-        cout << "[ERROR] Input column 'ctauTrue' has invalid value: " << col->second << endl; return false;
+      if (col.second=="" || col.second.find("->")!=std::string::npos) {
+        cout << "[ERROR] Input column 'ctauTrue' has invalid value: " << col.second << endl; return false;
       }
       std::vector<double> v; 
-      if(!parseString(col->second, "->", v)) { return false; }
+      if(!parseString(v, col.second, "->")) { return false; }
       if (v.size()!=2) {
         cout << "[ERROR] Input column 'ctauTrue' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
       }  
@@ -594,11 +561,11 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
       cut.dMuon.ctauTrue.Max = v.at(1);
     }
     else if (label=="ctauRes"){
-      if (col->second=="" || col->second.find("->")!=std::string::npos) {
-        cout << "[ERROR] Input column 'ctauRes' has invalid value: " << col->second << endl; return false;
+      if (col.second=="" || col.second.find("->")!=std::string::npos) {
+        cout << "[ERROR] Input column 'ctauRes' has invalid value: " << col.second << endl; return false;
       }
       std::vector<double> v; 
-      if(!parseString(col->second, "->", v)) { return false; }
+      if(!parseString(v, col.second, "->")) { return false; }
       if (v.size()!=2) {
         cout << "[ERROR] Input column 'ctauRes' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
       }  
@@ -606,11 +573,11 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
       cut.dMuon.ctauRes.Max = v.at(1);
     }
     else if (label=="ctauNRes"){
-      if (col->second=="" || col->second.find("->")!=std::string::npos) {
-        cout << "[ERROR] Input column 'ctauNRes' has invalid value: " << col->second << endl; return false;
+      if (col.second=="" || col.second.find("->")!=std::string::npos) {
+        cout << "[ERROR] Input column 'ctauNRes' has invalid value: " << col.second << endl; return false;
       }
       std::vector<double> v; 
-      if(!parseString(col->second, "->", v)) { return false; }
+      if(!parseString(v, col.second, "->")) { return false; }
       if (v.size()!=2) {
         cout << "[ERROR] Input column 'ctauNRes' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
       }  
@@ -618,14 +585,14 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
       cut.dMuon.ctauNRes.Max = v.at(1);
     }
     else if (label=="ctauResCut"){ 
-      parIni[col->first] = col->second; 
+      parIni[col.first] = col.second; 
     }
     else if (label=="ctauN"){
-      if (col->second=="" || col->second.find("->")!=std::string::npos) {
-        cout << "[ERROR] Input column 'ctauN' has invalid value: " << col->second << endl; return false;
+      if (col.second=="" || col.second.find("->")!=std::string::npos) {
+        cout << "[ERROR] Input column 'ctauN' has invalid value: " << col.second << endl; return false;
       }
       std::vector<double> v; 
-      if(!parseString(col->second, "->", v)) { return false; }
+      if(!parseString(v, col.second, "->")) { return false; }
       if (v.size()!=2) {
         cout << "[ERROR] Input column 'ctauN' has incorrect number of values, it should have 2 values but has: " << v.size() << endl; return false;
       }  
@@ -633,53 +600,49 @@ bool setParameters(map<string, string> row, struct KinCuts& cut, map<string, str
       cut.dMuon.ctauN.Max = v.at(1);
     }
     else if (label=="ctauNCut"){ 
-      parIni[col->first] = col->second; 
+      parIni[col.first] = col.second; 
     }
     else if (label.find("Model")!=std::string::npos){
-      if (col->second=="") {
+      if (col.second=="") {
         cout << "[ERROR] Input column 'Model' has empty value" << endl; return false;
       }
-      parIni[col->first] = col->second;
+      parIni[col.first] = col.second;
     } 
     else {
-      if (col->second != "") {
-	string value = col->second;
+      if (col.second != "") {
+	string value = col.second;
 	// check that initial parameters format is correct: [ num, num, num ]
 	if ((value.find("[")==std::string::npos)||(value.find("]")==std::string::npos)) {
 	  // Special cases like parameter constrains could be set here but for now, let's keep it simple
-
 	  cout << "[ERROR] Either ']' or '[' are missing in the initial parameter values!" << endl; return false;
 	} else {
 	  value.erase(value.find("["), string("[").length());
 	  value.erase(value.find("]"), string("]").length());
 	}
 	std::vector<double> v; 
-	if(!parseString(value, ",", v)) { return false; }
+	if(!parseString(v, value, ",")) { return false; }
         if (v.size()>3 || v.size()<1) {
-          cout << "[ERROR] Initial parameter " << col->first << " has incorrect number of values, it has: " << v.size() << endl; return false;
-        } 
+          cout << "[ERROR] Initial parameter " << col.first << " has incorrect number of values, it has: " << v.size() << endl; return false;
+        }
 	// everything seems alright, then proceed to save the values
-	if (v.size()==1)
-  {
+	if (v.size()==1) {
 	  // if only one value is given i.e. [ num ], consider it a constant value if doConstrFit = false. If doConstrFit = true, the parameter range will be +- 100% of the value
-    if (doConstrFit) parIni[col->first] = Form("%s[ %.6f, %.6f, %.6f]", col->first.c_str(), v.at(0), v.at(0) - abs(v.at(0)), v.at(0) + abs(v.at(0)));
-	  else parIni[col->first] = Form("%s[ %.6f, %.6f, %.6f]", col->first.c_str(), v.at(0), v.at(0), v.at(0));
+          if (doConstrFit) parIni[col.first] = Form("%s[ %.6f, %.6f, %.6f]", col.first.c_str(), v.at(0), v.at(0) - abs(v.at(0)), v.at(0) + abs(v.at(0)));
+	  else parIni[col.first] = Form("%s[ %.6f, %.6f, %.6f]", col.first.c_str(), v.at(0), v.at(0), v.at(0));
 	}
-  else
-  {
-	  parIni[col->first] = col->first + col->second;
+        else {
+	  parIni[col.first] = col.first + col.second;
 	}
       } else {
-        parIni[col->first] = "";
+        parIni[col.first] = "";
       }
     }
   }
-
   return true;
 };
 
 
-bool parseString(string input, string delimiter, vector<double>& output)
+bool parseString(vector<double>& output, string input, const string& delimiter)
 {
   // remove spaces from input string 
   input.erase(std::remove(input.begin(), input.end(), ' '), input.end());
@@ -699,17 +662,16 @@ bool parseString(string input, string delimiter, vector<double>& output)
 };
 
 
-bool parseFile(string FileName, vector< map<string, string> >& data)
+bool parseFile(vector< map<string, string> >& data, const string& fileName)
 {
-  vector< vector<string> > content, tmp; 
-  if(!readFile(FileName, tmp, -1, 1)){ return false; }
-  vector<string> header = tmp.at(0);
+  vector< vector<string> > content, tmp;
+  if(!readFile(tmp, fileName, -1, 1)){ return false; }
+  const vector<string>& header = tmp.at(0);
   if (header.size()==0) { cout << "[ERROR] The header is null!" << endl; return false; }
-  if(!readFile(FileName, content, header.size())){ return false; }
-  for(vector<string>::iterator rHeader=header.begin(); rHeader!=header.end(); ++rHeader) {
-    if (*rHeader=="") { cout << "[ERROR] A column has no label!" << endl; return false; }
+  if(!readFile(content, fileName, header.size())){ return false; }
+  for(auto const& rHeader : header) {
+    if (rHeader=="") { cout << "[ERROR] A column has no label!" << endl; return false; }
   }
-
   for(vector< vector<string> >::iterator row=content.begin()+1; row!=content.end(); ++row) {
     map<string, string> col;
     for (unsigned int i=0; i<header.size(); i++) {
@@ -721,41 +683,40 @@ bool parseFile(string FileName, vector< map<string, string> >& data)
     }
     data.push_back(col);
   }
-
   return true;
 };					
 
 
-bool getInputFileNames(const string InputTrees, map<string, vector<string> >& InputFileCollection)
+bool getInputFileNames(map<string, vector<string> >& inputFileCollection, const string& inputTrees)
 {
-  vector< vector<string> > content; 
-  if(!readFile(InputTrees, content, 2)){ return false; }
-  for(vector< vector<string> >::iterator row=content.begin(); row!=content.end(); ++row) {
+  vector< vector<string> > content;
+  if(!readFile(content, inputTrees, 2)){ return false; }
+  for(auto& row : content) {
     // remove spaces
-    row->at(0).erase(std::remove(row->at(0).begin(), row->at(0).end(), ' '), row->at(0).end());
-    row->at(1).erase(std::remove(row->at(1).begin(), row->at(1).end(), ' '), row->at(1).end());
+    row.at(0).erase(std::remove(row.at(0).begin(), row.at(0).end(), ' '), row.at(0).end());
+    row.at(1).erase(std::remove(row.at(1).begin(), row.at(1).end(), ' '), row.at(1).end());
     // remove tabs
-    row->at(0).erase(std::remove(row->at(0).begin(), row->at(0).end(), '\t'), row->at(0).end());
-    row->at(1).erase(std::remove(row->at(1).begin(), row->at(1).end(), '\t'), row->at(1).end());
-    if (row->at(0)!="" && row->at(1)=="") { cout << "[ERROR] There is an empty file name in your InputTrees.txt, please fix it" << endl; return false; }
-    if (row->at(0)=="" && row->at(1)!="") { cout << "[ERROR] There is an empty file tag in your InputTrees.txt, please fix it" << endl; return false; }
-    if (row->at(0)!="" && row->at(1)!="") {
+    row.at(0).erase(std::remove(row.at(0).begin(), row.at(0).end(), '\t'), row.at(0).end());
+    row.at(1).erase(std::remove(row.at(1).begin(), row.at(1).end(), '\t'), row.at(1).end());
+    if (row.at(0)!="" && row.at(1)=="") { cout << "[ERROR] There is an empty file name in your InputTrees.txt, please fix it" << endl; return false; }
+    if (row.at(0)=="" && row.at(1)!="") { cout << "[ERROR] There is an empty file tag in your InputTrees.txt, please fix it" << endl; return false; }
+    if (row.at(0)!="" && row.at(1)!="") {
       // store the filenames mapped by the tag
-      InputFileCollection[row->at(0)].push_back(row->at(1));
+      inputFileCollection[row.at(0)].push_back(row.at(1));
     }
   }
   return true;
 };
 
 
-bool readFile(string FileName, vector< vector<string> >& content, const int nCol, int nRow)
+bool readFile(vector< vector<string> >& content, const string& fileName, const int nCol, int nRow)
 {
-  if (nCol==0 || nRow==0) { 
-    cout << "[WARNING] Ignoring content of File: " << FileName << endl; return true; 
+  if (nCol==0 || nRow==0) {
+    cout << "[WARNING] Ignoring content of File: " << fileName << endl; return true;
   }
-  if (nRow!=1) { cout << "[INFO] Reading file: " << FileName << endl; }
-  ifstream myfile(FileName.c_str());
-  if (myfile.is_open()){ 
+  if (nRow!=1) { cout << "[INFO] Reading file: " << fileName << endl; }
+  ifstream myfile(fileName.c_str());
+  if (myfile.is_open()){
     string line;
     while ( getline(myfile, line) ){
       if (nRow==0) break; else {nRow=nRow-1;}
@@ -770,58 +731,58 @@ bool readFile(string FileName, vector< vector<string> >& content, const int nCol
       content.push_back(cols);
     }
   } else {
-    cout << "[ERROR] File: " << FileName << " was not found!" << endl; return false;
+    cout << "[ERROR] File: " << fileName << " was not found!" << endl; return false;
   }
   return true;
 };
 
 
-bool iniWorkEnv( map< string, vector<string> >& DIR, const string workDirName)
+bool iniWorkEnv(map< string, vector<string> >& DIR, const string& workDirName)
 {
   cout << "[INFO] Initializing the work enviroment" << endl;
   DIR["main"].push_back(gSystem->ExpandPathName(gSystem->pwd()));
   DIR["macros"].push_back(DIR["main"][0] + "/Macros/");
   if (existDir(DIR["macros"][0].c_str())==false){ 
     cout << "[ERROR] Input directory: " << DIR["macros"][0] << " does not exist!" << endl; 
-    return false; 
+    return false;
   }
   DIR["input"].push_back(DIR["main"][0] + "/Input/" + workDirName + "/");
   if (existDir(DIR["input"][0])==false){ 
     cout << "[ERROR] Input directory: " << DIR["input"][0] << " does not exist!" << endl; 
-    return false; 
+    return false;
   } else {
     findSubDir(DIR["input"], DIR["input"][0]);
   }
   DIR["output"].push_back(DIR["main"][0] + "/Output/" + workDirName + "/");
-  if (existDir(DIR["output"][0].c_str())==false){ 
-    cout << "[INFO] Output directory: " << DIR["output"][0] << " does not exist, will create it!" << endl;  
+  if (existDir(DIR["output"][0].c_str())==false){
+    cout << "[INFO] Output directory: " << DIR["output"][0] << " does not exist, will create it!" << endl;
     gSystem->mkdir(DIR["output"][0].c_str(), kTRUE);
   }
   for(uint j = 1; j < DIR["input"].size(); j++) {
     string subdir = DIR["input"][j];
     subdir.replace(subdir.find("/Input/"), std::string("/Input/").length(), "/Output/");
-    if (existDir(subdir.c_str())==false){  
+    if (existDir(subdir.c_str())==false){
       gSystem->mkdir(subdir.c_str(), kTRUE);
       cout << "[INFO] Output subdirectory: " << subdir << " created!" << endl;
     }
     DIR["output"].push_back(subdir);
-  } 
+  }
   DIR["dataset"].push_back(DIR["main"][0] + "/DataSet/");
-  if (existDir(DIR["dataset"][0])==false){ 
-    cout << "[INFO] DataSet directory: " << DIR["dataset"][0] << " does not exist, will create it!" << endl;  
+  if (existDir(DIR["dataset"][0])==false){
+    cout << "[INFO] DataSet directory: " << DIR["dataset"][0] << " does not exist, will create it!" << endl;
     gSystem->mkdir(DIR["dataset"][0].c_str(), kTRUE);
   }
   return true;
 };
 
 
-void findSubDir(vector<string>& dirlist, string dirname)
+void findSubDir(vector<string>& dirlist, const string& dirname)
 {
   TSystemDirectory dir(dirname.c_str(), dirname.c_str());
-  TList *subdirs = dir.GetListOfFiles();
+  auto subdirs = std::unique_ptr<TList>(dir.GetListOfFiles());
   if (subdirs) {
     TSystemFile *subdir;
-    TIter next(subdirs);
+    TIter next(subdirs.get());
     while ((subdir=(TSystemFile*)next())) {
       if (subdir->IsDirectory() && string(subdir->GetName())!="." && string(subdir->GetName())!="..") {
         dirlist.push_back(dirname + subdir->GetName() + "/");
@@ -829,27 +790,18 @@ void findSubDir(vector<string>& dirlist, string dirname)
       }
     }
   }
-  delete subdirs;
   return;
 };
 
 
-bool existDir(string dir)
+bool checkSettings (const bool& fitData,     const bool& fitMC,        const bool& fitPbPb,      const bool& fitPP,
+                    const bool& fitMass,     const bool& fitCtau,      const bool& fitCtauTrue,  const bool& fitCtauReco,
+                    const bool& fitRes,      const bool& doCtauErrPDF, const bool& incJpsi,      const bool& incPsi2S,
+                    const bool& incBkg,      const bool& incPrompt,    const bool& incNonPrompt, const bool& cutCtau,
+                    const bool& doConstrFit, const bool& doSimulFit,   const bool& wantPureSMC,  const string& applyCorr,
+                    const bool& setLogScale, const bool& zoomPsi,      const bool& incSS,        const int& numCores )
 {
-  bool exist = false;
-  void * dirp = gSystem->OpenDirectory(dir.c_str());
-  if (dirp){
-    gSystem->FreeDirectory(dirp);
-    exist = true;
-  }
-  return exist;
-};
-
-
-bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitMass, bool fitCtau, bool fitCtauTrue, bool fitCtauReco, bool fitRes, bool doCtauErrPDF, bool incJpsi, bool incPsi2S, bool incBkg, bool incPrompt, bool incNonPrompt, bool cutCtau, bool doConstrFit, bool doSimulFit, bool wantPureSMC, const char* applyCorr, bool setLogScale, bool zoomPsi, bool incSS, int numCores)
-{ 
   cout << "[INFO] Checking user settings " << endl;
-
   if (!fitMass && !fitCtau && !fitCtauTrue && !doCtauErrPDF && !fitCtauReco && !fitRes) {
     cout << "[ERROR] At least one distribution has to be selected for fitting, please select either Mass, CtauTrue, CtauErr, Ctau, CtauN or CtauReco!" << endl; return false;
   }
@@ -892,7 +844,7 @@ bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitM
   if (fitData && wantPureSMC) {
     cout << "[WARNING] Pure signal MC will not be fitted since you have selected DATA!" << endl;
   }
-  if (!fitData && strcmp(applyCorr,"")) {
+  if (!fitData && applyCorr!="") {
     cout << "[WARNING] Correction only to Data, please make fitData = true" << endl; return false;
   }
   if (wantPureSMC && (!incPsi2S && !incJpsi)) {
@@ -913,8 +865,6 @@ bool checkSettings(bool fitData, bool fitMC, bool fitPbPb, bool fitPP, bool fitM
   if (setLogScale && zoomPsi) {
     cout << "[ERROR] Zooming on Psi(2S) is currently not supported with logarithmic scale." << endl;
   }
-
   cout << "[INFO] All user setting are correct " << endl;
   return true;
 };
-

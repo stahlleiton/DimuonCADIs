@@ -5,36 +5,36 @@
 #include "buildCharmoniaCtauRecoModel.C"
 #include "drawCtauRecoPlot.C"
 
-void setCtauRecoFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut, bool isPbPb);
-void setCtauRecoGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label);
-void setCtauRecoCutParameters(struct KinCuts& cut);
-bool isCtauRecoPdfAlreadyFound(RooWorkspace& myws, string FileName, string pdfName, bool loadCtauRecoPdf=false, string newPdfName="");
+void setCtauRecoFileName       ( string& fileName, const string& outputDir, string TAG, const string& plotLabel, const struct KinCuts& cut, const bool& isPbPb );
+void setCtauRecoGlobalParameterRange ( RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, const string& label );
+void setCtauRecoCutParameters  ( struct KinCuts& cut);
+bool isCtauRecoPdfAlreadyFound ( RooWorkspace& myws, const string& fileName, string pdfName, const bool loadCtauRecoPdf=false, const string newPdfName="" );
 
 
 bool fitCharmoniaCtauRecoModel( RooWorkspace& myws,             // Local Workspace
-                                const RooWorkspace& inputWorkspace,   // Workspace with all the input RooDatasets
-                                struct KinCuts& cut,            // Variable containing all kinematic cuts
-                                map<string, string>&  parIni,   // Variable containing all initial parameters
-                                struct InputOpt& opt,           // Variable with run information (kept for legacy purpose)
-                                string outputDir,               // Path to output directory
+                                const RooWorkspace& inputWorkspace,  // Workspace with all the input RooDatasets
+                                      struct KinCuts& cut,           // Variable containing all kinematic cuts
+                                      map<string, string>&  parIni,  // Variable containing all initial parameters
+                                const struct InputOpt& opt,          // Variable with run information (kept for legacy purpose)
+                                const string& outputDir,             // Path to output directory
                                 // Select the type of datasets to fit
-                                string DSTAG,                   // Specifies the type of datasets: i.e, DATA, MCJPSINP, ...
-                                bool isPbPb        = false,     // isPbPb = false for pp, true for PbPb
-                                bool importDS      = true,      // Select if the dataset is imported in the local workspace
+                                      string DSTAG,                  // Specifies the type of datasets: i.e, DATA, MCJPSINP, ...
+                                const bool& isPbPb,                  // isPbPb = false for pp, true for PbPb
+                                const bool& importDS,                // Select if the dataset is imported in the local workspace
                                 // Select the type of object to fit
-                                bool incJpsi       = true,      // Includes Jpsi model
-                                bool incPsi2S      = true,      // Includes Psi(2S) model
+                                const bool incJpsi,                  // Includes Jpsi model
+                                const bool incPsi2S,                 // Includes Psi(2S) model
                                 // Select the fitting options
-                                bool doCtauRecoPdf = true,      // Flag to indicate if we want to perform the fit
-                                bool wantPureSMC   = false,     // Flag to indicate if we want to fit pure signal MC
-                                bool loadCtauRecoPdf = false,     // Load previous fit results
-                                string inputFitDir = "",        // Location of the fit results
-                                int  numCores      = 2,         // Number of cores used for fitting
+                                      bool  doCtauRecoPdf,           // Flag to indicate if we want to perform the fit
+                                      bool  wantPureSMC,             // Flag to indicate if we want to fit pure signal MC
+                                const uint& loadCtauRecoPdf,         // Load previous fit results
+                                const string& inputFitDir,           // Location of the fit results
+                                const int&  numCores,                // Number of cores used for fitting
                                 // Select the drawing options
-                                bool setLogScale   = true,      // Draw plot with log scale
-                                bool incSS         = false,     // Include Same Sign data
-                                double binWidth    = 0.05       // Bin width used for plotting
-                                )  
+                                const bool& setLogScale,             // Draw plot with log scale
+                                const bool& incSS,                   // Include Same Sign data
+                                const double& binWidth               // Bin width used for plotting
+                                )
 {
 
   if (DSTAG.find("_")!=std::string::npos) DSTAG.erase(DSTAG.find("_"));
@@ -51,13 +51,13 @@ bool fitCharmoniaCtauRecoModel( RooWorkspace& myws,             // Local Workspa
 
   setCtauRecoCutParameters(cut);
 
-  string COLL = (isPbPb ? "PbPb" : "PP" );
+  const string COLL = (isPbPb ? "PbPb" : "PP" );
 
   // Import the local datasets
   double numEntries = 1000000;
   string label = ((DSTAG.find(COLL.c_str())!=std::string::npos) ? DSTAG.c_str() : Form("%s_%s", DSTAG.c_str(), COLL.c_str()));
   if (wantPureSMC) label = Form("%s_NoBkg", label.c_str());
-  string dsName = Form("dOS_%s", label.c_str());
+  const string dsName = Form("dOS_%s", label.c_str());
   if (importDS) {
     if ( !(myws.data(dsName.c_str())) ) {
       int importID = importDataset(myws, inputWorkspace, cut, label);
@@ -72,21 +72,21 @@ bool fitCharmoniaCtauRecoModel( RooWorkspace& myws,             // Local Workspa
   setCtauRecoGlobalParameterRange(myws, parIni, cut, label);
   
   // Define pdf and plot names
-  string pdfName = Form("pdfCTAU_%s_%s", incJpsi?"JpsiNoPR":"Psi2SNoPR", (isPbPb?"PbPb":"PP"));
+  const string pdfName = Form("pdfCTAU_%s_%s", incJpsi?"JpsiNoPR":"Psi2SNoPR", (isPbPb?"PbPb":"PP"));
   string plotLabel = "";
   if (incJpsi || incPsi2S) { plotLabel = plotLabel + "_CtauReco";}// Form("_CtauReco_%s", parIni[Form("Model_CtauReco_%s", COLL.c_str())].c_str());        }
   if (wantPureSMC)         { plotLabel = plotLabel + "_NoBkg"; }
 
   // check if we have already done this fit. If yes, do nothing and return true.
-  string FileName = "";
-  setCtauRecoFileName(FileName, (inputFitDir=="" ? outputDir : inputFitDir), DSTAG, plotLabel, cut, isPbPb);
-  if (gSystem->AccessPathName(FileName.c_str()) && inputFitDir!="") {
-    cout << "[WARNING] User Input File : " << FileName << " was not found!" << endl;
+  string fileName = "";
+  setCtauRecoFileName(fileName, (inputFitDir=="" ? outputDir : inputFitDir), DSTAG, plotLabel, cut, isPbPb);
+  if (gSystem->AccessPathName(fileName.c_str()) && inputFitDir!="") {
+    cout << "[WARNING] User Input File : " << fileName << " was not found!" << endl;
     if (loadCtauRecoPdf) return false;
-    setCtauRecoFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
+    setCtauRecoFileName(fileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
   }
   bool found =  true; bool skipCtauRecoPdf = !doCtauRecoPdf;
-  found = found && isCtauRecoPdfAlreadyFound(myws, FileName, pdfName, loadCtauRecoPdf);
+  found = found && isCtauRecoPdfAlreadyFound(myws, fileName, pdfName, loadCtauRecoPdf);
   if (found) {
     if (loadCtauRecoPdf) {
       cout << "[INFO] This ctauReco Pdf was already made, so I'll load the pdf." << endl;
@@ -102,44 +102,41 @@ bool fitCharmoniaCtauRecoModel( RooWorkspace& myws,             // Local Workspa
     // Build the Ctau Reco Template
     if (!buildCharmoniaCtauRecoModel(myws, parIni, cut, dsName.c_str(), incJpsi, incPsi2S, binWidth, numEntries))  { return false; }
 
-    int nBins = min(int( round((cut.dMuon.ctauTrue.Max - cut.dMuon.ctauTrue.Min)/binWidth) ), 1000);
+    const int nBins = min(int( round((cut.dMuon.ctauTrue.Max - cut.dMuon.ctauTrue.Min)/binWidth) ), 1000);
     // Draw the ctau reco plot
     drawCtauRecoPlot(myws, outputDir, opt, cut, parIni, plotLabel, DSTAG, isPbPb, incJpsi, incPsi2S, wantPureSMC, setLogScale, incSS, nBins);
 
     // Save the results
-    string FileName = ""; setCtauRecoFileName(FileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
-    RooArgSet *newpars = myws.pdf(pdfName.c_str())->getParameters(*(myws.var("ctau")));
+    string fileName = ""; setCtauRecoFileName(fileName, outputDir, DSTAG, plotLabel, cut, isPbPb);
+    auto newpars = std::unique_ptr<RooArgSet>(myws.pdf(pdfName.c_str())->getParameters(*(myws.var("ctau"))));
     myws.saveSnapshot(Form("%s_parFit", pdfName.c_str()),*newpars,kTRUE);
-    saveWorkSpace(myws, Form("%sctauReco/%s/result", outputDir.c_str(), DSTAG.c_str()), FileName);
-
+    saveWorkSpace(myws, Form("%sctauReco/%s/result", outputDir.c_str(), DSTAG.c_str()), fileName);
   }
   
   return true;
 };
 
 
-void setCtauRecoGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, string label)
+void setCtauRecoGlobalParameterRange(RooWorkspace& myws, map<string, string>& parIni, struct KinCuts& cut, const string& label)
 {
-  Double_t ctauRecoMax; Double_t ctauRecoMin;
+  double ctauRecoMax , ctauRecoMin;
   myws.data(Form("dOS_%s", label.c_str()))->getRange(*myws.var("ctau"), ctauRecoMin, ctauRecoMax);
   ctauRecoMin -= 0.00001;  ctauRecoMax += 0.00001;
   if (ctauRecoMin<cut.dMuon.ctauTrue.Min) { ctauRecoMin = cut.dMuon.ctauTrue.Min; }
   if (ctauRecoMax>cut.dMuon.ctauTrue.Max) { ctauRecoMax = cut.dMuon.ctauTrue.Max; }
   cout << "[INFO] Range from data: ctauRecoMin: " << ctauRecoMin << "  ctauRecoMax: " << ctauRecoMax << endl;
   myws.var("ctau")->setRange("CtauRecoWindow", ctauRecoMin, ctauRecoMax);
-  parIni["CtauRecoRange_Cut"]   = Form("(%.12f <= ctau && ctau < %.12f)", ctauRecoMin, ctauRecoMax);
+  parIni["CtauRecoRange_Cut"] = Form("(%.12f <= ctau && ctau < %.12f)", ctauRecoMin, ctauRecoMax);
   cut.dMuon.ctauTrue.Max = (double)(ceil(ctauRecoMax));
   cut.dMuon.ctauTrue.Min = (double)(floor(ctauRecoMin));
-
   return;
 };
 
 
-void setCtauRecoFileName(string& FileName, string outputDir, string TAG, string plotLabel, struct KinCuts cut, bool isPbPb)
+void setCtauRecoFileName(string& fileName, const string& outputDir, string TAG, const string& plotLabel, const struct KinCuts& cut, const bool& isPbPb)
 {
   if (TAG.find("_")!=std::string::npos) TAG.erase(TAG.find("_"));
-  FileName = Form("%sctauReco/%s/result/FIT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), TAG.c_str(), "CTAURECO", TAG.c_str(), (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
-  
+  fileName = Form("%sctauReco/%s/result/FIT_%s_%s_%s%s_pt%.0f%.0f_rap%.0f%.0f_cent%d%d.root", outputDir.c_str(), TAG.c_str(), "CTAURECO", TAG.c_str(), (isPbPb?"PbPb":"PP"), plotLabel.c_str(), (cut.dMuon.Pt.Min*10.0), (cut.dMuon.Pt.Max*10.0), (cut.dMuon.AbsRap.Min*10.0), (cut.dMuon.AbsRap.Max*10.0), cut.Centrality.Start, cut.Centrality.End);
   return;
 };
  
@@ -151,32 +148,29 @@ void setCtauRecoCutParameters(struct KinCuts& cut)
     // Default ctau values, means that the user did not specify a ctau True range
     cut.dMuon.ctauTrue.Min = -10.0;
     cut.dMuon.ctauTrue.Max = 10.0;
-  }
-  
+  }  
   return;
 };
 
-bool isCtauRecoPdfAlreadyFound(RooWorkspace& myws, string FileName, string pdfName, bool loadCtauRecoPdf, string newPdfName)
+
+bool isCtauRecoPdfAlreadyFound(RooWorkspace& myws, const string& fileName, string pdfName, const bool loadCtauRecoPdf, const string newPdfName)
 {
-  if (gSystem->AccessPathName(FileName.c_str())) {
-    cout << "[INFO] Results not found for: " << FileName << endl;
+  if (gSystem->AccessPathName(fileName.c_str())) {
+    cout << "[INFO] Results not found for: " << fileName << endl;
     return false; // File was not found
   }
-  TFile *file = new TFile(FileName.c_str());
-  if (!file) return false;
-  
-  RooWorkspace *ws = (RooWorkspace*) file->Get("workspace");
+  auto file = std::unique_ptr<TFile>(new TFile(fileName.c_str()));
+  if (!file || !file->IsOpen() || file->IsZombie()) return false; 
+  auto ws = (RooWorkspace*) file->Get("workspace");
   if (!ws) {
-    cout << "[INFO] Workspace not found in: " << FileName << endl;
-    file->Close(); delete file;
+    cout << "[INFO] Workspace not found in: " << fileName << endl;
     return false;
   }
-  
   bool found = true;
   string dataName = pdfName;
   dataName.replace(dataName.find("pdf"), string("pdf").length(), "dh");
   if ( !(ws->pdf(pdfName.c_str())) ) {
-    cout << "[INFO] " << pdfName << " was not found in: " << FileName << endl; found = false;
+    cout << "[INFO] " << pdfName << " was not found in: " << fileName << endl; found = false;
   }
   if (loadCtauRecoPdf && found) {
     if (newPdfName!="") {
@@ -184,15 +178,12 @@ bool isCtauRecoPdfAlreadyFound(RooWorkspace& myws, string FileName, string pdfNa
       if (ws->data(dataName.c_str())) myws.import(*(ws->data(dataName.c_str())));
       pdfName = newPdfName;
     }
-    if (myws.pdf(pdfName.c_str()))   { cout << "[INFO] Pdf " << pdfName << " succesfully imported!" << endl;       }
-    else {  cout << "[ERROR] Pdf " << pdfName << " import failed!" << endl; found = false; }
+    if (myws.pdf(pdfName.c_str())) { cout << "[INFO] Pdf " << pdfName << " succesfully imported!" << endl; }
+    else { cout << "[ERROR] Pdf " << pdfName << " import failed!" << endl; found = false; }
     if (myws.data(dataName.c_str())) { cout << "[INFO] DataHist " << dataName << " succesfully imported!" << endl; }
   }
-
-  delete ws;
-  file->Close(); delete file;
-  
   return found;
 };
+
 
 #endif // #ifndef fitCharmoniaCtauRecoModel_C

@@ -3,16 +3,16 @@
 
 #include "Utilities/initClasses.h"
 
-void setCtauTrueDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries);
-bool defineCtauTrueResolModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb); 
-bool addSignalCtauTrueModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb);
+void setCtauTrueDefaultParameters ( map<string, string>& parIni, const bool& isPbPb, const double& numEntries );
+bool defineCtauTrueResolModel     ( RooWorkspace& ws, const string& object, const CtauModel& model, map<string,string> parIni, const bool& isPbPb ); 
+bool addSignalCtauTrueModel       ( RooWorkspace& ws, const string& object, const CtauModel& model, map<string,string> parIni, const bool& isPbPb );
 
 
-bool buildCharmoniaCtauTrueModel(RooWorkspace& ws, struct CharmModel model, map<string, string>  parIni, 
-                                 bool isPbPb,                 // Determine if we are working with PbPb (True) or PP (False)
-                                 bool incJpsi,                // Include Jpsi model
-                                 bool incPsi2S,                // Include Psi(2S) model
-                                 double  numEntries = 300000. // Number of entries in the dataset
+bool buildCharmoniaCtauTrueModel(RooWorkspace& ws, const struct CharmModel& model, map<string, string> parIni, 
+                                 const bool& isPbPb,      // Determine if we are working with PbPb (True) or PP (False)
+                                 const bool& incJpsi,     // Include Jpsi model
+                                 const bool& incPsi2S,    // Include Psi(2S) model
+                                 const double& numEntries // Number of entries in the dataset
                                  )
 {
 
@@ -31,8 +31,8 @@ bool buildCharmoniaCtauTrueModel(RooWorkspace& ws, struct CharmModel model, map<
   }
 
   // Total PDF
-  string pdfType = "pdfCTAUTRUE";
-  string pdfName = Form("%s_Tot_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"));
+  const string pdfType = "pdfCTAUTRUE";
+  const string pdfName = Form("%s_Tot_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"));
 
   RooArgList pdfList;
   if (incJpsi) { pdfList.add( *ws.pdf(Form("%sTot_JpsiNoPR_%s", pdfType.c_str(), (isPbPb?"PbPb":"PP"))) );  }
@@ -43,21 +43,21 @@ bool buildCharmoniaCtauTrueModel(RooWorkspace& ws, struct CharmModel model, map<
   if (!incJpsi && !incPsi2S) {
     cout << "[ERROR] User did not include any model, please fix your input settings!" << endl; return false;
   }
-  RooAbsPdf *themodel = new RooAddPdf(pdfName.c_str(), pdfName.c_str(), pdfList);
+  auto themodel = std::unique_ptr<RooAddPdf>(new RooAddPdf(pdfName.c_str(), pdfName.c_str(), pdfList));
   ws.import(*themodel);
   ws.pdf(pdfName.c_str())->setNormRange("CtauTrueWindow");
   
   setFixedVarsToContantVars(ws);
 
   // save the initial values of the model we've just created
-  RooArgSet* params = (RooArgSet*) themodel->getParameters(RooArgSet(*ws.var("ctauTrue")));
+  auto params = std::unique_ptr<RooArgSet>(themodel->getParameters(RooArgSet(*ws.var("ctauTrue"))));
   ws.saveSnapshot((pdfName+"_parIni").c_str(),*params,kTRUE);
   
   return true;
 };
 
 
-bool defineCtauTrueResolModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb) 
+bool defineCtauTrueResolModel(RooWorkspace& ws, const string& object, const CtauModel& model, map<string,string> parIni, const bool& isPbPb)
 { 
 
   if (ws.pdf(Form("pdfCTAUTRUERES_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) { 
@@ -108,7 +108,7 @@ bool defineCtauTrueResolModel(RooWorkspace& ws, string object, CtauModel model, 
 };
 
 
-bool addSignalCtauTrueModel(RooWorkspace& ws, string object, CtauModel model, map<string,string> parIni, bool isPbPb) 
+bool addSignalCtauTrueModel(RooWorkspace& ws, const string& object, const CtauModel& model, map<string,string> parIni, const bool& isPbPb)
 {
   if (ws.pdf(Form("pdfCTAUTRUE_%s_%s", object.c_str(), (isPbPb?"PbPb":"PP")))) { 
     cout << Form("[ERROR] The %s Signal Ctau Truth Model has already been implemented!", object.c_str()) << endl;
@@ -214,7 +214,7 @@ bool addSignalCtauTrueModel(RooWorkspace& ws, string object, CtauModel model, ma
 };
 
 
-void setCtauTrueDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries)
+void setCtauTrueDefaultParameters(map<string, string> &parIni, const bool& isPbPb, const double& numEntries)
 {
   
   cout << "[INFO] Setting user undefined initial parameters to their default values" << endl;

@@ -3,19 +3,19 @@
 
 #include "Utilities/initClasses.h"
 
-bool createCtauRecoTemplate(RooWorkspace& ws, string dsName, string pdfType, struct KinCuts cut, bool incJpsi, bool incPsi2S, double binWidth);
-void setCtauRecoDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries);
-bool ctauHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, string dsName, vector<double> range, bool useDataSet=true);
-TH1* rebinctauhist(TH1 *hist, double xmin=1e99, double xmax=-1e99);
+bool createCtauRecoTemplate ( RooWorkspace& ws, const string& dsName, const string& pdfType, const struct KinCuts& cut, const bool& incJpsi, const bool& incPsi2S, const double& binWidth );
+void setCtauRecoDefaultParameters ( map<string, string> &parIni, const bool& isPbPb, const double& numEntries );
+bool ctauHistToPdf ( RooWorkspace& ws, TH1D& hist, const string pdfName, const string& dsName, const vector<double>& range, const bool useDataSet=true );
+TH1* rebinctauhist ( const TH1D& hist, const double xmin=1e99, const double xmax=-1e99 );
 
 
-bool buildCharmoniaCtauRecoModel(RooWorkspace& ws, map<string, string>  parIni,
-                                 struct KinCuts cut,          // Variable containing all kinematic cuts
-                                 string dsName,               // Name of current input dataset
-                                 bool incJpsi,                // Include Jpsi model
-                                 bool incPsi2S,                // Include Psi(2S) model
-                                 double  binWidth,            // Bin width
-                                 double  numEntries = 300000. // Number of entries in the dataset
+bool buildCharmoniaCtauRecoModel(RooWorkspace& ws, map<string, string> parIni,
+                                 const struct KinCuts& cut, // Variable containing all kinematic cuts
+                                 const string& dsName,      // Name of current input dataset
+                                 const bool& incJpsi,       // Include Jpsi model
+                                 const bool& incPsi2S,      // Include Psi(2S) model
+                                 const double& binWidth,    // Bin width
+                                 const double& numEntries   // Number of entries in the dataset
                                  )
 {
   bool isPbPb = false;
@@ -26,8 +26,8 @@ bool buildCharmoniaCtauRecoModel(RooWorkspace& ws, map<string, string>  parIni,
 
   // C r e a t e   m o d e l
   // Total PDF
-  string pdfType = "pdfCTAU";
-  string pdfName = Form("%s_%s_%s", pdfType.c_str(), incJpsi?"JpsiNoPR":"Psi2SNoPR", (isPbPb?"PbPb":"PP"));
+  const string pdfType = "pdfCTAU";
+  const string pdfName = Form("%s_%s_%s", pdfType.c_str(), incJpsi?"JpsiNoPR":"Psi2SNoPR", (isPbPb?"PbPb":"PP"));
   
   if(!createCtauRecoTemplate(ws, dsName, pdfType, cut, incJpsi, incPsi2S, binWidth)) { cout << "[ERROR] Creating the Ctau Reco Template failed" << endl; return false; }
 
@@ -37,11 +37,9 @@ bool buildCharmoniaCtauRecoModel(RooWorkspace& ws, map<string, string>  parIni,
   if (!incJpsi && !incPsi2S) {
     cout << "[ERROR] User did not include any model, please fix your input settings!" << endl; return false;
   }
-  
-//  setFixedVarsToContantVars(ws);
 
   // save the initial values of the model we've just created
-  RooArgSet* params = (RooArgSet*) ((ws.pdf(pdfName.c_str()))->getParameters(RooArgSet(*ws.var("ctau"))));
+  auto params = std::unique_ptr<RooArgSet>(ws.pdf(pdfName.c_str())->getParameters(RooArgSet(*ws.var("ctau"))));
   
   ws.saveSnapshot((pdfName+"_parIni").c_str(),*params,kTRUE);
   
@@ -49,7 +47,7 @@ bool buildCharmoniaCtauRecoModel(RooWorkspace& ws, map<string, string>  parIni,
 };
 
 
-bool createCtauRecoTemplate(RooWorkspace& ws, string dsName, string pdfType, struct KinCuts cut, bool incJpsi, bool incPsi2S, double binWidth)
+bool createCtauRecoTemplate(RooWorkspace& ws, const string& dsName, const string& pdfType, const struct KinCuts& cut, const bool& incJpsi, const bool& incPsi2S, const double& binWidth)
 {
   string hType = pdfType;
   hType.replace(hType.find("pdf"), string("pdf").length(), "h");
@@ -61,18 +59,16 @@ bool createCtauRecoTemplate(RooWorkspace& ws, string dsName, string pdfType, str
   // create weighted data sets
   double ctauRecoMax = cut.dMuon.ctauTrue.Max, ctauRecoMin = cut.dMuon.ctauTrue.Min;
   vector<double> rangeErr; rangeErr.push_back(cut.dMuon.ctauTrue.Min); rangeErr.push_back(cut.dMuon.ctauTrue.Max);
-  int nBins = min(int( round((ctauRecoMax - ctauRecoMin)/binWidth) ), 1000);
+  const int nBins = min(int( round((ctauRecoMax - ctauRecoMin)/binWidth) ), 1000);
 
-  TH1D* hTot = (TH1D*)ws.data(dsName.c_str())->createHistogram(Form("%s_%s_%s", hType.c_str(), incJpsi?"JpsiNoPR":"Psi2SNoPR", (isPbPb?"PbPb":"PP")), *ws.var("ctau"), Binning(nBins, ctauRecoMin, ctauRecoMax));
-  RooDataHist* dataHist = new RooDataHist("tmp", "", *ws.var("ctau"), hTot); delete dataHist; // KEEP THIS LINE, IT IS A FIX FOR ROOKEYS
-  if ( !ctauHistToPdf(ws, hTot, Form("%s_%s_%s", pdfType.c_str(), incJpsi?"JpsiNoPR":"Psi2SNoPR", (isPbPb?"PbPb":"PP")), dsName, rangeErr)) { return false; }
-  hTot->Delete();
+  auto hTot = std::unique_ptr<TH1D>((TH1D*)ws.data(dsName.c_str())->createHistogram(Form("%s_%s_%s", hType.c_str(), incJpsi?"JpsiNoPR":"Psi2SNoPR", (isPbPb?"PbPb":"PP")), *ws.var("ctau"), Binning(nBins, ctauRecoMin, ctauRecoMax)));
+  if ( !ctauHistToPdf(ws, *hTot, Form("%s_%s_%s", pdfType.c_str(), incJpsi?"JpsiNoPR":"Psi2SNoPR", (isPbPb?"PbPb":"PP")), dsName, rangeErr)) { return false; }
   
   return true;
 };
 
 
-bool ctauHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, string dsName, vector<double> range, bool useDataSet)
+bool ctauHistToPdf(RooWorkspace& ws, TH1D& hist, const string pdfName, const string& dsName, const vector<double>& range, const bool useDataSet)
 {
   if (ws.pdf(pdfName.c_str())) {
     cout << Form("[INFO] The %s Template has already been created!", pdfName.c_str()) << endl;
@@ -84,46 +80,42 @@ bool ctauHistToPdf(RooWorkspace& ws, TH1D* hist, string pdfName, string dsName, 
   if (useDataSet) {
     cout << Form("[INFO] Implementing %s Template using RooKeysPdf", pdfName.c_str()) << endl;
     if (ws.data(dsName.c_str())==NULL) { cout << "[ERROR] DataSet " << dsName << " for Bkg Template was not found!" << endl; return false; }
-    RooKeysPdf* pdf = new RooKeysPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctau"), *((RooDataSet*)ws.data(dsName.c_str())), RooKeysPdf::MirrorAsymBoth);
+    auto pdf = std::unique_ptr<RooKeysPdf>(new RooKeysPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctau"), *((RooDataSet*)ws.data(dsName.c_str())), RooKeysPdf::MirrorAsymBoth));
     if (pdf==NULL) { cout << "[ERROR] RooKeysPdf " << pdfName << " is NULL!" << endl; return false; }
     pdf->setNormRange("CtauRecoWindow");
     ws.import(*pdf);
-    delete pdf;
   }
   else {
     // Cleaning the input histogram
     // 1) Remove the Under and Overflow bins
-    hist->ClearUnderflowAndOverflow();
+    hist.ClearUnderflowAndOverflow();
     // 2) Set negative bin content to zero
-    for (int i=0; i<=hist->GetNbinsX(); i++) { if (hist->GetBinContent(i)<0) { hist->SetBinContent(i, 0.0000000001); } }
+    for (int i=0; i<=hist.GetNbinsX(); i++) { if (hist.GetBinContent(i)<0) { hist.SetBinContent(i, 0.0000000001); } }
     // 3) Reduce the range of histogram and rebin it
-    TH1* hClean = rebinctauBkghist(ws, hist, range[0], range[1]);
+    auto hClean = std::unique_ptr<TH1>(rebinctauBkghist(ws, hist, range[0], range[1]));
     // 4) Create the RooDataHist for the Template
     cout << Form("[INFO] Implementing %s Template using RooDataHist", pdfName.c_str()) << endl;
     string dataName = pdfName;
     dataName.replace(dataName.find("pdf"), string("pdf").length(), "dh");
-    RooDataHist* dataHist = new RooDataHist(dataName.c_str(), "", *ws.var("ctau"), hClean);
+    auto dataHist = std::unique_ptr<RooDataHist>(new RooDataHist(dataName.c_str(), "", *ws.var("ctau"), hClean.get()));
     if (dataHist==NULL) { cout << "[ERROR] DataHist used to create " << pdfName << " failed!" << endl; return false; }
     if (dataHist->sumEntries()==0) { cout << "[ERROR] DataHist used to create " << pdfName << " is empty!" << endl; return false; }
     if (fabs(dataHist->sumEntries()-hClean->GetSumOfWeights())>0.001) { cout << "[ERROR] DataHist used to create " << pdfName << "  " << " is invalid!  " << endl; return false; }
     ws.import(*dataHist);
     // 4) Make the Template
-    RooHistPdf* pdf = new RooHistPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctau"), *((RooDataHist*)ws.data(dataName.c_str())));
+    auto pdf = std::unique_ptr<RooHistPdf>(new RooHistPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctau"), *((RooDataHist*)ws.data(dataName.c_str()))));
     if (pdf==NULL) { cout << "[ERROR] RooHistPdf " << pdfName << " is NULL!" << endl; return false; }
-    //RooKeysPdf* pdf = new RooKeysPdf(pdfName.c_str(), pdfName.c_str(), *ws.var("ctau"), *((RooDataSet*)ws.data(dataName.c_str())),RooKeysPdf::NoMirror, 0.4)
     pdf->setNormRange("CtauRecoWindow");
     ws.import(*pdf);
-    delete pdf;
-    delete dataHist;
   }
   
   return true;
 };
 
 
-TH1* rebinctauhist(TH1 *hist, double xmin, double xmax)
+TH1* rebinctauhist(const TH1D& hist, const double xmin, const double xmax)
 {
-  TH1 *hcopy = (TH1*) hist->Clone("hcopy");
+  auto hcopy = std::unique_ptr<TH1>((TH1*) hist.Clone("hcopy"));
   
   // range of the new hist
   int imin = hcopy->FindBin(xmin);
@@ -152,18 +144,14 @@ TH1* rebinctauhist(TH1 *hist, double xmin, double xmax)
   if (xmin < newbins[1]) newbins[0] = xmin;
   if (xmax > newbins[newbins.size()-2]) newbins[newbins.size()-1] = xmax;
   
-  TH1 *ans = hcopy->Rebin(newbins.size()-1,"hnew",newbins.data());
-  
-  delete hcopy;
+  TH1* ans = hcopy->Rebin(newbins.size()-1,"hnew",newbins.data());
   return ans;
 };
 
 
-void setCtauRecoDefaultParameters(map<string, string> &parIni, bool isPbPb, double numEntries)
+void setCtauRecoDefaultParameters(map<string, string> &parIni, const bool& isPbPb, const double& numEntries)
 {
-  
-  cout << "[INFO] Setting user undefined initial parameters to their default values" << endl;
-  
+  cout << "[INFO] Setting user undefined initial parameters to their default values" << endl; 
   // DEFAULT RANGE OF NUMBER OF EVENTS
   if (parIni.count(Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))]=="") { 
     parIni[Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.12f,%.12f,%.12f]", Form("N_Jpsi_%s", (isPbPb?"PbPb":"PP")), numEntries, 0.0, numEntries*2.0);
@@ -171,7 +159,6 @@ void setCtauRecoDefaultParameters(map<string, string> &parIni, bool isPbPb, doub
   if (parIni.count(Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")))==0 || parIni[Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))]=="") { 
     parIni[Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP"))]  = Form("%s[%.12f,%.12f,%.12f]", Form("N_Psi2S_%s", (isPbPb?"PbPb":"PP")), numEntries, 0.0, numEntries*2.0);
   }
-  
 };
 
 

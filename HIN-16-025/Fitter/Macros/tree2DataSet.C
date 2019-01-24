@@ -34,7 +34,7 @@ double  getCorr(Double_t rapidity, Double_t pt, Double_t mass, bool isPP);
 bool    readCorrection(const char* file);
 void    setCentralityMap(const char* file);
 
-bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string DSName, string OutputFileName, bool UpdateDS=false)
+bool tree2DataSet(RooWorkspace& workspace, const vector<string>& inputFileNames, const string& DSName, const string& outputFileName, const bool UpdateDS=false)
 {
   RooDataSet* dataOS = NULL; RooDataSet* dataSS = NULL; RooDataSet* dataOSNoBkg = NULL;
   
@@ -48,7 +48,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
   int CentFactor = 1;
   
   bool usePeriPD = false;
-  if (InputFileNames[0].find("HIOniaPeripheral30100")!=std::string::npos) {
+  if (inputFileNames[0].find("HIOniaPeripheral30100")!=std::string::npos) {
     cout << "[INFO] Working with Peripheral PbPb PD" << endl;
     usePeriPD = true;
     triggerIndex_PbPb = HI::HLT_HIL1DoubleMu0_2HF_Cent30100_v1;
@@ -58,30 +58,30 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
   if (isMC && isPbPb) applyWeight = true;
   
   bool isPureSDataset = false;
-  if (OutputFileName.find("_PureS")!=std::string::npos) isPureSDataset = true;
+  if (outputFileName.find("_PureS")!=std::string::npos) isPureSDataset = true;
 
   bool applyWeight_Corr = false;
-  if ( (OutputFileName.find("_AccEff")!=std::string::npos) || (OutputFileName.find("_lJpsiEff")!=std::string::npos) ) applyWeight_Corr = true;
+  if ( (outputFileName.find("_AccEff")!=std::string::npos) || (outputFileName.find("_lJpsiEff")!=std::string::npos) ) applyWeight_Corr = true;
   if(applyWeight == true) applyWeight_Corr = false;
   
   TString corrName = "";
   TString corrFileName = "";
-  if (OutputFileName.find("_AccEff")!=std::string::npos)
+  if (outputFileName.find("_AccEff")!=std::string::npos)
   {
     corrFileName = "correction_AccEff.root";
     corrName = "AccEff";
   }
-  else if (OutputFileName.find("_lJpsiEff")!=std::string::npos)
+  else if (outputFileName.find("_lJpsiEff")!=std::string::npos)
   {
     corrFileName = "correction_lJpsiEff.root";
     corrName = "lJpsiEff";
   }
   
-  bool createDS = ( gSystem->AccessPathName(OutputFileName.c_str()) || UpdateDS );
-  if ( !gSystem->AccessPathName(OutputFileName.c_str()) ) {
-    cout << "[INFO] Loading RooDataSet from " << OutputFileName << endl;
+  bool createDS = ( gSystem->AccessPathName(outputFileName.c_str()) || UpdateDS );
+  if ( !gSystem->AccessPathName(outputFileName.c_str()) ) {
+    cout << "[INFO] Loading RooDataSet from " << outputFileName << endl;
     
-    TFile *DBFile = TFile::Open(OutputFileName.c_str(),"READ");
+    TFile *DBFile = TFile::Open(outputFileName.c_str(),"READ");
     if (isMC && isPureSDataset) {
       dataOSNoBkg = (RooDataSet*)DBFile->Get(Form("dOS_%s_NoBkg", DSName.c_str()));
       if (checkDS(dataOSNoBkg, DSName)==false) { createDS = true; }
@@ -101,10 +101,10 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
 
   if (createDS) {
     cout << "[INFO] Creating " << (isPureSDataset ? "pure signal " : "") << "RooDataSet for " << DSName << endl;
-    TreeName = findMyTree(InputFileNames[0]); if(TreeName==""){return false;}
+    TreeName = findMyTree(inputFileNames[0]); if(TreeName==""){return false;}
     
     TChain* theTree = new TChain(TreeName.c_str(),"");
-    if(!getTChain(theTree, InputFileNames)){ return false; }     // Import files to TChain
+    if(!getTChain(theTree, inputFileNames)){ return false; }     // Import files to TChain
     initOniaTree(theTree);                                       // Initialize the Onia Tree
     iniBranch(theTree,isMC);                                     // Initialize the Branches
     
@@ -182,7 +182,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
         if (theTree->LoadTree(jentry)<0) break;
         if (theTree->GetTreeNumber()!=fCurrent) {
           fCurrent = theTree->GetTreeNumber();
-          cout << "[INFO] Processing Root File: " << InputFileNames[fCurrent] << endl;
+          cout << "[INFO] Processing Root File: " << inputFileNames[fCurrent] << endl;
         }
         
         theTree->GetEntry(jentry);
@@ -201,7 +201,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
       if (theTree->LoadTree(jentry)<0) break;
       if (theTree->GetTreeNumber()!=fCurrent) {
         fCurrent = theTree->GetTreeNumber();
-        cout << "[INFO] Processing Root File: " << InputFileNames[fCurrent] << endl;
+        cout << "[INFO] Processing Root File: " << inputFileNames[fCurrent] << endl;
       }
       Reco_QQ_4mom->Clear();
       Reco_QQ_mumi_4mom->Clear();
@@ -270,7 +270,7 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
     theTree->Reset(); delete theTree;
     
     // Save all the datasets
-    TFile *DBFile = TFile::Open(OutputFileName.c_str(),"RECREATE");
+    TFile *DBFile = TFile::Open(outputFileName.c_str(),"RECREATE");
     DBFile->cd();
     if (isMC && isPureSDataset) dataOSNoBkg->Write(Form("dOS_%s_NoBkg", DSName.c_str()));
     else if (applyWeight_Corr) dataOS->Write(Form("dOS_%s_%s", DSName.c_str(),corrName.Data()));
@@ -286,18 +286,18 @@ bool tree2DataSet(RooWorkspace& Workspace, vector<string> InputFileNames, string
   if (isMC && isPureSDataset)
   {
     if (!dataOSNoBkg) { cout << "[ERROR] " << DSName << "_NoBkg was not found" << endl; return false; }
-    Workspace.import(*dataOSNoBkg);
+    workspace.import(*dataOSNoBkg);
   }
   else if (applyWeight_Corr)
   {
     if(!dataOS) { cout << "[ERROR] " << DSName << "_" << corrName.Data() << " was not found" << endl; return false; }
-    Workspace.import(*dataOS);
+    workspace.import(*dataOS);
   }
   else
   {
     if(!dataOS || !dataSS) { cout << "[ERROR] " << DSName << " was not found" << endl; return false; }
-    Workspace.import(*dataOS);
-    Workspace.import(*dataSS);
+    workspace.import(*dataOS);
+    workspace.import(*dataSS);
   }
   
   // delete the local datasets
