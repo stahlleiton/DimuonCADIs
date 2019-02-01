@@ -86,14 +86,14 @@ void drawMassFrom2DPlot(RooWorkspace& myws,    // Local workspace
     }
     if (incPsi2S) {
       if ( myws.pdf(Form("pdfCTAUMASS_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))) ) {
-        myws.pdf(pdfTotName.c_str())->plotOn(frame.get(),Name("PSI2SPR"),Components(RooArgSet(*myws.pdf(Form("pdfCTAUMASS_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))))),
+        myws.pdf(pdfTotName.c_str())->plotOn(frame.get(),Name("PSI2SPR"),Components(RooArgSet(*myws.pdf(Form("pdfCTAUMASS_Psi2SPR_%s", (isPbPb?"PbPb":"PP"))), *myws.pdf(Form("pdfCTAUMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))))),
                                              ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(dsOSName.c_str()), kTRUE),
                                              Normalization(normDSTot, RooAbsReal::NumEvent),
                                              LineColor(kRed+3), LineStyle(1), Precision(1e-4), NumCPU(32)
                                              );
       }
       if ( myws.pdf(Form("pdfCTAUMASS_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))) ) {
-        myws.pdf(pdfTotName.c_str())->plotOn(frame.get(),Name("PSI2SNOPR"),Components(RooArgSet(*myws.pdf(Form("pdfCTAUMASS_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))))),
+        myws.pdf(pdfTotName.c_str())->plotOn(frame.get(),Name("PSI2SNOPR"),Components(RooArgSet(*myws.pdf(Form("pdfCTAUMASS_Psi2SNoPR_%s", (isPbPb?"PbPb":"PP"))), *myws.pdf(Form("pdfCTAUMASS_Bkg_%s", (isPbPb?"PbPb":"PP"))))),
                                              ProjWData(RooArgSet(*myws.var("ctauErr")), *myws.data(dsOSName.c_str()), kTRUE),
                                              Normalization(normDSTot, RooAbsReal::NumEvent),
                                              LineColor(kGreen+3), LineStyle(1), Precision(1e-4), NumCPU(32)

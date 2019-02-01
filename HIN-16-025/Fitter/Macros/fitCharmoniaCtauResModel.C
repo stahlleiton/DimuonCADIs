@@ -230,7 +230,7 @@ void setCtauResGlobalParameterRange(RooWorkspace& myws, map<string, string>& par
   }
   cout << "[INFO] Selected range: ctauNResMin: " << ctauNResMin << "  ctauNResMax: " << ctauNResMax << endl;
   myws.var("ctauNRes")->setRange("CtauNResWindow", ctauNResMin, ctauNResMax);
-  parIni.at("CtauNResRange_Cut") = Form("(%.12f <= ctauNRes && ctauNRes <= %.12f)", ctauNResMin, ctauNResMax);
+  parIni["CtauNResRange_Cut"] = Form("(%.12f <= ctauNRes && ctauNRes <= %.12f)", ctauNResMin, ctauNResMax);
   cut.dMuon.ctauNRes.Max = ctauNResMax;
   cut.dMuon.ctauNRes.Min = ctauNResMin;
   myws.var("ctauNRes")->setRange("FullWindow", cut.dMuon.ctauNRes.Min, cut.dMuon.ctauNRes.Max);
@@ -239,7 +239,7 @@ void setCtauResGlobalParameterRange(RooWorkspace& myws, map<string, string>& par
   ctauResMin -= 0.00001;  ctauResMax += 0.00001;
   cout << "[INFO] Range from data: ctauResMin: " << ctauResMin << "  ctauResMax: " << ctauResMax << endl;
   myws.var("ctauRes")->setRange("CtauResWindow", ctauResMin, ctauResMax);
-  parIni.at("CtauResRange_Cut")  = Form("(%.12f <= ctauRes && ctauRes <= %.12f)", ctauResMin, ctauResMax);
+  parIni["CtauResRange_Cut"]  = Form("(%.12f <= ctauRes && ctauRes <= %.12f)", ctauResMin, ctauResMax);
   cut.dMuon.ctauRes.Max = ctauResMax;
   cut.dMuon.ctauRes.Min = ctauResMin;
   myws.var("ctauRes")->setRange("FullWindow", cut.dMuon.ctauRes.Min, cut.dMuon.ctauRes.Max);

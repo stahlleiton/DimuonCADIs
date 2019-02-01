@@ -246,8 +246,8 @@ void fitter(
     {"MASS", 
      {
        {"BKG",   ((fitMass  && incBkg) || (fitCtau || doCtauErrPDF || (fitRes && fitData)))}, 
-       {"JPSI",  (((fitMass && incJpsi) || (fitCtau || doCtauErrPDF || (fitRes && fitData))) && incJpsi) || (fitCtau && incBkg)},
-       {"PSI2S", (((fitMass && incPsi2S) || (fitCtau || doCtauErrPDF || (fitRes && fitData))) && incPsi2S) || (fitCtau && incBkg)}
+       {"JPSI",  (((fitMass && incJpsi) || (fitCtau || doCtauErrPDF || (fitRes && fitData))) && incJpsi) || (fitCtau && incBkg && doJpsi)},
+       {"PSI2S", (((fitMass && incPsi2S) || (fitCtau || doCtauErrPDF || (fitRes && fitData))) && incPsi2S) || (fitCtau && incBkg && doPsi2S)}
      }
     },
     {"CTAU",
