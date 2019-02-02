@@ -374,19 +374,23 @@ bool isFitAlreadyFound(const RooArgSet& newpars, const string& fileName, const s
     std::cout << "[INFO] FileName: " << fileName << " was not found" << std::endl;
     return false; // File was not found
   }
-  auto file = std::unique_ptr<TFile>(TFile::Open(fileName.c_str()));
-  if (!file || !file->IsOpen() || file->IsZombie()) return false;
+  TFile* file = new TFile(fileName.c_str());
+  if (!file) return false;
+  if (!file->IsOpen() || file->IsZombie()) { delete file; return false; }
   auto ws = (RooWorkspace*)file->Get("workspace");
   if (!ws) {
     std::cout << "[INFO] Workspace was not found" << std::endl;
+    if (file) { file->Close(); delete file; }
     return false;
   }
   const auto params = ws->getSnapshot(Form("%s_parIni", pdfName.c_str()));
   if (!params) {
     std::cout << "[INFO] Snapshot of initial parameters was not found!" << std::endl;
+    if (file) { file->Close(); delete file; }
     return false;
   }
   const bool result = compareSnapshots(newpars, *params);
+  if (file) { file->Close(); delete file; }
   return result;
 };
 
@@ -397,11 +401,13 @@ bool loadPreviousFitResult(RooWorkspace& myws, const string& fileName, string DS
     cout << "[INFO] File " << fileName << " was not found!" << endl;
     return false; // File was not found
   }
-  auto file = std::unique_ptr<TFile>(TFile::Open(fileName.c_str()));
-  if (!file || !file->IsOpen() || file->IsZombie()) return false;
+  TFile* file = new TFile(fileName.c_str());
+  if (!file) return false;
+  if (!file->IsOpen() || file->IsZombie()) { delete file; return false; }
   auto ws = (RooWorkspace*)file->Get("workspace");
   if (!ws) {
     cout << "[INFO] Workspace was not found in: " << fileName << endl;
+    if (file) { file->Close(); delete file; }
     return false;
   }
   if (DSTAG.find("_")!=std::string::npos) DSTAG.erase(DSTAG.find("_"));
@@ -498,6 +504,7 @@ bool loadPreviousFitResult(RooWorkspace& myws, const string& fileName, string DS
       par->setAttribAll("Constant", kFALSE);
     }
   }
+  if (file) { file->Close(); delete file; }
   return true;
 };
 
@@ -508,12 +515,13 @@ bool loadCtauErrRange(const string& fileName, struct KinCuts& cut)
     cout << "[ERROR] File " << fileName << " was not found!" << endl;
     return false; // File was not found
   }
-  auto file = std::unique_ptr<TFile>(TFile::Open(fileName.c_str()));
-  if (!file || !file->IsOpen() || file->IsZombie()) return false;
+  TFile* file = new TFile(fileName.c_str());
+  if (!file) return false;
+  if (!file->IsOpen() || file->IsZombie()) { delete file; return false; }
   auto ws = (RooWorkspace*)file->Get("workspace");
   if (!ws) {
     cout << "[ERROR] Workspace was not found in: " << fileName << endl;
-    file->Close();
+    if (file) { file->Close(); delete file; }
     return false;
   }
   if (ws->var("ctauErr")) {
@@ -521,8 +529,10 @@ bool loadCtauErrRange(const string& fileName, struct KinCuts& cut)
     cut.dMuon.ctauErr.Max = ws->var("ctauErr")->getMax();
   } else {
     cout << Form("[ERROR] ctauErr was not found!") << endl;
+    if (file) { file->Close(); delete file; }
     return false;
   }
+  if (file) { file->Close(); delete file; }
   return true;
 };
 
@@ -533,11 +543,13 @@ bool loadYields(RooWorkspace& myws, const string& fileName, const string& dsName
     cout << "[INFO] File " << fileName << " was not found!" << endl;
     return false; // File was not found
   }
-  auto file = std::unique_ptr<TFile>(TFile::Open(fileName.c_str()));
-  if (!file || !file->IsOpen() || file->IsZombie()) return false;
+  TFile* file = new TFile(fileName.c_str());
+  if (!file) return false;
+  if (!file->IsOpen() || file->IsZombie()) { delete file; return false; }
   auto ws = (RooWorkspace*)file->Get("workspace");
   if (!ws) {
     cout << "[INFO] Workspace was not found in: " << fileName << endl;
+    if (file) { file->Close(); delete file; }
     return false;
   }
   bool compDS = true;
@@ -547,6 +559,7 @@ bool loadYields(RooWorkspace& myws, const string& fileName, const string& dsName
       const auto params = ws->getSnapshot(Form("%s_parIni", pdfName.c_str()));
       if (!params) {
         cout << "[INFO] Snapshot " << pdfName << "_parIni was not found!" << endl;
+        if (file) { file->Close(); delete file; }
         return false;
       }
       std::vector< std::string > objs = {"Bkg", "Jpsi", "Psi2S"};
@@ -568,6 +581,7 @@ bool loadYields(RooWorkspace& myws, const string& fileName, const string& dsName
     else { cout << "[INFO] RooDatasets used to extract the Yields are not compatible!" << endl; compDS = false; }
   }
   else { cout << "[INFO] RooDatasets used to extract the Yields were not found!" << endl; compDS = false; }
+  if (file) { file->Close(); delete file; }
   return compDS;
 };
 
@@ -578,11 +592,13 @@ bool loadSPlotDS(RooWorkspace& myws, const string& fileName, const string& dsNam
     cout << "[ERROR] File " << fileName << " was not found!" << endl;
     return false; // File was not found
   }
-  auto file = std::unique_ptr<TFile>(TFile::Open(fileName.c_str()));
-  if (!file || !file->IsOpen() || file->IsZombie()) return false;
+  TFile* file = new TFile(fileName.c_str());
+  if (!file) return false;
+  if (!file->IsOpen() || file->IsZombie()) { delete file; return false; }
   auto ws = (RooWorkspace*)file->Get("workspace");
   if (!ws) {
     cout << "[ERROR] Workspace was not found in: " << fileName << endl;
+    if (file) { file->Close(); delete file; }
     return false;
   }
   if (ws->data(dsName.c_str())) {
@@ -591,8 +607,10 @@ bool loadSPlotDS(RooWorkspace& myws, const string& fileName, const string& dsNam
     else { cout << "[ERROR] Importing RooDataset " << (dsName+"_INPUT") << " failed!" << endl; }
   } else {
     cout << "[ERROR] RooDataset " << dsName << " was not found!" << endl;
+    if (file) { file->Close(); delete file; }
     return false;
   }
+  if (file) { file->Close(); delete file; }
   return true;
 };
 
@@ -829,11 +847,13 @@ bool isSPlotDSAlreadyFound(RooWorkspace& myws, const string& fileName, const vec
     cout << "[INFO] Results not found for: " << fileName << endl;
     return false; // File was not found
   }
-  auto file = std::unique_ptr<TFile>(TFile::Open(fileName.c_str()));
-  if (!file || !file->IsOpen() || file->IsZombie()) return false;
+  TFile* file = new TFile(fileName.c_str());
+  if (!file) return false;
+  if (!file->IsOpen() || file->IsZombie()) { delete file; return false; }
   auto ws = (RooWorkspace*)file->Get("workspace");
   if (!ws) {
     cout << "[INFO] Workspace not found in: " << fileName << endl;
+    if (file) { file->Close(); delete file; }
     return false;
   }
   bool found = true;
@@ -848,6 +868,7 @@ bool isSPlotDSAlreadyFound(RooWorkspace& myws, const string& fileName, const vec
       else {  cout << "[ERROR] sPlot DataSet " << dsName << " import failed!" << endl; found = false; }
     }
   }
+  if (file) { file->Close(); delete file; }
   return found;
 };
 
@@ -858,11 +879,13 @@ bool isPdfAlreadyFound(RooWorkspace& myws, const string& fileName, const vector<
     cout << "[INFO] Results not found for: " << fileName << endl;
     return false; // File was not found
   }
-  auto file = std::unique_ptr<TFile>(TFile::Open(fileName.c_str()));
-  if (!file || !file->IsOpen() || file->IsZombie()) return false;
-  auto ws = (RooWorkspace*) file->Get("workspace");
+  TFile* file = new TFile(fileName.c_str());
+  if (!file) return false;
+  if (!file->IsOpen() || file->IsZombie()) { delete file; return false; }
+  RooWorkspace* ws = (RooWorkspace*) file->Get("workspace");
   if (!ws) {
     cout << "[INFO] Workspace not found in: " << fileName << endl;
+    if (file) { file->Close(); delete file; }
     return false;
   }
   bool found = true;
@@ -874,13 +897,14 @@ bool isPdfAlreadyFound(RooWorkspace& myws, const string& fileName, const vector<
       cout << "[INFO] " << pdfName << " was not found in: " << fileName << endl; found = false;
     }
     if (loadCtauErrPdf && found) {
-      myws.import(*(ws->pdf(pdfName.c_str())));
-      if (myws.pdf(pdfName.c_str()))   { cout << "[INFO] Pdf " << pdfName << " succesfully imported!" << endl;       }
-      else { cout << "[ERROR] Pdf " << pdfName << " import failed!" << endl; found = false; }
       if (ws->data(dataName.c_str())) { myws.import(*(ws->data(dataName.c_str()))); }
       if (myws.data(dataName.c_str())) { cout << "[INFO] DataHist " << dataName << " succesfully imported!" << endl; }
+      if (myws.data(dataName.c_str())) myws.import(*(ws->pdf(pdfName.c_str())));
+      if (myws.pdf(pdfName.c_str())) { cout << "[INFO] Pdf " << pdfName << " succesfully imported!" << endl;       }
+      else { cout << "[ERROR] Pdf " << pdfName << " import failed!" << endl; found = false; }
     }
   }
+  if (file) { file->Close(); delete file; }
   return found;
 };
 

@@ -28,10 +28,10 @@ void drawCtauMass2DPlot(RooWorkspace& myws,          // Local workspace
   const double maxRangeMass = cut.dMuon.M.Max;
   const int nBinsMass = min(int( round((maxRangeMass - minRangeMass)/binWidth.at("MASS")) ), 1000);
   const string pdfTotName  = Form("pdfCTAUMASS_Tot_%s", (isPbPb?"PbPb":"PP"));
-  auto hPDF = std::unique_ptr<TH1>(((RooAbsReal*)myws.pdf(pdfTotName.c_str()))->createHistogram("PDF 2D",*myws.var("ctau"), Extended(kTRUE), Binning(nBinsCtau, minRangeCtau, maxRangeCtau), YVar(*myws.var("invMass"), Binning(nBinsMass, minRangeMass, maxRangeMass))));
+  auto hPDF = ((RooAbsReal*)myws.pdf(pdfTotName.c_str()))->createHistogram("PDF 2D",*myws.var("ctau"), Extended(kTRUE), Binning(nBinsCtau, minRangeCtau, maxRangeCtau), YVar(*myws.var("invMass"), Binning(nBinsMass, minRangeMass, maxRangeMass)));
 
   const string dsOSName = Form("dOS_%s_%s", DSTAG.c_str(), (isPbPb?"PbPb":"PP"));
-  auto hDATA = std::unique_ptr<TH1>(((RooDataSet*)myws.data(dsOSName.c_str()))->createHistogram("DATA 2D",*myws.var("ctau"), Binning(nBinsCtau, minRangeCtau, maxRangeCtau), YVar(*myws.var("invMass"), Binning(nBinsMass, minRangeMass, maxRangeMass))));
+  auto hDATA = ((RooDataSet*)myws.data(dsOSName.c_str()))->createHistogram("DATA 2D",*myws.var("ctau"), Binning(nBinsCtau, minRangeCtau, maxRangeCtau), YVar(*myws.var("invMass"), Binning(nBinsMass, minRangeMass, maxRangeMass)));
   
   // Create the main canvas
   auto cFigPDF = std::unique_ptr<TCanvas>(new TCanvas(Form("cCtauMassPDF_%s", (isPbPb?"PbPb":"PP")), "cCtauMassPDF",2000,2000));
@@ -90,6 +90,8 @@ void drawCtauMass2DPlot(RooWorkspace& myws,          // Local workspace
 
   cFigDATA->Clear();
   cFigDATA->Close();
+  if (hPDF) delete hPDF;
+  if (hDATA) delete hDATA;
 };
 
 
